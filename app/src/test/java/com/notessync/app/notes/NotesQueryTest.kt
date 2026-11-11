@@ -89,8 +89,18 @@ class NotesQueryTest {
         val q = NotesViewModel.buildQuery("100%_\\", NoteFilter.All, NoteSort.BY_DATE)
         assertTrue(q.sql.contains("ESCAPE '\\'"))
         // %, _ и \ экранированы обратным слэшем — ищется литеральная строка.
-        val arg = q.args?.get(0) as String
-        assertEquals("100\\%\\_\\\\", arg)
+        val bound = mutableMapOf<Int, String>()
+        q.bindTo(object : androidx.sqlite.db.SupportSQLiteProgram {
+            override fun bindString(index: Int, value: String) { bound[index] = value }
+            override fun bindNull(index: Int) = Unit
+            override fun bindLong(index: Int, value: Long) = Unit
+            override fun bindDouble(index: Int, value: Double) = Unit
+            override fun bindBlob(index: Int, value: ByteArray) = Unit
+            override fun clearBindings() = Unit
+            override fun close() = Unit
+        })
+        assertEquals("100\\%\\_\\\\", bound[1])
+        assertEquals(bound[1], bound[2])
     }
 
     @Test
