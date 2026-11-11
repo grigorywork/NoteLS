@@ -3,6 +3,8 @@ package com.notessync.app.widget
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,17 +28,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.entity.NoteEntity
-import com.notessync.app.reminders.ReminderScheduler
-import com.notessync.app.ui.tasks.TaskCompletion
 import com.notessync.app.ui.theme.GlassPanelShape
 import com.notessync.app.ui.theme.LocalGlassTheme
 import com.notessync.app.ui.theme.NoteSyncTheme
 import com.notessync.app.ui.theme.glassBorder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -84,23 +87,30 @@ private fun QuickNoteContent(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val dao = remember { AppDatabase.get(context).noteDao() }
-    val date = remember { LocalDate.ofEpochDay(dayKey) }
+    val date = remember(dayKey) { LocalDate.ofEpochDay(dayKey) }
     var text by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    val dayNotes by remember {
+    val dayNotes by remember(dao, dayKey) {
         dao.observeByDay(dayKey)
     }.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    fun toggleDayTask(note: NoteEntity) {
-        if (!note.isTask) return
+    var pendingIds by remember { mutableStateOf(emptySet<Long>()) }
+    var taskError by remember { mutableStateOf<String?>(null) }
+
+    fun setDayTaskCompleted(note: NoteEntity, completed: Boolean) {
+        if (note.id in pendingIds) return
+        pendingIds = pendingIds + note.id
+        taskError = null
         scope.launch {
-            val updated = TaskCompletion.toggle(note)
-            dao.update(updated)
-            if (updated.isCompleted) {
-                ReminderScheduler.cancel(context, note.id)
-                ReminderScheduler.cancelTimer(context, note.id)
+            try {
+                DayTaskActions.setCompleted(context, note.id, dayKey, completed)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (_: Exception) {
+                taskError = "Не удалось сохранить отметку. Попробуйте ещё раз."
+            } finally {
+                pendingIds = pendingIds - note.id
             }
-            CalendarWidgetProvider.refreshAll(context)
         }
     }
 
@@ -162,43 +172,57 @@ private fun QuickNoteContent(
                 // Этап 36: стиль выполненных задач настраивается в меню ⋮ виджета.
                 val settings by com.notessync.app.settings.SettingsRepository.get(context)
                     .state.collectAsStateWithLifecycle()
+                taskError?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall)
+                }
                 LazyColumn(modifier = Modifier.height(160.dp)) {
                     items(dayNotes, key = { it.id }) { note ->
-                        val green = com.notessync.app.settings.WidgetCompletedStyle.GREEN
-                        val strike = com.notessync.app.settings.WidgetCompletedStyle.STRIKE
-                        val both = com.notessync.app.settings.WidgetCompletedStyle.BOTH
                         val style = settings.widgetCompletedStyle
+                        val checked = note.isTask && note.isCompleted
+                        val enabled = note.id !in pendingIds
+                        val title = note.title.ifBlank { "Без названия" }
                         Row(
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            if (note.isTask) {
-                                androidx.compose.material3.Checkbox(
-                                    checked = note.isCompleted,
-                                    onCheckedChange = { toggleDayTask(note) },
-                                    colors = androidx.compose.material3.CheckboxDefaults.colors(
-                                        checkedColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
-                                        uncheckedColor = com.notessync.app.ui.tasks
-                                            .taskColorOption(note.taskColor).accent
-                                    )
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .toggleable(
+                                    value = checked,
+                                    enabled = enabled,
+                                    role = Role.Checkbox,
+                                    onValueChange = { setDayTaskCompleted(note, it) }
                                 )
-                            }
+                                .semantics {
+                                    contentDescription = if (note.isTask) title
+                                    else "Отметить как выполненную задачу: $title"
+                                }
+                        ) {
+                            androidx.compose.material3.Checkbox(
+                                checked = checked,
+                                onCheckedChange = null,
+                                enabled = enabled,
+                                modifier = Modifier.padding(end = 12.dp),
+                                colors = androidx.compose.material3.CheckboxDefaults.colors(
+                                    checkedColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
+                                    uncheckedColor = com.notessync.app.ui.tasks
+                                        .taskColorOption(note.taskColor).accent
+                                )
+                            )
                             Text(
-                                text = note.title.ifBlank { "Без названия" },
+                                text = title,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (note.isCompleted && (style == green || style == both)) {
+                                color = if (checked && style.usesGreen) {
                                     androidx.compose.ui.graphics.Color(0xFF4CAF50)
                                 } else {
                                     androidx.compose.ui.graphics.Color.Unspecified
                                 },
                                 textDecoration = if (
-                                    note.isCompleted && (style == strike || style == both)
+                                    checked && style.usesStrike
                                 ) {
                                     androidx.compose.ui.text.style.TextDecoration.LineThrough
                                 } else {
                                     androidx.compose.ui.text.style.TextDecoration.None
                                 },
-                                modifier = Modifier.padding(vertical = 4.dp)
+                                modifier = Modifier.weight(1f).padding(vertical = 4.dp)
                             )
                         }
                     }
@@ -207,3 +231,4 @@ private fun QuickNoteContent(
         }
     }
 }
+
