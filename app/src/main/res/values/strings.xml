@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">NoteLS</string>
+    <string name="widget_description">Календарь: тап по дате — быстрая заметка этого дня</string>
+    <string name="widget_previous_symbol" translatable="false">‹</string>
+    <string name="widget_next_symbol" translatable="false">›</string>
+    <string name="widget_previous_month">Предыдущий месяц</string>
+    <string name="widget_next_month">Следующий месяц</string>
+    <string name="widget_menu_symbol" translatable="false">⋮</string>
+    <string name="widget_menu">Настройки виджета</string>
+    <string name="weekday_monday_short">Пн</string>
+    <string name="weekday_tuesday_short">Вт</string>
+    <string name="weekday_wednesday_short">Ср</string>
+    <string name="weekday_thursday_short">Чт</string>
+    <string name="weekday_friday_short">Пт</string>
+    <string name="weekday_saturday_short">Сб</string>
+    <string name="weekday_sunday_short">Вс</string>
+</resources>

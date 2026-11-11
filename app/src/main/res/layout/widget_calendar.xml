@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Полноэкранный виджет: фон с регулируемой прозрачностью + сетка календаря. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_prev"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="@string/widget_previous_symbol"
+                android:textSize="24sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="@string/widget_previous_month" />
+
+            <TextView
+                android:id="@+id/widget_month_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/widget_next"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="@string/widget_next_symbol"
+                android:textSize="24sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="@string/widget_next_month" />
+
+            <!-- Этап 28: прозрачность и настройки убраны в меню «⋮». -->
+            <TextView
+                android:id="@+id/widget_menu_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="@string/widget_menu_symbol"
+                android:textSize="22sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="@string/widget_menu" />
+        </LinearLayout>
+
+        <!-- Дни недели: понедельник первый. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_monday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_tuesday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_wednesday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_thursday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_friday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_saturday_short" />
+            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_sunday_short" />
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/calendar_grid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:numColumns="7"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="2dp"
+            android:horizontalSpacing="2dp"
+            android:gravity="center" />
+    </LinearLayout>
+</FrameLayout>
