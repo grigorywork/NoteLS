@@ -22,4 +22,13 @@
 
 ## Проверки
 
-Результаты сборки, тестов и подписи будут добавлены после выполнения проверок.
+- Windows / JDK 17 / Gradle 8.11.1 / Android SDK 35: assembleDebug — BUILD SUCCESSFUL.
+- 182 локальных JVM-теста: 0 failures, 0 errors, 0 skipped. Три интеграционных теста Room/SQLite прошли в GitHub Actions, включая повторный цикл с фото и откат при искусственном отказе вставки.
+- lintDebug: успешно, 0 ошибок, 13 предупреждений (включая доступность новых версий библиотек).
+- APK: versionName 1.10.1, versionCode 24, пакет com.notessync.app, 47 011 049 байт.
+- Подпись apksigner проверена; SHA-256 сертификата точно совпадает с APK 1.10.0: b1d86d94fef905a42438e1831e0f277f74598b674af03ecd6f597db016741052.
+- SHA-256 APK: 529cf4481ed7c2b811411ee2f09343712e96c6aa1fcf4ab90eb753a6ae120f26.
+- Проверены ZIP CRC, наличие 20 TTF и 10 OFL-текстов в APK. Новых разрешений для фоновой работы нет.
+- Выпуск: https://github.com/grigorywork/NoteLS/releases/tag/v1.10.1 .
+- GitHub Actions на коммите a0c8f211bf302948d8df9747610e79597df8ea0c: testDebugUnitTest, lintDebug и assembleDebug — success: https://github.com/grigorywork/NoteLS/actions/runs/43027450964.
+- Этап 40: ПРОЙДЕН по сборке, lint и автоматическим тестам. Физическое устройство и измерение батареи не заявляются как выполненные.
