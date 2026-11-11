@@ -14,6 +14,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.notessync.app.data.attachments.PhotoAttachmentStore
 import com.notessync.app.data.attachments.PhotoTooLargeException
+import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
 import com.notessync.app.data.local.entity.NoteEntity
@@ -227,6 +228,8 @@ class NoteEditorViewModel(
             _noteIdFlow.value = newId
         }
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
+        // Этап 39: автобэкап «после каждой заметки» / по истечении интервала.
+        BackupManager.autoBackupIfDue(app, afterNote = true)
     }
 
     /**

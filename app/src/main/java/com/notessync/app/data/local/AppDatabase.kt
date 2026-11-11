@@ -136,5 +136,14 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_9_10
                     ).build().also { instance = it }
             }
+
+        // Этап 39: закрыть и сбросить синглтон перед подменой файла БД
+        // при восстановлении бэкапа. Следующий get() откроет базу заново.
+        fun closeInstance() {
+            synchronized(this) {
+                instance?.close()
+                instance = null
+            }
+        }
     }
 }

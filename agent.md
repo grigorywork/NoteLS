@@ -642,3 +642,54 @@
 - [ ] На физическом устройстве: внешний вид каждой палитры в светлой и тёмной теме.
 
 **Статус: ПРОЙДЕН по коду, сборке, lint и автотестам (2026-11-11). Готовность этапа: 100%.** APK: NoteLS-1.3.2-stage29-accents-debug.apk.
+
+---
+
+## Этап 38 (1.9.0) — Цитаты + популярные шрифты — КОД ГОТОВ, APK НЕ СОБРАН
+Дата: 2026-11-11. Сборка APK не выполнена из-за сбойного окружения песочницы
+(два перезапуска, OOM при dex, глюки сетевого диска с кэшем Gradle). Код полный
+и самодостаточный — нужна только обычная сборка: `./gradlew :app:assembleDebug`
+с Android SDK 35 + JDK 17 (полный JDK, не headless — нужен jlink).
+
+### Что добавлено
+1. **Цитаты в боковом меню** (пункт «Цитаты», иконка FormatQuote, после «Аналитика»):
+   - `ui/quotes/QuotesData.kt` — 71 цитата, 7 авторов: Эпикур, Шопенгауэр, Сенека,
+     Диоген, Платон, Пелевин, Кастанеда. Самые цитируемые в сети + источники.
+   - `ui/screens/QuotesScreen.kt` — «Цитата дня», фильтр-чипы по авторам,
+     действия: копировать / поделиться / сохранить в заметки (NoteDao.upsert).
+   - Навигация: Routes.QUOTES + composable в NavGraph.kt; параметр onOpenQuotes
+     в NotesListScreen.kt.
+2. **10 популярных шрифтов (OFL, кириллица)** в `app/src/main/res/font/`
+   (20 ttf, ~3.9 МБ): Roboto, Open Sans, Montserrat, Inter, PT Sans, Nunito,
+   Rubik, Manrope, Playfair Display, Merriweather — Regular+Bold, сабсет
+   латиница+кириллица (fonttools instancer из variable-оригиналов google/fonts).
+   - `AppFont` (SettingsRepository.kt): +10 записей, флаг isBundled.
+   - `Type.kt`: FontFamily для каждого, appFontFamily() расширен.
+   - `SettingsScreen.kt`: секция «Шрифт» — две группы чипов (популярные/системные)
+     с предпросмотром самим шрифтом.
+3. Версия: versionCode 22, versionName "1.9.0"; buildToolsVersion "35.0.0".
+
+### Подпись
+keystore.properties + notessync-release.keystore в корне проекта (как раньше):
+debug-APK подписывается релизным ключом — обновления ставятся поверх.
+
+---
+
+## Этап 39 (1.10.0) — Резервное копирование заметок
+Дата: 2026-11-11.
+
+### Что добавлено
+1. **Бэкап** — ZIP-архив: база Room (после WAL-checkpoint), вложения-фото,
+   manifest backup.json (дата, число заметок, версия БД). Код: `data/backup/BackupManager.kt`.
+2. **Настройки → «Резервное копирование»** (SettingsScreen):
+   - «Создать бэкап» — SAF CreateDocument, имя NoteLS-backup-ГГГГММДД-ЧЧММ.zip;
+   - «Восстановить из бэкапа» — SAF OpenDocument, проверка манифеста и SQLite-заголовка,
+     диалог подтверждения, подмена файлов (AppDatabase.closeInstance) и перезапуск;
+   - «Как часто делать бэкап» — BackupFrequency: Только вручную / После каждой заметки /
+     Раз в день / Раз в 3 дня / Раз в 10 дней (по умолчанию) / Раз в месяц;
+   - «Последний бэкап: …».
+3. **Автобэкап**: тихий, в Android/data/com.notessync.app/files/backups (5 последних).
+   Триггеры: запуск приложения (NoteSyncApp.onCreate) и сохранение заметки
+   (NoteEditorViewModel.saveNow) — фоновых служб и разрешений не нужно.
+4. SettingsRepository: backupFrequency + lastBackupAt (prefs backup_frequency/last_backup_at).
+5. Версия: versionCode 23, versionName "1.10.0".

@@ -66,6 +66,17 @@ enum class InterfaceStyle(val label: String) {
     GLASS("Матовое стекло")
 }
 
+// Этап 39: как часто делать автобэкап заметок.
+// intervalMillis = -1 — после каждой заметки; 0 — только вручную.
+enum class BackupFrequency(val label: String, val intervalMillis: Long) {
+    MANUAL("Только вручную", 0L),
+    AFTER_NOTE("После каждой заметки", -1L),
+    DAILY("Раз в день", 86_400_000L),
+    EVERY_3_DAYS("Раз в 3 дня", 3 * 86_400_000L),
+    EVERY_10_DAYS("Раз в 10 дней", 10 * 86_400_000L),
+    MONTHLY("Раз в месяц", 30 * 86_400_000L)
+}
+
 // Этап 36: как выглядит выполненная задача в виджете (зелёная / зачёркнутая / оба).
 enum class WidgetCompletedStyle(val label: String) {
     GREEN("Зелёные"),
@@ -92,7 +103,10 @@ data class SettingsState(
     // Этап 37: классика или матовое стекло.
     val interfaceStyle: InterfaceStyle = InterfaceStyle.CLASSIC,
     // Этап 36: стиль выполненных задач в виджете.
-    val widgetCompletedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH
+    val widgetCompletedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH,
+    // Этап 39: частота автобэкапа и время последнего (0 — ещё не делался).
+    val backupFrequency: BackupFrequency = BackupFrequency.EVERY_10_DAYS,
+    val lastBackupAt: Long = 0L
 )
 
 /** Настройки приложения (Этап 6): тема и размер шрифта. */
@@ -129,7 +143,9 @@ class SettingsRepository private constructor(context: Context) {
         widgetColoredTasks = prefs.getBoolean(KEY_WIDGET_COLORED_TASKS, false),
         appFont = enumPref(KEY_APP_FONT, AppFont.SYSTEM),
         interfaceStyle = enumPref(KEY_INTERFACE_STYLE, InterfaceStyle.CLASSIC),
-        widgetCompletedStyle = enumPref(KEY_WIDGET_COMPLETED_STYLE, WidgetCompletedStyle.BOTH)
+        widgetCompletedStyle = enumPref(KEY_WIDGET_COMPLETED_STYLE, WidgetCompletedStyle.BOTH),
+        backupFrequency = enumPref(KEY_BACKUP_FREQUENCY, BackupFrequency.EVERY_10_DAYS),
+        lastBackupAt = prefs.getLong(KEY_LAST_BACKUP_AT, 0L)
     )
 
     fun setThemeMode(mode: ThemeMode) {
@@ -176,6 +192,14 @@ class SettingsRepository private constructor(context: Context) {
         prefs.edit().putString(KEY_WIDGET_COMPLETED_STYLE, style.name).apply()
     }
 
+    fun setBackupFrequency(frequency: BackupFrequency) {
+        prefs.edit().putString(KEY_BACKUP_FREQUENCY, frequency.name).apply()
+    }
+
+    fun setLastBackupAt(timestamp: Long) {
+        prefs.edit().putLong(KEY_LAST_BACKUP_AT, timestamp).apply()
+    }
+
     companion object {
         private const val PREFS = "settings"
         private const val KEY_THEME = "theme_mode"
@@ -189,6 +213,8 @@ class SettingsRepository private constructor(context: Context) {
         private const val KEY_APP_FONT = "app_font"
         private const val KEY_INTERFACE_STYLE = "interface_style"
         private const val KEY_WIDGET_COMPLETED_STYLE = "widget_completed_style"
+        private const val KEY_BACKUP_FREQUENCY = "backup_frequency"
+        private const val KEY_LAST_BACKUP_AT = "last_backup_at"
 
         // Пресеты прозрачности для кнопки в виджете (цикл по тапу).
         val WIDGET_ALPHA_PRESETS = floatArrayOf(1.0f, 0.85f, 0.6f, 0.35f)

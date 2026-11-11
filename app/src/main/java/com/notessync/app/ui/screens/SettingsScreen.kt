@@ -1,5 +1,9 @@
 package com.notessync.app.ui.screens
 
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +13,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,12 +29,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,16 +54,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.notessync.app.BuildConfig
+import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.settings.AccentColor
 import com.notessync.app.settings.AppFont
+import com.notessync.app.settings.BackupFrequency
 import com.notessync.app.settings.CompletedStyle
 import com.notessync.app.settings.InterfaceStyle
 import com.notessync.app.settings.SettingsRepository
 import com.notessync.app.settings.ThemeMode
 import com.notessync.app.settings.VoiceEngine
 import com.notessync.app.settings.VoiceStructure
+import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.theme.accentPreviewColor
 import com.notessync.app.ui.theme.appFontFamily
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -58,8 +78,54 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
     val context = LocalContext.current
     val settings = remember { SettingsRepository.get(context) }
     val state by settings.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Этап 39: состояние и лончеры резервного копирования.
+    var pendingRestore by remember { mutableStateOf<BackupManager.BackupInfo?>(null) }
+    var pendingRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var restoredRestart by remember { mutableStateOf(false) }
+
+    val createBackupLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val ok = runCatching {
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { out ->
+                            BackupManager.createBackup(context, out)
+                        } != null
+                    }
+                }.getOrDefault(false)
+                if (ok) {
+                    settings.setLastBackupAt(System.currentTimeMillis())
+                    snackbarHostState.showSnackbar("Бэкап сохранён")
+                } else {
+                    snackbarHostState.showSnackbar("Не удалось создать бэкап")
+                }
+            }
+        }
+    }
+
+    val openBackupLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val info = BackupManager.inspect(context, uri)
+                if (info != null) {
+                    pendingRestoreUri = uri
+                    pendingRestore = info
+                } else {
+                    snackbarHostState.showSnackbar("Это не бэкап NoteLS")
+                }
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Настройки") },
@@ -290,6 +356,77 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 )
             }
 
+            // Этап 39: резервное копирование — ручной бэкап/восстановление
+            // и отдельная настройка частоты автобэкапа.
+            SectionTitle("Резервное копирование")
+            Card(modifier = Modifier.fillMaxWidth()) {
+                ListItem(
+                    headlineContent = { Text("Создать бэкап") },
+                    supportingContent = { Text("ZIP-архив: заметки, задачи, блокноты и фото") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Backup,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
+                )
+                ListItem(
+                    headlineContent = { Text("Восстановить из бэкапа") },
+                    supportingContent = { Text("Заменить текущие данные содержимым архива") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Restore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            openBackupLauncher.launch(
+                                arrayOf("application/zip", "application/octet-stream")
+                            )
+                        }
+                )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Как часто делать бэкап", style = MaterialTheme.typography.titleSmall)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    ) {
+                        BackupFrequency.entries.forEach { frequency ->
+                            FilterChip(
+                                selected = state.backupFrequency == frequency,
+                                onClick = { settings.setBackupFrequency(frequency) },
+                                label = { Text(frequency.label) }
+                            )
+                        }
+                    }
+                    Text(
+                        if (state.lastBackupAt > 0) {
+                            "Последний бэкап: ${formatDateTime(state.lastBackupAt)}"
+                        } else {
+                            "Бэкап ещё не создавался"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                    Text(
+                        "Автобэкапы тихо сохраняются в Android/data/com.notessync.app/files/backups " +
+                            "(хранятся 5 последних). Проверка расписания — при запуске приложения и " +
+                            "после сохранения заметки.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+
             SectionTitle("О программе")
             Card(modifier = Modifier.fillMaxWidth()) {
                 ListItem(
@@ -304,6 +441,73 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 )
             }
         }
+    }
+
+    // Этап 39: подтверждение восстановления — текущие данные будут заменены.
+    val restoreInfo = pendingRestore
+    val restoreUri = pendingRestoreUri
+    if (restoreInfo != null && restoreUri != null) {
+        AlertDialog(
+            onDismissRequest = {
+                pendingRestore = null
+                pendingRestoreUri = null
+            },
+            title = { Text("Восстановить бэкап?") },
+            text = {
+                Text(
+                    buildString {
+                        if (restoreInfo.createdAt > 0) {
+                            append("Бэкап от ${formatDateTime(restoreInfo.createdAt)}")
+                        } else {
+                            append("Бэкап NoteLS")
+                        }
+                        if (restoreInfo.noteCount >= 0) append(", заметок: ${restoreInfo.noteCount}")
+                        append(".\n\nТекущие заметки, задачи и фото будут полностью заменены содержимым архива.")
+                    }
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingRestore = null
+                    pendingRestoreUri = null
+                    scope.launch {
+                        val result = BackupManager.restore(context, restoreUri)
+                        if (result.isSuccess) {
+                            restoredRestart = true
+                        } else {
+                            snackbarHostState.showSnackbar(
+                                "Не удалось восстановить: ${result.exceptionOrNull()?.message ?: "ошибка"}"
+                            )
+                        }
+                    }
+                }) { Text("Восстановить") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    pendingRestore = null
+                    pendingRestoreUri = null
+                }) { Text("Отмена") }
+            }
+        )
+    }
+
+    // Этап 39: после подмены базы приложение перезапускается.
+    if (restoredRestart) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Бэкап восстановлен") },
+            text = { Text("Данные заменены. Приложение нужно перезапустить.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val intent = context.packageManager
+                        .getLaunchIntentForPackage(context.packageName)
+                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    context.startActivity(intent)
+                    (context as? Activity)?.finish()
+                    exitProcess(0)
+                }) { Text("Перезапустить") }
+            }
+        )
     }
 }
 
