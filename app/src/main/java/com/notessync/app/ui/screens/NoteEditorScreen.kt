@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
@@ -75,7 +74,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -126,6 +124,7 @@ import com.notessync.app.ui.common.SetPasswordDialog
 import com.notessync.app.ui.common.UnlockPasswordDialog
 import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.notes.EditorMessage
+import com.notessync.app.ui.notes.EditorScaffold
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.notes.PhotoAttachmentGrid
 import com.notessync.app.ui.notes.md.MarkdownEdit
@@ -302,7 +301,7 @@ fun NoteEditorScreen(
     }
     BackHandler { exit() }
 
-    Scaffold(
+    EditorScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -455,10 +454,8 @@ fun NoteEditorScreen(
                 }
             }
         }
-    ) { padding ->
-        // Этап 26: imePadding — клавиатура поднимает поле и нижнюю панель,
-        // а не накрывает их.
-        Column(modifier = Modifier.fillMaxSize().padding(padding).imePadding()) {
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // Этап 32: плашка «Слушаю…» с промежуточным текстом.
             if (voiceListening) {
                 Surface(
