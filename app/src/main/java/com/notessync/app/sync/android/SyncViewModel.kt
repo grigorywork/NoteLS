@@ -2,9 +2,12 @@ package com.notessync.app.sync.android
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.notessync.app.data.local.AppDatabase
+import com.notessync.app.sync.core.SyncResources
 import com.notessync.app.sync.core.SyncDataSource
 import com.notessync.app.sync.core.SyncPhase
 import com.notessync.app.sync.core.SyncProgress
@@ -12,6 +15,10 @@ import com.notessync.app.sync.core.SyncResult
 import com.notessync.app.sync.core.SyncSession
 import com.notessync.app.sync.crypto.SessionCrypto
 import com.notessync.app.sync.protocol.FrameTransport
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +48,7 @@ data class SyncUiState(
     val error: String? = null
 )
 
-class SyncViewModel(application: Application) : AndroidViewModel(application) {
+class SyncViewModel(application: Application) : AndroidViewModel(application), DefaultLifecycleObserver {
 
     private val prefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val dataSource: SyncDataSource =
@@ -51,8 +58,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<SyncUiState> = _uiState.asStateFlow()
 
     private var sessionJob: Job? = null
-    private var serverSocket: ServerSocket? = null
-    @Volatile private var cancelled = false
+    private var resources: SyncResources? = null
 
     val deviceId: String
         get() = prefs.getString(KEY_DEVICE_ID, null)
@@ -63,40 +69,48 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
 
     /** «Ведущее» устройство: слушает порт и ждёт подключения. */
     fun startWaiting() {
-        cancelled = false
+        cancel()
         val code = generateSessionCode()
         val ip = localIpAddress()
         val qrPayload = com.notessync.app.sync.qr.SyncQr.encode(ip, SYNC_PORT, code)
         _uiState.update {
             it.copy(mode = SyncMode.WAITING, sessionCode = code, localIp = ip, qrPayload = qrPayload, error = null)
         }
-        sessionJob = viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                ServerSocket(SYNC_PORT).use { server ->
-                    serverSocket = server
-                    val socket = server.accept()
-                    serverSocket = null
-                    runSession(socket, code) { session, _ ->
-                        session.runAsServer()
-                    }
-                }
-            }.onFailure { if (it !is kotlinx.coroutines.CancellationException && !cancelled) showError(it) }
+        launchSession { owned ->
+            val server = owned.own(ServerSocket())
+            server.bind(InetSocketAddress(SYNC_PORT))
+            val socket = owned.own(server.accept())
+            server.close()
+            currentCoroutineContext().ensureActive()
+            runSession(socket, code) { session, _ -> session.runAsServer() }
         }
     }
 
     /** «Ведомое» устройство: подключается по адресу и коду с экрана. */
     fun connect(ip: String, code: String) {
-        cancelled = false
+        cancel()
         _uiState.update { it.copy(mode = SyncMode.SYNCING, error = null) }
+        launchSession { owned ->
+            val socket = owned.own(Socket())
+            socket.connect(InetSocketAddress(ip.trim(), SYNC_PORT), CONNECT_TIMEOUT_MS)
+            currentCoroutineContext().ensureActive()
+            runSession(socket, code.trim()) { session, _ -> session.runAsClient() }
+        }
+    }
+
+    private fun launchSession(block: suspend (SyncResources) -> Unit) {
+        val owned = SyncResources()
+        resources = owned
         sessionJob = viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                val socket = Socket()
-                socket.connect(InetSocketAddress(ip.trim(), SYNC_PORT), CONNECT_TIMEOUT_MS)
-                socket.soTimeout = IO_TIMEOUT_MS
-                runSession(socket, code.trim()) { session, _ ->
-                    session.runAsClient()
-                }
-            }.onFailure { showError(it) }
+            try {
+                block(owned)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                if (isActive) showError(error)
+            } finally {
+                owned.close()
+            }
         }
     }
 
@@ -105,6 +119,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
         code: String,
         block: suspend (SyncSession, FrameTransport) -> SyncResult
     ) {
+        currentCoroutineContext().ensureActive()
         _uiState.update { it.copy(mode = SyncMode.SYNCING) }
         socket.soTimeout = IO_TIMEOUT_MS
         socket.use {
@@ -113,6 +128,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
                 socket.getOutputStream(),
                 SessionCrypto(code)
             )
+            val sessionContext = currentCoroutineContext()
             val sessionRef = java.util.concurrent.atomic.AtomicReference<SyncSession>()
             val session = SyncSession(
                 transport = transport,
@@ -122,6 +138,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
                 lastSyncAt = { lastSyncAt },
                 onProgress = { progress ->
                     val peer = sessionRef.get()?.peerName.orEmpty()
+                    sessionContext.ensureActive()
                     _uiState.update { s ->
                         s.copy(progress = progress, peerName = peer.ifBlank { s.peerName })
                     }
@@ -129,6 +146,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
             )
             sessionRef.set(session)
             val result = block(session, transport)
+            currentCoroutineContext().ensureActive()
             prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
             _uiState.update { it.copy(mode = SyncMode.DONE, result = result, peerName = session.peerName) }
         }
@@ -136,6 +154,7 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Переход к форме ручного ввода адреса и кода. */
     fun showClientForm() {
+        cancel()
         _uiState.update { it.copy(mode = SyncMode.CLIENT_FORM, error = null) }
     }
 
@@ -150,10 +169,10 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun cancel() {
-        cancelled = true
         sessionJob?.cancel()
-        runCatching { serverSocket?.close() }
-        serverSocket = null
+        resources?.close()
+        resources = null
+        sessionJob = null
         _uiState.update { it.copy(mode = SyncMode.IDLE, error = null) }
     }
 
@@ -202,6 +221,10 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
         return ""
     }
 
+    override fun onStop(owner: LifecycleOwner) {
+        if (uiState.value.mode in setOf(SyncMode.WAITING, SyncMode.SYNCING)) cancel()
+    }
+
     override fun onCleared() {
         cancel()
         super.onCleared()
@@ -223,3 +246,4 @@ data class StorageInfo(
     val attachmentBytes: Long,
     val lastSyncAt: Long
 )
+

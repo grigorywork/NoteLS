@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 24
-        versionName = "1.10.1"
+        versionCode = 25
+        versionName = "1.10.2"
     }
 
     signingConfigs {
@@ -116,3 +116,4 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
 }
+

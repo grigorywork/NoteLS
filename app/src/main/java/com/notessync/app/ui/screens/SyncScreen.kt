@@ -1,5 +1,6 @@
 package com.notessync.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,12 +55,16 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val storage = remember(state.mode) { viewModel.storageInfo() }
 
+    fun leave() { viewModel.cancel(); onBack() }
+    fun scan() { viewModel.cancel(); onOpenScanner() }
+    BackHandler { leave() }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Синхронизация") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = ::leave) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
@@ -75,9 +80,9 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (state.mode) {
-                SyncMode.IDLE -> IdleBlock(viewModel, onOpenScanner)
+                SyncMode.IDLE -> IdleBlock(viewModel, ::scan)
                 SyncMode.WAITING -> WaitingBlock(state, onCancel = viewModel::cancel)
-                SyncMode.CLIENT_FORM -> ClientFormBlock(onConnect = viewModel::connect, onOpenScanner = onOpenScanner)
+                SyncMode.CLIENT_FORM -> ClientFormBlock(onConnect = viewModel::connect, onOpenScanner = ::scan)
                 SyncMode.SYNCING -> SyncingBlock(state)
                 SyncMode.DONE -> DoneBlock(state, onDone = viewModel::dismissResult)
                 SyncMode.ERROR -> ErrorBlock(state, onRetry = viewModel::dismissResult)
@@ -318,3 +323,4 @@ private fun phaseLabel(phase: SyncPhase): String = when (phase) {
     SyncPhase.FINISHING -> "Завершение…"
     SyncPhase.COMPLETED -> "Готово"
 }
+

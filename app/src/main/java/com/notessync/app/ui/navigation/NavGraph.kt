@@ -1,6 +1,7 @@
 package com.notessync.app.ui.navigation
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -102,10 +103,15 @@ fun AppNavHost() {
             )
         }
         composable(Routes.SYNC) {
+            val syncViewModel: SyncViewModel = viewModel(viewModelStoreOwner = activity)
+            DisposableEffect(activity, syncViewModel) {
+                activity.lifecycle.addObserver(syncViewModel)
+                onDispose { activity.lifecycle.removeObserver(syncViewModel) }
+            }
             SyncScreen(
                 onBack = { navController.popBackStack() },
                 onOpenScanner = { navController.navigate(Routes.SCANNER) },
-                viewModel = viewModel(viewModelStoreOwner = activity)
+                viewModel = syncViewModel
             )
         }
         composable(Routes.SCANNER) {
@@ -120,3 +126,4 @@ fun AppNavHost() {
         }
     }
 }
+

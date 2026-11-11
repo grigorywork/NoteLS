@@ -26,7 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 
 /**
  * Секундомер. Этап 35: значок СТАТИЧНЫЙ (ничего не крутится) —
@@ -41,10 +43,10 @@ fun TaskTimerIndicator(
 ) {
     var now by remember(startedAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = startedAt != null
-    LaunchedEffect(startedAt) {
-        while (startedAt != null) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(startedAt, lifecycle) {
+        if (startedAt != null) lifecycle.runVisibleClock({ true }) {
             now = System.currentTimeMillis()
-            delay(1_000L)
         }
     }
     val color = if (contentColor == Color.Unspecified) LocalContentColor.current else contentColor
@@ -78,15 +80,16 @@ fun CountdownIndicator(
 ) {
     var now by remember(endAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = endAt != null
-    LaunchedEffect(endAt) {
-        while (endAt != null) {
-            now = System.currentTimeMillis()
-            delay(1_000L)
-        }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val lifecycleState by lifecycle.currentStateAsState()
+    LaunchedEffect(endAt, lifecycle) {
+        if (endAt != null) lifecycle.runVisibleClock(
+            keepTicking = { !TaskTimer.countdownFinished(countdownMillis, endAt, now) }
+        ) { now = System.currentTimeMillis() }
     }
     val remaining = TaskTimer.countdownRemaining(countdownMillis, endAt, now)
     val finished = TaskTimer.countdownFinished(countdownMillis, endAt, now)
-    val rotation = if (running && !finished) {
+    val rotation = if (running && !finished && lifecycleState.isAtLeast(Lifecycle.State.STARTED)) {
         val transition = rememberInfiniteTransition(label = "countdownRotation")
         val angle by transition.animateFloat(
             initialValue = 0f,
@@ -132,3 +135,4 @@ fun CountdownIndicator(
         )
     }
 }
+

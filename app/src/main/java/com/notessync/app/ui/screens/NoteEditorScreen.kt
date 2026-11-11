@@ -92,6 +92,8 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -200,6 +202,11 @@ fun NoteEditorScreen(
     }
     DisposableEffect(Unit) {
         onDispose { voiceManager.stop() }
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        voiceManager.stop()
+        voiceListening = false
+        voicePartial = ""
     }
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -1145,3 +1152,4 @@ private fun borderlessColors() = TextFieldDefaults.colors(
     focusedIndicatorColor = Color.Transparent,
     unfocusedIndicatorColor = Color.Transparent
 )
+
