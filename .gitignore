@@ -9,3 +9,14 @@ keystore.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Локальные ключи, секреты и готовые артефакты
+*.jks
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+*.apk
+*.aab
+*.zip
