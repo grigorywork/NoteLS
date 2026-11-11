@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
@@ -77,47 +79,65 @@ fun ScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (hasPermission) {
-                true -> AndroidView(
-                    factory = { ctx ->
-                        val previewView = PreviewView(ctx)
-                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                        cameraProviderFuture.addListener({
-                            val cameraProvider = cameraProviderFuture.get()
-                            val preview = Preview.Builder().build().also {
-                                it.surfaceProvider = previewView.surfaceProvider
-                            }
-                            val analysis = ImageAnalysis.Builder()
-                                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                                .build()
-                            val scanner = BarcodeScanning.getClient()
-                            val executor = Executors.newSingleThreadExecutor()
-                            analysis.setAnalyzer(executor) { imageProxy ->
-                                val media = imageProxy.image
-                                if (media == null || scanned) {
-                                    imageProxy.close()
-                                } else {
-                                    scanner.process(
-                                        InputImage.fromMediaImage(media, imageProxy.imageInfo.rotationDegrees)
-                                    ).addOnSuccessListener { barcodes ->
-                                        val value = barcodes.firstOrNull()?.rawValue
-                                        if (value != null && !scanned) {
-                                            scanned = true
-                                            onResult(value)
+                true -> {
+                    val scanner = remember { BarcodeScanning.getClient() }
+                    val executor = remember { Executors.newSingleThreadExecutor() }
+                    val disposed = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+                    val preview = remember { Preview.Builder().build() }
+                    val analysis = remember {
+                        ImageAnalysis.Builder()
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build()
+                    }
+                    var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+                    DisposableEffect(scanner, executor, analysis, preview) {
+                        onDispose {
+                            disposed.set(true)
+                            analysis.clearAnalyzer()
+                            runCatching { provider?.unbind(preview, analysis) }
+                            runCatching { scanner.close() }
+                            executor.shutdownNow()
+                        }
+                    }
+                    AndroidView(
+                        factory = { ctx ->
+                            val previewView = PreviewView(ctx)
+                            val future = ProcessCameraProvider.getInstance(ctx)
+                            future.addListener({
+                                // A delayed provider must not bind after navigation/disposal.
+                                if (!disposed.get()) {
+                                    val cameraProvider = future.get()
+                                    provider = cameraProvider
+                                    preview.surfaceProvider = previewView.surfaceProvider
+                                    analysis.setAnalyzer(executor) { imageProxy ->
+                                        val media = imageProxy.image
+                                        if (media == null || scanned || disposed.get()) {
+                                            imageProxy.close()
+                                        } else {
+                                            scanner.process(InputImage.fromMediaImage(
+                                                media, imageProxy.imageInfo.rotationDegrees
+                                            )).addOnSuccessListener { barcodes ->
+                                                val value = barcodes.firstOrNull()?.rawValue
+                                                if (value != null && !scanned && !disposed.get() &&
+                                                    lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                                                    scanned = true
+                                                    onResult(value)
+                                                }
+                                            }.addOnCompleteListener { imageProxy.close() }
                                         }
-                                    }.addOnCompleteListener { imageProxy.close() }
+                                    }
+                                    runCatching {
+                                        cameraProvider.bindToLifecycle(
+                                            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis
+                                        )
+                                    }
                                 }
-                            }
-                            runCatching {
-                                cameraProvider.unbindAll()
-                                cameraProvider.bindToLifecycle(
-                                    lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis
-                                )
-                            }
-                        }, androidx.core.content.ContextCompat.getMainExecutor(ctx))
-                        previewView
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
+                            }, androidx.core.content.ContextCompat.getMainExecutor(ctx))
+                            previewView
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 false -> Text(
                     text = "Без доступа к камере сканер не работает.\nМожно ввести адрес и код вручную.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -143,3 +163,4 @@ fun ScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
         }
     }
 }
+
