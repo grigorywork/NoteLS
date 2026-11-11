@@ -86,6 +86,7 @@ import com.notessync.app.ui.notes.NoteFilter
 import com.notessync.app.ui.notes.NoteSort
 import com.notessync.app.ui.notes.NotesViewModel
 import com.notessync.app.ui.notes.md.MarkdownLite
+import com.notessync.app.ui.tasks.CountdownIndicator
 import com.notessync.app.ui.tasks.TaskTimerIndicator
 import com.notessync.app.ui.tasks.taskColorOption
 import com.notessync.app.ui.theme.GlassPanelShape
@@ -772,6 +773,14 @@ private fun NoteCard(
                         startedAt = note.taskTimerStartedAt,
                         modifier = Modifier.padding(top = 4.dp)
                     )
+                    if (note.taskCountdownMillis > 0L || note.taskCountdownEndAt != null) {
+                        CountdownIndicator(
+                            countdownMillis = note.taskCountdownMillis,
+                            endAt = note.taskCountdownEndAt,
+                            modifier = Modifier.padding(top = 4.dp),
+                            animateIcon = false
+                        )
+                    }
                 }
                 Text(
                     text = formatDateTime(note.updatedAt),
@@ -821,3 +830,4 @@ private fun filterTitle(filter: NoteFilter): String = when (filter) {
     is NoteFilter.Notebook -> filter.name
     is NoteFilter.Tag -> "#" + filter.name
 }
+

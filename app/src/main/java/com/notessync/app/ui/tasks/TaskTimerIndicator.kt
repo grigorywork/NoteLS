@@ -76,12 +76,17 @@ fun CountdownIndicator(
     countdownMillis: Long,
     endAt: Long?,
     modifier: Modifier = Modifier,
-    contentColor: Color = Color.Unspecified
+    contentColor: Color = Color.Unspecified,
+    animateIcon: Boolean = true
 ) {
     var now by remember(endAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = endAt != null
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val lifecycleState by lifecycle.currentStateAsState()
+    // Cards need one-second text updates, not a frame-by-frame animation observer.
+    val canAnimate = if (animateIcon) {
+        val lifecycleState by lifecycle.currentStateAsState()
+        lifecycleState.isAtLeast(Lifecycle.State.STARTED)
+    } else false
     LaunchedEffect(endAt, lifecycle) {
         if (endAt != null) lifecycle.runVisibleClock(
             keepTicking = { !TaskTimer.countdownFinished(countdownMillis, endAt, now) }
@@ -89,7 +94,7 @@ fun CountdownIndicator(
     }
     val remaining = TaskTimer.countdownRemaining(countdownMillis, endAt, now)
     val finished = TaskTimer.countdownFinished(countdownMillis, endAt, now)
-    val rotation = if (running && !finished && lifecycleState.isAtLeast(Lifecycle.State.STARTED)) {
+    val rotation = if (canAnimate && running && !finished) {
         val transition = rememberInfiniteTransition(label = "countdownRotation")
         val angle by transition.animateFloat(
             initialValue = 0f,
@@ -125,7 +130,7 @@ fun CountdownIndicator(
                 else -> "Таймер на паузе"
             },
             tint = color,
-            modifier = Modifier.graphicsLayer { rotationZ = rotation }
+            modifier = if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation } else Modifier
         )
         Text(
             text = if (finished) "Время вышло" else TaskTimer.format(remaining),
