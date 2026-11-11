@@ -1,21 +1,33 @@
 package com.notessync.app
 
 import android.app.Application
+import android.app.Activity
+import android.os.Bundle
 import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.reminders.createReminderChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class NoteSyncApp : Application() {
     override fun onCreate() {
         super.onCreate()
         createReminderChannel()
-        // Этап 39: автобэкап по расписанию — проверка при каждом запуске,
-        // сработает только если вышел интервал из настроек (или срочно после
-        // первого запуска, когда бэкапов ещё не было).
-        CoroutineScope(Dispatchers.IO).launch {
-            BackupManager.autoBackupIfDue(this@NoteSyncApp, afterNote = false)
-        }
+        // Widget/notification broadcasts must not start a backup. Check only on
+        // real activity sessions; leaving the app groups all editing into one copy.
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            private var started = 0
+            override fun onActivityStarted(activity: Activity) {
+                if (started++ == 0) BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = false)
+            }
+            override fun onActivityStopped(activity: Activity) {
+                started = (started - 1).coerceAtLeast(0)
+                if (started == 0 && !activity.isChangingConfigurations) {
+                    BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = true)
+                }
+            }
+            override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
+            override fun onActivityResumed(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, state: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        })
     }
 }

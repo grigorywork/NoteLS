@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.AppDatabase
+import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.reminders.ReminderScheduler
 import com.notessync.app.ui.tasks.TaskCompletion
@@ -142,6 +143,8 @@ private fun QuickNoteContent(
                                     dayKey = dayKey
                                 )
                             )
+                            BackupManager.noteChanged()
+                            BackupManager.requestAutoBackup(context, afterNote = true)
                             onSaved()
                         }
                     }

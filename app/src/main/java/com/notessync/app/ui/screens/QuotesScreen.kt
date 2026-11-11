@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.NoteAdd
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
@@ -30,20 +29,24 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.AppDatabase
+import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.ui.quotes.Quote
 import com.notessync.app.ui.quotes.QuotesData
@@ -65,32 +68,48 @@ fun QuotesScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var selectedAuthor by remember { mutableStateOf<String?>(null) }
-    val quoteOfDay = remember { QuotesData.quoteOfDay(LocalDate.now().toEpochDay()) }
+    var selectedAuthor by rememberSaveable { mutableStateOf<String?>(null) }
+    var today by remember { mutableStateOf(LocalDate.now().toEpochDay()) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) today = LocalDate.now().toEpochDay()
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val quoteOfDay = remember(today) { QuotesData.quoteOfDay(today) }
     val visibleQuotes = remember(selectedAuthor) { QuotesData.ofAuthor(selectedAuthor) }
+    var saving by remember { mutableStateOf(false) }
 
     fun shareQuote(quote: Quote) {
-        val author = QuotesData.author(quote.authorId)
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "«${quote.text}» — ${author.name}")
+            putExtra(Intent.EXTRA_TEXT, QuotesData.formatted(quote))
         }
         context.startActivity(Intent.createChooser(send, "Поделиться цитатой"))
     }
 
     fun saveQuoteAsNote(quote: Quote) {
+        if (saving) return
+        saving = true
         scope.launch {
-            val author = QuotesData.author(quote.authorId)
-            withContext(Dispatchers.IO) {
-                AppDatabase.get(context).noteDao().upsert(
-                    NoteEntity(
-                        title = "Цитата: ${author.name}",
-                        content = "«${quote.text}»\n\n— ${author.name}" +
-                            (quote.source?.let { ", $it" } ?: "")
+            try {
+                withContext(Dispatchers.IO) {
+                    AppDatabase.get(context).noteDao().upsert(
+                        NoteEntity(title = "Цитата: ${QuotesData.author(quote.authorId).name}",
+                            content = QuotesData.formatted(quote))
                     )
-                )
+                }
+                BackupManager.noteChanged()
+                BackupManager.requestAutoBackup(context, afterNote = true)
+                snackbarHostState.showSnackbar("Сохранено в заметки")
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (_: Exception) {
+                snackbarHostState.showSnackbar("Не удалось сохранить цитату")
+            } finally {
+                saving = false
             }
-            snackbarHostState.showSnackbar("Сохранено в заметки")
         }
     }
 
@@ -117,7 +136,17 @@ fun QuotesScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item(key = "quote-of-day") {
-                QuoteOfDayCard(quoteOfDay)
+                QuoteCard(
+                    quoteOfDay,
+                    onCopy = {
+                        clipboard.setText(AnnotatedString(QuotesData.formatted(quoteOfDay)))
+                        scope.launch { snackbarHostState.showSnackbar("Скопировано") }
+                    },
+                    onShare = { shareQuote(quoteOfDay) },
+                    onSaveToNote = { saveQuoteAsNote(quoteOfDay) },
+                    featured = true,
+                    saving = saving
+                )
             }
             item(key = "filters") {
                 Row(
@@ -142,60 +171,18 @@ fun QuotesScreen(onBack: () -> Unit) {
                     }
                 }
             }
-            items(visibleQuotes, key = { it.text.hashCode() }) { quote ->
+            items(visibleQuotes, key = { it.authorId + ":" + it.text }) { quote ->
                 QuoteCard(
                     quote = quote,
                     onCopy = {
-                        val author = QuotesData.author(quote.authorId)
-                        clipboard.setText(AnnotatedString("«${quote.text}» — ${author.name}"))
+                        clipboard.setText(AnnotatedString(QuotesData.formatted(quote)))
                         scope.launch { snackbarHostState.showSnackbar("Скопировано") }
                     },
                     onShare = { shareQuote(quote) },
-                    onSaveToNote = { saveQuoteAsNote(quote) }
+                    onSaveToNote = { saveQuoteAsNote(quote) },
+                    saving = saving
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun QuoteOfDayCard(quote: Quote) {
-    val author = QuotesData.author(quote.authorId)
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.FormatQuote,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    "Цитата дня",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-            Text(
-                "«${quote.text}»",
-                style = MaterialTheme.typography.titleMedium,
-                fontStyle = FontStyle.Italic,
-                modifier = Modifier.padding(top = 12.dp)
-            )
-            Text(
-                "— ${author.name}" + (quote.source?.let { ", $it" } ?: ""),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            )
         }
     }
 }
@@ -205,11 +192,21 @@ private fun QuoteCard(
     quote: Quote,
     onCopy: () -> Unit,
     onShare: () -> Unit,
-    onSaveToNote: () -> Unit
+    onSaveToNote: () -> Unit,
+    featured: Boolean = false,
+    saving: Boolean = false
 ) {
     val author = QuotesData.author(quote.authorId)
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = if (featured)
+            MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            if (featured) {
+                Text("Цитата дня", style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 12.dp))
+            }
             Text(
                 "«${quote.text}»",
                 style = MaterialTheme.typography.bodyLarge
@@ -240,7 +237,7 @@ private fun QuoteCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = onSaveToNote) {
+                IconButton(onClick = onSaveToNote, enabled = !saving) {
                     Icon(
                         Icons.Default.NoteAdd,
                         contentDescription = "Сохранить в заметки",

@@ -121,6 +121,9 @@ object QuotesData {
         if (id == null) quotes else quotes.filter { it.authorId == id }
 
     /** Цитата дня: одна и та же весь день, каждый день новая. */
-    fun quoteOfDay(epochDay: Long): Quote =
-        quotes[(epochDay % quotes.size).toInt()]
+    fun quoteOfDay(epochDay: Long): Quote = quotes[Math.floorMod(epochDay, quotes.size.toLong()).toInt()]
+
+    fun formatted(quote: Quote): String =
+        "«${quote.text}»\n\n— ${author(quote.authorId).name}" +
+            (quote.source?.let { ", $it" } ?: "")
 }

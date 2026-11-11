@@ -106,7 +106,8 @@ data class SettingsState(
     val widgetCompletedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH,
     // Этап 39: частота автобэкапа и время последнего (0 — ещё не делался).
     val backupFrequency: BackupFrequency = BackupFrequency.EVERY_10_DAYS,
-    val lastBackupAt: Long = 0L
+    val lastBackupAt: Long = 0L,
+    val lastAutoBackupAt: Long = 0L
 )
 
 /** Настройки приложения (Этап 6): тема и размер шрифта. */
@@ -145,7 +146,8 @@ class SettingsRepository private constructor(context: Context) {
         interfaceStyle = enumPref(KEY_INTERFACE_STYLE, InterfaceStyle.CLASSIC),
         widgetCompletedStyle = enumPref(KEY_WIDGET_COMPLETED_STYLE, WidgetCompletedStyle.BOTH),
         backupFrequency = enumPref(KEY_BACKUP_FREQUENCY, BackupFrequency.EVERY_10_DAYS),
-        lastBackupAt = prefs.getLong(KEY_LAST_BACKUP_AT, 0L)
+        lastBackupAt = prefs.getLong(KEY_LAST_BACKUP_AT, 0L),
+        lastAutoBackupAt = prefs.getLong(KEY_LAST_AUTO_BACKUP_AT, 0L)
     )
 
     fun setThemeMode(mode: ThemeMode) {
@@ -198,6 +200,13 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setLastBackupAt(timestamp: Long) {
         prefs.edit().putLong(KEY_LAST_BACKUP_AT, timestamp).apply()
+        _state.value = read()
+    }
+
+    fun setLastAutoBackupAt(timestamp: Long) {
+        prefs.edit().putLong(KEY_LAST_AUTO_BACKUP_AT, timestamp)
+            .putLong(KEY_LAST_BACKUP_AT, timestamp).apply()
+        _state.value = read()
     }
 
     companion object {
@@ -215,6 +224,7 @@ class SettingsRepository private constructor(context: Context) {
         private const val KEY_WIDGET_COMPLETED_STYLE = "widget_completed_style"
         private const val KEY_BACKUP_FREQUENCY = "backup_frequency"
         private const val KEY_LAST_BACKUP_AT = "last_backup_at"
+        private const val KEY_LAST_AUTO_BACKUP_AT = "last_auto_backup_at"
 
         // Пресеты прозрачности для кнопки в виджете (цикл по тапу).
         val WIDGET_ALPHA_PRESETS = floatArrayOf(1.0f, 0.85f, 0.6f, 0.35f)

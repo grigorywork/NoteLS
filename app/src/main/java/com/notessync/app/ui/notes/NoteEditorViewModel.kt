@@ -76,6 +76,7 @@ class NoteEditorViewModel(
     private var createdHere = false
     private var deleted = false
     private var loaded = false
+    private var lastSavedNote: NoteEntity? = null
 
     var title by mutableStateOf("")
     var contentField by mutableStateOf(TextFieldValue(""))
@@ -121,6 +122,7 @@ class NoteEditorViewModel(
         viewModelScope.launch {
             if (currentNoteId != -1L) {
                 noteDao.getById(currentNoteId)?.let { note ->
+                    lastSavedNote = note
                     val notebook = note.notebookId?.let { db.notebookDao().getById(it) }
                     val notebookLocked = notebook?.let {
                         it.isProtected && !ProtectionSession.isUnlocked(it)
@@ -219,6 +221,9 @@ class NoteEditorViewModel(
             updatedAt = now,
             dirty = true
         )
+        // Opening/closing an unchanged note must not write the DB or produce another ZIP.
+        val previous = lastSavedNote
+        if (previous != null && note.copy(updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return
         if (exists) {
             noteDao.update(note)
         } else {
@@ -227,9 +232,10 @@ class NoteEditorViewModel(
             createdHere = true
             _noteIdFlow.value = newId
         }
+        createdAt = note.createdAt
+        lastSavedNote = note.copy(id = currentNoteId)
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
-        // Этап 39: автобэкап «после каждой заметки» / по истечении интервала.
-        BackupManager.autoBackupIfDue(app, afterNote = true)
+        BackupManager.noteChanged()
     }
 
     /**
@@ -243,6 +249,7 @@ class NoteEditorViewModel(
             saveNow(force = true)
         }
         discardIfEmptyOnExit()
+        BackupManager.requestAutoBackup(app, afterNote = true)
     }
 
     // ---------- Форматирование (Этап 3) ----------
@@ -506,6 +513,7 @@ class NoteEditorViewModel(
                 ?: tagDao.getByName(clean)?.id
                 ?: return@launch
             tagDao.attachToNote(NoteTagCrossRef(noteId = currentNoteId, tagId = tagId))
+            BackupManager.noteChanged()
             noteTags = tagDao.getTagNamesForNote(currentNoteId)
         }
     }
@@ -514,6 +522,7 @@ class NoteEditorViewModel(
         viewModelScope.launch {
             val tag = tagDao.getByName(name) ?: return@launch
             tagDao.detachFromNote(currentNoteId, tag.id)
+            BackupManager.noteChanged()
             noteTags = tagDao.getTagNamesForNote(currentNoteId)
         }
     }
@@ -537,6 +546,7 @@ class NoteEditorViewModel(
                         sizeBytes = stored.sizeBytes
                     )
                 )
+                BackupManager.noteChanged()
                 noteDao.getById(currentNoteId)?.let { note ->
                     noteDao.update(note.copy(dirty = true, updatedAt = System.currentTimeMillis()))
                 }
@@ -552,6 +562,7 @@ class NoteEditorViewModel(
     fun removeAttachment(attachment: AttachmentEntity) {
         viewModelScope.launch {
             attachmentDao.deleteById(attachment.id)
+            BackupManager.noteChanged()
             File(attachment.filePath).delete()
             noteDao.getById(attachment.noteId)?.let { note ->
                 noteDao.update(note.copy(dirty = true, updatedAt = System.currentTimeMillis()))

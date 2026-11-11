@@ -1,8 +1,7 @@
 package com.notessync.app.ui.screens
 
-import android.app.Activity
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -18,9 +17,11 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -35,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +72,6 @@ import com.notessync.app.ui.theme.appFontFamily
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -84,20 +85,52 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
     // Этап 39: состояние и лончеры резервного копирования.
     var pendingRestore by remember { mutableStateOf<BackupManager.BackupInfo?>(null) }
     var pendingRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    var restoredRestart by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var localCopies by remember { mutableStateOf<List<BackupManager.LocalBackup>>(emptyList()) }
+    var showLocalCopies by remember { mutableStateOf(false) }
+    var exportCopy by remember { mutableStateOf<java.io.File?>(null) }
+    var showFontLicenses by remember { mutableStateOf(false) }
+    BackHandler(enabled = busy) { /* Finish the database operation before navigating away. */ }
+    if (showFontLicenses) FontLicensesDialog(onDismiss = { showFontLicenses = false })
+
+    LaunchedEffect(state.lastAutoBackupAt, showLocalCopies) {
+        localCopies = BackupManager.localBackups(context)
+    }
+
+    val exportCopyLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        val file = exportCopy
+        exportCopy = null
+        if (uri != null && file != null) scope.launch {
+            busy = true
+            try {
+                withContext(Dispatchers.IO) {
+                    val output = context.contentResolver.openOutputStream(uri, "wt")
+                        ?: error("Не удалось открыть файл")
+                    output.use { out -> file.inputStream().use { it.copyTo(out) } }
+                }
+                snackbarHostState.showSnackbar("Копия сохранена в выбранную папку")
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (_: Exception) { snackbarHostState.showSnackbar("Не удалось сохранить копию") }
+            finally { busy = false }
+        }
+    }
 
     val createBackupLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
         if (uri != null) {
             scope.launch {
+                busy = true
                 val ok = runCatching {
                     withContext(Dispatchers.IO) {
-                        context.contentResolver.openOutputStream(uri)?.use { out ->
+                        context.contentResolver.openOutputStream(uri, "wt")?.use { out ->
                             BackupManager.createBackup(context, out)
                         } != null
                     }
                 }.getOrDefault(false)
+                busy = false
                 if (ok) {
                     settings.setLastBackupAt(System.currentTimeMillis())
                     snackbarHostState.showSnackbar("Бэкап сохранён")
@@ -113,7 +146,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
     ) { uri ->
         if (uri != null) {
             scope.launch {
+                busy = true
                 val info = BackupManager.inspect(context, uri)
+                busy = false
                 if (info != null) {
                     pendingRestoreUri = uri
                     pendingRestore = info
@@ -130,7 +165,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             TopAppBar(
                 title = { Text("Настройки") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, enabled = !busy) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
@@ -220,7 +255,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     // Этап 38: популярные шрифты (встроены в приложение, все с кириллицей),
-                    // предпросмотр каждого — самим шрифтом. Ниже — системные семейства (Этап 34).
+                    // One preview loads only the selected font, not all ten families.
                     Text("Шрифт", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     Text(
                         "Популярные шрифты",
@@ -237,10 +272,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                                 selected = state.appFont == font,
                                 onClick = { settings.setAppFont(font) },
                                 label = {
-                                    Text(
-                                        "${font.label} — Заметки",
-                                        fontFamily = appFontFamily(font)
-                                    )
+                                    Text(font.label)
                                 }
                             )
                         }
@@ -260,14 +292,18 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                                 selected = state.appFont == font,
                                 onClick = { settings.setAppFont(font) },
                                 label = {
-                                    Text(
-                                        "${font.label} — Заметки",
-                                        fontFamily = appFontFamily(font)
-                                    )
+                                    Text(font.label)
                                 }
                             )
                         }
                     }
+                    Text(
+                        "Съешь ещё этих мягких французских булок, да выпей чаю.\nЗаметки, задачи и идеи — 0123456789",
+                        fontFamily = appFontFamily(state.appFont),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                    TextButton(onClick = { showFontLicenses = true }) { Text("Лицензии шрифтов") }
                 }
             }
 
@@ -359,9 +395,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             // Этап 39: резервное копирование — ручной бэкап/восстановление
             // и отдельная настройка частоты автобэкапа.
             SectionTitle("Резервное копирование")
+            if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             Card(modifier = Modifier.fillMaxWidth()) {
                 ListItem(
-                    headlineContent = { Text("Создать бэкап") },
+                    headlineContent = { Text("Сохранить резервную копию") },
                     supportingContent = { Text("ZIP-архив: заметки, задачи, блокноты и фото") },
                     leadingContent = {
                         Icon(
@@ -372,10 +409,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
+                        .clickable(enabled = !busy) { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
                 )
                 ListItem(
-                    headlineContent = { Text("Восстановить из бэкапа") },
+                    headlineContent = { Text("Восстановить из файла") },
                     supportingContent = { Text("Заменить текущие данные содержимым архива") },
                     leadingContent = {
                         Icon(
@@ -386,14 +423,20 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
+                        .clickable(enabled = !busy) {
                             openBackupLauncher.launch(
                                 arrayOf("application/zip", "application/octet-stream")
                             )
                         }
                 )
+                ListItem(
+                    headlineContent = { Text("Копии на этом устройстве") },
+                    supportingContent = { Text("Доступно: ${localCopies.size}. Восстановить или сохранить в папку") },
+                    leadingContent = { Icon(Icons.Default.History, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { showLocalCopies = true }
+                )
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Как часто делать бэкап", style = MaterialTheme.typography.titleSmall)
+                    Text("Автоматические копии", style = MaterialTheme.typography.titleSmall)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
@@ -402,6 +445,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                             FilterChip(
                                 selected = state.backupFrequency == frequency,
                                 onClick = { settings.setBackupFrequency(frequency) },
+                                enabled = !busy,
                                 label = { Text(frequency.label) }
                             )
                         }
@@ -417,9 +461,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         modifier = Modifier.padding(top = 12.dp)
                     )
                     Text(
-                        "Автобэкапы тихо сохраняются в Android/data/com.notessync.app/files/backups " +
-                            "(хранятся 5 последних). Проверка расписания — при запуске приложения и " +
-                            "после сохранения заметки.",
+                        "Хранятся 5 последних копий на устройстве. Проверка — при открытии и закрытии приложения, " +
+                            "без постоянно работающей службы. «После каждой заметки» — при выходе из редактора. " +
+                            "При удалении приложения локальные копии тоже удаляются: важную копию сохраните в выбранную папку.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
@@ -443,7 +487,36 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
         }
     }
 
-    // Этап 39: подтверждение восстановления — текущие данные будут заменены.
+    if (showLocalCopies) {
+        AlertDialog(
+            onDismissRequest = { showLocalCopies = false },
+            title = { Text("Копии на устройстве") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    if (localCopies.isEmpty()) Text("Автоматических копий пока нет")
+                    localCopies.forEach { copy ->
+                        Text(formatDateTime(copy.info.createdAt), style = MaterialTheme.typography.titleSmall)
+                        Text("Записей: ${copy.info.noteCount}", style = MaterialTheme.typography.bodyMedium)
+                        androidx.compose.foundation.layout.Row {
+                            TextButton(onClick = {
+                                showLocalCopies = false
+                                pendingRestoreUri = android.net.Uri.fromFile(copy.file)
+                                pendingRestore = copy.info
+                            }) { Text("Восстановить") }
+                            TextButton(onClick = {
+                                showLocalCopies = false
+                                exportCopy = copy.file
+                                exportCopyLauncher.launch(BackupManager.suggestedFileName())
+                            }) { Text("Сохранить в папку") }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showLocalCopies = false }) { Text("Закрыть") } }
+        )
+    }
+
+    // Текущие данные заменяются только после проверки всей копии.
     val restoreInfo = pendingRestore
     val restoreUri = pendingRestoreUri
     if (restoreInfo != null && restoreUri != null) {
@@ -452,7 +525,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 pendingRestore = null
                 pendingRestoreUri = null
             },
-            title = { Text("Восстановить бэкап?") },
+            title = { Text("Восстановить резервную копию?") },
             text = {
                 Text(
                     buildString {
@@ -471,9 +544,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     pendingRestore = null
                     pendingRestoreUri = null
                     scope.launch {
+                        busy = true
                         val result = BackupManager.restore(context, restoreUri)
+                        busy = false
                         if (result.isSuccess) {
-                            restoredRestart = true
+                            snackbarHostState.showSnackbar("Данные восстановлены")
                         } else {
                             snackbarHostState.showSnackbar(
                                 "Не удалось восстановить: ${result.exceptionOrNull()?.message ?: "ошибка"}"
@@ -491,24 +566,6 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
         )
     }
 
-    // Этап 39: после подмены базы приложение перезапускается.
-    if (restoredRestart) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text("Бэкап восстановлен") },
-            text = { Text("Данные заменены. Приложение нужно перезапустить.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    val intent = context.packageManager
-                        .getLaunchIntentForPackage(context.packageName)
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    context.startActivity(intent)
-                    (context as? Activity)?.finish()
-                    exitProcess(0)
-                }) { Text("Перезапустить") }
-            }
-        )
-    }
 }
 
 @Composable

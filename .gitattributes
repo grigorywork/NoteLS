@@ -1,0 +1,2 @@
+# Upstream license texts are preserved verbatim, including original whitespace.
+app/src/main/assets/font-licenses/*.txt -whitespace

@@ -1,228 +1,263 @@
 package com.notessync.app.data.backup
 
 import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.notessync.app.data.local.AppDatabase
-import com.notessync.app.settings.BackupFrequency
+import com.notessync.app.reminders.ReminderScheduler
 import com.notessync.app.settings.SettingsRepository
+import com.notessync.app.widget.CalendarWidgetProvider
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.File
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-// Этап 39: резервное копирование заметок.
-// Бэкап — единый ZIP: manifest (метаданные), база Room (после WAL-checkpoint)
-// и каталог вложений с фото. Ручной экспорт — через системный выбор файла (SAF),
-// автобэкап — тихо в Android/data/<приложение>/files/backups (храним 5 последних).
+/** Finite, event-driven work only: no service, repeating job, wake lock or polling timer. */
 object BackupManager {
+    data class BackupInfo(val createdAt: Long, val noteCount: Long, val dbVersion: Int)
+    data class LocalBackup(val file: File, val info: BackupInfo)
+    private val operation = Mutex()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val revision = AtomicLong(0)
+    private var backedUpRevision = 0L
+    private val tables = listOf("notebooks", "tags", "notes", "note_tag_cross_ref", "attachments")
 
-    private const val MANIFEST_ENTRY = "backup.json"
-    private const val DB_ENTRY = "notessync.db"
-    private const val ATTACH_PREFIX = "attachments/"
-    private const val BACKUP_KIND = "notels-backup"
-    private const val BACKUP_FORMAT = 1
-    private const val MAX_AUTO_BACKUPS = 5
-    private const val SQLITE_MAGIC = "SQLite format 3"
+    fun noteChanged() { revision.incrementAndGet() }
 
-    data class BackupInfo(
-        val createdAt: Long,
-        val noteCount: Long,
-        val dbVersion: Int
-    )
+    fun requestAutoBackup(context: Context, afterNote: Boolean) {
+        val app = context.applicationContext
+        scope.launch { autoBackupIfDue(app, afterNote) }
+    }
 
-    /** Создать бэкап в произвольный поток (SAF-файл, выбранный пользователем). */
-    suspend fun createBackup(context: Context, out: OutputStream): BackupInfo =
-        withContext(Dispatchers.IO) {
-            val db = AppDatabase.get(context)
-            // Сбрасываем WAL в основной файл, чтобы копия была целостной.
-            db.openHelper.writableDatabase.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
-            val dbFile = context.getDatabasePath(DB_ENTRY)
-            val noteCount = db.openHelper.readableDatabase
-                .query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use { c ->
-                    if (c.moveToFirst()) c.getLong(0) else 0L
+    suspend fun createBackup(context: Context, out: OutputStream): BackupInfo = withContext(Dispatchers.IO) {
+        operation.withLock { createUnlocked(context, out) }
+    }
+
+    private fun createUnlocked(context: Context, out: OutputStream): BackupInfo {
+        val temp = temporaryDirectory(context, "snapshot-")
+        try {
+            val room = AppDatabase.get(context)
+            val snapshot = File(temp, BackupArchive.DATABASE)
+            // Hold the writer lock while copying DB + WAL; checkpoint only the isolated copy.
+            room.runInTransaction {
+                val live = context.getDatabasePath(BackupArchive.DATABASE)
+                live.copyTo(snapshot)
+                File(live.path + "-wal").takeIf { it.isFile }?.copyTo(File(snapshot.path + "-wal"))
+            }
+            val info: BackupInfo
+            val photos = linkedMapOf<String, File>()
+            SQLiteDatabase.openDatabase(snapshot.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+                db.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use {
+                    check(it.moveToFirst() && it.getInt(0) == 0) { "База занята, повторите копирование" }
                 }
-            val dbVersion = db.openHelper.readableDatabase.version
-            val createdAt = System.currentTimeMillis()
-
-            ZipOutputStream(out.buffered()).use { zos ->
-                zos.putNextEntry(ZipEntry(MANIFEST_ENTRY))
-                zos.write(manifest(createdAt, noteCount, dbVersion).toByteArray())
-                zos.closeEntry()
-
-                zos.putNextEntry(ZipEntry(DB_ENTRY))
-                dbFile.inputStream().use { it.copyTo(zos) }
-                zos.closeEntry()
-
-                val attachments = File(context.filesDir, "attachments")
-                if (attachments.isDirectory) {
-                    attachments.walkTopDown().filter { it.isFile }.forEach { f ->
-                        val rel = f.relativeTo(attachments).path.replace(File.separatorChar, '/')
-                        zos.putNextEntry(ZipEntry(ATTACH_PREFIX + rel))
-                        f.inputStream().use { it.copyTo(zos) }
-                        zos.closeEntry()
+                val count = db.rawQuery("SELECT COUNT(*) FROM notes WHERE isDeleted = 0", null).use {
+                    check(it.moveToFirst()); it.getLong(0)
+                }
+                info = BackupInfo(System.currentTimeMillis(), count, db.version)
+                val root = File(context.filesDir, "attachments").canonicalFile
+                db.rawQuery("SELECT filePath FROM attachments", null).use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val photo = File(cursor.getString(0)).canonicalFile
+                        check(photo.path.startsWith(root.path + File.separator) && photo.isFile) {
+                            "Не найдена фотография: ${photo.name}"
+                        }
+                        photos[photo.relativeTo(root).invariantSeparatorsPath] = photo
                     }
                 }
             }
-            BackupInfo(createdAt, noteCount, dbVersion)
-        }
+            ZipOutputStream(out.buffered()).use { zip ->
+                zip.putNextEntry(ZipEntry(BackupArchive.MANIFEST))
+                zip.write(BackupArchive.manifest(info.archiveInfo()).toByteArray(Charsets.UTF_8))
+                zip.closeEntry()
+                zip.addFile(BackupArchive.DATABASE, snapshot)
+                photos.forEach { (path, file) -> zip.addFile(BackupArchive.ATTACHMENTS + path, file) }
+            }
+            return info
+        } finally { temp.deleteRecursively() }
+    }
 
-    /** Прочитать манифест бэкапа без полной распаковки (для диалога подтверждения). */
     suspend fun inspect(context: Context, uri: Uri): BackupInfo? = withContext(Dispatchers.IO) {
-        runCatching {
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                ZipInputStream(input).use { zis ->
-                    var entry = zis.nextEntry
-                    var info: BackupInfo? = null
-                    var hasDb = false
-                    while (entry != null) {
-                        when (entry.name) {
-                            MANIFEST_ENTRY -> {
-                                val json = JSONObject(zis.readBytes().decodeToString())
-                                if (json.optString("kind") == BACKUP_KIND) {
-                                    info = BackupInfo(
-                                        createdAt = json.optLong("createdAt"),
-                                        noteCount = json.optLong("noteCount"),
-                                        dbVersion = json.optInt("dbVersion")
-                                    )
-                                }
-                            }
-                            DB_ENTRY -> hasDb = true
-                        }
-                        zis.closeEntry()
-                        entry = zis.nextEntry
-                    }
-                    info?.takeIf { hasDb }
-                }
+        try {
+            context.contentResolver.openInputStream(uri)?.use {
+                BackupArchive.inspect(it).also { info -> check(info.dbVersion <= AppDatabase.VERSION) }.publicInfo()
             }
-        }.getOrNull()
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (_: Exception) { null }
     }
 
-    /**
-     * Восстановить бэкап: распаковать во временный каталог, проверить SQLite-заголовок,
-     * закрыть Room и подменить файлы. После успеха приложение нужно перезапустить.
-     */
-    suspend fun restore(context: Context, uri: Uri): Result<BackupInfo> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val tmp = File(context.cacheDir, "restore_tmp")
-                tmp.deleteRecursively()
-                tmp.mkdirs()
+    suspend fun localBackups(context: Context): List<LocalBackup> = withContext(Dispatchers.IO) {
+        autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }
+            .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension == "zip" }
+            .sortedByDescending { it.lastModified() }
+            .mapNotNull { file -> inspect(context, Uri.fromFile(file))?.let { LocalBackup(file, it) } }
+            .take(5)
+    }
 
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    ZipInputStream(input).use { zis ->
-                        var entry = zis.nextEntry
-                        while (entry != null) {
-                            val name = entry.name
-                            if (name == MANIFEST_ENTRY || name == DB_ENTRY ||
-                                name.startsWith(ATTACH_PREFIX)
-                            ) {
-                                val out = File(tmp, name)
-                                // Защита от path traversal внутри архива.
-                                check(out.canonicalPath.startsWith(tmp.canonicalPath)) {
-                                    "Некорректный архив"
-                                }
-                                if (entry.isDirectory) {
-                                    out.mkdirs()
-                                } else {
-                                    out.parentFile?.mkdirs()
-                                    out.outputStream().use { zis.copyTo(it) }
-                                }
-                            }
-                            zis.closeEntry()
-                            entry = zis.nextEntry
+    suspend fun restore(context: Context, uri: Uri): Result<BackupInfo> = withContext(Dispatchers.IO) {
+        operation.withLock {
+            val temp = File(context.cacheDir, "restore-${UUID.randomUUID()}")
+            val incoming = File(context.filesDir, "attachments/restored-${UUID.randomUUID()}")
+            var committed = false
+            try {
+                check(temp.mkdirs()) { "Не удалось подготовить восстановление" }
+                val info = context.contentResolver.openInputStream(uri)?.use { BackupArchive.extract(it, temp) }
+                    ?: error("Не удалось открыть файл")
+                check(info.dbVersion <= AppDatabase.VERSION) { "Обновите NoteLS для восстановления этой копии" }
+                val snapshot = File(temp, BackupArchive.DATABASE)
+                SQLiteDatabase.openDatabase(snapshot.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+                    check(db.version == info.dbVersion) { "Версия базы не совпадает с манифестом" }
+                    db.rawQuery("PRAGMA quick_check", null).use {
+                        check(it.moveToFirst() && it.getString(0) == "ok") { "База резервной копии повреждена" }
+                    }
+                }
+                // Room migrates and validates the staged schema before the live DB is touched.
+                val source = AppDatabase.openForRestore(context, snapshot.absolutePath)
+                try {
+                    val packed = source.openHelper.writableDatabase
+                    packed.query("PRAGMA foreign_key_check").use {
+                        check(!it.moveToFirst()) { "Нарушены связи записей резервной копии" }
+                    }
+                    val count = packed.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use {
+                        check(it.moveToFirst()); it.getLong(0)
+                    }
+                    check(count == info.noteCount) { "Число заметок не совпадает с манифестом" }
+                    check(incoming.mkdirs()) { "Не удалось подготовить фотографии" }
+                    packed.query("SELECT id, filePath FROM attachments").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val relative = BackupArchive.relativeAttachmentPath(cursor.getString(1))
+                            val photo = File(temp, BackupArchive.ATTACHMENTS + relative)
+                            check(photo.isFile) { "В копии отсутствует фотография" }
+                            val stableName = UUID.nameUUIDFromBytes(relative.toByteArray(Charsets.UTF_8)).toString()
+                            val target = File(incoming, stableName)
+                            check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs())
+                            if (!target.isFile) photo.copyTo(target)
+                            packed.execSQL("UPDATE attachments SET filePath = ? WHERE id = ?",
+                                arrayOf(target.absolutePath, cursor.getLong(0)))
                         }
                     }
-                } ?: error("Не удалось открыть файл")
-
-                val dbFile = File(tmp, DB_ENTRY)
-                check(dbFile.exists()) { "В архиве нет базы заметок" }
-                dbFile.inputStream().use { ins ->
-                    val magic = ByteArray(16)
-                    val read = ins.read(magic)
-                    check(read == 16 && String(magic, 0, 15) == SQLITE_MAGIC) {
-                        "Файл не похож на базу NoteLS"
+                    val live = AppDatabase.get(context)
+                    val oldPhotos = live.openHelper.readableDatabase.query("SELECT filePath FROM attachments").use { cursor ->
+                        buildList { while (cursor.moveToNext()) add(File(cursor.getString(0))) }
                     }
-                }
-
-                val info = runCatching {
-                    val json = JSONObject(File(tmp, MANIFEST_ENTRY).readText())
-                    BackupInfo(
-                        createdAt = json.optLong("createdAt"),
-                        noteCount = json.optLong("noteCount"),
-                        dbVersion = json.optInt("dbVersion")
-                    )
-                }.getOrDefault(BackupInfo(0L, -1L, 0))
-
-                // Подмена файлов: Room должен быть закрыт до замены файла БД.
-                AppDatabase.closeInstance()
-                val live = context.getDatabasePath(DB_ENTRY)
-                live.delete()
-                File(live.path + "-wal").delete()
-                File(live.path + "-shm").delete()
-                File(live.path + "-journal").delete()
-                dbFile.copyTo(live, overwrite = true)
-
-                val liveAttachments = File(context.filesDir, "attachments")
-                liveAttachments.deleteRecursively()
-                val packedAttachments = File(tmp, "attachments")
-                if (packedAttachments.isDirectory) {
-                    packedAttachments.copyRecursively(liveAttachments, overwrite = true)
-                } else {
-                    liveAttachments.mkdirs()
-                }
-
-                tmp.deleteRecursively()
-                info
+                    val oldAlarms = live.openHelper.readableDatabase.query(
+                        "SELECT id FROM notes WHERE reminderAt IS NOT NULL OR taskCountdownEndAt IS NOT NULL"
+                    ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.getLong(0)) } }
+                    live.runInTransaction {
+                        val target = live.openHelper.writableDatabase
+                        tables.asReversed().forEach { target.execSQL("DELETE FROM `$it`") }
+                        tables.forEach { copyTable(packed, target, it) }
+                    }
+                    committed = true
+                    // Only after commit may files referenced by the old DB be removed.
+                    // Nonessential refresh failures must not report a successful restore as failed.
+                    runCatching {
+                        val attachmentsRoot = File(context.filesDir, "attachments").canonicalPath + File.separator
+                        oldPhotos.filter { it.canonicalPath.startsWith(attachmentsRoot) }.forEach { it.delete() }
+                        oldAlarms.forEach {
+                            ReminderScheduler.cancel(context, it)
+                            ReminderScheduler.cancelTimer(context, it)
+                        }
+                        reschedule(context, live.openHelper.readableDatabase)
+                        CalendarWidgetProvider.refreshAll(context)
+                    }
+                    backedUpRevision = revision.get()
+                } finally { runCatching { source.close() } }
+                Result.success(info.publicInfo())
+            } catch (cancel: CancellationException) { throw cancel }
+            catch (error: Exception) { Result.failure(error) }
+            finally {
+                if (!committed) incoming.deleteRecursively()
+                temp.deleteRecursively()
             }
         }
+    }
 
-    /**
-     * Автобэкап по настройке частоты. Вызывается при старте приложения
-     * (afterNote=false) и после сохранения заметки (afterNote=true).
-     * Тихий: любые ошибки проглатываются, чтобы не мешать работе.
-     */
-    suspend fun autoBackupIfDue(context: Context, afterNote: Boolean) {
-        val settings = SettingsRepository.get(context)
-        val state = settings.state.value
-        val due = when (state.backupFrequency) {
-            BackupFrequency.MANUAL -> false
-            BackupFrequency.AFTER_NOTE -> afterNote
-            else -> System.currentTimeMillis() - state.lastBackupAt >=
-                state.backupFrequency.intervalMillis
-        }
-        if (!due) return
-        runCatching {
-            val dir = File(context.getExternalFilesDir(null), "backups").apply { mkdirs() }
-            val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-            val file = File(dir, "notels-auto-$stamp.zip")
-            file.outputStream().use { createBackup(context, it) }
-            settings.setLastBackupAt(System.currentTimeMillis())
-            dir.listFiles()
-                ?.sortedByDescending { it.lastModified() }
-                ?.drop(MAX_AUTO_BACKUPS)
-                ?.forEach { it.delete() }
+    private fun copyTable(source: SupportSQLiteDatabase, target: SupportSQLiteDatabase, table: String) {
+        source.query("SELECT * FROM `$table`").use { rows ->
+            val columns = rows.columnNames.joinToString(",") { "`$it`" }
+            val placeholders = rows.columnNames.joinToString(",") { "?" }
+            target.compileStatement("INSERT INTO `$table` ($columns) VALUES ($placeholders)").use { insert ->
+                while (rows.moveToNext()) {
+                    insert.clearBindings()
+                    for (i in 0 until rows.columnCount) when (rows.getType(i)) {
+                        Cursor.FIELD_TYPE_NULL -> insert.bindNull(i + 1)
+                        Cursor.FIELD_TYPE_INTEGER -> insert.bindLong(i + 1, rows.getLong(i))
+                        Cursor.FIELD_TYPE_FLOAT -> insert.bindDouble(i + 1, rows.getDouble(i))
+                        Cursor.FIELD_TYPE_BLOB -> insert.bindBlob(i + 1, rows.getBlob(i))
+                        else -> insert.bindString(i + 1, rows.getString(i))
+                    }
+                    insert.executeInsert()
+                }
+            }
         }
     }
 
-    /** Имя для ручного бэкапа: NoteLS-backup-20261111-1530.zip */
-    fun suggestedFileName(): String {
-        val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date())
-        return "NoteLS-backup-$stamp.zip"
+    private fun reschedule(context: Context, db: SupportSQLiteDatabase) {
+        db.query("SELECT n.id, n.title, n.reminderAt, n.taskCountdownEndAt, " +
+            "(n.isProtected OR COALESCE(b.isProtected, 0)) FROM notes n " +
+            "LEFT JOIN notebooks b ON n.notebookId = b.id WHERE n.isDeleted = 0 AND n.isCompleted = 0").use { cursor ->
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(0)
+                val title = if (cursor.getInt(4) != 0) "Защищённая запись" else cursor.getString(1).ifBlank { "Без названия" }
+                if (!cursor.isNull(2)) ReminderScheduler.schedule(context, id, title, cursor.getLong(2))
+                if (!cursor.isNull(3)) ReminderScheduler.scheduleTimer(context, id, title, cursor.getLong(3))
+            }
+        }
     }
 
-    private fun manifest(createdAt: Long, noteCount: Long, dbVersion: Int): String =
-        JSONObject()
-            .put("kind", BACKUP_KIND)
-            .put("format", BACKUP_FORMAT)
-            .put("createdAt", createdAt)
-            .put("noteCount", noteCount)
-            .put("dbVersion", dbVersion)
-            .toString()
+    suspend fun autoBackupIfDue(context: Context, afterNote: Boolean) = withContext(Dispatchers.IO) {
+        if (!operation.tryLock()) return@withContext
+        try {
+            val settings = SettingsRepository.get(context)
+            val state = settings.state.value
+            val current = revision.get()
+            if (!BackupPolicy.isDue(state.backupFrequency, afterNote && current != backedUpRevision,
+                    state.lastAutoBackupAt, System.currentTimeMillis())) return@withContext
+            val directory = autoDirectories(context).first().apply { check(isDirectory || mkdirs()) }
+            val file = File(directory, "notels-auto-${System.currentTimeMillis()}-${UUID.randomUUID()}.zip")
+            val pending = File(directory, file.name + ".pending")
+            try {
+                pending.outputStream().use { createUnlocked(context, it) }
+                check(pending.renameTo(file)) { "Не удалось сохранить копию" }
+                settings.setLastAutoBackupAt(System.currentTimeMillis())
+                backedUpRevision = current
+                autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }
+                    .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension == "zip" }
+                    .sortedByDescending { it.lastModified() }.drop(5).forEach { it.delete() }
+            } finally { pending.delete() }
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (_: Exception) { /* A failed copy must not interrupt saving a note. */ }
+        finally { operation.unlock() }
+    }
+
+    // Preserve access to v1.10.0 copies previously stored in external app storage.
+    private fun autoDirectories(context: Context): List<File> = buildList {
+        add(File(context.filesDir, "backups"))
+        context.getExternalFilesDir(null)?.let { add(File(it, "backups")) }
+    }
+    private fun temporaryDirectory(context: Context, prefix: String): File =
+        File(context.cacheDir, prefix + UUID.randomUUID()).apply { check(mkdirs()) }
+    fun suggestedFileName(): String = "NoteLS-backup-${SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())}.zip"
+    private fun BackupInfo.archiveInfo() = BackupArchive.Info(createdAt, noteCount, dbVersion)
+    private fun BackupArchive.Info.publicInfo() = BackupInfo(createdAt, noteCount, dbVersion)
+    private fun ZipOutputStream.addFile(name: String, file: File) {
+        putNextEntry(ZipEntry(name))
+        file.inputStream().use { it.copyTo(this) }
+        closeEntry()
+    }
 }

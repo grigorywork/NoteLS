@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.InvalidationTracker
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.notessync.app.data.local.dao.AttachmentDao
@@ -15,6 +16,7 @@ import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.data.local.entity.NoteTagCrossRef
 import com.notessync.app.data.local.entity.NotebookEntity
 import com.notessync.app.data.local.entity.TagEntity
+import com.notessync.app.data.backup.BackupManager
 
 @Database(
     entities = [
@@ -35,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun attachmentDao(): AttachmentDao
 
     companion object {
+        const val VERSION = 10
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -126,16 +129,28 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
+                instance ?: build(context, "notessync.db").also { database ->
+                    // A notification after actual DB changes, with no polling or service.
+                    database.invalidationTracker.addObserver(object : InvalidationTracker.Observer(
+                        "notes", "notebooks", "tags", "note_tag_cross_ref", "attachments"
+                    ) {
+                        override fun onInvalidated(tables: Set<String>) { BackupManager.noteChanged() }
+                    })
+                    instance = database
+                }
+            }
+
+        internal fun openForRestore(context: Context, path: String): AppDatabase = build(context, path)
+
+        private fun build(context: Context, path: String): AppDatabase = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "notessync.db"
+                    path
                 ).addMigrations(
                         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
                         MIGRATION_9_10
-                    ).build().also { instance = it }
-            }
+                    ).build()
 
         // Этап 39: закрыть и сбросить синглтон перед подменой файла БД
         // при восстановлении бэкапа. Следующий get() откроет базу заново.
