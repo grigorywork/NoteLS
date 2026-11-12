@@ -173,13 +173,14 @@ class RoomSyncDataSource(
 
     override suspend fun hasAttachmentBytes(attachmentSyncId: String): Boolean = withContext(Dispatchers.IO) {
         if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext true
-        db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) }
-            ?.let { it.isFile && it.length() > 0 } ?: false
+        val file = db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) } ?: attachmentFile(attachmentSyncId)
+        file.isFile && file.length() > 0
     }
 
     override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? = withContext(Dispatchers.IO) {
         if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext null
-        db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) }?.takeIf { it.isFile }?.readBytes()
+        val file = db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) } ?: attachmentFile(attachmentSyncId)
+        file.takeIf { it.isFile }?.readBytes()
     }
 
     override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {

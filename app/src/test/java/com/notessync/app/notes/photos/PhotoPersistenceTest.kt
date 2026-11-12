@@ -121,5 +121,9 @@ class PhotoPersistenceTest {
         val retained = db.attachmentDao().getBySyncId(photoId)!!
         assertEquals(before.id, retained.id); assertEquals(480, retained.displayWidthDp); assertEquals(360, retained.displayHeightDp)
         assertEquals(1L, retained.previewRevision)
+        // A session may still request its earlier snapshot after metadata changes removed the row.
+        db.attachmentDao().deleteByNoteId(retained.noteId)
+        assertTrue(source.hasAttachmentBytes(photoId))
+        assertArrayEquals(bytes, source.readAttachmentBytes(photoId))
     }
 }
