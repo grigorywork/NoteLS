@@ -23,8 +23,9 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 43
-        versionName = "1.10.20"
+        versionCode = 44
+        versionName = "1.10.21"
+        resourceConfigurations += listOf("ru", "en")
     }
 
     signingConfigs {
@@ -51,6 +52,9 @@ android {
             }
         }
     }
+
+    // Both UI languages are available offline, including installations from an App Bundle.
+    bundle { language { enableSplit = false } }
 
     buildFeatures {
         compose = true

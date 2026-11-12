@@ -1,5 +1,7 @@
 package com.notessync.app.sync.crypto
 
+import com.notessync.app.i18n.uiText
+
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -29,7 +31,7 @@ class SessionCrypto(sessionCode: String) {
 
     /** Принимает iv(12 байт) + шифротекст. Бросает AEADBadTagException при подмене. */
     fun decrypt(data: ByteArray): ByteArray {
-        require(data.size > GCM_IV_BYTES) { "Кадр слишком короткий" }
+        require(data.size > GCM_IV_BYTES) { uiText("Кадр слишком короткий") }
         val iv = data.copyOfRange(0, GCM_IV_BYTES)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_BITS, iv))

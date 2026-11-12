@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.activity.compose.BackHandler
@@ -199,10 +201,10 @@ fun NotesListScreen(
             val message = try {
                 val count = viewModel.applyAction(ids, action)
                 selected = emptySet()
-                "Обработано: $count"
+                uiText("Обработано: %1\$s", (count))
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
-                "Не удалось выполнить действие. Повторите."
+                uiText("Не удалось выполнить действие. Повторите.")
             } finally { busy = false }
             snackbarHostState.showSnackbar(message)
         }
@@ -236,7 +238,7 @@ fun NotesListScreen(
         deletedNoteEvents?.collect { id ->
             if (id > 0) {
                 onDeletedEventHandled()
-                val result = snackbarHostState.showSnackbar("Заметка удалена", actionLabel = "Отменить")
+                val result = snackbarHostState.showSnackbar(uiText("Заметка удалена"), actionLabel = uiText("Отменить"))
                 if (result == SnackbarResult.ActionPerformed) viewModel.restore(id)
             }
         }
@@ -248,12 +250,12 @@ fun NotesListScreen(
             ModalDrawerSheet {
                 Column(Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState())) {
                 Text(
-                    "Заметки",
+                    uiText("Заметки"),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(16.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Все заметки") },
+                    label = { Text(uiText("Все заметки")) },
                     icon = { Icon(Icons.Default.Edit, contentDescription = null) },
                     selected = filter == NoteFilter.All,
                     onClick = {
@@ -263,7 +265,7 @@ fun NotesListScreen(
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Задачи") },
+                    label = { Text(uiText("Задачи")) },
                     icon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
                     selected = filter == NoteFilter.Tasks,
                     onClick = {
@@ -273,7 +275,7 @@ fun NotesListScreen(
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Избранное") },
+                    label = { Text(uiText("Избранное")) },
                     icon = { Icon(Icons.Default.Star, contentDescription = null) },
                     selected = filter == NoteFilter.Favorites,
                     onClick = {
@@ -283,13 +285,13 @@ fun NotesListScreen(
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Корзина") }, icon = { Icon(Icons.Default.Delete, null) },
+                    label = { Text(uiText("Корзина")) }, icon = { Icon(Icons.Default.Delete, null) },
                     selected = filter == NoteFilter.Trash,
                     onClick = { viewModel.selectFilter(NoteFilter.Trash); scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Календарь") },
+                    label = { Text(uiText("Календарь")) },
                     icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
                     selected = false,
                     onClick = {
@@ -301,7 +303,7 @@ fun NotesListScreen(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                 // Этап 31: крупный отдельный пункт — аналитика выполненных задач.
                 NavigationDrawerItem(
-                    label = { Text("Аналитика", style = MaterialTheme.typography.titleMedium) },
+                    label = { Text(uiText("Аналитика"), style = MaterialTheme.typography.titleMedium) },
                     icon = {
                         Icon(
                             Icons.Default.QueryStats,
@@ -318,7 +320,7 @@ fun NotesListScreen(
                 )
                 // Этап 38: библиотека цитат мыслителей — в боковом меню рядом с аналитикой.
                 NavigationDrawerItem(
-                    label = { Text("Цитаты", style = MaterialTheme.typography.titleMedium) },
+                    label = { Text(uiText("Цитаты"), style = MaterialTheme.typography.titleMedium) },
                     icon = {
                         Icon(
                             Icons.Default.FormatQuote,
@@ -341,13 +343,13 @@ fun NotesListScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Блокноты",
+                        uiText("Блокноты"),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = { showCreateNotebook = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Новый блокнот")
+                        Icon(Icons.Default.Add, contentDescription = uiText("Новый блокнот"))
                     }
                 }
                 notebooks.forEach { notebook ->
@@ -377,12 +379,12 @@ fun NotesListScreen(
                         badge = {
                             Box {
                                 IconButton(onClick = { menuOpen = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = "Действия с блокнотом")
+                                    Icon(Icons.Default.MoreVert, contentDescription = uiText("Действия с блокнотом"))
                                 }
                                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                                     if (!notebook.isProtected) {
                                         DropdownMenuItem(
-                                            text = { Text("Защитить паролем") },
+                                            text = { Text(uiText("Защитить паролем")) },
                                             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                                             onClick = {
                                                 menuOpen = false
@@ -392,7 +394,7 @@ fun NotesListScreen(
                                     } else {
                                         if (unlocked) {
                                             DropdownMenuItem(
-                                                text = { Text("Заблокировать") },
+                                                text = { Text(uiText("Заблокировать")) },
                                                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                                                 onClick = {
                                                     menuOpen = false
@@ -401,18 +403,18 @@ fun NotesListScreen(
                                             )
                                         }
                                         if (unlocked) DropdownMenuItem(
-                                            text = { Text(if (biometricEnrolled) "Выключить биометрию" else "Включить биометрию") },
+                                            text = { Text(if (biometricEnrolled) uiText("Выключить биометрию") else uiText("Включить биометрию")) },
                                             onClick = {
                                                 menuOpen = false
                                                 if (biometricEnrolled) {
-                                                    viewModel.biometrics.revoke(notebook.syncId) { success -> scope.launch { snackbarHostState.showSnackbar(if (success) "Биометрия выключена" else "Не удалось выключить биометрию") } }
+                                                    viewModel.biometrics.revoke(notebook.syncId) { success -> scope.launch { snackbarHostState.showSnackbar(if (success) uiText("Биометрия выключена") else uiText("Не удалось выключить биометрию")) } }
                                                 } else if (canUseNotebookBiometrics(settingsContext)) {
                                                     biometricPasswordError = false; notebookToEnrollBiometric = notebook
-                                                } else scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Проверьте отпечаток в настройках телефона.") }
+                                                } else scope.launch { snackbarHostState.showSnackbar(uiText("Биометрия недоступна. Проверьте отпечаток в настройках телефона.")) }
                                             }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("Снять защиту") },
+                                            text = { Text(uiText("Снять защиту")) },
                                             leadingIcon = { Icon(Icons.Default.LockOpen, contentDescription = null) },
                                             onClick = {
                                                 menuOpen = false
@@ -422,7 +424,7 @@ fun NotesListScreen(
                                         )
                                     }
                                     if (unlocked) DropdownMenuItem(
-                                        text = { Text("Переименовать") },
+                                        text = { Text(uiText("Переименовать")) },
                                         leadingIcon = { Icon(Icons.Default.Create, contentDescription = null) },
                                         onClick = {
                                             menuOpen = false
@@ -430,7 +432,7 @@ fun NotesListScreen(
                                         }
                                     )
                                     if (unlocked) DropdownMenuItem(
-                                        text = { Text("Удалить") },
+                                        text = { Text(uiText("Удалить")) },
                                         leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
                                         onClick = {
                                             menuOpen = false
@@ -457,19 +459,19 @@ fun NotesListScreen(
                     title = { Text(filterTitle(filter)) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Меню")
+                            Icon(Icons.Default.Menu, contentDescription = uiText("Меню"))
                         }
                     },
                     actions = {
                         IconButton(onClick = onOpenAnalytics) {
-                            Icon(Icons.Default.QueryStats, contentDescription = "Аналитика")
+                            Icon(Icons.Default.QueryStats, contentDescription = uiText("Аналитика"))
                         }
                         SortMenu(sort, viewModel::selectSort)
                         IconButton(onClick = onOpenSync) {
-                            Icon(Icons.Default.Sync, contentDescription = "Синхронизация")
+                            Icon(Icons.Default.Sync, contentDescription = uiText("Синхронизация"))
                         }
                         IconButton(onClick = onOpenSettings) {
-                            Icon(Icons.Default.Settings, contentDescription = "Настройки")
+                            Icon(Icons.Default.Settings, contentDescription = uiText("Настройки"))
                         }
                     }
                 )
@@ -481,10 +483,10 @@ fun NotesListScreen(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {
-                        Icon(Icons.Default.CheckBox, contentDescription = "Новая задача")
+                        Icon(Icons.Default.CheckBox, contentDescription = uiText("Новая задача"))
                     }
                     FloatingActionButton(onClick = { onOpenEditor(-1L, false) }) {
-                        Icon(Icons.Default.Add, contentDescription = "Новая заметка")
+                        Icon(Icons.Default.Add, contentDescription = uiText("Новая заметка"))
                     }
                 }
             }
@@ -498,21 +500,21 @@ fun NotesListScreen(
                             onSearch = {},
                             expanded = false,
                             onExpandedChange = {},
-                            placeholder = { Text("Поиск") },
+                            placeholder = { Text(uiText("Поиск")) },
                             modifier = Modifier.focusRequester(searchFocus),
                             leadingIcon = { IconButton(onClick = { searchFocus.requestFocus(); keyboard?.show() }) {
-                                Icon(Icons.Default.Search, contentDescription = "Поиск заметок", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.Search, contentDescription = uiText("Поиск заметок"), tint = MaterialTheme.colorScheme.primary)
                             } },
                             trailingIcon = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { settingsRepository.setNotesLayout(
                                     if (displaySettings.notesLayout == NotesLayout.LIST) NotesLayout.GRID else NotesLayout.LIST) }) {
                                     Icon(if (displaySettings.notesLayout == NotesLayout.LIST) Icons.Default.GridView else Icons.AutoMirrored.Filled.ViewList,
-                                        if (displaySettings.notesLayout == NotesLayout.LIST) "Показать сетку" else "Показать список")
+                                        if (displaySettings.notesLayout == NotesLayout.LIST) uiText("Показать сетку") else uiText("Показать список"))
                                 }
                                 if (query.isNotEmpty()) {
                                     IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Очистить")
+                                        Icon(Icons.Default.Close, contentDescription = uiText("Очистить"))
                                     }
                                 }
                                 }
@@ -528,22 +530,22 @@ fun NotesListScreen(
                 )
 
                 if (selected.isNotEmpty()) FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Выбрано: ${selected.size}", modifier = Modifier.padding(12.dp))
-                    IconButton(onClick = { selected = emptySet() }, enabled = !busy) { Icon(Icons.Default.Close, "Снять выделение") }
-                    IconButton(onClick = { selected = shownNotes.map { it.id }.toSet() }, enabled = !busy) { Icon(Icons.Default.SelectAll, "Выбрать все найденные") }
-                    if (filter == NoteFilter.Trash) IconButton(onClick = { apply(selected, NoteActions.Action.RESTORE) }, enabled = !busy) { Icon(Icons.Default.RestoreFromTrash, "Восстановить выбранные") }
-                    else IconButton(onClick = { apply(selected, if (shownNotes.filter { it.id in selected }.all { it.isPinned }) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, enabled = !busy) { Icon(Icons.Default.PushPin, "Закрепить или открепить выбранные") }
+                    Text(uiText("Выбрано: %1\$s", (selected.size)), modifier = Modifier.padding(12.dp))
+                    IconButton(onClick = { selected = emptySet() }, enabled = !busy) { Icon(Icons.Default.Close, uiText("Снять выделение")) }
+                    IconButton(onClick = { selected = shownNotes.map { it.id }.toSet() }, enabled = !busy) { Icon(Icons.Default.SelectAll, uiText("Выбрать все найденные")) }
+                    if (filter == NoteFilter.Trash) IconButton(onClick = { apply(selected, NoteActions.Action.RESTORE) }, enabled = !busy) { Icon(Icons.Default.RestoreFromTrash, uiText("Восстановить выбранные")) }
+                    else IconButton(onClick = { apply(selected, if (shownNotes.filter { it.id in selected }.all { it.isPinned }) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, enabled = !busy) { Icon(Icons.Default.PushPin, uiText("Закрепить или открепить выбранные")) }
                     IconButton(onClick = {
                         if (filter == NoteFilter.Trash) { purgeIds = selected; pendingPurge = true }
                         else apply(selected, NoteActions.Action.TRASH)
-                    }, enabled = !busy) { Icon(Icons.Default.Delete, if (filter == NoteFilter.Trash) "Удалить выбранные навсегда" else "В корзину") }
+                    }, enabled = !busy) { Icon(Icons.Default.Delete, if (filter == NoteFilter.Trash) uiText("Удалить выбранные навсегда") else uiText("В корзину")) }
                 }
                 if (filter == NoteFilter.Trash) {
                     FlowRow(Modifier.padding(horizontal = 12.dp)) {
-                        TextButton(onClick = { apply(null, NoteActions.Action.RESTORE) }, enabled = !busy) { Text("Восстановить все") }
-                        TextButton(onClick = { purgeIds = null; pendingPurge = true }, enabled = !busy) { Text("Очистить корзину") }
+                        TextButton(onClick = { apply(null, NoteActions.Action.RESTORE) }, enabled = !busy) { Text(uiText("Восстановить все")) }
+                        TextButton(onClick = { purgeIds = null; pendingPurge = true }, enabled = !busy) { Text(uiText("Очистить корзину")) }
                     }
-                    Text("Закрытые записи доступны после разблокировки.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(uiText("Закрытые записи доступны после разблокировки."), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp))
                 }
 
                 if (tags.isNotEmpty()) {
@@ -573,10 +575,10 @@ fun NotesListScreen(
                     ) {
                         Text(
                             text = when {
-                                query.isNotBlank() -> "Ничего не найдено"
-                                filter == NoteFilter.Trash -> "Корзина пуста"
-                                filter == NoteFilter.Tasks -> "Пока нет задач"
-                                else -> "Пока нет заметок"
+                                query.isNotBlank() -> uiText("Ничего не найдено")
+                                filter == NoteFilter.Trash -> uiText("Корзина пуста")
+                                filter == NoteFilter.Tasks -> uiText("Пока нет задач")
+                                else -> uiText("Пока нет заметок")
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -602,44 +604,44 @@ fun NotesListScreen(
 
     if (pendingPurge) AlertDialog(
         onDismissRequest = { pendingPurge = false },
-        title = { Text(if (purgeIds == null) "Очистить корзину?" else "Удалить навсегда?") },
-        text = { Text("Текст и вложения будут удалены. Восстановить из корзины нельзя. Закрытые записи останутся до разблокировки.") },
-        confirmButton = { TextButton(onClick = { pendingPurge = false; apply(purgeIds, NoteActions.Action.PURGE) }, enabled = !busy) { Text("Удалить навсегда") } },
-        dismissButton = { TextButton(onClick = { pendingPurge = false }) { Text("Отмена") } }
+        title = { Text(if (purgeIds == null) uiText("Очистить корзину?") else uiText("Удалить навсегда?")) },
+        text = { Text(uiText("Текст и вложения будут удалены. Восстановить из корзины нельзя. Закрытые записи останутся до разблокировки.")) },
+        confirmButton = { TextButton(onClick = { pendingPurge = false; apply(purgeIds, NoteActions.Action.PURGE) }, enabled = !busy) { Text(uiText("Удалить навсегда")) } },
+        dismissButton = { TextButton(onClick = { pendingPurge = false }) { Text(uiText("Отмена")) } }
     )
 
     deleteCandidate?.let { note ->
         AlertDialog(
             onDismissRequest = { deleteCandidate = null },
-            title = { Text("Удалить заметку?") },
-            text = { Text(note.title.ifBlank { "Без названия" }, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            title = { Text(uiText("Удалить заметку?")) },
+            text = { Text(note.title.ifBlank { uiText("Без названия") }, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             confirmButton = {
                 TextButton(onClick = {
                     deleteCandidate = null
                     scope.launch {
                         try {
                             if (viewModel.delete(note) > 0) {
-                                val result = snackbarHostState.showSnackbar("Заметка в корзине", actionLabel = "Отменить")
+                                val result = snackbarHostState.showSnackbar(uiText("Заметка в корзине"), actionLabel = uiText("Отменить"))
                                 if (result == SnackbarResult.ActionPerformed) viewModel.restore(note.id)
                             }
                         } catch (error: Exception) {
                             if (error is kotlinx.coroutines.CancellationException) throw error
-                            snackbarHostState.showSnackbar("Не удалось выполнить действие. Повторите.")
+                            snackbarHostState.showSnackbar(uiText("Не удалось выполнить действие. Повторите."))
                         }
                     }
-                }) { Text("Удалить") }
+                }) { Text(uiText("Удалить")) }
             },
             dismissButton = {
-                TextButton(onClick = { deleteCandidate = null }) { Text("Отмена") }
+                TextButton(onClick = { deleteCandidate = null }) { Text(uiText("Отмена")) }
             }
         )
     }
 
     if (showCreateNotebook) {
         NotebookNameDialog(
-            title = "Новый блокнот",
+            title = uiText("Новый блокнот"),
             initial = "",
-            confirmLabel = "Создать",
+            confirmLabel = uiText("Создать"),
             onConfirm = { viewModel.createNotebook(it) },
             onDismiss = { showCreateNotebook = false }
         )
@@ -647,9 +649,9 @@ fun NotesListScreen(
 
     notebookToEdit?.let { notebook ->
         NotebookNameDialog(
-            title = "Переименовать",
+            title = uiText("Переименовать"),
             initial = notebook.name,
-            confirmLabel = "Сохранить",
+            confirmLabel = uiText("Сохранить"),
             onConfirm = { viewModel.renameNotebook(notebook, it) },
             onDismiss = { notebookToEdit = null }
         )
@@ -658,22 +660,22 @@ fun NotesListScreen(
     notebookToDelete?.let { notebook ->
         AlertDialog(
             onDismissRequest = { notebookToDelete = null },
-            title = { Text("Удалить блокнот?") },
-            text = { Text("Заметки останутся в «Все заметки».") },
+            title = { Text(uiText("Удалить блокнот?")) },
+            text = { Text(uiText("Заметки останутся в «Все заметки».")) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteNotebook(notebook)
                     notebookToDelete = null
-                }) { Text("Удалить") }
+                }) { Text(uiText("Удалить")) }
             },
             dismissButton = {
-                TextButton(onClick = { notebookToDelete = null }) { Text("Отмена") }
+                TextButton(onClick = { notebookToDelete = null }) { Text(uiText("Отмена")) }
             }
         )
     }
     notebookToProtect?.let { notebook ->
         SetPasswordDialog(
-            title = "Пароль блокнота",
+            title = uiText("Пароль блокнота"),
             onDismiss = { notebookToProtect = null },
             onConfirm = { password ->
                 viewModel.protectNotebook(notebook, password)
@@ -683,7 +685,7 @@ fun NotesListScreen(
     }
 
     notebookToEnrollBiometric?.let { notebook ->
-        UnlockPasswordDialog(title = "Включить биометрию: пароль блокнота", showError = biometricPasswordError,
+        UnlockPasswordDialog(title = uiText("Включить биометрию: пароль блокнота"), showError = biometricPasswordError,
             onDismiss = { notebookToEnrollBiometric = null; viewModel.biometrics.cancel() }, busy = biometricBusy,
             onConfirm = { password -> viewModel.biometrics.prepare(notebook, true, password) { ready ->
                 when (ready) {
@@ -691,7 +693,7 @@ fun NotesListScreen(
                     NotebookBiometricController.PrepareResult.PASSWORD -> biometricPasswordError = true
                     else -> {
                         notebookToEnrollBiometric = null
-                        scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Откройте блокнот паролем и повторите.") }
+                        scope.launch { snackbarHostState.showSnackbar(uiText("Биометрия недоступна. Откройте блокнот паролем и повторите.")) }
                     }
                 }
             } }
@@ -704,7 +706,7 @@ fun NotesListScreen(
                     notebookToUnlock = null
                     val book = notebooks.firstOrNull { it.id == request.notebookId }
                     if (book != null) { viewModel.selectFilter(NoteFilter.Notebook(book.id, book.name)); scope.launch { drawerState.close() } }
-                } else scope.launch { snackbarHostState.showSnackbar(if (accepted) "Биометрия включена" else "Биометрия не подтверждена. Используйте пароль.") }
+                } else scope.launch { snackbarHostState.showSnackbar(if (accepted) uiText("Биометрия включена") else uiText("Биометрия не подтверждена. Используйте пароль.")) }
             } },
             onFallback = { viewModel.biometrics.cancelIfPending(request) },
             onDisposed = { viewModel.biometrics.cancelIfPending(request) })
@@ -713,14 +715,14 @@ fun NotesListScreen(
     notebookToUnlock?.let { notebook ->
         val biometricTag = remember(notebook) { NotebookBiometricBinding.from(notebook)?.credentialTag }
         UnlockPasswordDialog(
-            title = "Открыть «${notebook.name}»",
+            title = uiText("Открыть «%1\$s»", (notebook.name)),
             showError = notebookUnlockError,
             busy = biometricBusy,
             alternative = {
                 if (biometricTag != null && biometricBindings[notebook.syncId] == biometricTag) TextButton(
                     enabled = !biometricBusy,
-                    onClick = { viewModel.biometrics.prepare(notebook, false) { ready -> if (ready != NotebookBiometricController.PrepareResult.READY) scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Введите пароль.") } } }
-                ) { Text("Открыть по биометрии") }
+                    onClick = { viewModel.biometrics.prepare(notebook, false) { ready -> if (ready != NotebookBiometricController.PrepareResult.READY) scope.launch { snackbarHostState.showSnackbar(uiText("Биометрия недоступна. Введите пароль.")) } } }
+                ) { Text(uiText("Открыть по биометрии")) }
             },
             onDismiss = { notebookToUnlock = null; viewModel.biometrics.cancel() },
             onConfirm = { password ->
@@ -739,7 +741,7 @@ fun NotesListScreen(
 
     notebookToUnprotect?.let { notebook ->
         UnlockPasswordDialog(
-            title = "Снять защиту блокнота",
+            title = uiText("Снять защиту блокнота"),
             showError = notebookRemoveError,
             onDismiss = { notebookToUnprotect = null },
             onConfirm = { password ->
@@ -752,7 +754,7 @@ fun NotesListScreen(
 
     taskToUnlock?.let { note ->
         UnlockPasswordDialog(
-            title = "Открыть защищённую задачу",
+            title = uiText("Открыть защищённую задачу"),
             showError = taskUnlockError,
             onDismiss = { taskToUnlock = null },
             onConfirm = { password ->
@@ -774,15 +776,15 @@ private fun SortMenu(current: NoteSort, onSelect: (NoteSort) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Сортировка")
+            Icon(Icons.Default.MoreVert, contentDescription = uiText("Сортировка"))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(
-                text = { Text("По дате" + if (current == NoteSort.BY_DATE) " ✓" else "") },
+                text = { Text(uiText("По дате") + if (current == NoteSort.BY_DATE) " ✓" else "") },
                 onClick = { onSelect(NoteSort.BY_DATE); open = false }
             )
             DropdownMenuItem(
-                text = { Text("По имени" + if (current == NoteSort.BY_NAME) " ✓" else "") },
+                text = { Text(uiText("По имени") + if (current == NoteSort.BY_NAME) " ✓" else "") },
                 onClick = { onSelect(NoteSort.BY_NAME); open = false }
             )
         }
@@ -805,7 +807,7 @@ private fun NotebookNameDialog(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Название") },
+                label = { Text(uiText("Название")) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -817,7 +819,7 @@ private fun NotebookNameDialog(
             ) { Text(confirmLabel) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
+            TextButton(onClick = onDismiss) { Text(uiText("Отмена")) }
         }
     )
 }
@@ -846,9 +848,9 @@ private fun LockedTaskCard(onClick: () -> Unit, horizontalPadding: Dp = 16.dp) {
                 modifier = Modifier.padding(end = 16.dp)
             )
             Column {
-                Text("Защищённая задача", style = MaterialTheme.typography.titleMedium)
+                Text(uiText("Защищённая задача"), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Введите пароль для открытия",
+                    uiText("Введите пароль для открытия"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -902,7 +904,7 @@ private fun NoteCard(
                 .padding(start = if (note.isTask) 4.dp else 16.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = "Выбрать: " + notePreviewText(note.title, 128) })
+            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = uiText("Выбрать: ") + notePreviewText(note.title, 128) })
             if (note.isTask && !selecting && !note.isDeleted) {
                 Checkbox(
                     checked = note.isCompleted,
@@ -923,21 +925,21 @@ private fun NoteCard(
                     if (note.isProtected) {
                         Icon(
                             Icons.Default.Lock,
-                            contentDescription = "Защищено паролем",
+                            contentDescription = uiText("Защищено паролем"),
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
-                    if (note.isPinned) Icon(Icons.Default.PushPin, "Закреплено", modifier = Modifier.padding(end = 4.dp))
+                    if (note.isPinned) Icon(Icons.Default.PushPin, uiText("Закреплено"), modifier = Modifier.padding(end = 4.dp))
                     if (note.isFavorite) {
                         Icon(
                             Icons.Default.Star,
-                            contentDescription = "Избранное",
+                            contentDescription = uiText("Избранное"),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
                     Text(
-                        text = notePreviewText(note.title, 256).ifBlank { "Без названия" },
+                        text = notePreviewText(note.title, 256).ifBlank { uiText("Без названия") },
                         style = MaterialTheme.typography.titleMedium,
                         // Этап 35: активная задача — заголовок цветом задачи.
                         color = accent,
@@ -945,7 +947,7 @@ private fun NoteCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                if (note.tablesData.isNotEmpty()) Text("Таблица", style = MaterialTheme.typography.labelMedium,
+                if (note.tablesData.isNotEmpty()) Text(uiText("Таблица"), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (photo != null) NotePhotoPreview(photo, 120)
                 if (note.content.isNotBlank()) {
@@ -989,9 +991,9 @@ private fun NoteCard(
                         if (note.taskTimerStartedAt != null) Icons.Default.Pause
                         else Icons.Default.PlayArrow,
                         contentDescription = if (note.taskTimerStartedAt != null) {
-                            "Поставить таймер на паузу"
+                            uiText("Поставить таймер на паузу")
                         } else {
-                            "Запустить таймер"
+                            uiText("Запустить таймер")
                         }
                     )
                 }
@@ -1002,10 +1004,10 @@ private fun NoteCard(
 }
 
 private fun filterTitle(filter: NoteFilter): String = when (filter) {
-    NoteFilter.Trash -> "Корзина"
-    NoteFilter.All -> "Заметки"
-    NoteFilter.Tasks -> "Задачи"
-    NoteFilter.Favorites -> "Избранное"
+    NoteFilter.Trash -> uiText("Корзина")
+    NoteFilter.All -> uiText("Заметки")
+    NoteFilter.Tasks -> uiText("Задачи")
+    NoteFilter.Favorites -> uiText("Избранное")
     is NoteFilter.Notebook -> filter.name
     is NoteFilter.Tag -> "#" + filter.name
 }

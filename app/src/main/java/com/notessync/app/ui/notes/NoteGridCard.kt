@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -50,9 +52,9 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
     Card(colors = colors, shape = if (glass.enabled) GlassPanelShape else MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth().testTag("note-card-${note.id}").combinedClickable(onClick = onClick, onLongClick = onSelect).glassBorder()) {
         Column(Modifier.padding(8.dp)) {
-            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = "Выбрать: " + notePreviewText(note.title, 128) })
+            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = uiText("Выбрать: ") + notePreviewText(note.title, 128) })
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(notePreviewText(note.title, 256).ifBlank { "Без названия" }, Modifier.weight(1f), maxLines = 3,
+                Text(notePreviewText(note.title, 256).ifBlank { uiText("Без названия") }, Modifier.weight(1f), maxLines = 3,
                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium,
                     color = accent)
                 NoteCardMenu(note, onDelete, onSelect, onPin, onRestore)
@@ -60,10 +62,10 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
             FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (showPriority && note.isTask && note.taskPriority != 0) Icon(Icons.Default.Flag,
                     TaskPriority.from(note.taskPriority).label, tint = priorityColor(note.taskPriority), modifier = Modifier.size(18.dp))
-                if (note.isPinned) Icon(Icons.Default.PushPin, "Закреплено", modifier = Modifier.size(18.dp))
-                if (note.isFavorite) Icon(Icons.Default.Star, "Избранное", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                if (note.isProtected) Icon(Icons.Default.Lock, "Защищено паролем", modifier = Modifier.size(18.dp))
-                if (note.tablesData.isNotEmpty()) Text("Таблица", style = MaterialTheme.typography.labelSmall)
+                if (note.isPinned) Icon(Icons.Default.PushPin, uiText("Закреплено"), modifier = Modifier.size(18.dp))
+                if (note.isFavorite) Icon(Icons.Default.Star, uiText("Избранное"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                if (note.isProtected) Icon(Icons.Default.Lock, uiText("Защищено паролем"), modifier = Modifier.size(18.dp))
+                if (note.tablesData.isNotEmpty()) Text(uiText("Таблица"), style = MaterialTheme.typography.labelSmall)
             }
             if (photo != null) NotePhotoPreview(photo, 180)
             if (note.content.isNotBlank()) Text(
@@ -73,11 +75,11 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
             if (note.isTask) {
                 if (!selecting && !note.isDeleted) Row {
                     Checkbox(note.isCompleted, { onToggleCompleted() },
-                        modifier = Modifier.semantics { contentDescription = (if (note.isCompleted) "Снять выполнение: " else "Выполнить задачу: ") + notePreviewText(note.title, 128).ifBlank { "Без названия" } },
+                        modifier = Modifier.semantics { contentDescription = (if (note.isCompleted) uiText("Снять выполнение: ") else uiText("Выполнить задачу: ")) + notePreviewText(note.title, 128).ifBlank { uiText("Без названия") } },
                         colors = CheckboxDefaults.colors(checkedColor = accent, uncheckedColor = accent))
                     IconButton(onClick = onToggleTimer, enabled = !note.isCompleted || note.taskTimerStartedAt != null) {
                         Icon(if (note.taskTimerStartedAt != null) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            if (note.taskTimerStartedAt != null) "Поставить таймер на паузу" else "Запустить таймер")
+                            if (note.taskTimerStartedAt != null) uiText("Поставить таймер на паузу") else uiText("Запустить таймер"))
                     }
                 }
                 TaskTimerIndicator(note.taskElapsedMillis, note.taskTimerStartedAt, contentColor = accent, animateIcon = true, active = active)
@@ -102,10 +104,10 @@ internal fun NotePhotoPreview(photo: AttachmentEntity, maxHeight: Int) {
         layout(width, height) { placeable.place(0, 0) }
     }.padding(vertical = 4.dp), contentAlignment = Alignment.Center) {
         when (state) {
-            is PhotoBitmapState.Ready -> Image(remember(state.bitmap) { state.bitmap.asImageBitmap() }, "Фото заметки",
+            is PhotoBitmapState.Ready -> Image(remember(state.bitmap) { state.bitmap.asImageBitmap() }, uiText("Фото заметки"),
                 modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-            PhotoBitmapState.Loading -> Icon(Icons.Default.Image, "Подготовка фото")
-            PhotoBitmapState.Unavailable -> Icon(Icons.Default.BrokenImage, "Фото недоступно")
+            PhotoBitmapState.Loading -> Icon(Icons.Default.Image, uiText("Подготовка фото"))
+            PhotoBitmapState.Unavailable -> Icon(Icons.Default.BrokenImage, uiText("Фото недоступно"))
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes.photos
 
+import com.notessync.app.i18n.uiText
+
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -10,6 +12,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 class CameraCaptureContract : ActivityResultContracts.TakePicture() {
     override fun createIntent(context: Context, input: Uri): Intent = super.createIntent(context, input).apply {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-        clipData = ClipData.newRawUri("Фото", input)
+        clipData = ClipData.newRawUri(uiText("Фото"), input)
     }
 }

@@ -1,5 +1,7 @@
 package com.notessync.app.widget
 
+import com.notessync.app.i18n.uiText
+
 data class WidgetDayEntry(
     val title: String,
     val isTask: Boolean,
@@ -29,7 +31,7 @@ object WidgetDayPreview {
                 entry.isTask -> "□ "
                 else -> ""
             }
-            val fallback = if (entry.isTask) "Задача" else "Заметка"
+            val fallback = if (entry.isTask) uiText("Задача") else uiText("Заметка")
             val title = entry.title.ifBlank { fallback }
                 .lineSequence()
                 .first()

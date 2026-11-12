@@ -1,5 +1,7 @@
 package com.notessync.app.ui.tasks
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -63,7 +65,7 @@ fun TaskTimerIndicator(
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.Schedule,
-            contentDescription = if (running) "Секундомер работает" else "Секундомер на паузе",
+            contentDescription = if (running) uiText("Секундомер работает") else uiText("Секундомер на паузе"),
             tint = color,
             modifier = Modifier.graphicsLayer { rotationZ = angle.value }
         )
@@ -136,15 +138,15 @@ fun CountdownIndicator(
         Icon(
             imageVector = Icons.Default.HourglassEmpty,
             contentDescription = when {
-                finished -> "Время вышло"
-                running -> "Таймер идёт"
-                else -> "Таймер на паузе"
+                finished -> uiText("Время вышло")
+                running -> uiText("Таймер идёт")
+                else -> uiText("Таймер на паузе")
             },
             tint = color,
             modifier = if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation.value } else Modifier
         )
         Text(
-            text = if (finished) "Время вышло" else TaskTimer.format(remaining),
+            text = if (finished) uiText("Время вышло") else TaskTimer.format(remaining),
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
             color = color,
             modifier = Modifier.padding(start = 6.dp)

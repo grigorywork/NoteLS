@@ -1,5 +1,7 @@
 package com.notessync.app.sync.core
 
+import com.notessync.app.i18n.uiText
+
 import com.notessync.app.sync.protocol.AttachmentDto
 import com.notessync.app.sync.protocol.FrameTransport
 import com.notessync.app.sync.protocol.FrameTransport.Companion.CHUNK_BYTES
@@ -102,12 +104,12 @@ class SyncSession(
         when (val msg = readMessage()) {
             is SyncMessage.Hello -> {
                 if (msg.protocol != SyncMessage.PROTOCOL_VERSION) {
-                    throw SyncException("Обновите NoteLS на обоих устройствах (протокол ${msg.protocol})")
+                    throw SyncException(uiText("Обновите NoteLS на обоих устройствах (протокол %1\$s)", (msg.protocol)))
                 }
                 peerName = msg.deviceName
             }
-            is SyncMessage.Error -> throw SyncException("Другая сторона: ${msg.message}")
-            else -> throw SyncException("Ожидалось приветствие")
+            is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
+            else -> throw SyncException(uiText("Ожидалось приветствие"))
         }
     }
 
@@ -127,11 +129,11 @@ class SyncSession(
                 val stats = dataSource.applyChanges(msg.set)
                 when (val done = readMessage()) {
                     is SyncMessage.ChangesDone -> stats
-                    else -> throw SyncException("Ожидался конец пакета изменений, получено: $done")
+                    else -> throw SyncException(uiText("Ожидался конец пакета изменений, получено: %1\$s", (done)))
                 }
             }
-            is SyncMessage.Error -> throw SyncException("Другая сторона: ${msg.message}")
-            else -> throw SyncException("Ожидался пакет изменений")
+            is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
+            else -> throw SyncException(uiText("Ожидался пакет изменений"))
         }
     }
 
@@ -158,10 +160,10 @@ class SyncSession(
                 meta.sizeBytes.coerceIn(0L, MAX_INITIAL_BUFFER_BYTES).toInt()
             )
             while (true) {
-                when (val frame = transport.readFrame() ?: throw SyncException("Соединение закрыто при приёме вложения")) {
+                when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто при приёме вложения"))) {
                     is Frame.Chunk -> {
                         if (frame.attachmentSyncId != meta.syncId) {
-                            throw SyncException("Пришёл кусок чужого вложения")
+                            throw SyncException(uiText("Пришёл кусок чужого вложения"))
                         }
                         buffer.write(frame.data)
                         receivedBytes += frame.data.size
@@ -169,15 +171,15 @@ class SyncSession(
                     }
                     is Frame.Message -> {
                         if (frame.message is SyncMessage.Error) {
-                            throw SyncException("Другая сторона: ${frame.message.message}")
+                            throw SyncException(uiText("Другая сторона: %1\$s", (frame.message.message)))
                         }
-                        throw SyncException("Неожиданное сообщение при приёме вложения")
+                        throw SyncException(uiText("Неожиданное сообщение при приёме вложения"))
                     }
                 }
             }
             val data = buffer.toByteArray()
             if (Hashing.sha256Hex(data) != meta.sha256) {
-                throw SyncException("Вложение ${meta.syncId} пришло с ошибкой (контрольная сумма)")
+                throw SyncException(uiText("Вложение %1\$s пришло с ошибкой (контрольная сумма)", (meta.syncId)))
             }
             dataSource.writeAttachmentBytes(meta, data)
             done++
@@ -198,13 +200,13 @@ class SyncSession(
     private suspend fun serveAttachmentRequests(): Int {
         var sent = 0
         while (true) {
-            when (val frame = transport.readFrame() ?: throw SyncException("Соединение закрыто")) {
+            when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто"))) {
                 is Frame.Message -> when (val msg = frame.message) {
                     is SyncMessage.AttachmentRequest -> {
                         onProgress(SyncProgress(SyncPhase.SENDING_FILES, attachmentsDone = sent))
                         val bytes = dataSource.readAttachmentBytes(msg.syncId)
                         if (bytes == null) {
-                            transport.sendMessage(SyncMessage.Error("Нет файла вложения ${msg.syncId}"))
+                            transport.sendMessage(SyncMessage.Error(uiText("Нет файла вложения %1\$s", (msg.syncId))))
                         } else {
                             streamAttachment(msg.syncId, bytes)
                             sent++
@@ -212,10 +214,10 @@ class SyncSession(
                     }
                     // Пустой пакет-разделитель: peer закончил запрашивать.
                     is SyncMessage.ChangesDone -> return sent
-                    is SyncMessage.Error -> throw SyncException("Другая сторона: ${msg.message}")
-                    else -> throw SyncException("Неожиданное сообщение: $msg")
+                    is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
+                    else -> throw SyncException(uiText("Неожиданное сообщение: %1\$s", (msg)))
                 }
-                is Frame.Chunk -> throw SyncException("Неожиданные бинарные данные")
+                is Frame.Chunk -> throw SyncException(uiText("Неожиданные бинарные данные"))
             }
         }
     }
@@ -247,8 +249,8 @@ class SyncSession(
         )
         when (val msg = readMessage()) {
             is SyncMessage.Done -> Unit
-            is SyncMessage.Error -> throw SyncException("Другая сторона: ${msg.message}")
-            else -> throw SyncException("Ожидалось финальное подтверждение")
+            is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
+            else -> throw SyncException(uiText("Ожидалось финальное подтверждение"))
         }
         onProgress(SyncProgress(SyncPhase.COMPLETED))
         return SyncResult(
@@ -263,14 +265,14 @@ class SyncSession(
     }
 
     private fun readMessage(): SyncMessage {
-        return when (val frame = transport.readFrame() ?: throw SyncException("Соединение закрыто")) {
+        return when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто"))) {
             is Frame.Message -> frame.message
-            is Frame.Chunk -> throw SyncException("Неожиданные бинарные данные")
+            is Frame.Chunk -> throw SyncException(uiText("Неожиданные бинарные данные"))
         }
     }
 
     private fun fail(cause: Exception): Nothing {
-        runCatching { transport.sendMessage(SyncMessage.Error(cause.message ?: "Ошибка")) }
+        runCatching { transport.sendMessage(SyncMessage.Error(cause.message ?: uiText("Ошибка"))) }
         throw cause
     }
 }

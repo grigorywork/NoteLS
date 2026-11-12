@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes.tables
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -50,19 +52,19 @@ fun AddTableDialog(onDismiss: () -> Unit, remainingCells: Int = NoteTables.MAX_C
     var rows by remember { mutableStateOf("3") }
     var columns by remember { mutableStateOf("3") }
     val r = rows.toIntOrNull(); val c = columns.toIntOrNull()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Новая таблица") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(uiText("Новая таблица")) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (remainingTables > 0) "Доступно ячеек: $remainingCells" else "Достигнут предел: 8 таблиц",
+            Text(if (remainingTables > 0) uiText("Доступно ячеек: %1\$s", (remainingCells)) else uiText("Достигнут предел: 8 таблиц"),
                 style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(rows, { rows = it.filter(Char::isDigit).take(2) }, label = { Text("Строки: 1–20") },
+            OutlinedTextField(rows, { rows = it.filter(Char::isDigit).take(2) }, label = { Text(uiText("Строки: 1–20")) },
                 singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), isError = r !in 1..NoteTables.MAX_ROWS)
-            OutlinedTextField(columns, { columns = it.filter(Char::isDigit).take(2) }, label = { Text("Столбцы: 1–10") },
+            OutlinedTextField(columns, { columns = it.filter(Char::isDigit).take(2) }, label = { Text(uiText("Столбцы: 1–10")) },
                 singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), isError = c !in 1..NoteTables.MAX_COLUMNS)
         }
     }, confirmButton = { TextButton(onClick = { onCreate(r!!, c!!) },
         enabled = r in 1..NoteTables.MAX_ROWS && c in 1..NoteTables.MAX_COLUMNS &&
-            remainingTables > 0 && (r ?: 0) * (c ?: 0) <= remainingCells) { Text("Добавить") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } })
+            remainingTables > 0 && (r ?: 0) * (c ?: 0) <= remainingCells) { Text(uiText("Добавить")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(uiText("Отмена")) } })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,10 +84,10 @@ fun TableEditorDialog(id: String, viewModel: NoteEditorViewModel, snackbarHostSt
             }
         }) {
             EditorScaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, topBar = {
-                TopAppBar(title = { Text("Таблица ${table.rowCount} × ${table.columnCount}") }, navigationIcon = {
-                    IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Закрыть таблицу") }
+                TopAppBar(title = { Text(uiText("Таблица %1\$s × %2\$s", (table.rowCount), (table.columnCount))) }, navigationIcon = {
+                    IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Закрыть таблицу")) }
                 }, actions = {
-                    IconButton(onClick = { delete = true }) { Icon(Icons.Default.Delete, "Удалить таблицу") }
+                    IconButton(onClick = { delete = true }) { Icon(Icons.Default.Delete, uiText("Удалить таблицу")) }
                 })
             }, bottomBar = {
                 Column(Modifier.navigationBarsPadding()) {
@@ -99,10 +101,10 @@ fun TableEditorDialog(id: String, viewModel: NoteEditorViewModel, snackbarHostSt
                     restoreSelection = viewModel.focusedTableSelection)
             }
         }
-        if (delete) AlertDialog(onDismissRequest = { delete = false }, title = { Text("Удалить таблицу?") },
-            text = { Text("Будут удалены все её ячейки.") },
-            confirmButton = { TextButton(onClick = { viewModel.removeTable(id); onDismiss() }) { Text("Удалить") } },
-            dismissButton = { TextButton(onClick = { delete = false }) { Text("Отмена") } })
+        if (delete) AlertDialog(onDismissRequest = { delete = false }, title = { Text(uiText("Удалить таблицу?")) },
+            text = { Text(uiText("Будут удалены все её ячейки.")) },
+            confirmButton = { TextButton(onClick = { viewModel.removeTable(id); onDismiss() }) { Text(uiText("Удалить")) } },
+            dismissButton = { TextButton(onClick = { delete = false }) { Text(uiText("Отмена")) } })
     }
 }
 
@@ -145,18 +147,18 @@ fun TableGrid(
     }
     Column(Modifier.fillMaxSize()) {
         FlowRow(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.Center) {
-            Text("Столбец ${selectedColumn + 1}", Modifier.align(Alignment.CenterVertically))
+            Text(uiText("Столбец %1\$s", (selectedColumn + 1)), Modifier.align(Alignment.CenterVertically))
             IconButton(onClick = { onColumnWidth(table.id, selectedColumn, table.columnWidths[selectedColumn] - 16) },
-                enabled = table.columnWidths[selectedColumn] > NoteTables.MIN_WIDTH) { Icon(Icons.Default.Remove, "Уже") }
+                enabled = table.columnWidths[selectedColumn] > NoteTables.MIN_WIDTH) { Icon(Icons.Default.Remove, uiText("Уже")) }
             Text("${table.columnWidths[selectedColumn]}", Modifier.align(Alignment.CenterVertically))
             IconButton(onClick = { onColumnWidth(table.id, selectedColumn, table.columnWidths[selectedColumn] + 16) },
-                enabled = table.columnWidths[selectedColumn] < NoteTables.MAX_WIDTH) { Icon(Icons.Default.Add, "Шире") }
-            Text("Строка ${selectedRow + 1}", Modifier.align(Alignment.CenterVertically))
+                enabled = table.columnWidths[selectedColumn] < NoteTables.MAX_WIDTH) { Icon(Icons.Default.Add, uiText("Шире")) }
+            Text(uiText("Строка %1\$s", (selectedRow + 1)), Modifier.align(Alignment.CenterVertically))
             IconButton(onClick = { onRowHeight(table.id, selectedRow, table.rowHeights[selectedRow] - 16) },
-                enabled = table.rowHeights[selectedRow] > NoteTables.MIN_HEIGHT) { Icon(Icons.Default.Remove, "Ниже") }
+                enabled = table.rowHeights[selectedRow] > NoteTables.MIN_HEIGHT) { Icon(Icons.Default.Remove, uiText("Ниже")) }
             Text("${table.rowHeights[selectedRow]}", Modifier.align(Alignment.CenterVertically))
             IconButton(onClick = { onRowHeight(table.id, selectedRow, table.rowHeights[selectedRow] + 16) },
-                enabled = table.rowHeights[selectedRow] < NoteTables.MAX_HEIGHT) { Icon(Icons.Default.Add, "Выше") }
+                enabled = table.rowHeights[selectedRow] < NoteTables.MAX_HEIGHT) { Icon(Icons.Default.Add, uiText("Выше")) }
         }
         Row(Modifier.fillMaxWidth().horizontalScroll(horizontal).testTag("table-columns")) {
             Spacer(Modifier.width(48.dp))
@@ -165,7 +167,7 @@ fun TableGrid(
                     verticalAlignment = Alignment.CenterVertically) {
                     Text("${column + 1}", Modifier.weight(1f).padding(start = 8.dp))
                     Box(Modifier.size(48.dp).testTag("column-handle-$column")
-                        .semantics { contentDescription = "Ширина столбца ${column + 1}" }
+                        .semantics { contentDescription = uiText("Ширина столбца %1\$s", (column + 1)) }
                         .pointerInput(table.id, column, table.columnWidths[column], density) {
                             detectHorizontalDragGestures(onDragStart = { columnDrag = column to table.columnWidths[column].toFloat() },
                                 onHorizontalDrag = { change, amount ->
@@ -183,7 +185,7 @@ fun TableGrid(
             items(table.cells.indices.toList(), key = { it }) { row ->
                 Row(Modifier.fillMaxWidth().horizontalScroll(horizontal)) {
                     Box(Modifier.width(48.dp).height(height(row).dp).testTag("row-handle-$row")
-                        .semantics { contentDescription = "Высота строки ${row + 1}" }
+                        .semantics { contentDescription = uiText("Высота строки %1\$s", (row + 1)) }
                         .pointerInput(table.id, row, table.rowHeights[row], density) {
                             detectVerticalDragGestures(onDragStart = { rowDrag = row to table.rowHeights[row].toFloat() },
                                 onVerticalDrag = { change, amount ->
@@ -222,7 +224,7 @@ fun TableGrid(
                                     .focusRequester(requesters[row][column]).onFocusChanged {
                                         if (it.isFocused) { selectedRow = row; selectedColumn = column; onFocus(ref) }
                                     }.padding(8.dp).testTag("cell-$row-$column")
-                                    .semantics { contentDescription = "Строка ${row + 1}, столбец ${column + 1}" })
+                                    .semantics { contentDescription = uiText("Строка %1\$s, столбец %2\$s", (row + 1), (column + 1)) })
                         }
                     }
                 }

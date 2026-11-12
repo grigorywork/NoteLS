@@ -1,5 +1,7 @@
 package com.notessync.app.voice
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -89,15 +91,15 @@ class VoiceInputManager(
     }
 
     private fun errorMessage(error: Int): String = when (error) {
-        SpeechRecognizer.ERROR_AUDIO -> "Ошибка записи звука"
-        SpeechRecognizer.ERROR_CLIENT -> "Распознавание остановлено"
-        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Нужно разрешение на микрофон"
+        SpeechRecognizer.ERROR_AUDIO -> uiText("Ошибка записи звука")
+        SpeechRecognizer.ERROR_CLIENT -> uiText("Распознавание остановлено")
+        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> uiText("Нужно разрешение на микрофон")
         SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT ->
-            "Нет сети. Переключитесь на локальный режим в настройках"
-        SpeechRecognizer.ERROR_NO_MATCH -> "Не удалось разобрать речь"
-        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Распознаватель занят, подождите"
-        SpeechRecognizer.ERROR_SERVER -> "Сервис распознавания недоступен"
-        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Тишина. Говорите после сигнала"
-        else -> "Ошибка распознавания ($error)"
+            uiText("Нет сети. Переключитесь на локальный режим в настройках")
+        SpeechRecognizer.ERROR_NO_MATCH -> uiText("Не удалось разобрать речь")
+        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> uiText("Распознаватель занят, подождите")
+        SpeechRecognizer.ERROR_SERVER -> uiText("Сервис распознавания недоступен")
+        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> uiText("Тишина. Говорите после сигнала")
+        else -> uiText("Ошибка распознавания (%1\$s)", (error))
     }
 }

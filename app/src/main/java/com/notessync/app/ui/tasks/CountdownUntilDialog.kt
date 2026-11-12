@@ -1,5 +1,7 @@
 package com.notessync.app.ui.tasks
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
@@ -19,16 +21,16 @@ fun CountdownUntilDialog(onDismiss: () -> Unit, onStart: (Long) -> Boolean) {
     val target = remember(time.hour, time.minute, reference) { CountdownTarget.next(reference, time.hour, time.minute, zone) }
     var expired by remember { mutableStateOf(false) }
     val local = target.atZone(zone)
-    val day = if (local.toLocalDate() == reference.atZone(zone).toLocalDate()) "Сегодня" else "Завтра"
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Таймер до времени") }, text = {
+    val day = if (local.toLocalDate() == reference.atZone(zone).toLocalDate()) uiText("Сегодня") else uiText("Завтра")
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(uiText("Таймер до времени")) }, text = {
         Column(Modifier.fillMaxWidth()) {
             TimeInput(time)
             Text("$day, ${local.format(DateTimeFormatter.ofPattern("dd.MM HH:mm"))}")
-            Text("Отсчёт начнётся сейчас.")
-            if (expired) Text("Это время уже прошло. Проверьте новую дату.", color = MaterialTheme.colorScheme.error)
+            Text(uiText("Отсчёт начнётся сейчас."))
+            if (expired) Text(uiText("Это время уже прошло. Проверьте новую дату."), color = MaterialTheme.colorScheme.error)
         }
     }, confirmButton = { TextButton(onClick = {
         if (onStart(target.toEpochMilli())) onDismiss()
         else { reference = Instant.now(); expired = true }
-    }) { Text("Запустить") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } })
+    }) { Text(uiText("Запустить")) } }, dismissButton = { TextButton(onClick = onDismiss) { Text(uiText("Отмена")) } })
 }

@@ -84,13 +84,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_monday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_tuesday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_wednesday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_thursday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_friday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_saturday_short" />
-            <TextView style="@style/WidgetWeekday" android:text="@string/weekday_sunday_short" />
+            <TextView android:id="@+id/widget_weekday_mon" style="@style/WidgetWeekday" android:text="@string/weekday_monday_short" />
+            <TextView android:id="@+id/widget_weekday_tue" style="@style/WidgetWeekday" android:text="@string/weekday_tuesday_short" />
+            <TextView android:id="@+id/widget_weekday_wed" style="@style/WidgetWeekday" android:text="@string/weekday_wednesday_short" />
+            <TextView android:id="@+id/widget_weekday_thu" style="@style/WidgetWeekday" android:text="@string/weekday_thursday_short" />
+            <TextView android:id="@+id/widget_weekday_fri" style="@style/WidgetWeekday" android:text="@string/weekday_friday_short" />
+            <TextView android:id="@+id/widget_weekday_sat" style="@style/WidgetWeekday" android:text="@string/weekday_saturday_short" />
+            <TextView android:id="@+id/widget_weekday_sun" style="@style/WidgetWeekday" android:text="@string/weekday_sunday_short" />
         </LinearLayout>
 
         <GridView

@@ -1,5 +1,7 @@
 package com.notessync.app.sync.core
 
+import com.notessync.app.i18n.uiText
+
 import com.notessync.app.sync.protocol.NoteDto
 import java.util.UUID
 
@@ -46,7 +48,7 @@ object ConflictResolver {
 
     private fun conflictCopyOf(local: NoteDto): NoteDto = local.copy(
         syncId = UUID.randomUUID().toString(),
-        title = local.title.ifBlank { "Без названия" } + CONFLICT_SUFFIX,
+        title = local.title.ifBlank { uiText("Без названия") } + uiText(CONFLICT_SUFFIX),
         // Копия — новая независимая заметка: она сама уедет на другое устройство
         // при следующей синхронизации.
         updatedAt = System.currentTimeMillis()

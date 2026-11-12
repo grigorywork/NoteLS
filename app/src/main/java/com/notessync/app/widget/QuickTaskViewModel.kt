@@ -1,5 +1,7 @@
 package com.notessync.app.widget
 
+import com.notessync.app.i18n.uiText
+
 import android.app.Application
 import androidx.compose.runtime.*
 import androidx.lifecycle.AndroidViewModel
@@ -45,12 +47,12 @@ class QuickTaskViewModel(app: Application, private val saved: SavedStateHandle) 
     private fun draft() = QuickTaskDraft(identity, text, dayKey, reminderAt)
     fun changeText(value: String) {
         if (busy) return
-        if (value.length > MAX_TEXT) { error = "Быстрая задача: не более 32 000 символов."; return }
+        if (value.length > MAX_TEXT) { error = uiText("Быстрая задача: не более 32 000 символов."); return }
         text = value; saved["quickText"] = value; isSaved = false; error = null
     }
     fun setReminder(at: Long?): Boolean {
         if (busy) return false
-        if (at != null && at <= System.currentTimeMillis()) { error = "Выберите время в будущем."; return false }
+        if (at != null && at <= System.currentTimeMillis()) { error = uiText("Выберите время в будущем."); return false }
         reminderAt = at; saved["quickReminder"] = at; isSaved = false; error = null
         return true
     }
@@ -65,10 +67,10 @@ class QuickTaskViewModel(app: Application, private val saved: SavedStateHandle) 
         dayKey = day; saved["quickDay"] = day
         reminderAt = nextReminder
         saved["quickReminder"] = reminderAt; isSaved = false
-        error = if (nextReminder != null && nextReminder <= System.currentTimeMillis()) "Выберите будущее время или уберите напоминание." else null
+        error = if (nextReminder != null && nextReminder <= System.currentTimeMillis()) uiText("Выберите будущее время или уберите напоминание.") else null
     }
 
-    fun notificationDenied() { error = "Без разрешения на уведомления напоминание не добавлено." }
+    fun notificationDenied() { error = uiText("Без разрешения на уведомления напоминание не добавлено.") }
 
     suspend fun persist(): Boolean = withContext(NonCancellable) {
         gate.withLock {
@@ -80,15 +82,15 @@ class QuickTaskViewModel(app: Application, private val saved: SavedStateHandle) 
                     identity = UUID.randomUUID().toString(); saved["quickIdentity"] = identity
                 }
                 error = when (result.warning) {
-                    QuickTaskWarning.PAST -> "Время прошло. Выберите новое или уберите напоминание."
-                    QuickTaskWarning.NOTIFICATIONS -> "Уведомления выключены. Разрешите их или уберите напоминание."
-                    QuickTaskWarning.SCHEDULE -> "Не удалось поставить напоминание. Повторите попытку."
+                    QuickTaskWarning.PAST -> uiText("Время прошло. Выберите новое или уберите напоминание.")
+                    QuickTaskWarning.NOTIFICATIONS -> uiText("Уведомления выключены. Разрешите их или уберите напоминание.")
+                    QuickTaskWarning.SCHEDULE -> uiText("Не удалось поставить напоминание. Повторите попытку.")
                     null -> null
                 }
                 isSaved = result.warning == null && snapshot.text == text && snapshot.reminderAt == reminderAt && snapshot.dayKey == dayKey
                 result.warning == null
             } catch (_: Exception) {
-                error = "Не удалось сохранить. Текст оставлен здесь; повторите попытку."
+                error = uiText("Не удалось сохранить. Текст оставлен здесь; повторите попытку.")
                 isSaved = false
                 false
             }

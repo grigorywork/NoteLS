@@ -1,5 +1,7 @@
 package com.notessync.app.data.backup
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
@@ -63,7 +65,7 @@ object BackupManager {
             val photos = linkedMapOf<String, File>()
             SQLiteDatabase.openDatabase(snapshot.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
                 db.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use {
-                    check(it.moveToFirst() && it.getInt(0) == 0) { "База занята, повторите копирование" }
+                    check(it.moveToFirst() && it.getInt(0) == 0) { uiText("База занята, повторите копирование") }
                 }
                 val count = db.rawQuery("SELECT COUNT(*) FROM notes WHERE isDeleted = 0", null).use {
                     check(it.moveToFirst()); it.getLong(0)
@@ -74,7 +76,7 @@ object BackupManager {
                     while (cursor.moveToNext()) {
                         val photo = File(cursor.getString(0)).canonicalFile
                         check(photo.path.startsWith(root.path + File.separator) && photo.isFile) {
-                            "Не найдена фотография: ${photo.name}"
+                            uiText("Не найдена фотография: %1\$s", (photo.name))
                         }
                         photos[photo.relativeTo(root).invariantSeparatorsPath] = photo
                     }
@@ -114,15 +116,15 @@ object BackupManager {
             val incoming = File(context.filesDir, "attachments/restored-${UUID.randomUUID()}")
             var committed = false
             try {
-                check(temp.mkdirs()) { "Не удалось подготовить восстановление" }
+                check(temp.mkdirs()) { uiText("Не удалось подготовить восстановление") }
                 val info = context.contentResolver.openInputStream(uri)?.use { BackupArchive.extract(it, temp) }
-                    ?: error("Не удалось открыть файл")
-                check(info.dbVersion <= AppDatabase.VERSION) { "Обновите NoteLS для восстановления этой копии" }
+                    ?: error(uiText("Не удалось открыть файл"))
+                check(info.dbVersion <= AppDatabase.VERSION) { uiText("Обновите NoteLS для восстановления этой копии") }
                 val snapshot = File(temp, BackupArchive.DATABASE)
                 SQLiteDatabase.openDatabase(snapshot.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-                    check(db.version == info.dbVersion) { "Версия базы не совпадает с манифестом" }
+                    check(db.version == info.dbVersion) { uiText("Версия базы не совпадает с манифестом") }
                     db.rawQuery("PRAGMA quick_check", null).use {
-                        check(it.moveToFirst() && it.getString(0) == "ok") { "База резервной копии повреждена" }
+                        check(it.moveToFirst() && it.getString(0) == "ok") { uiText("База резервной копии повреждена") }
                     }
                 }
                 // Room migrates and validates the staged schema before the live DB is touched.
@@ -130,18 +132,18 @@ object BackupManager {
                 try {
                     val packed = source.openHelper.writableDatabase
                     packed.query("PRAGMA foreign_key_check").use {
-                        check(!it.moveToFirst()) { "Нарушены связи записей резервной копии" }
+                        check(!it.moveToFirst()) { uiText("Нарушены связи записей резервной копии") }
                     }
                     val count = packed.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use {
                         check(it.moveToFirst()); it.getLong(0)
                     }
-                    check(count == info.noteCount) { "Число заметок не совпадает с манифестом" }
-                    check(incoming.mkdirs()) { "Не удалось подготовить фотографии" }
+                    check(count == info.noteCount) { uiText("Число заметок не совпадает с манифестом") }
+                    check(incoming.mkdirs()) { uiText("Не удалось подготовить фотографии") }
                     packed.query("SELECT id, filePath FROM attachments").use { cursor ->
                         while (cursor.moveToNext()) {
                             val relative = BackupArchive.relativeAttachmentPath(cursor.getString(1))
                             val photo = File(temp, BackupArchive.ATTACHMENTS + relative)
-                            check(photo.isFile) { "В копии отсутствует фотография" }
+                            check(photo.isFile) { uiText("В копии отсутствует фотография") }
                             val stableName = UUID.nameUUIDFromBytes(relative.toByteArray(Charsets.UTF_8)).toString()
                             val target = File(incoming, stableName)
                             check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs())
@@ -215,7 +217,7 @@ object BackupManager {
             "LEFT JOIN notebooks b ON n.notebookId = b.id WHERE n.isDeleted = 0 AND n.isCompleted = 0").use { cursor ->
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(0)
-                val title = if (cursor.getInt(4) != 0) "Защищённая запись" else cursor.getString(1).ifBlank { "Без названия" }
+                val title = if (cursor.getInt(4) != 0) uiText("Защищённая запись") else cursor.getString(1).ifBlank { uiText("Без названия") }
                 if (!cursor.isNull(2)) ReminderScheduler.schedule(context, id, title, cursor.getLong(2))
                 if (!cursor.isNull(3)) ReminderScheduler.scheduleTimer(context, id, title, cursor.getLong(3))
             }
@@ -235,7 +237,7 @@ object BackupManager {
             val pending = File(directory, file.name + ".pending")
             try {
                 pending.outputStream().use { createUnlocked(context, it) }
-                check(pending.renameTo(file)) { "Не удалось сохранить копию" }
+                check(pending.renameTo(file)) { uiText("Не удалось сохранить копию") }
                 settings.setLastAutoBackupAt(System.currentTimeMillis())
                 backedUpRevision = current
                 autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }

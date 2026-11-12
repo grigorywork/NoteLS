@@ -1,5 +1,7 @@
 package com.notessync.app.reminders
 
+import com.notessync.app.i18n.uiText
+
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -21,9 +23,9 @@ class BootReceiver : BroadcastReceiver() {
                         database.notebookDao().getById(it)?.isProtected
                     } == true
                     val title = if (note.isProtected || notebookProtected) {
-                        "Защищённая запись"
+                        uiText("Защищённая запись")
                     } else {
-                        note.title.ifBlank { "Без названия" }
+                        note.title.ifBlank { uiText("Без названия") }
                     }
                     ReminderScheduler.schedule(appContext, note.id, title, note.reminderAt!!)
                 }

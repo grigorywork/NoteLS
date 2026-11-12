@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -40,7 +42,7 @@ internal fun FontLicensesDialog(onDismiss: () -> Unit) {
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Лицензии шрифтов") },
+        title = { Text(uiText("Лицензии шрифтов")) },
         text = {
             Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -51,6 +53,6 @@ internal fun FontLicensesDialog(onDismiss: () -> Unit) {
                 Text(license, style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text(uiText("Закрыть")) } }
     )
 }

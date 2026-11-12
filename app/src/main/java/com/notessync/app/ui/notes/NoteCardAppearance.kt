@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -42,15 +44,15 @@ internal fun NoteCardMenu(note: NoteEntity, onDelete: () -> Unit, onSelect: () -
     onPin: () -> Unit, onRestore: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.Default.MoreVert, "Действия") }
+        IconButton(onClick = { open = true }) { Icon(Icons.Default.MoreVert, uiText("Действия")) }
         DropdownMenu(open, { open = false }) {
-            DropdownMenuItem(text = { Text("Выбрать") }, leadingIcon = { Icon(Icons.Default.CheckBox, null) },
+            DropdownMenuItem(text = { Text(uiText("Выбрать")) }, leadingIcon = { Icon(Icons.Default.CheckBox, null) },
                 onClick = { open = false; onSelect() })
-            if (!note.isDeleted) DropdownMenuItem(text = { Text(if (note.isPinned) "Открепить" else "Закрепить") },
+            if (!note.isDeleted) DropdownMenuItem(text = { Text(if (note.isPinned) uiText("Открепить") else uiText("Закрепить")) },
                 leadingIcon = { Icon(Icons.Default.PushPin, null) }, onClick = { open = false; onPin() })
-            if (note.isDeleted) DropdownMenuItem(text = { Text("Восстановить") }, leadingIcon = { Icon(Icons.Default.RestoreFromTrash, null) },
+            if (note.isDeleted) DropdownMenuItem(text = { Text(uiText("Восстановить")) }, leadingIcon = { Icon(Icons.Default.RestoreFromTrash, null) },
                 onClick = { open = false; onRestore() })
-            DropdownMenuItem(text = { Text(if (note.isDeleted) "Удалить навсегда" else "Удалить") }, leadingIcon = { Icon(Icons.Default.Delete, null) },
+            DropdownMenuItem(text = { Text(if (note.isDeleted) uiText("Удалить навсегда") else uiText("Удалить")) }, leadingIcon = { Icon(Icons.Default.Delete, null) },
                 onClick = { open = false; onDelete() })
         }
     }

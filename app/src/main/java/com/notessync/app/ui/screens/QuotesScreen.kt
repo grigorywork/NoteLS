@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -87,7 +89,7 @@ fun QuotesScreen(onBack: () -> Unit) {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, QuotesData.formatted(quote))
         }
-        context.startActivity(Intent.createChooser(send, "Поделиться цитатой"))
+        context.startActivity(Intent.createChooser(send, uiText("Поделиться цитатой")))
     }
 
     fun saveQuoteAsNote(quote: Quote) {
@@ -97,16 +99,16 @@ fun QuotesScreen(onBack: () -> Unit) {
             try {
                 withContext(Dispatchers.IO) {
                     AppDatabase.get(context).noteDao().upsert(
-                        NoteEntity(title = "Цитата: ${QuotesData.author(quote.authorId).name}",
+                        NoteEntity(title = uiText("Цитата: %1\$s", (QuotesData.author(quote.authorId).name)),
                             content = QuotesData.formatted(quote))
                     )
                 }
                 BackupManager.noteChanged()
                 BackupManager.requestAutoBackup(context, afterNote = true)
-                snackbarHostState.showSnackbar("Сохранено в заметки")
+                snackbarHostState.showSnackbar(uiText("Сохранено в заметки"))
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
             catch (_: Exception) {
-                snackbarHostState.showSnackbar("Не удалось сохранить цитату")
+                snackbarHostState.showSnackbar(uiText("Не удалось сохранить цитату"))
             } finally {
                 saving = false
             }
@@ -117,10 +119,10 @@ fun QuotesScreen(onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Цитаты") },
+                title = { Text(uiText("Цитаты")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 }
             )
@@ -140,7 +142,7 @@ fun QuotesScreen(onBack: () -> Unit) {
                     quoteOfDay,
                     onCopy = {
                         clipboard.setText(AnnotatedString(QuotesData.formatted(quoteOfDay)))
-                        scope.launch { snackbarHostState.showSnackbar("Скопировано") }
+                        scope.launch { snackbarHostState.showSnackbar(uiText("Скопировано")) }
                     },
                     onShare = { shareQuote(quoteOfDay) },
                     onSaveToNote = { saveQuoteAsNote(quoteOfDay) },
@@ -158,7 +160,7 @@ fun QuotesScreen(onBack: () -> Unit) {
                     FilterChip(
                         selected = selectedAuthor == null,
                         onClick = { selectedAuthor = null },
-                        label = { Text("Все") }
+                        label = { Text(uiText("Все")) }
                     )
                     QuotesData.authors.forEach { author ->
                         FilterChip(
@@ -176,7 +178,7 @@ fun QuotesScreen(onBack: () -> Unit) {
                     quote = quote,
                     onCopy = {
                         clipboard.setText(AnnotatedString(QuotesData.formatted(quote)))
-                        scope.launch { snackbarHostState.showSnackbar("Скопировано") }
+                        scope.launch { snackbarHostState.showSnackbar(uiText("Скопировано")) }
                     },
                     onShare = { shareQuote(quote) },
                     onSaveToNote = { saveQuoteAsNote(quote) },
@@ -204,7 +206,7 @@ private fun QuoteCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (featured) {
-                Text("Цитата дня", style = MaterialTheme.typography.titleSmall,
+                Text(uiText("Цитата дня"), style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 12.dp))
             }
             Text(
@@ -226,21 +228,21 @@ private fun QuoteCard(
                 IconButton(onClick = onCopy) {
                     Icon(
                         Icons.Default.ContentCopy,
-                        contentDescription = "Скопировать",
+                        contentDescription = uiText("Скопировать"),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onShare) {
                     Icon(
                         Icons.Default.Share,
-                        contentDescription = "Поделиться",
+                        contentDescription = uiText("Поделиться"),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onSaveToNote, enabled = !saving) {
                     Icon(
                         Icons.Default.NoteAdd,
-                        contentDescription = "Сохранить в заметки",
+                        contentDescription = uiText("Сохранить в заметки"),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

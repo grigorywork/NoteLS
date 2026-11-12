@@ -9,6 +9,7 @@ import com.notessync.app.reminders.createReminderChannel
 class NoteSyncApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        com.notessync.app.settings.SettingsRepository.get(this)
         createReminderChannel()
         // Widget/notification broadcasts must not start a backup. Check only on
         // real activity sessions; leaving the app groups all editing into one copy.

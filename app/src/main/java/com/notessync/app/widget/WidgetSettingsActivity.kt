@@ -1,5 +1,7 @@
 package com.notessync.app.widget
 
+import com.notessync.app.i18n.uiText
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -70,10 +72,10 @@ class WidgetSettingsActivity : ComponentActivity() {
                             .verticalScroll(rememberScrollState())
                             .padding(20.dp)
                     ) {
-                        Text("Виджет", style = MaterialTheme.typography.titleLarge)
+                        Text(uiText("Виджет"), style = MaterialTheme.typography.titleLarge)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            "Прозрачность фона",
+                            uiText("Прозрачность фона"),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -102,9 +104,9 @@ class WidgetSettingsActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Цветные задачи", style = MaterialTheme.typography.titleSmall)
+                                Text(uiText("Цветные задачи"), style = MaterialTheme.typography.titleSmall)
                                 Text(
-                                    "Каждая задача подсвечивается своим цветом, чтобы не сливаться с остальными",
+                                    uiText("Каждая задача подсвечивается своим цветом, чтобы не сливаться с остальными"),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -119,11 +121,11 @@ class WidgetSettingsActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(20.dp))
                         Text(
-                            "Выполненные задачи",
+                            uiText("Выполненные задачи"),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Text(
-                            "Стиль применяется в окне дня и в ячейках календаря",
+                            uiText("Стиль применяется в окне дня и в ячейках календаря"),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
@@ -143,7 +145,7 @@ class WidgetSettingsActivity : ComponentActivity() {
                         OutlinedButton(
                             onClick = { finish() },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("Закрыть") }
+                        ) { Text(uiText("Закрыть")) }
                     }
                 }
             }

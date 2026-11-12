@@ -1,5 +1,7 @@
 package com.notessync.app.sync.protocol
 
+import com.notessync.app.i18n.uiText
+
 import com.notessync.app.sync.crypto.SessionCrypto
 import java.io.EOFException
 import java.io.InputStream
@@ -33,7 +35,7 @@ class FrameTransport(
     /** Пустой [data] с last=true — маркер конца вложения. */
     fun sendChunk(attachmentSyncId: String, data: ByteArray, last: Boolean) {
         val idBytes = attachmentSyncId.toByteArray(Charsets.UTF_8)
-        require(idBytes.size == SYNC_ID_BYTES) { "syncId должен быть UUID ($SYNC_ID_BYTES байт)" }
+        require(idBytes.size == SYNC_ID_BYTES) { uiText("syncId должен быть UUID (%1\$s байт)", (SYNC_ID_BYTES)) }
         val payload = ByteArray(1 + SYNC_ID_BYTES + data.size)
         payload[0] = if (last) 1 else 0
         idBytes.copyInto(payload, 1)
@@ -43,7 +45,7 @@ class FrameTransport(
 
     private fun writeFrame(kind: Byte, plainPayload: ByteArray) {
         val payload = crypto?.encrypt(plainPayload) ?: plainPayload
-        require(payload.size <= MAX_FRAME_BYTES) { "Кадр больше $MAX_FRAME_BYTES байт" }
+        require(payload.size <= MAX_FRAME_BYTES) { uiText("Кадр больше %1\$s байт", (MAX_FRAME_BYTES)) }
         synchronized(sendLock) {
             val header = byteArrayOf(
                 kind,
@@ -68,22 +70,22 @@ class FrameTransport(
             ((header[2].toInt() and 0xFF) shl 16) or
             ((header[3].toInt() and 0xFF) shl 8) or
             (header[4].toInt() and 0xFF)
-        require(length in 0..MAX_FRAME_BYTES) { "Некорректная длина кадра: $length" }
+        require(length in 0..MAX_FRAME_BYTES) { uiText("Некорректная длина кадра: %1\$s", (length)) }
         val payload = ByteArray(length)
-        if (!readFully(payload)) throw EOFException("Кадр оборвался посередине")
+        if (!readFully(payload)) throw EOFException(uiText("Кадр оборвался посередине"))
         bytesReceived.addAndGet((HEADER_BYTES + length).toLong())
         val plain = crypto?.decrypt(payload) ?: payload
         return when (kind) {
             KIND_MESSAGE -> Frame.Message(SyncMessage.decode(plain))
             KIND_CHUNK -> {
-                require(plain.size >= 1 + SYNC_ID_BYTES) { "Кусок вложения слишком короткий" }
+                require(plain.size >= 1 + SYNC_ID_BYTES) { uiText("Кусок вложения слишком короткий") }
                 Frame.Chunk(
                     attachmentSyncId = plain.copyOfRange(1, 1 + SYNC_ID_BYTES).toString(Charsets.UTF_8),
                     data = plain.copyOfRange(1 + SYNC_ID_BYTES, plain.size),
                     last = plain[0].toInt() == 1
                 )
             }
-            else -> throw IllegalArgumentException("Неизвестный тип кадра: $kind")
+            else -> throw IllegalArgumentException(uiText("Неизвестный тип кадра: %1\$s", (kind)))
         }
     }
 
@@ -93,7 +95,7 @@ class FrameTransport(
             val read = input.read(buffer, offset, buffer.size - offset)
             if (read < 0) {
                 if (offset == 0) return false
-                throw EOFException("Соединение закрыто посреди кадра")
+                throw EOFException(uiText("Соединение закрыто посреди кадра"))
             }
             offset += read
         }

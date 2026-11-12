@@ -1,5 +1,7 @@
 package com.notessync.app.notes.actions
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.data.local.AppDatabase
@@ -73,7 +75,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                 ReminderScheduler.cancelTimer(app, note.id)
                 val at = note.reminderAt
                 if (action == Action.RESTORE && !note.completed && at != null && at > System.currentTimeMillis() && ReminderScheduler.canNotify(app)) {
-                    ReminderScheduler.schedule(app, note.id, if (note.protected) "Защищённая запись" else note.title, at)
+                    ReminderScheduler.schedule(app, note.id, if (note.protected) uiText("Защищённая запись") else note.title, at)
                 }
             }
         }

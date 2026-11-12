@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes.text
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -25,44 +27,44 @@ fun FormattingToolbar(active: Map<FormatKind, String?>, advanced: Boolean,
     onAlign: (String) -> Unit, onIndent: (Int) -> Unit, onSelectAll: () -> Unit) {
     Column {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp)) {
-            listOf(Triple(FormatKind.BOLD, Icons.Default.FormatBold, "Жирный"),
-                Triple(FormatKind.ITALIC, Icons.Default.FormatItalic, "Курсив"),
-                Triple(FormatKind.UNDERLINE, Icons.Default.FormatUnderlined, "Подчёркнутый"),
-                Triple(FormatKind.STRIKE, Icons.Default.StrikethroughS, "Зачёркнутый"))
+            listOf(Triple(FormatKind.BOLD, Icons.Default.FormatBold, uiText("Жирный")),
+                Triple(FormatKind.ITALIC, Icons.Default.FormatItalic, uiText("Курсив")),
+                Triple(FormatKind.UNDERLINE, Icons.Default.FormatUnderlined, uiText("Подчёркнутый")),
+                Triple(FormatKind.STRIKE, Icons.Default.StrikethroughS, uiText("Зачёркнутый")))
                 .filter { advanced || it.first == FormatKind.BOLD || it.first == FormatKind.ITALIC }.forEach { (kind, icon, title) ->
                     IconToggleButton(active[kind] == "1", { onToggle(kind) }) { Icon(icon, title) }
                 }
             var headings by remember { mutableStateOf(false) }
             Box {
-                IconButton(onClick = { headings = true }) { Icon(Icons.Default.Title, "Заголовки") }
+                IconButton(onClick = { headings = true }) { Icon(Icons.Default.Title, uiText("Заголовки")) }
                 DropdownMenu(headings, { headings = false }) { (1..3).forEach { level ->
-                    DropdownMenuItem(text = { Text("Заголовок $level") }, onClick = { onHeading(level); headings = false })
+                    DropdownMenuItem(text = { Text(uiText("Заголовок %1\$s", (level))) }, onClick = { onHeading(level); headings = false })
                 } }
             }
             var lists by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { if (advanced) lists = true else onList(MarkdownEdit.ListKind.BULLET) }) {
-                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, "Вид списка")
+                    Icon(Icons.AutoMirrored.Filled.FormatListBulleted, uiText("Вид списка"))
                 }
                 DropdownMenu(lists, { lists = false }) {
-                    listOf(MarkdownEdit.ListKind.BULLET to "Маркеры", MarkdownEdit.ListKind.NUMBER to "Числа", MarkdownEdit.ListKind.LETTER to "Буквы").forEach { (kind, title) ->
+                    listOf(MarkdownEdit.ListKind.BULLET to uiText("Маркеры"), MarkdownEdit.ListKind.NUMBER to uiText("Числа"), MarkdownEdit.ListKind.LETTER to uiText("Буквы")).forEach { (kind, title) ->
                         DropdownMenuItem(text = { Text(title) }, onClick = { onList(kind); lists = false })
                     }
                 }
             }
-            IconButton(onClick = onChecklist) { Icon(Icons.Default.CheckBox, "Чек-лист") }
+            IconButton(onClick = onChecklist) { Icon(Icons.Default.CheckBox, uiText("Чек-лист")) }
         }
         if (advanced) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp)) {
-            FormatMenu(active[FormatKind.SIZE] ?: "Размер", listOf("По теме" to null) +
+            FormatMenu(active[FormatKind.SIZE] ?: uiText("Размер"), listOf(uiText("По теме") to null) +
                 listOf(12, 14, 16, 18, 20, 24, 28, 32, 40, 48).map { "$it" to "$it" }) { onFormat(FormatKind.SIZE, it) }
-            FormatMenu(AppFont.entries.firstOrNull { it.name == active[FormatKind.FONT] }?.label ?: "Шрифт",
-                listOf("По теме" to null) + AppFont.entries.map { it.label to it.name }) { onFormat(FormatKind.FONT, it) }
-            ColorMenu("Цвет", active[FormatKind.COLOR]) { onFormat(FormatKind.COLOR, it) }
-            ColorMenu("Подложка", active[FormatKind.HIGHLIGHT]) { onFormat(FormatKind.HIGHLIGHT, it) }
-            FormatMenu("Выравнивание", listOf("По левому краю" to "START", "По центру" to "CENTER", "По правому краю" to "END", "По ширине" to "JUSTIFY")) { if (it != null) onAlign(it) }
-            IconButton(onClick = { onIndent(-1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentDecrease, "Уменьшить отступ") }
-            IconButton(onClick = { onIndent(1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, "Увеличить отступ") }
-            TextButton(onClick = onSelectAll) { Text("Весь текст") }
+            FormatMenu(AppFont.entries.firstOrNull { it.name == active[FormatKind.FONT] }?.label ?: uiText("Шрифт"),
+                listOf(uiText("По теме") to null) + AppFont.entries.map { it.label to it.name }) { onFormat(FormatKind.FONT, it) }
+            ColorMenu(uiText("Цвет"), active[FormatKind.COLOR]) { onFormat(FormatKind.COLOR, it) }
+            ColorMenu(uiText("Подложка"), active[FormatKind.HIGHLIGHT]) { onFormat(FormatKind.HIGHLIGHT, it) }
+            FormatMenu(uiText("Выравнивание"), listOf(uiText("По левому краю") to "START", uiText("По центру") to "CENTER", uiText("По правому краю") to "END", uiText("По ширине") to "JUSTIFY")) { if (it != null) onAlign(it) }
+            IconButton(onClick = { onIndent(-1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentDecrease, uiText("Уменьшить отступ")) }
+            IconButton(onClick = { onIndent(1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, uiText("Увеличить отступ")) }
+            TextButton(onClick = onSelectAll) { Text(uiText("Весь текст")) }
         }
     }
 }
@@ -88,7 +90,7 @@ private fun ColorMenu(label: String, current: String?, onSelect: (String?) -> Un
             current?.let { Spacer(Modifier.width(4.dp)); Box(Modifier.size(12.dp).background(Color(it.toLong(16)))) }
         }
         DropdownMenu(open, { open = false }) { colors.forEach { (name, value) ->
-            DropdownMenuItem(text = { Text(name) }, leadingIcon = { if (value != null) Box(Modifier.size(18.dp).background(Color(value.toLong(16)))) },
+            DropdownMenuItem(text = { Text(uiText(name)) }, leadingIcon = { if (value != null) Box(Modifier.size(18.dp).background(Color(value.toLong(16)))) },
                 onClick = { onSelect(value); open = false })
         } }
     }

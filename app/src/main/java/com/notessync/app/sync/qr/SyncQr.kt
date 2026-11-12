@@ -1,5 +1,7 @@
 package com.notessync.app.sync.qr
 
+import com.notessync.app.i18n.uiText
+
 /**
  * Полезная нагрузка QR-кода сопряжения (Этап 4):
  * notessync://connect?ip=<ip>&port=<port>&code=<код>&ts=<мс>
@@ -21,7 +23,7 @@ object SyncQr {
     }
 
     fun decode(raw: String, now: Long = System.currentTimeMillis()): DecodeResult {
-        if (!raw.startsWith("$SCHEME?")) return DecodeResult.Invalid("Это не код приложения NoteLS")
+        if (!raw.startsWith("$SCHEME?")) return DecodeResult.Invalid(uiText("Это не код приложения NoteLS"))
         val params = raw.removePrefix("$SCHEME?")
             .split('&')
             .mapNotNull {
@@ -36,10 +38,10 @@ object SyncQr {
         val ts = params["ts"]?.toLongOrNull()
 
         if (ip.isBlank() || port == null || code.length != 8) {
-            return DecodeResult.Invalid("В коде нет данных подключения")
+            return DecodeResult.Invalid(uiText("В коде нет данных подключения"))
         }
         if (ts == null || now - ts > TTL_MS || ts > now + 60_000) {
-            return DecodeResult.Invalid("Код просрочен — сгенерируйте новый")
+            return DecodeResult.Invalid(uiText("Код просрочен — сгенерируйте новый"))
         }
         return DecodeResult.Ok(Payload(ip, port, code))
     }

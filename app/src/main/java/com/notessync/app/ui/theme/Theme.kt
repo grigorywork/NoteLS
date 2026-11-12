@@ -1,6 +1,7 @@
 package com.notessync.app.ui.theme
 
 import android.os.Build
+import com.notessync.app.i18n.LocalizedUiContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -135,24 +136,26 @@ fun NoteSyncTheme(
     val glass = interfaceStyle == InterfaceStyle.GLASS
     val colorScheme = if (glass) baseScheme.glassified(darkTheme) else baseScheme
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = scaledTypography(fontScale, appFont)
-    ) {
-        CompositionLocalProvider(
-            LocalGlassTheme provides GlassTheme(
-                enabled = glass,
-                dark = darkTheme,
-                borderColor = glassBorderColor(darkTheme)
-            )
+    LocalizedUiContent {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = scaledTypography(fontScale, appFont)
         ) {
-            if (glass && glassBackdrop) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AuroraBackground(dark = darkTheme, accent = colorScheme.primary)
+            CompositionLocalProvider(
+                LocalGlassTheme provides GlassTheme(
+                    enabled = glass,
+                    dark = darkTheme,
+                    borderColor = glassBorderColor(darkTheme)
+                )
+            ) {
+                if (glass && glassBackdrop) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AuroraBackground(dark = darkTheme, accent = colorScheme.primary)
+                        content()
+                    }
+                } else {
                     content()
                 }
-            } else {
-                content()
             }
         }
     }

@@ -1,9 +1,10 @@
 package com.notessync.app.reminders
 
+import com.notessync.app.i18n.uiText
+
 import android.Manifest
 import android.app.NotificationManager
 import android.app.AlarmManager
-import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -102,12 +103,12 @@ object ReminderScheduler {
 }
 
 /** Канал уведомлений создаётся при старте приложения. */
-fun Application.createReminderChannel() {
+fun Context.createReminderChannel() {
     val manager = getSystemService(android.app.NotificationManager::class.java)
     manager.createNotificationChannel(
         android.app.NotificationChannel(
             ReminderReceiver.CHANNEL_ID,
-            "Напоминания",
+            uiText("Напоминания"),
             android.app.NotificationManager.IMPORTANCE_HIGH
         )
     )

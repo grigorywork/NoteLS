@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,10 +62,10 @@ fun AnalyticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Аналитика") },
+                title = { Text(uiText("Аналитика")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 }
             )
@@ -75,7 +77,7 @@ fun AnalyticsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "Выполненных задач пока нет.\nОтметьте задачу выполненной — и здесь появится статистика.",
+                    uiText("Выполненных задач пока нет.\nОтметьте задачу выполненной — и здесь появится статистика."),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -93,37 +95,37 @@ fun AnalyticsScreen(
         ) {
             SummarySection(state)
             StreakSection(state)
-            SectionCard(title = "Выполнения по дням (2 недели)") {
+            SectionCard(title = uiText("Выполнения по дням (2 недели)")) {
                 SimpleBarChart(
                     labels = state.byDay.map { dayLabel(it.first) },
                     values = state.byDay.map { it.second }
                 )
             }
-            SectionCard(title = "Выполнения по неделям (8 недель)") {
+            SectionCard(title = uiText("Выполнения по неделям (8 недель)")) {
                 SimpleBarChart(
                     labels = state.byWeek.map { weekLabel(it.first) },
                     values = state.byWeek.map { it.second }
                 )
             }
-            SectionCard(title = "В какое время суток вы завершаете задачи") {
+            SectionCard(title = uiText("В какое время суток вы завершаете задачи")) {
                 SimpleBarChart(
                     labels = (0 until 24).map { if (it % 6 == 0) "$it" else "" },
                     values = state.byHour.toList()
                 )
             }
             if (state.byColor.isNotEmpty()) {
-                SectionCard(title = "По цветам задач") {
+                SectionCard(title = uiText("По цветам задач")) {
                     ColorBreakdown(state.byColor)
                 }
             }
             if (state.byNotebook.isNotEmpty()) {
-                SectionCard(title = "По блокнотам") {
+                SectionCard(title = uiText("По блокнотам")) {
                     NotebookBreakdown(state.byNotebook)
                 }
             }
             TimeSection(state)
             if (state.recentCompleted.isNotEmpty()) {
-                SectionCard(title = "Последние выполненные") {
+                SectionCard(title = uiText("Последние выполненные")) {
                     state.recentCompleted.forEach { note ->
                         CompletedRow(note = note, onClick = { onOpenNote(note.id) })
                     }
@@ -138,21 +140,21 @@ fun AnalyticsScreen(
 
 @Composable
 private fun SummarySection(state: AnalyticsState) {
-    SectionCard(title = "Сводка") {
+    SectionCard(title = uiText("Сводка")) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatTile("Выполнено всего", state.totalCompleted.toString(), Modifier.weight(1f))
-            StatTile("Активных задач", state.activeTasks.toString(), Modifier.weight(1f))
+            StatTile(uiText("Выполнено всего"), state.totalCompleted.toString(), Modifier.weight(1f))
+            StatTile(uiText("Активных задач"), state.activeTasks.toString(), Modifier.weight(1f))
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatTile("За 7 дней", state.completedLast7Days.toString(), Modifier.weight(1f))
-            StatTile("За 30 дней", state.completedLast30Days.toString(), Modifier.weight(1f))
+            StatTile(uiText("За 7 дней"), state.completedLast7Days.toString(), Modifier.weight(1f))
+            StatTile(uiText("За 30 дней"), state.completedLast30Days.toString(), Modifier.weight(1f))
         }
     }
 }
 
 @Composable
 private fun StreakSection(state: AnalyticsState) {
-    SectionCard(title = "Серии и рекорды") {
+    SectionCard(title = uiText("Серии и рекорды")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 Icons.Default.EmojiEvents,
@@ -163,17 +165,17 @@ private fun StreakSection(state: AnalyticsState) {
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
-                    "Текущая серия: ${state.currentStreak} дн.",
+                    uiText("Текущая серия: %1\$s дн.", (state.currentStreak)),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    "Рекордная серия: ${state.bestStreak} дн.",
+                    uiText("Рекордная серия: %1\$s дн.", (state.bestStreak)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 state.bestDay?.let { (day, count) ->
                     Text(
-                        "Лучший день: ${fullDayLabel(day)} — $count задач",
+                        uiText("Лучший день: %1\$s — %2\$s задач", (fullDayLabel(day)), (count)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -185,21 +187,21 @@ private fun StreakSection(state: AnalyticsState) {
 
 @Composable
 private fun TimeSection(state: AnalyticsState) {
-    SectionCard(title = "Зафиксированное время") {
+    SectionCard(title = uiText("Зафиксированное время")) {
         Text(
-            "Всего: ${TaskTimer.format(state.totalElapsedMillis)}",
+            uiText("Всего: %1\$s", (TaskTimer.format(state.totalElapsedMillis))),
             style = MaterialTheme.typography.titleMedium
         )
         if (state.averageElapsedMillis > 0L) {
             Text(
-                "Среднее на задачу: ${TaskTimer.format(state.averageElapsedMillis)}",
+                uiText("Среднее на задачу: %1\$s", (TaskTimer.format(state.averageElapsedMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         state.fastestTitle?.let { title ->
             Text(
-                "Самая быстрая: $title — ${TaskTimer.format(state.fastestMillis)}",
+                uiText("Самая быстрая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (TaskTimer.format(state.fastestMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -208,7 +210,7 @@ private fun TimeSection(state: AnalyticsState) {
         }
         state.slowestTitle?.let { title ->
             Text(
-                "Самая долгая: $title — ${TaskTimer.format(state.slowestMillis)}",
+                uiText("Самая долгая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (TaskTimer.format(state.slowestMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -230,7 +232,7 @@ private fun CompletedRow(note: NoteEntity, onClick: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
             Text(
-                note.title.ifBlank { "Без названия" },
+                note.title.ifBlank { uiText("Без названия") },
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -353,13 +355,13 @@ private fun ColorBreakdown(byColor: List<Pair<String, Int>>) {
 
 /** Горизонтальные полосы по блокнотам. */
 @Composable
-private fun NotebookBreakdown(byNotebook: List<Pair<String, Int>>) {
+private fun NotebookBreakdown(byNotebook: List<Pair<String?, Int>>) {
     val max = byNotebook.maxOf { it.second }.coerceAtLeast(1)
     val barColor = MaterialTheme.colorScheme.primary
     byNotebook.take(8).forEach { (name, count) ->
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
             Text(
-                "$name — $count",
+                "${name ?: uiText("Без блокнота")} — $count",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

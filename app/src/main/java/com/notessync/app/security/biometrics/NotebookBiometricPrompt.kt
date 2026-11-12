@@ -1,5 +1,7 @@
 package com.notessync.app.security.biometrics
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.biometric.BiometricManager
@@ -50,10 +52,10 @@ fun NotebookBiometricPrompt(request: NotebookBiometricController.Request,
                 override fun onAuthenticationFailed() { /* Native prompt allows another attempt. */ }
             })
             val info = BiometricPrompt.PromptInfo.Builder()
-                .setTitle(if (request.challenge.enroll) "Включить биометрию блокнота" else "Открыть блокнот")
-                .setSubtitle("Отпечаток или сильная биометрия телефона")
+                .setTitle(if (request.challenge.enroll) uiText("Включить биометрию блокнота") else uiText("Открыть блокнот"))
+                .setSubtitle(uiText("Отпечаток или сильная биометрия телефона"))
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                .setNegativeButtonText("Пароль")
+                .setNegativeButtonText(uiText("Пароль"))
                 .build()
             try { prompt.authenticate(info, BiometricPrompt.CryptoObject(request.challenge.cipher)) }
             catch (_: Exception) { fallback() }

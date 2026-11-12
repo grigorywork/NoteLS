@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -62,10 +64,10 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Синхронизация") },
+                title = { Text(uiText("Синхронизация")) },
                 navigationIcon = {
                     IconButton(onClick = ::leave) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 }
             )
@@ -98,7 +100,7 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
 private fun IdleBlock(viewModel: SyncViewModel, onOpenScanner: () -> Unit) {
     Spacer(Modifier.height(16.dp))
     Text(
-        text = "Обмен по Wi-Fi, без облака",
+        text = uiText("Обмен по Wi-Fi, без облака"),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
@@ -107,17 +109,17 @@ private fun IdleBlock(viewModel: SyncViewModel, onOpenScanner: () -> Unit) {
     Button(
         onClick = viewModel::startWaiting,
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Показать QR-код") }
+    ) { Text(uiText("Показать QR-код")) }
     Spacer(Modifier.height(12.dp))
     OutlinedButton(
         onClick = onOpenScanner,
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Сканировать QR-код") }
+    ) { Text(uiText("Сканировать QR-код")) }
     Spacer(Modifier.height(12.dp))
     OutlinedButton(
         onClick = viewModel::showClientForm,
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Ввести код вручную") }
+    ) { Text(uiText("Ввести код вручную")) }
 }
 
 @Composable
@@ -135,7 +137,7 @@ private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
                 }
                 androidx.compose.foundation.Image(
                     bitmap = qrBitmap.asImageBitmap(),
-                    contentDescription = "QR-код для связи",
+                    contentDescription = uiText("QR-код для связи"),
                     modifier = Modifier.fillMaxWidth(0.7f)
                 )
                 Spacer(Modifier.height(16.dp))
@@ -157,13 +159,13 @@ private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
     CircularProgressIndicator()
     Spacer(Modifier.height(8.dp))
     Text(
-        text = "Ожидание подключения",
+        text = uiText("Ожидание подключения"),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
     )
     Spacer(Modifier.height(16.dp))
-    OutlinedButton(onClick = onCancel) { Text("Отмена") }
+    OutlinedButton(onClick = onCancel) { Text(uiText("Отмена")) }
 }
 
 @Composable
@@ -174,12 +176,12 @@ private fun ClientFormBlock(onConnect: (String, String) -> Unit, onOpenScanner: 
     OutlinedButton(
         onClick = onOpenScanner,
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Сканировать QR-код") }
+    ) { Text(uiText("Сканировать QR-код")) }
     Spacer(Modifier.height(16.dp))
     OutlinedTextField(
         value = ip,
         onValueChange = { ip = it },
-        label = { Text("IP-адрес") },
+        label = { Text(uiText("IP-адрес")) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         modifier = Modifier.fillMaxWidth()
@@ -188,7 +190,7 @@ private fun ClientFormBlock(onConnect: (String, String) -> Unit, onOpenScanner: 
     OutlinedTextField(
         value = code,
         onValueChange = { code = it.uppercase(Locale.ROOT).take(8) },
-        label = { Text("Код сессии") },
+        label = { Text(uiText("Код сессии")) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
@@ -197,7 +199,7 @@ private fun ClientFormBlock(onConnect: (String, String) -> Unit, onOpenScanner: 
         onClick = { onConnect(ip, code) },
         enabled = ip.isNotBlank() && code.length == 8,
         modifier = Modifier.fillMaxWidth()
-    ) { Text("Начать синхронизацию") }
+    ) { Text(uiText("Начать синхронизацию")) }
 }
 
 @Composable
@@ -226,7 +228,7 @@ private fun SyncingBlock(state: SyncUiState) {
             modifier = Modifier.fillMaxWidth()
         )
         Text(
-            text = "Файл ${progress.attachmentsDone + 1} из ${progress.attachmentsTotal}",
+            text = uiText("Файл %1\$s из %2\$s", (progress.attachmentsDone + 1), (progress.attachmentsTotal)),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -247,10 +249,10 @@ private fun DoneBlock(state: SyncUiState, onDone: () -> Unit) {
         tint = MaterialTheme.colorScheme.primary
     )
     Spacer(Modifier.height(8.dp))
-    Text("Готово", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+    Text(uiText("Готово"), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
     if (state.peerName.isNotBlank()) {
         Text(
-            text = "Связано с: ${state.peerName}",
+            text = uiText("Связано с: %1\$s", (state.peerName)),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -259,22 +261,22 @@ private fun DoneBlock(state: SyncUiState, onDone: () -> Unit) {
     if (result != null) {
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Получено: ${result.receivedNotes}, отправлено: ${result.sentNotes}" +
-                if (result.conflicts > 0) ", конфликты: ${result.conflicts}" else "",
+            text = uiText("Получено: %1\$s, отправлено: %2\$s", (result.receivedNotes), (result.sentNotes)) +
+                if (result.conflicts > 0) uiText(", конфликты: %1\$s", (result.conflicts)) else "",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
     Spacer(Modifier.height(16.dp))
-    Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("ОК") }
+    Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text(uiText("ОК")) }
 }
 
 @Composable
 private fun ErrorBlock(state: SyncUiState, onRetry: () -> Unit) {
     Spacer(Modifier.height(24.dp))
     Text(
-        text = "Синхронизация не удалась",
+        text = uiText("Синхронизация не удалась"),
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.error,
         textAlign = TextAlign.Center
@@ -287,7 +289,7 @@ private fun ErrorBlock(state: SyncUiState, onRetry: () -> Unit) {
         textAlign = TextAlign.Center
     )
     Spacer(Modifier.height(16.dp))
-    Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Повторить") }
+    Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(uiText("Повторить")) }
 }
 
 @Composable
@@ -295,20 +297,20 @@ private fun StorageCard(storage: StorageInfo) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
-                text = "Хранилище",
+                text = uiText("Хранилище"),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             ListItem(
-                headlineContent = { Text("База данных") },
+                headlineContent = { Text(uiText("База данных")) },
                 trailingContent = { Text(formatBytes(storage.databaseBytes)) }
             )
             ListItem(
-                headlineContent = { Text("Вложения") },
+                headlineContent = { Text(uiText("Вложения")) },
                 trailingContent = { Text(formatBytes(storage.attachmentBytes)) }
             )
             ListItem(
-                headlineContent = { Text("Последняя синхронизация") },
+                headlineContent = { Text(uiText("Последняя синхронизация")) },
                 trailingContent = { Text(formatDateTime(storage.lastSyncAt)) }
             )
         }
@@ -316,11 +318,11 @@ private fun StorageCard(storage: StorageInfo) {
 }
 
 private fun phaseLabel(phase: SyncPhase): String = when (phase) {
-    SyncPhase.HANDSHAKE -> "Подключение…"
-    SyncPhase.EXCHANGING_CHANGES -> "Обмен заметками…"
-    SyncPhase.RECEIVING_FILES -> "Приём файлов…"
-    SyncPhase.SENDING_FILES -> "Отправка файлов…"
-    SyncPhase.FINISHING -> "Завершение…"
-    SyncPhase.COMPLETED -> "Готово"
+    SyncPhase.HANDSHAKE -> uiText("Подключение…")
+    SyncPhase.EXCHANGING_CHANGES -> uiText("Обмен заметками…")
+    SyncPhase.RECEIVING_FILES -> uiText("Приём файлов…")
+    SyncPhase.SENDING_FILES -> uiText("Отправка файлов…")
+    SyncPhase.FINISHING -> uiText("Завершение…")
+    SyncPhase.COMPLETED -> uiText("Готово")
 }
 

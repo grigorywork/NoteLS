@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -68,10 +70,10 @@ fun ScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Сканировать код") },
+                title = { Text(uiText("Сканировать код")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 }
             )
@@ -139,7 +141,7 @@ fun ScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
                     )
                 }
                 false -> Text(
-                    text = "Без доступа к камере сканер не работает.\nМожно ввести адрес и код вручную.",
+                    text = uiText("Без доступа к камере сканер не работает.\nМожно ввести адрес и код вручную."),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -150,7 +152,7 @@ fun ScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
             }
             if (hasPermission == true) {
                 Text(
-                    text = "Наведите камеру на QR-код другого устройства",
+                    text = uiText("Наведите камеру на QR-код другого устройства"),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,

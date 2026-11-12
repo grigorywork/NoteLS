@@ -1,6 +1,12 @@
 package com.notessync.app.settings
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
+import com.notessync.app.i18n.UiLanguage
+import com.notessync.app.i18n.UiStrings
+import com.notessync.app.reminders.createReminderChannel
+import com.notessync.app.widget.CalendarWidgetProvider
 import android.content.SharedPreferences
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,31 +19,34 @@ enum class NotesLayout { LIST, GRID }
 enum class CompletedStyle { STRIKE, HIDE }
 
 // Этап 29: акцентный цвет интерфейса (обводка, кнопки, выделение).
-enum class AccentColor(val label: String) {
+enum class AccentColor(private val labelRu: String) {
     DYNAMIC("Системный"),
     VIOLET("Фиолетовый"),
     BLUE("Синий"),
     GREEN("Зелёный"),
     ORANGE("Оранжевый"),
     PINK("Розовый"),
-    TEAL("Бирюзовый")
+    TEAL("Бирюзовый");
+    val label: String get() = uiText(labelRu)
 }
 
 // Этап 32: голосовой ввод — движок распознавания и структуризация речи.
-enum class VoiceEngine(val label: String) {
+enum class VoiceEngine(private val labelRu: String) {
     ONLINE("Онлайн (точнее, нужен интернет)"),
-    LOCAL("На устройстве (без интернета)")
+    LOCAL("На устройстве (без интернета)");
+    val label: String get() = uiText(labelRu)
 }
 
-enum class VoiceStructure(val label: String) {
+enum class VoiceStructure(private val labelRu: String) {
     RAW("Как есть"),
     POINTS("По пунктам"),
-    MAIN_IDEA("Основная мысль")
+    MAIN_IDEA("Основная мысль");
+    val label: String get() = uiText(labelRu)
 }
 
 // Этап 34: системные семейства шрифтов на выбор (стандартные, любимые людьми).
 // Этап 38: + встроенные популярные шрифты (OFL, все с кириллицей) — лежат в res/font.
-enum class AppFont(val label: String) {
+enum class AppFont(private val labelRu: String) {
     SYSTEM("Стандартный"),
     ROBOTO("Roboto"),
     OPEN_SANS("Open Sans"),
@@ -58,37 +67,42 @@ enum class AppFont(val label: String) {
     val isBundled: Boolean
         get() = this != SYSTEM && this != SANS && this != SERIF &&
             this != MONO && this != CURSIVE
+    val label: String get() = uiText(labelRu)
 }
 
 // Этап 37: стиль интерфейса. GLASS — «матовое стекло» как в Kimi на iPhone:
 // полупрозрачные панели с тонкой кромкой поверх мягкого градиента-авроры.
-enum class InterfaceStyle(val label: String) {
+enum class InterfaceStyle(private val labelRu: String) {
     CLASSIC("Классика"),
-    GLASS("Матовое стекло")
+    GLASS("Матовое стекло");
+    val label: String get() = uiText(labelRu)
 }
 
 // Этап 39: как часто делать автобэкап заметок.
 // intervalMillis = -1 — после каждой заметки; 0 — только вручную.
-enum class BackupFrequency(val label: String, val intervalMillis: Long) {
+enum class BackupFrequency(private val labelRu: String, val intervalMillis: Long) {
     MANUAL("Только вручную", 0L),
     AFTER_NOTE("После каждой заметки", -1L),
     DAILY("Раз в день", 86_400_000L),
     EVERY_3_DAYS("Раз в 3 дня", 3 * 86_400_000L),
     EVERY_10_DAYS("Раз в 10 дней", 10 * 86_400_000L),
-    MONTHLY("Раз в месяц", 30 * 86_400_000L)
+    MONTHLY("Раз в месяц", 30 * 86_400_000L);
+    val label: String get() = uiText(labelRu)
 }
 
 // Этап 36: как выглядит выполненная задача в виджете (зелёная / зачёркнутая / оба).
-enum class WidgetCompletedStyle(val label: String) {
+enum class WidgetCompletedStyle(private val labelRu: String) {
     GREEN("Зелёные"),
     STRIKE("Зачёркнутые"),
     BOTH("Зелёные и зачёркнутые");
 
     val usesGreen: Boolean get() = this == GREEN || this == BOTH
     val usesStrike: Boolean get() = this == STRIKE || this == BOTH
+    val label: String get() = uiText(labelRu)
 }
 
 data class SettingsState(
+    val uiLanguage: UiLanguage = UiLanguage.RUSSIAN,
     val notesLayout: NotesLayout = NotesLayout.LIST,
     val editorHistory: Boolean = true,
     val showTables: Boolean = true,
@@ -123,16 +137,20 @@ data class SettingsState(
 /** Настройки приложения (Этап 6): тема и размер шрифта. */
 class SettingsRepository private constructor(context: Context) {
 
+    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private val _state = MutableStateFlow(read())
     val state: StateFlow<SettingsState> = _state
 
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        _state.value = read()
+        val current = read()
+        _state.value = current
+        UiStrings.language = current.uiLanguage
     }
 
     init {
+        UiStrings.language = _state.value.uiLanguage
         prefs.registerOnSharedPreferenceChangeListener(listener)
     }
 
@@ -144,6 +162,7 @@ class SettingsRepository private constructor(context: Context) {
         }.getOrDefault(default)
 
     private fun read() = SettingsState(
+        uiLanguage = enumPref("ui_language", UiLanguage.RUSSIAN),
         notesLayout = enumPref("notes_layout", NotesLayout.LIST),
         editorHistory = prefs.getBoolean("editor_history", true),
         showTables = prefs.getBoolean("show_tables", true),
@@ -172,6 +191,16 @@ class SettingsRepository private constructor(context: Context) {
         lastBackupAt = prefs.getLong(KEY_LAST_BACKUP_AT, 0L),
         lastAutoBackupAt = prefs.getLong(KEY_LAST_AUTO_BACKUP_AT, 0L)
     )
+
+    fun setUiLanguage(language: UiLanguage) {
+        if (_state.value.uiLanguage == language) return
+        prefs.edit().putString("ui_language", language.name).apply()
+        val current = read()
+        _state.value = current
+        UiStrings.language = current.uiLanguage
+        appContext.createReminderChannel()
+        CalendarWidgetProvider.refreshAll(appContext, force = true)
+    }
 
     fun setThemeMode(mode: ThemeMode) {
         prefs.edit().putString(KEY_THEME, mode.name).apply()

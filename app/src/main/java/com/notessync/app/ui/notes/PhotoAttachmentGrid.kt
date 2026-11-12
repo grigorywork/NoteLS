@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -42,13 +44,13 @@ private fun PhotoThumbnail(attachment: AttachmentEntity, onOpen: () -> Unit, onR
     Box(Modifier.padding(4.dp)) {
         Surface(Modifier.size(width, height).clip(shape).clickable(onClick = onOpen), shape = shape,
             color = MaterialTheme.colorScheme.surfaceVariant) {
-            if (image is PhotoBitmapState.Ready) Image(image.bitmap.asImageBitmap(), "Фото заметки",
+            if (image is PhotoBitmapState.Ready) Image(image.bitmap.asImageBitmap(), uiText("Фото заметки"),
                 contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
-            else Icon(Icons.Default.Image, "Фото заметки", Modifier.padding(16.dp))
+            else Icon(Icons.Default.Image, uiText("Фото заметки"), Modifier.padding(16.dp))
         }
         Surface(Modifier.align(Alignment.TopEnd), shape = CircleShape,
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)) {
-            IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Close, "Удалить фото") }
+            IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Close, uiText("Удалить фото")) }
         }
     }
 }

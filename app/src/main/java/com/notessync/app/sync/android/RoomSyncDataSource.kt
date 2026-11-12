@@ -1,5 +1,7 @@
 package com.notessync.app.sync.android
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.notes.actions.NoteActions
@@ -204,7 +206,7 @@ class RoomSyncDataSource(
     }
 
     override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {
-        require(SAFE_ATTACHMENT_ID.matches(meta.syncId)) { "Некорректный syncId вложения" }
+        require(SAFE_ATTACHMENT_ID.matches(meta.syncId)) { uiText("Некорректный syncId вложения") }
         db.withTransaction {
             val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withTransaction
             if (parent.isPurged) return@withTransaction
@@ -224,7 +226,7 @@ class RoomSyncDataSource(
     private fun attachmentFile(syncId: String): File {
         // Аудит 2026-11-11: syncId приходит от пира и становится именем файла.
         // Без проверки «../../../…» позволял бы писать вне каталога вложений.
-        require(SAFE_ATTACHMENT_ID.matches(syncId)) { "Некорректный syncId вложения" }
+        require(SAFE_ATTACHMENT_ID.matches(syncId)) { uiText("Некорректный syncId вложения") }
         return File(attachmentsDir, syncId)
     }
 

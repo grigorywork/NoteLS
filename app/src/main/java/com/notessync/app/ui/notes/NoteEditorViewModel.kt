@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.i18n.uiText
+
 import com.notessync.app.notes.text.*
 import com.notessync.app.notes.tables.*
 import com.notessync.app.notes.photos.PhotoDisplaySize
@@ -748,9 +750,9 @@ class NoteEditorViewModel(
             db.notebookDao().getById(it)?.isProtected
         } == true
         val notificationTitle = if (isProtected || notebookProtected) {
-            "Защищённая запись"
+            uiText("Защищённая запись")
         } else {
-            title.ifBlank { "Без названия" }
+            title.ifBlank { uiText("Без названия") }
         }
         val scheduled = ReminderScheduler.scheduleTimer(app, currentNoteId, notificationTitle, endAt)
         if (!scheduled) {
@@ -987,9 +989,9 @@ class NoteEditorViewModel(
                 db.notebookDao().getById(it)?.isProtected
             } == true
             val notificationTitle = if (isProtected || notebookProtected) {
-                "Защищённая запись"
+                uiText("Защищённая запись")
             } else {
-                title.ifBlank { "Без названия" }
+                title.ifBlank { uiText("Без названия") }
             }
             val scheduled = ReminderScheduler.schedule(app, currentNoteId, notificationTitle, at)
             if (!scheduled) {

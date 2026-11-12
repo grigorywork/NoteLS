@@ -1,17 +1,19 @@
 package com.notessync.app.ui.tasks
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.ui.graphics.Color
 
 const val DEFAULT_TASK_COLOR = "violet"
 
 data class TaskColorOption(
     val key: String,
-    val label: String,
+    private val labelRu: String,
     val completedContainer: Color,
     // Этап 35: насыщенный акцент — заголовок, галочка, полоса на карточке.
     // Цвет задачи теперь реально виден, а не только в фоне выполненной карточки.
     val accent: Color
-)
+) { val label: String get() = uiText(labelRu) }
 
 val taskColorOptions = listOf(
     TaskColorOption("violet", "Фиолетовый", Color(0xFFDCC2FF), Color(0xFF7C4DFF)),

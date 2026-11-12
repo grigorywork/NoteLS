@@ -13,6 +13,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import com.notessync.app.i18n.UiCatalog
 import kotlin.math.roundToInt
 
 /** Полноэкранный виджет-календарь (Этап 8).
@@ -73,15 +74,26 @@ class CalendarWidgetProvider : AppWidgetProvider() {
 
         /** Полная перерисовка виджета: шапка, сетка, прозрачность. */
         fun updateWidget(context: Context, manager: AppWidgetManager, id: Int) {
+            val settings = SettingsRepository.get(context).state.value
+            val language = settings.uiLanguage
+            val locale = language.locale
             val month = currentMonth(context, id)
             val views = RemoteViews(context.packageName, R.layout.widget_calendar)
 
-            val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
-                .replaceFirstChar { it.uppercase(Locale("ru")) }
+            val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
+                .replaceFirstChar { it.uppercase(locale) }
             views.setTextViewText(R.id.widget_month_title, "$monthName, ${month.year}")
+            val weekdayViews = intArrayOf(R.id.widget_weekday_mon, R.id.widget_weekday_tue, R.id.widget_weekday_wed,
+                R.id.widget_weekday_thu, R.id.widget_weekday_fri, R.id.widget_weekday_sat, R.id.widget_weekday_sun)
+            val weekdayLabels = arrayOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+            weekdayViews.forEachIndexed { index, viewId -> views.setTextViewText(viewId, UiCatalog.translate(language, weekdayLabels[index])) }
+            views.setContentDescription(R.id.widget_prev, UiCatalog.translate(language, "Предыдущий месяц"))
+            views.setContentDescription(R.id.widget_next, UiCatalog.translate(language, "Следующий месяц"))
+            views.setContentDescription(R.id.widget_menu_button, UiCatalog.translate(language, "Настройки виджета"))
+            views.setContentDescription(R.id.widget_add, UiCatalog.translate(language, "Быстрая задача"))
 
             // Прозрачность фона — из настроек (выбирается в меню «⋮», этап 28).
-            val alpha = SettingsRepository.get(context).state.value.widgetAlpha
+            val alpha = settings.widgetAlpha
             views.setInt(R.id.widget_bg, "setImageAlpha", (alpha * 255).roundToInt())
 
             views.setOnClickPendingIntent(

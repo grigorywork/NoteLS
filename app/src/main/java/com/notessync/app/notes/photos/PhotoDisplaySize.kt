@@ -1,5 +1,7 @@
 package com.notessync.app.notes.photos
 
+import com.notessync.app.i18n.uiText
+
 /** Display metadata only. Resizing never changes the original image file. */
 data class PhotoDisplaySize(val width: Int = DEFAULT_WIDTH, val height: Int = DEFAULT_HEIGHT) {
     fun bounded() = PhotoDisplaySize(
@@ -15,10 +17,11 @@ data class PhotoDisplaySize(val width: Int = DEFAULT_WIDTH, val height: Int = DE
         const val DEFAULT_HEIGHT = 180
     }
 }
-enum class PhotoHandle(val x: Int, val y: Int, val label: String) {
+enum class PhotoHandle(val x: Int, val y: Int, private val labelRu: String) {
     TOP_LEFT(-1, -1, "Левый верхний угол"), TOP(0, -1, "Верхний край"), TOP_RIGHT(1, -1, "Правый верхний угол"),
     LEFT(-1, 0, "Левый край"), RIGHT(1, 0, "Правый край"),
-    BOTTOM_LEFT(-1, 1, "Левый нижний угол"), BOTTOM(0, 1, "Нижний край"), BOTTOM_RIGHT(1, 1, "Правый нижний угол")
+    BOTTOM_LEFT(-1, 1, "Левый нижний угол"), BOTTOM(0, 1, "Нижний край"), BOTTOM_RIGHT(1, 1, "Правый нижний угол");
+    val label: String get() = uiText(labelRu)
 }
 
 /** Power-of-two sampling bound; all calculations use Long to handle corrupt extreme dimensions. */

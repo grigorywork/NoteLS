@@ -1,5 +1,7 @@
 package com.notessync.app.widget
 
+import com.notessync.app.i18n.uiText
+
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
@@ -141,7 +143,7 @@ internal fun QuickNoteContent(
             if (it.toLocalDate() == date) it.toLocalTime() else java.time.LocalTime.of(23, 59)
         } else java.time.LocalTime.of(9, 0)
         val time = rememberTimePickerState(initialHour = initial?.hour ?: suggested.hour, initialMinute = initial?.minute ?: suggested.minute, is24Hour = true)
-        AlertDialog(onDismissRequest = { showTime = false }, title = { Text("Время напоминания") },
+        AlertDialog(onDismissRequest = { showTime = false }, title = { Text(uiText("Время напоминания")) },
             text = { TimeInput(time) }, confirmButton = {
                 TextButton(onClick = {
                     val at = date.atTime(time.hour, time.minute).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -149,8 +151,8 @@ internal fun QuickNoteContent(
                     if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         permissionTime = at; notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else viewModel.setReminder(at)
-                }) { Text("Готово") }
-            }, dismissButton = { TextButton(onClick = { viewModel.setReminder(null); showTime = false }) { Text("Без напоминания") } })
+                }) { Text(uiText("Готово")) }
+            }, dismissButton = { TextButton(onClick = { viewModel.setReminder(null); showTime = false }) { Text(uiText("Без напоминания")) } })
     }
     if (showDate) {
         val picker = rememberDatePickerState(initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
@@ -158,8 +160,8 @@ internal fun QuickNoteContent(
             TextButton(onClick = {
                 picker.selectedDateMillis?.let { viewModel.changeDay(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay()) }
                 showDate = false
-            }) { Text("Готово") }
-        }, dismissButton = { TextButton(onClick = { showDate = false }) { Text("Отмена") } }) { DatePicker(picker) }
+            }) { Text(uiText("Готово")) }
+        }, dismissButton = { TextButton(onClick = { showDate = false }) { Text(uiText("Отмена")) } }) { DatePicker(picker) }
     }
     val scope = rememberCoroutineScope()
     val dayNotes by remember(dao, dayKey) {
@@ -179,7 +181,7 @@ internal fun QuickNoteContent(
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (_: Exception) {
-                taskError = "Не удалось сохранить отметку. Попробуйте ещё раз."
+                taskError = uiText("Не удалось сохранить отметку. Попробуйте ещё раз.")
             } finally {
                 pendingIds = pendingIds - note.id
             }
@@ -197,12 +199,12 @@ internal fun QuickNoteContent(
     ) {
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Text(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
+                Text(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", com.notessync.app.i18n.UiStrings.locale)),
                     style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f), maxLines = 2)
                 IconButton(onClick = { viewModel.next { showTime = settings.quickTaskTime } }, enabled = !viewModel.busy) {
-                    Icon(Icons.Default.Add, "Сохранить и новая задача")
+                    Icon(Icons.Default.Add, uiText("Сохранить и новая задача"))
                 }
-                IconButton(onClick = onClose, enabled = !viewModel.busy) { Icon(Icons.Default.Close, "Закрыть") }
+                IconButton(onClick = onClose, enabled = !viewModel.busy) { Icon(Icons.Default.Close, uiText("Закрыть")) }
             }
             Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp)) {
             OutlinedTextField(
@@ -210,29 +212,29 @@ internal fun QuickNoteContent(
                 onValueChange = viewModel::changeText,
                 enabled = !viewModel.busy,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Быстрая задача") },
+                placeholder = { Text(uiText("Быстрая задача")) },
                 minLines = 2, maxLines = 5
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                AssistChip(onClick = { showDate = true }, enabled = !viewModel.busy, label = { Text("Дата") })
+                AssistChip(onClick = { showDate = true }, enabled = !viewModel.busy, label = { Text(uiText("Дата")) })
                 AssistChip(onClick = { showTime = true }, enabled = !viewModel.busy,
-                    label = { Text(viewModel.reminderAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: "Время") },
+                    label = { Text(viewModel.reminderAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: uiText("Время")) },
                     leadingIcon = { Icon(Icons.Default.Alarm, null) })
             }
-            if (viewModel.reminderAt != null) TextButton(onClick = { viewModel.setReminder(null) }, enabled = !viewModel.busy) { Text("Без напоминания") }
-            Text(viewModel.error ?: if (viewModel.text.isBlank()) "Пустые задачи не сохраняются" else if (viewModel.isSaved) "Сохранено" else "Сохраняется…",
+            if (viewModel.reminderAt != null) TextButton(onClick = { viewModel.setReminder(null) }, enabled = !viewModel.busy) { Text(uiText("Без напоминания")) }
+            Text(viewModel.error ?: if (viewModel.text.isBlank()) uiText("Пустые задачи не сохраняются") else if (viewModel.isSaved) uiText("Сохранено") else uiText("Сохраняется…"),
                 color = if (viewModel.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (viewModel.error != null) TextButton(onClick = { scope.launch { viewModel.persist() } }, enabled = !viewModel.busy) { Text("Повторить") }
+                if (viewModel.error != null) TextButton(onClick = { scope.launch { viewModel.persist() } }, enabled = !viewModel.busy) { Text(uiText("Повторить")) }
             }
 
             if (dayNotes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Заметки и задачи этого дня",
+                    text = uiText("Заметки и задачи этого дня"),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -246,7 +248,7 @@ internal fun QuickNoteContent(
                         val style = settings.widgetCompletedStyle
                         val checked = note.isTask && note.isCompleted
                         val enabled = note.id !in pendingIds
-                        val title = note.title.ifBlank { "Без названия" }
+                        val title = note.title.ifBlank { uiText("Без названия") }
                         Row(
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
@@ -258,7 +260,7 @@ internal fun QuickNoteContent(
                                 )
                                 .semantics {
                                     contentDescription = if (note.isTask) title
-                                    else "Отметить как выполненную задачу: $title"
+                                    else uiText("Отметить как выполненную задачу: %1\$s", (title))
                                 }
                         ) {
                             androidx.compose.material3.Checkbox(

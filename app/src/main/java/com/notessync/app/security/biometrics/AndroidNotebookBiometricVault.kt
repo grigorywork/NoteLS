@@ -1,5 +1,7 @@
 package com.notessync.app.security.biometrics
 
+import com.notessync.app.i18n.uiText
+
 import android.content.Context
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
@@ -68,7 +70,7 @@ class AndroidNotebookBiometricVault(context: Context) : NotebookBiometricVault {
                     BiometricChallenge(binding, true, cipher, alias)
                 } catch (error: Exception) { store.deleteEntry(alias); throw error }
             } else {
-                val record = records[binding.syncId] ?: error("Биометрия не включена")
+                val record = records[binding.syncId] ?: error(uiText("Биометрия не включена"))
                 check(record.tag == binding.credentialTag && SAFE_ALIAS.matches(record.alias))
                 try {
                     val key = store.getKey(record.alias, null) as SecretKey

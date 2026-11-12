@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -87,24 +89,24 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Календарь") },
+                title = { Text(uiText("Календарь")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 },
                 actions = {
                     IconButton(onClick = { onAddEntry(state.selectedDate.toEpochDay(), false) }) {
-                        Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = "Новая заметка в полном редакторе")
+                        Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = uiText("Новая заметка в полном редакторе"))
                     }
-                    TextButton(onClick = viewModel::showToday) { Text("Сегодня") }
+                    TextButton(onClick = viewModel::showToday) { Text(uiText("Сегодня")) }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 context.startActivity(com.notessync.app.widget.QuickNoteActivity.intent(context, state.selectedDate.toEpochDay()))
-            }) { Icon(Icons.Default.Add, contentDescription = "Быстрая задача на выбранный день") }
+            }) { Icon(Icons.Default.Add, contentDescription = uiText("Быстрая задача на выбранный день")) }
         }
 
     ) { padding ->
@@ -120,7 +122,7 @@ fun CalendarScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = viewModel::previousMonth) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Предыдущий месяц")
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = uiText("Предыдущий месяц"))
                 }
                 Text(
                     text = monthTitle(state),
@@ -129,7 +131,7 @@ fun CalendarScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
                 IconButton(onClick = viewModel::nextMonth) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Следующий месяц")
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = uiText("Следующий месяц"))
                 }
             }
 
@@ -138,7 +140,7 @@ fun CalendarScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
-                listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").forEach { weekday ->
+                listOf(uiText("Пн"), uiText("Вт"), uiText("Ср"), uiText("Чт"), uiText("Пт"), uiText("Сб"), uiText("Вс")).forEach { weekday ->
                     Text(
                         text = weekday,
                         modifier = Modifier.weight(1f),
@@ -184,7 +186,7 @@ fun CalendarScreen(
                 if (state.selectedNotes.isEmpty()) {
                     item {
                         Text(
-                            text = "На этот день записей нет.\nНажмите +, чтобы добавить заметку или задачу.",
+                            text = uiText("На этот день записей нет.\nНажмите +, чтобы добавить заметку или задачу."),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -279,7 +281,7 @@ private fun CalendarDayCell(
             .clip(shape)
             .background(background)
             .border(1.dp, borderColor, shape)
-            .clickable(onClickLabel = "Показать записи дня", onClick = onClick)
+            .clickable(onClickLabel = uiText("Показать записи дня"), onClick = onClick)
             .padding(horizontal = 3.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -356,7 +358,7 @@ private fun CalendarNoteRow(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = note.title.ifBlank { if (note.isTask) "Задача" else "Без названия" },
+                text = note.title.ifBlank { if (note.isTask) uiText("Задача") else uiText("Без названия") },
                 style = MaterialTheme.typography.bodyLarge,
                 color = titleColor,
                 textDecoration = decoration,
@@ -377,12 +379,12 @@ private fun CalendarNoteRow(
 }
 
 private fun monthTitle(state: com.notessync.app.ui.calendar.CalendarState): String {
-    val locale = Locale("ru")
+    val locale = com.notessync.app.i18n.UiStrings.locale
     val formatted = state.month.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
     return formatted.replaceFirstChar { it.titlecase(locale) }
 }
 
 private fun selectedDayTitle(date: LocalDate): String {
-    val formatted = date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale("ru")))
-    return formatted.replaceFirstChar { it.titlecase(Locale("ru")) }
+    val formatted = date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", com.notessync.app.i18n.UiStrings.locale))
+    return formatted.replaceFirstChar { it.titlecase(com.notessync.app.i18n.UiStrings.locale) }
 }

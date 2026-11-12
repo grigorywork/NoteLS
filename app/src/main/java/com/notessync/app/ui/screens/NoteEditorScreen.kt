@@ -1,5 +1,7 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -246,7 +248,7 @@ fun NoteEditorScreen(
             voiceManager.start(currentVoiceEngine.value)
         } else {
             scope.launch {
-                snackbarHostState.showSnackbar("Без разрешения на микрофон голосовой ввод недоступен")
+                snackbarHostState.showSnackbar(uiText("Без разрешения на микрофон голосовой ввод недоступен"))
             }
         }
     }
@@ -259,7 +261,7 @@ fun NoteEditorScreen(
         }
         if (!voiceManager.isAvailable) {
             scope.launch {
-                snackbarHostState.showSnackbar("Распознавание речи недоступно на этом устройстве")
+                snackbarHostState.showSnackbar(uiText("Распознавание речи недоступно на этом устройстве"))
             }
             return
         }
@@ -284,13 +286,13 @@ fun NoteEditorScreen(
             try { cameraLauncher.launch(uri) }
             catch (_: Exception) {
                 viewModel.finishCameraCapture(false)
-                snackbarHostState.showSnackbar("Не удалось открыть камеру. Выберите фото из галереи.")
+                snackbarHostState.showSnackbar(uiText("Не удалось открыть камеру. Выберите фото из галереи."))
             }
         }
     }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startCamera()
-        else scope.launch { snackbarHostState.showSnackbar("Для съёмки разрешите доступ к камере в настройках приложения.") }
+        else scope.launch { snackbarHostState.showSnackbar(uiText("Для съёмки разрешите доступ к камере в настройках приложения.")) }
     }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -320,24 +322,24 @@ fun NoteEditorScreen(
     LaunchedEffect(viewModel.message) {
         val current = viewModel.message ?: return@LaunchedEffect
         val text = when (current) {
-            EditorMessage.TABLE_LIMIT -> "Достигнут предел таблиц или текста ячейки."
-            EditorMessage.SAVE_FAILED -> "Не удалось сохранить заметку. Повторите попытку."
-            EditorMessage.HISTORY_LIMIT -> "Изменение слишком велико для истории. Текст сохранён в редакторе."
-            EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
-            EditorMessage.CAMERA_FAILED -> "Не удалось подготовить фото с камеры. Попробуйте ещё раз."
-            EditorMessage.PHOTO_TOO_LARGE -> "Фото больше 10 МБ. Выберите изображение меньшего размера."
-            EditorMessage.PHOTO_SIZE_FAILED -> "Не удалось сохранить размер фото. Повторите попытку."
-            EditorMessage.PHOTO_IMPORT_FAILED -> "Не удалось прикрепить фото. Попробуйте другое изображение."
-            EditorMessage.REMINDER_IN_PAST -> "Выберите время напоминания в будущем."
+            EditorMessage.TABLE_LIMIT -> uiText("Достигнут предел таблиц или текста ячейки.")
+            EditorMessage.SAVE_FAILED -> uiText("Не удалось сохранить заметку. Повторите попытку.")
+            EditorMessage.HISTORY_LIMIT -> uiText("Изменение слишком велико для истории. Текст сохранён в редакторе.")
+            EditorMessage.FORMATTING_LIMIT -> uiText("Достигнут предел оформления. Текст сохранён; используйте более крупные выделения.")
+            EditorMessage.CAMERA_FAILED -> uiText("Не удалось подготовить фото с камеры. Попробуйте ещё раз.")
+            EditorMessage.PHOTO_TOO_LARGE -> uiText("Фото больше 10 МБ. Выберите изображение меньшего размера.")
+            EditorMessage.PHOTO_SIZE_FAILED -> uiText("Не удалось сохранить размер фото. Повторите попытку.")
+            EditorMessage.PHOTO_IMPORT_FAILED -> uiText("Не удалось прикрепить фото. Попробуйте другое изображение.")
+            EditorMessage.REMINDER_IN_PAST -> uiText("Выберите время напоминания в будущем.")
             EditorMessage.REMINDER_NOTIFICATIONS_DISABLED ->
-                "Уведомления выключены. Разрешите их, чтобы видеть напоминания."
+                uiText("Уведомления выключены. Разрешите их, чтобы видеть напоминания.")
             EditorMessage.REMINDER_SCHEDULE_FAILED ->
-                "Не удалось установить напоминание. Попробуйте ещё раз."
+                uiText("Не удалось установить напоминание. Попробуйте ещё раз.")
         }
         val notificationsDisabled = current == EditorMessage.REMINDER_NOTIFICATIONS_DISABLED
         val result = snackbarHostState.showSnackbar(
             message = text,
-            actionLabel = if (notificationsDisabled) "Настройки" else null,
+            actionLabel = if (notificationsDisabled) uiText("Настройки") else null,
             duration = if (notificationsDisabled) SnackbarDuration.Long else SnackbarDuration.Short
         )
         if (notificationsDisabled && result == SnackbarResult.ActionPerformed) {
@@ -370,10 +372,10 @@ fun NoteEditorScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(if (viewModel.isTask) "Задача" else "Заметка") },
+                title = { Text(if (viewModel.isTask) uiText("Задача") else uiText("Заметка")) },
                 navigationIcon = {
                     IconButton(onClick = { exit() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 },
                 actions = {
@@ -392,7 +394,7 @@ fun NoteEditorScreen(
                         ) {
                             Icon(
                                 if (voiceListening) Icons.Default.Stop else Icons.Default.Mic,
-                                contentDescription = "Голосовой ввод AI",
+                                contentDescription = uiText("Голосовой ввод AI"),
                                 tint = if (voiceListening) MaterialTheme.colorScheme.error
                                 else LocalContentColor.current
                             )
@@ -401,7 +403,7 @@ fun NoteEditorScreen(
                     IconButton(onClick = viewModel::toggleFavorite) {
                         Icon(
                             if (viewModel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = "Избранное",
+                            contentDescription = uiText("Избранное"),
                             tint = if (viewModel.isFavorite) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -410,12 +412,12 @@ fun NoteEditorScreen(
                     IconButton(onClick = { viewModel.previewMode = !viewModel.previewMode }) {
                         Icon(
                             if (viewModel.previewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = "Предпросмотр"
+                            contentDescription = uiText("Предпросмотр")
                         )
                     }
                     if (viewModel.exists) {
                         IconButton(onClick = { showDeleteDialog = true }, enabled = !viewModel.isPhotoBusy) {
-                            Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                            Icon(Icons.Default.Delete, contentDescription = uiText("Удалить"))
                         }
                     }
                 }
@@ -433,41 +435,41 @@ fun NoteEditorScreen(
                             selected = showFormattingPanel,
                             onClick = { showFormattingPanel = !showFormattingPanel },
                             icon = { Icon(Icons.Default.FormatBold, contentDescription = null) },
-                            label = { Text("Текст") }
+                            label = { Text(uiText("Текст")) }
                         )
                         NavigationBarItem(
                             selected = false,
                             enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady,
                             onClick = { showPhotoMenu = true },
                             icon = { Icon(Icons.Default.Image, contentDescription = null) },
-                            label = { Text("Фото") }
+                            label = { Text(uiText("Фото")) }
                         )
                         NavigationBarItem(
                             selected = viewModel.reminderAt != null,
                             onClick = { openReminderMenu() },
                             icon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-                            label = { Text("Сигнал") }
+                            label = { Text(uiText("Сигнал")) }
                         )
                         NavigationBarItem(
                             selected = viewModel.notebookName != null,
                             onClick = { showNotebookMenu = true },
                             icon = { Icon(Icons.Default.Folder, contentDescription = null) },
-                            label = { Text("Блокнот") }
+                            label = { Text(uiText("Блокнот")) }
                         )
                         NavigationBarItem(
                             selected = viewModel.noteTags.isNotEmpty(),
                             onClick = { showTagDialog = true },
                             icon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                            label = { Text("Теги") }
+                            label = { Text(uiText("Теги")) }
                         )
                     }
                 }
                 DropdownMenu(expanded = showPhotoMenu, onDismissRequest = { showPhotoMenu = false }) {
-                    DropdownMenuItem(text = { Text("Из галереи") }, onClick = {
+                    DropdownMenuItem(text = { Text(uiText("Из галереи")) }, onClick = {
                         showPhotoMenu = false
                         photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     })
-                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text("Снять фото") }, onClick = {
+                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text(uiText("Снять фото")) }, onClick = {
                         showPhotoMenu = false
                         if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                         else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -479,12 +481,12 @@ fun NoteEditorScreen(
                 ) {
                     // Этап 26: шаблоны сокращены вдвое — только ходовые варианты.
                     listOf(
-                        "Через 1 час" to 1,
-                        "Через 2 часа" to 2,
-                        "Через 6 часов" to 6
+                        uiText("Через 1 час") to 1,
+                        uiText("Через 2 часа") to 2,
+                        uiText("Через 6 часов") to 6
                     ).forEach { (label, hours) ->
                         DropdownMenuItem(
-                            text = { Text(label) },
+                            text = { Text(uiText(label)) },
                             onClick = {
                                 showReminderMenu = false
                                 viewModel.setReminder(ReminderTime.afterHours(hours))
@@ -492,14 +494,14 @@ fun NoteEditorScreen(
                         )
                     }
                     DropdownMenuItem(
-                        text = { Text("Завтра, 09:00") },
+                        text = { Text(uiText("Завтра, 09:00")) },
                         onClick = {
                             showReminderMenu = false
                             viewModel.setReminder(ReminderTime.tomorrowMorning())
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Выбрать дату и время") },
+                        text = { Text(uiText("Выбрать дату и время")) },
                         onClick = {
                             showReminderMenu = false
                             showDatePicker = true
@@ -511,7 +513,7 @@ fun NoteEditorScreen(
                     onDismissRequest = { showNotebookMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Без блокнота" + if (viewModel.notebookName == null) " ✓" else "") },
+                        text = { Text(uiText("Без блокнота") + if (viewModel.notebookName == null) " ✓" else "") },
                         onClick = {
                             viewModel.assignNotebook(null)
                             showNotebookMenu = false
@@ -552,7 +554,7 @@ fun NoteEditorScreen(
                         )
                         Spacer(Modifier.padding(horizontal = 4.dp))
                         Text(
-                            if (voicePartial.isBlank()) "Слушаю… Говорите." else voicePartial,
+                            if (voicePartial.isBlank()) uiText("Слушаю… Говорите.") else voicePartial,
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -574,7 +576,7 @@ fun NoteEditorScreen(
                         selected = false,
                         onClick = { viewModel.removeTag(tag) },
                         label = { Text(tag) },
-                        trailingIcon = { Icon(Icons.Default.Close, contentDescription = "Убрать тег") },
+                        trailingIcon = { Icon(Icons.Default.Close, contentDescription = uiText("Убрать тег")) },
                         modifier = Modifier.padding(end = 8.dp)
                     )
                 }
@@ -584,13 +586,13 @@ fun NoteEditorScreen(
                 FilterChip(
                     selected = viewModel.isTask,
                     onClick = viewModel::toggleTask,
-                    label = { Text("Задача") },
+                    label = { Text(uiText("Задача")) },
                     leadingIcon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
                     modifier = Modifier.padding(end = 8.dp)
                 )
                     AssistChip(
                         onClick = { showColorDialog = true },
-                        label = { Text(if (!viewModel.isTask && viewModel.noteColor.isEmpty()) "Цвет" else taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).label) },
+                        label = { Text(if (!viewModel.isTask && viewModel.noteColor.isEmpty()) uiText("Цвет") else taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).label) },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Palette,
@@ -605,7 +607,7 @@ fun NoteEditorScreen(
                     FilterChip(
                         selected = viewModel.isCompleted,
                         onClick = viewModel::toggleCompleted,
-                        label = { Text(if (viewModel.isCompleted) "Выполнено" else "Выполнить") },
+                        label = { Text(if (viewModel.isCompleted) uiText("Выполнено") else uiText("Выполнить")) },
                         leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
                         modifier = Modifier.padding(end = 8.dp)
                     )
@@ -615,9 +617,9 @@ fun NoteEditorScreen(
                         label = {
                             Text(
                                 when {
-                                    viewModel.taskTimerStartedAt != null -> "Пауза"
-                                    viewModel.taskElapsedMillis > 0L -> "Продолжить"
-                                    else -> "Запустить"
+                                    viewModel.taskTimerStartedAt != null -> uiText("Пауза")
+                                    viewModel.taskElapsedMillis > 0L -> uiText("Продолжить")
+                                    else -> uiText("Запустить")
                                 }
                             )
                         },
@@ -637,7 +639,7 @@ fun NoteEditorScreen(
                         AssistChip(
                             onClick = { showCountdownMenu = true },
                             enabled = !viewModel.isCompleted || countdownActive,
-                            label = { Text("Таймер") },
+                            label = { Text(uiText("Таймер")) },
                             leadingIcon = {
                                 Icon(Icons.Default.Timer, contentDescription = null)
                             }
@@ -648,7 +650,7 @@ fun NoteEditorScreen(
                         ) {
                             countdownPresets.forEach { (label, millis) ->
                                 DropdownMenuItem(
-                                    text = { Text(label) },
+                                    text = { Text(uiText(label)) },
                                     onClick = {
                                         showCountdownMenu = false
                                         viewModel.startCountdown(millis)
@@ -656,17 +658,17 @@ fun NoteEditorScreen(
                                 )
                             }
                             DropdownMenuItem(
-                                text = { Text("Своё время…") },
+                                text = { Text(uiText("Своё время…")) },
                                 onClick = {
                                     showCountdownMenu = false
                                     showCountdownCustomDialog = true
                                 }
                             )
-                            DropdownMenuItem(text = { Text("До времени…") }, onClick = { showCountdownMenu = false; showCountdownUntil = true })
+                            DropdownMenuItem(text = { Text(uiText("До времени…")) }, onClick = { showCountdownMenu = false; showCountdownUntil = true })
                             if (countdownActive) {
                                 if (viewModel.taskCountdownEndAt != null) {
                                     DropdownMenuItem(
-                                        text = { Text("Пауза") },
+                                        text = { Text(uiText("Пауза")) },
                                         onClick = {
                                             showCountdownMenu = false
                                             viewModel.pauseCountdown()
@@ -674,7 +676,7 @@ fun NoteEditorScreen(
                                     )
                                 } else {
                                     DropdownMenuItem(
-                                        text = { Text("Продолжить") },
+                                        text = { Text(uiText("Продолжить")) },
                                         onClick = {
                                             showCountdownMenu = false
                                             viewModel.resumeCountdown()
@@ -682,7 +684,7 @@ fun NoteEditorScreen(
                                     )
                                 }
                                 DropdownMenuItem(
-                                    text = { Text("Снять таймер") },
+                                    text = { Text(uiText("Снять таймер")) },
                                     onClick = {
                                         showCountdownMenu = false
                                         viewModel.cancelCountdown()
@@ -697,7 +699,7 @@ fun NoteEditorScreen(
                                 if (viewModel.isProtected) showTaskProtectionMenu = true
                                 else showTaskPasswordDialog = true
                             },
-                            label = { Text(if (viewModel.isProtected) "Защищено" else "Пароль") },
+                            label = { Text(if (viewModel.isProtected) uiText("Защищено") else uiText("Пароль")) },
                             leadingIcon = {
                                 Icon(
                                     if (viewModel.isProtected) Icons.Default.Lock else Icons.Default.LockOpen,
@@ -710,7 +712,7 @@ fun NoteEditorScreen(
                             onDismissRequest = { showTaskProtectionMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Заблокировать и закрыть") },
+                                text = { Text(uiText("Заблокировать и закрыть")) },
                                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                                 onClick = {
                                     showTaskProtectionMenu = false
@@ -719,7 +721,7 @@ fun NoteEditorScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Снять защиту") },
+                                text = { Text(uiText("Снять защиту")) },
                                 leadingIcon = { Icon(Icons.Default.LockOpen, contentDescription = null) },
                                 onClick = {
                                     showTaskProtectionMenu = false
@@ -754,7 +756,7 @@ fun NoteEditorScreen(
                         enabled = viewModel.taskElapsedMillis > 0L || viewModel.taskTimerStartedAt != null
                     ) {
                         Icon(Icons.Default.RestartAlt, contentDescription = null)
-                        Text("Сбросить")
+                        Text(uiText("Сбросить"))
                     }
                 }
                 // Этап 30: строка обратного отсчёта (когда таймер задан).
@@ -773,11 +775,11 @@ fun NoteEditorScreen(
                 InputChip(
                     selected = true,
                     onClick = { showDatePicker = true },
-                    label = { Text("Напомнить: " + formatDateTime(at)) },
+                    label = { Text(uiText("Напомнить: ") + formatDateTime(at)) },
                     leadingIcon = { Icon(Icons.Default.Alarm, contentDescription = null) },
                     trailingIcon = {
                         IconButton(onClick = viewModel::clearReminder) {
-                            Icon(Icons.Default.Close, contentDescription = "Убрать напоминание")
+                            Icon(Icons.Default.Close, contentDescription = uiText("Убрать напоминание"))
                         }
                     },
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -786,12 +788,12 @@ fun NoteEditorScreen(
 
             if (settingsState.showTables) {
                 if (viewModel.tables == null) {
-                    Text("Таблица недоступна для редактирования. Данные сохранены.", Modifier.padding(16.dp),
+                    Text(uiText("Таблица недоступна для редактирования. Данные сохранены."), Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { showAddTable = true }, enabled = viewModel.isReady && !viewModel.isClosing) {
-                        Icon(Icons.Default.TableChart, null); Text("Таблица")
+                        Icon(Icons.Default.TableChart, null); Text(uiText("Таблица"))
                     }
                     viewModel.tables?.blocks.orEmpty().forEachIndexed { index, table ->
                         OutlinedButton(onClick = { openTable = table.id }, modifier = Modifier.padding(start = 4.dp)) {
@@ -828,7 +830,7 @@ fun NoteEditorScreen(
                         onValueChange = viewModel::onTitleChange,
                         placeholder = {
                             Text(
-                                if (viewModel.isTask) "Название задачи" else "Заголовок",
+                                if (viewModel.isTask) uiText("Название задачи") else uiText("Заголовок"),
                                 style = MaterialTheme.typography.titleLarge
                             )
                         },
@@ -916,7 +918,7 @@ fun NoteEditorScreen(
                                 visualTransformation = visualTransformation,
                                 interactionSource = editorInteractionSource,
                                 placeholder = {
-                                    Text(if (viewModel.isTask) "Описание задачи" else "Текст заметки")
+                                    Text(if (viewModel.isTask) uiText("Описание задачи") else uiText("Текст заметки"))
                                 },
                                 colors = borderlessColors(),
                                 contentPadding = PaddingValues(16.dp)
@@ -947,16 +949,16 @@ fun NoteEditorScreen(
     if (showTimerResetDialog) {
         AlertDialog(
             onDismissRequest = { showTimerResetDialog = false },
-            title = { Text("Сбросить таймер?") },
-            text = { Text("Зафиксированное время будет удалено.") },
+            title = { Text(uiText("Сбросить таймер?")) },
+            text = { Text(uiText("Зафиксированное время будет удалено.")) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.resetTaskTimer()
                     showTimerResetDialog = false
-                }) { Text("Сбросить") }
+                }) { Text(uiText("Сбросить")) }
             },
             dismissButton = {
-                TextButton(onClick = { showTimerResetDialog = false }) { Text("Отмена") }
+                TextButton(onClick = { showTimerResetDialog = false }) { Text(uiText("Отмена")) }
             }
         )
     }
@@ -974,13 +976,13 @@ fun NoteEditorScreen(
         val totalMillis = (hours * 60L + minutes) * 60_000L
         AlertDialog(
             onDismissRequest = { showCountdownCustomDialog = false },
-            title = { Text("Своё время") },
+            title = { Text(uiText("Своё время")) },
             text = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = hoursText,
                         onValueChange = { input -> hoursText = input.filter(Char::isDigit).take(2) },
-                        label = { Text("Часы") },
+                        label = { Text(uiText("Часы")) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
@@ -989,7 +991,7 @@ fun NoteEditorScreen(
                     OutlinedTextField(
                         value = minutesText,
                         onValueChange = { input -> minutesText = input.filter(Char::isDigit).take(2) },
-                        label = { Text("Минуты") },
+                        label = { Text(uiText("Минуты")) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
@@ -1003,10 +1005,10 @@ fun NoteEditorScreen(
                         showCountdownCustomDialog = false
                     },
                     enabled = totalMillis > 0L
-                ) { Text("Запустить") }
+                ) { Text(uiText("Запустить")) }
             },
             dismissButton = {
-                TextButton(onClick = { showCountdownCustomDialog = false }) { Text("Отмена") }
+                TextButton(onClick = { showCountdownCustomDialog = false }) { Text(uiText("Отмена")) }
             }
         )
     }
@@ -1014,12 +1016,12 @@ fun NoteEditorScreen(
     if (showColorDialog) {
         AlertDialog(
             onDismissRequest = { showColorDialog = false },
-            title = { Text(if (viewModel.isTask) "Цвет задачи" else "Цвет заметки") },
+            title = { Text(if (viewModel.isTask) uiText("Цвет задачи") else uiText("Цвет заметки")) },
             text = {
                 FlowRow {
                     if (!viewModel.isTask) FilterChip(selected = viewModel.noteColor.isEmpty(), onClick = {
                         viewModel.chooseTaskColor(""); showColorDialog = false
-                    }, label = { Text("По теме") }, modifier = Modifier.padding(end = 8.dp, bottom = 8.dp))
+                    }, label = { Text(uiText("По теме")) }, modifier = Modifier.padding(end = 8.dp, bottom = 8.dp))
                     taskColorOptions.forEach { option ->
                         FilterChip(
                             selected = (if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor) == option.key,
@@ -1041,14 +1043,14 @@ fun NoteEditorScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showColorDialog = false }) { Text("Закрыть") }
+                TextButton(onClick = { showColorDialog = false }) { Text(uiText("Закрыть")) }
             }
         )
     }
 
     if (showTaskPasswordDialog) {
         SetPasswordDialog(
-            title = "Пароль задачи",
+            title = uiText("Пароль задачи"),
             onDismiss = { showTaskPasswordDialog = false },
             onConfirm = { password ->
                 viewModel.protectTask(password)
@@ -1059,7 +1061,7 @@ fun NoteEditorScreen(
 
     if (showRemoveTaskProtection) {
         UnlockPasswordDialog(
-            title = "Снять защиту задачи",
+            title = uiText("Снять защиту задачи"),
             showError = taskProtectionError,
             onDismiss = { showRemoveTaskProtection = false },
             onConfirm = { password ->
@@ -1073,10 +1075,10 @@ fun NoteEditorScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Удалить заметку?") },
+            title = { Text(uiText("Удалить заметку?")) },
             text = {
                 Text(
-                    viewModel.title.ifBlank { "Без названия" },
+                    viewModel.title.ifBlank { uiText("Без названия") },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1088,10 +1090,10 @@ fun NoteEditorScreen(
                         val id = viewModel.deleteNow()
                         onDeleted(id)
                     }
-                }) { Text("Удалить") }
+                }) { Text(uiText("Удалить")) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Отмена") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(uiText("Отмена")) }
             }
         )
     }
@@ -1100,12 +1102,12 @@ fun NoteEditorScreen(
         var tagName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showTagDialog = false },
-            title = { Text("Новый тег") },
+            title = { Text(uiText("Новый тег")) },
             text = {
                 OutlinedTextField(
                     value = tagName,
                     onValueChange = { tagName = it },
-                    label = { Text("Название") },
+                    label = { Text(uiText("Название")) },
                     singleLine = true,
                     leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth()
@@ -1115,10 +1117,10 @@ fun NoteEditorScreen(
                 TextButton(
                     onClick = { viewModel.addTag(tagName); showTagDialog = false },
                     enabled = tagName.isNotBlank()
-                ) { Text("Добавить") }
+                ) { Text(uiText("Добавить")) }
             },
             dismissButton = {
-                TextButton(onClick = { showTagDialog = false }) { Text("Отмена") }
+                TextButton(onClick = { showTagDialog = false }) { Text(uiText("Отмена")) }
             }
         )
     }
@@ -1133,10 +1135,10 @@ fun NoteEditorScreen(
                 TextButton(onClick = {
                     showDatePicker = false
                     dateState.selectedDateMillis?.let { showTimePickerFor = it }
-                }) { Text("Далее") }
+                }) { Text(uiText("Далее")) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Отмена") }
+                TextButton(onClick = { showDatePicker = false }) { Text(uiText("Отмена")) }
             }
         ) {
             DatePicker(state = dateState)
@@ -1154,7 +1156,7 @@ fun NoteEditorScreen(
         )
         AlertDialog(
             onDismissRequest = { showTimePickerFor = null },
-            title = { Text("Время") },
+            title = { Text(uiText("Время")) },
             text = { TimePicker(state = timeState) },
             confirmButton = {
                 TextButton(onClick = {
@@ -1162,10 +1164,10 @@ fun NoteEditorScreen(
                         ReminderTime.combineDateAndTime(dateMillis, timeState.hour, timeState.minute)
                     )
                     showTimePickerFor = null
-                }) { Text("Готово") }
+                }) { Text(uiText("Готово")) }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePickerFor = null }) { Text("Отмена") }
+                TextButton(onClick = { showTimePickerFor = null }) { Text(uiText("Отмена")) }
             }
         )
     }

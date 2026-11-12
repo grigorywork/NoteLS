@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes.photos
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -49,28 +51,28 @@ fun PhotoPreviewDialog(photo: AttachmentEntity, resizeEnabled: Boolean, snackbar
         usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnBackPress = !busy, dismissOnClickOutside = !busy)) {
         Surface(Modifier.fillMaxSize()) {
             EditorScaffold(snackbarHost = { SnackbarHost(snackbar) }, topBar = {
-                TopAppBar(title = { Text("Фото") }, navigationIcon = {
-                    IconButton(onClick = onDismiss, enabled = !busy) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Закрыть фото") }
-                }, actions = { TextButton(onClick = onOriginal, enabled = !busy) { Text("Оригинал") } })
+                TopAppBar(title = { Text(uiText("Фото")) }, navigationIcon = {
+                    IconButton(onClick = onDismiss, enabled = !busy) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Закрыть фото")) }
+                }, actions = { TextButton(onClick = onOriginal, enabled = !busy) { Text(uiText("Оригинал")) } })
             }, bottomBar = {
                 Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 8.dp),
                     horizontalArrangement = Arrangement.End) {
-                    if (resizeEnabled) TextButton(onClick = { changeSize(PhotoDisplaySize()) }, enabled = !busy) { Text("Сбросить") }
+                    if (resizeEnabled) TextButton(onClick = { changeSize(PhotoDisplaySize()) }, enabled = !busy) { Text(uiText("Сбросить")) }
                     TextButton(onClick = {
                         scope.launch {
                             busy = true
                             try { if (!resizeEnabled || size == initial || onSave(size)) onDismiss() } finally { busy = false }
                         }
-                    }, enabled = !busy) { Text("Готово") }
+                    }, enabled = !busy) { Text(uiText("Готово")) }
                 }
             }) {
                 Column(Modifier.fillMaxSize()) {
                     if (resizeEnabled) PhotoSizeControls(size, ::changeSize, !busy)
-                    if (image is PhotoBitmapState.Unavailable) Text("Не удалось загрузить фото", Modifier.padding(16.dp))
+                    if (image is PhotoBitmapState.Unavailable) Text(uiText("Не удалось загрузить фото"), Modifier.padding(16.dp))
                     PhotoFrame(size, resizeEnabled && !busy, ::changeSize, Modifier.fillMaxWidth().weight(1f)) {
-                        if (image is PhotoBitmapState.Ready) Image(image.bitmap.asImageBitmap(), "Предпросмотр фото",
+                        if (image is PhotoBitmapState.Ready) Image(image.bitmap.asImageBitmap(), uiText("Предпросмотр фото"),
                             contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
-                        else Icon(Icons.Default.Image, "Предпросмотр фото", Modifier.fillMaxSize().padding(48.dp))
+                        else Icon(Icons.Default.Image, uiText("Предпросмотр фото"), Modifier.fillMaxSize().padding(48.dp))
                     }
                 }
             }
@@ -82,16 +84,16 @@ fun PhotoPreviewDialog(photo: AttachmentEntity, resizeEnabled: Boolean, snackbar
 @Composable
 private fun PhotoSizeControls(size: PhotoDisplaySize, onSize: (PhotoDisplaySize) -> Unit, enabled: Boolean) {
     FlowRow(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.Center) {
-        Text("Ширина ${size.width * 100 / PhotoDisplaySize.DEFAULT_WIDTH}%", Modifier.align(Alignment.CenterVertically))
+        Text(uiText("Ширина %1\$s%", (size.width * 100 / PhotoDisplaySize.DEFAULT_WIDTH)), Modifier.align(Alignment.CenterVertically))
         IconButton({ onSize(size.copy(width = size.width - 24).bounded()) }, enabled = enabled && size.width > PhotoDisplaySize.MIN) {
-            Icon(Icons.Default.Remove, "Уменьшить ширину") }
+            Icon(Icons.Default.Remove, uiText("Уменьшить ширину")) }
         IconButton({ onSize(size.copy(width = size.width + 24).bounded()) }, enabled = enabled && size.width < PhotoDisplaySize.MAX) {
-            Icon(Icons.Default.Add, "Увеличить ширину") }
-        Text("Высота ${size.height * 100 / PhotoDisplaySize.DEFAULT_HEIGHT}%", Modifier.align(Alignment.CenterVertically))
+            Icon(Icons.Default.Add, uiText("Увеличить ширину")) }
+        Text(uiText("Высота %1\$s%", (size.height * 100 / PhotoDisplaySize.DEFAULT_HEIGHT)), Modifier.align(Alignment.CenterVertically))
         IconButton({ onSize(size.copy(height = size.height - 18).bounded()) }, enabled = enabled && size.height > PhotoDisplaySize.MIN) {
-            Icon(Icons.Default.Remove, "Уменьшить высоту") }
+            Icon(Icons.Default.Remove, uiText("Уменьшить высоту")) }
         IconButton({ onSize(size.copy(height = size.height + 18).bounded()) }, enabled = enabled && size.height < PhotoDisplaySize.MAX) {
-            Icon(Icons.Default.Add, "Увеличить высоту") }
+            Icon(Icons.Default.Add, uiText("Увеличить высоту")) }
     }
 }
 

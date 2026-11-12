@@ -1,5 +1,7 @@
 package com.notessync.app.ui.common
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,20 +41,20 @@ fun SetPasswordDialog(
                 PasswordField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "Пароль"
+                    label = uiText("Пароль")
                 )
                 PasswordField(
                     value = confirmation,
                     onValueChange = { confirmation = it },
-                    label = "Повторите пароль",
+                    label = uiText("Повторите пароль"),
                     modifier = Modifier.padding(top = 12.dp)
                 )
                 Text(
                     text = when {
                         password.isNotEmpty() && password.length < MIN_PASSWORD_LENGTH ->
-                            "Минимум $MIN_PASSWORD_LENGTH символа"
-                        confirmation.isNotEmpty() && password != confirmation -> "Пароли не совпадают"
-                        else -> "Пароль не хранится в открытом виде"
+                            uiText("Минимум %1\$s символа", (MIN_PASSWORD_LENGTH))
+                        confirmation.isNotEmpty() && password != confirmation -> uiText("Пароли не совпадают")
+                        else -> uiText("Пароль не хранится в открытом виде")
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -62,11 +64,11 @@ fun SetPasswordDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(password) }, enabled = valid) {
-                Text("Сохранить")
+                Text(uiText("Сохранить"))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
+            TextButton(onClick = onDismiss) { Text(uiText("Отмена")) }
         }
     )
 }
@@ -90,12 +92,12 @@ fun UnlockPasswordDialog(
                 PasswordField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "Пароль"
+                    label = uiText("Пароль")
                 )
                 alternative?.invoke()
                 if (showError) {
                     Text(
-                        text = "Неверный пароль",
+                        text = uiText("Неверный пароль"),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 8.dp)
@@ -105,11 +107,11 @@ fun UnlockPasswordDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(password) }, enabled = password.isNotEmpty() && !busy) {
-                Text("Подтвердить")
+                Text(uiText("Подтвердить"))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
+            TextButton(onClick = onDismiss) { Text(uiText("Отмена")) }
         }
     )
 }

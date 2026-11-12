@@ -1,5 +1,7 @@
 package com.notessync.app.ui.analytics
 
+import com.notessync.app.i18n.uiText
+
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,7 +28,7 @@ data class AnalyticsState(
     val byWeek: List<Pair<LocalDate, Int>> = emptyList(),
     val byHour: IntArray = IntArray(24),
     val byColor: List<Pair<String, Int>> = emptyList(),
-    val byNotebook: List<Pair<String, Int>> = emptyList(),
+    val byNotebook: List<Pair<String?, Int>> = emptyList(),
     val bestDay: Pair<LocalDate, Int>? = null,
     val totalElapsedMillis: Long = 0L,
     val averageElapsedMillis: Long = 0L,
@@ -55,7 +57,7 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
         val points = completed.map { note ->
             TaskStatPoint(
                 noteId = note.id,
-                title = note.title.ifBlank { "Без названия" },
+                title = note.title,
                 completedAt = note.taskCompletedAt ?: note.updatedAt,
                 elapsedMillis = note.taskElapsedMillis,
                 color = note.taskColor,
@@ -81,7 +83,7 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
             byHour = AnalyticsMath.byHour(points, zone),
             byColor = AnalyticsMath.byColor(points),
             byNotebook = AnalyticsMath.byNotebook(points).map { (id, count) ->
-                (id?.let { notebookNames[it] } ?: "Без блокнота") to count
+                id?.let { notebookNames[it] } to count
             },
             bestDay = AnalyticsMath.bestDay(points, zone),
             totalElapsedMillis = AnalyticsMath.totalElapsed(points),

@@ -1,5 +1,8 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.i18n.uiText
+
+import com.notessync.app.i18n.UiLanguage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
@@ -117,12 +120,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             try {
                 withContext(Dispatchers.IO) {
                     val output = context.contentResolver.openOutputStream(uri, "wt")
-                        ?: error("Не удалось открыть файл")
+                        ?: error(uiText("Не удалось открыть файл"))
                     output.use { out -> file.inputStream().use { it.copyTo(out) } }
                 }
-                snackbarHostState.showSnackbar("Копия сохранена в выбранную папку")
+                snackbarHostState.showSnackbar(uiText("Копия сохранена в выбранную папку"))
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
-            catch (_: Exception) { snackbarHostState.showSnackbar("Не удалось сохранить копию") }
+            catch (_: Exception) { snackbarHostState.showSnackbar(uiText("Не удалось сохранить копию")) }
             finally { busy = false }
         }
     }
@@ -143,9 +146,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 busy = false
                 if (ok) {
                     settings.setLastBackupAt(System.currentTimeMillis())
-                    snackbarHostState.showSnackbar("Бэкап сохранён")
+                    snackbarHostState.showSnackbar(uiText("Бэкап сохранён"))
                 } else {
-                    snackbarHostState.showSnackbar("Не удалось создать бэкап")
+                    snackbarHostState.showSnackbar(uiText("Не удалось создать бэкап"))
                 }
             }
         }
@@ -163,7 +166,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     pendingRestoreUri = uri
                     pendingRestore = info
                 } else {
-                    snackbarHostState.showSnackbar("Это не бэкап NoteLS")
+                    snackbarHostState.showSnackbar(uiText("Это не бэкап NoteLS"))
                 }
             }
         }
@@ -173,10 +176,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Настройки") },
+                title = { Text(uiText("Настройки")) },
                 navigationIcon = {
                     IconButton(onClick = onBack, enabled = !busy) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 }
             )
@@ -189,10 +192,21 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            SectionTitle("Внешний вид")
+            SectionTitle(uiText("Язык интерфейса"))
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).selectableGroup()) {
+                    UiLanguage.entries.forEach { language ->
+                        SettingsChoice(selected = state.uiLanguage == language, onClick = { settings.setUiLanguage(language) }) {
+                            Text(language.nativeName)
+                        }
+                    }
+                }
+            }
+            SectionTitle(uiText("Внешний вид"))
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Тема", style = MaterialTheme.typography.titleSmall)
+                    Text(uiText("Тема"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         ThemeMode.entries.forEach { mode ->
@@ -202,21 +216,21 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                             ) {
                                 Text(
                                     when (mode) {
-                                        ThemeMode.SYSTEM -> "Системная"
-                                        ThemeMode.LIGHT -> "Светлая"
-                                        ThemeMode.DARK -> "Тёмная"
+                                        ThemeMode.SYSTEM -> uiText("Системная")
+                                        ThemeMode.LIGHT -> uiText("Светлая")
+                                        ThemeMode.DARK -> uiText("Тёмная")
                                     }
                                 )
                             }
                         }
                     }
-                    Text("Размер шрифта", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    Text(uiText("Размер шрифта"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         val scales = listOf(
-                            SettingsRepository.FONT_COMPACT to "Компактный",
-                            SettingsRepository.FONT_NORMAL to "Обычный",
-                            SettingsRepository.FONT_LARGE to "Крупный"
+                            SettingsRepository.FONT_COMPACT to uiText("Компактный"),
+                            SettingsRepository.FONT_NORMAL to uiText("Обычный"),
+                            SettingsRepository.FONT_LARGE to uiText("Крупный")
                         )
                         scales.forEach { (scale, label) ->
                             SettingsChoice(
@@ -226,7 +240,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     // Этап 37: «Матовое стекло» — стиль Kimi на iPhone.
-                    Text("Стиль интерфейса", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    Text(uiText("Стиль интерфейса"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         InterfaceStyle.entries.forEach { style ->
@@ -237,13 +251,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        "Матовое стекло — полупрозрачные панели с тонкой кромкой " +
-                            "поверх мягкого градиента, как в Kimi на iPhone.",
+                        uiText("Матовое стекло — полупрозрачные панели с тонкой кромкой ") +
+                            uiText("поверх мягкого градиента, как в Kimi на iPhone."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
                     )
-                    Text("Цвет и обводка", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    Text(uiText("Цвет и обводка"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -267,9 +281,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     }
                     // Этап 38: популярные шрифты (встроены в приложение, все с кириллицей),
                     // One preview loads only the selected font, not all ten families.
-                    Text("Шрифт", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    Text(uiText("Шрифт"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     Text(
-                        "Популярные шрифты",
+                        uiText("Популярные шрифты"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -290,7 +304,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        "Системные семейства",
+                        uiText("Системные семейства"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 12.dp)
@@ -311,84 +325,84 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        "Съешь ещё этих мягких французских булок, да выпей чаю.\nЗаметки, задачи и идеи — 0123456789",
+                        uiText("Съешь ещё этих мягких французских булок, да выпей чаю.\nЗаметки, задачи и идеи — 0123456789"),
                         fontFamily = appFontFamily(state.appFont),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(top = 12.dp)
                     )
-                    TextButton(onClick = { showFontLicenses = true }) { Text("Лицензии шрифтов") }
+                    TextButton(onClick = { showFontLicenses = true }) { Text(uiText("Лицензии шрифтов")) }
                 }
             }
 
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Флажки приоритета", Modifier.weight(1f))
+                    Text(uiText("Флажки приоритета"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.showTaskPriorities, settings::setShowTaskPriorities)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
-                SettingsItem(headlineContent = { Text("Цитата в боковом меню") },
+                SettingsItem(headlineContent = { Text(uiText("Цитата в боковом меню")) },
                     trailingContent = { Icon(Icons.Default.ChevronRight, null) },
                     modifier = Modifier.clickable { showDrawerQuote = true })
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Вид заметок", style = MaterialTheme.typography.titleSmall)
+                    Text(uiText("Вид заметок"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(top = 8.dp).selectableGroup()) {
                         com.notessync.app.settings.NotesLayout.entries.forEach { layout ->
                             SettingsChoice(state.notesLayout == layout, { settings.setNotesLayout(layout) }) {
-                                Text(if (layout == com.notessync.app.settings.NotesLayout.LIST) "Список" else "Две колонки")
+                                Text(if (layout == com.notessync.app.settings.NotesLayout.LIST) uiText("Список") else uiText("Две колонки"))
                             }
                         }
                     }
                 }
             }
-            SectionTitle("Редактор")
+            SectionTitle(uiText("Редактор"))
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Сразу выбирать время быстрой задачи", Modifier.weight(1f))
+                    Text(uiText("Сразу выбирать время быстрой задачи"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.quickTaskTime, settings::setQuickTaskTime)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Камера в редакторе", Modifier.weight(1f))
+                    Text(uiText("Камера в редакторе"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.cameraCapture, settings::setCameraCapture)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Размеры фото", Modifier.weight(1f))
+                    Text(uiText("Размеры фото"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.photoResize, settings::setPhotoResize)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Показывать таблицы", Modifier.weight(1f))
+                    Text(uiText("Показывать таблицы"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.showTables, settings::setShowTables)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("История изменений", Modifier.weight(1f))
+                    Text(uiText("История изменений"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.editorHistory, settings::setEditorHistory)
                 }
             }
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Расширенное оформление", Modifier.weight(1f))
+                    Text(uiText("Расширенное оформление"), Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.advancedFormatting, settings::setAdvancedFormatting)
                 }
             }
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Выполненные пункты", style = MaterialTheme.typography.titleSmall)
+                    Text(uiText("Выполненные пункты"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         val styles = listOf(
-                            CompletedStyle.STRIKE to "Зачёркнутые",
-                            CompletedStyle.HIDE to "Скрывать"
+                            CompletedStyle.STRIKE to uiText("Зачёркнутые"),
+                            CompletedStyle.HIDE to uiText("Скрывать")
                         )
                         styles.forEach { (style, label) ->
                             SettingsChoice(
@@ -398,7 +412,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        "В режиме правки выполненные всегда остаются видимыми — зелёными и зачёркнутыми.",
+                        uiText("В режиме правки выполненные всегда остаются видимыми — зелёными и зачёркнутыми."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -406,10 +420,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
-            SectionTitle("Голосовой ввод")
+            SectionTitle(uiText("Голосовой ввод"))
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Распознавание речи", style = MaterialTheme.typography.titleSmall)
+                    Text(uiText("Распознавание речи"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -420,7 +434,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                                 selected = state.voiceEngine == engine,
                                 onClick = { settings.setVoiceEngine(engine) },
                                 label = {
-                                    Text(if (engine == VoiceEngine.ONLINE) "Онлайн" else "На устройстве")
+                                    Text(if (engine == VoiceEngine.ONLINE) uiText("Онлайн") else uiText("На устройстве"))
                                 }
                             )
                         }
@@ -431,7 +445,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                    Text("Структуризация текста", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    Text(uiText("Структуризация текста"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -446,8 +460,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        "Кнопка микрофона с подписью AI — в верхней панели редактора. " +
-                            "«По пунктам» превращает речь в список, «Основная мысль» выделяет главное.",
+                        uiText("Кнопка микрофона с подписью AI — в верхней панели редактора. ") +
+                            uiText("«По пунктам» превращает речь в список, «Основная мысль» выделяет главное."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -455,11 +469,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
-            SectionTitle("Синхронизация")
+            SectionTitle(uiText("Синхронизация"))
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 SettingsItem(
-                    headlineContent = { Text("Синхронизация по Wi-Fi") },
-                    supportingContent = { Text("Связать устройства и обменяться заметками") },
+                    headlineContent = { Text(uiText("Синхронизация по Wi-Fi")) },
+                    supportingContent = { Text(uiText("Связать устройства и обменяться заметками")) },
                     leadingContent = { Icon(Icons.Default.Sync, contentDescription = null) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -469,13 +483,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
 
             // Этап 39: резервное копирование — ручной бэкап/восстановление
             // и отдельная настройка частоты автобэкапа.
-            SectionTitle("Резервное копирование")
+            SectionTitle(uiText("Резервное копирование"))
             if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 SettingsItem(
-                    headlineContent = { Text("Сохранить резервную копию") },
+                    headlineContent = { Text(uiText("Сохранить резервную копию")) },
                     divider = true,
-                    supportingContent = { Text("ZIP-архив: заметки, задачи, блокноты и фото") },
+                    supportingContent = { Text(uiText("ZIP-архив: заметки, задачи, блокноты и фото")) },
                     leadingContent = {
                         Icon(
                             Icons.Default.Backup,
@@ -488,9 +502,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         .clickable(enabled = !busy) { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
                 )
                 SettingsItem(
-                    headlineContent = { Text("Восстановить из файла") },
+                    headlineContent = { Text(uiText("Восстановить из файла")) },
                     divider = true,
-                    supportingContent = { Text("Заменить текущие данные содержимым архива") },
+                    supportingContent = { Text(uiText("Заменить текущие данные содержимым архива")) },
                     leadingContent = {
                         Icon(
                             Icons.Default.Restore,
@@ -507,14 +521,14 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                 )
                 SettingsItem(
-                    headlineContent = { Text("Копии на этом устройстве") },
+                    headlineContent = { Text(uiText("Копии на этом устройстве")) },
                     divider = true,
-                    supportingContent = { Text("Доступно: ${localCopies.size}. Восстановить или сохранить в папку") },
+                    supportingContent = { Text(uiText("Доступно: %1\$s. Восстановить или сохранить в папку", (localCopies.size))) },
                     leadingContent = { Icon(Icons.Default.History, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { showLocalCopies = true }
                 )
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Автоматические копии", style = MaterialTheme.typography.titleSmall)
+                    Text(uiText("Автоматические копии"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -531,18 +545,18 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     }
                     Text(
                         if (state.lastBackupAt > 0) {
-                            "Последний бэкап: ${formatDateTime(state.lastBackupAt)}"
+                            uiText("Последний бэкап: %1\$s", (formatDateTime(state.lastBackupAt)))
                         } else {
-                            "Бэкап ещё не создавался"
+                            uiText("Бэкап ещё не создавался")
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 12.dp)
                     )
                     Text(
-                        "Хранятся 5 последних копий на устройстве. Проверка — при открытии и закрытии приложения, " +
-                            "без постоянно работающей службы. «После каждой заметки» — при выходе из редактора. " +
-                            "При удалении приложения локальные копии тоже удаляются: важную копию сохраните в выбранную папку.",
+                        uiText("Хранятся 5 последних копий на устройстве. Проверка — при открытии и закрытии приложения, ") +
+                            uiText("без постоянно работающей службы. «После каждой заметки» — при выходе из редактора. ") +
+                            uiText("При удалении приложения локальные копии тоже удаляются: важную копию сохраните в выбранную папку."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
@@ -550,16 +564,16 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
-            SectionTitle("О программе")
+            SectionTitle(uiText("О программе"))
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 SettingsItem(
-                    headlineContent = { Text("Версия") },
+                    headlineContent = { Text(uiText("Версия")) },
                     divider = true,
                     supportingContent = { Text(BuildConfig.VERSION_NAME) },
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
                 )
                 SettingsItem(
-                    headlineContent = { Text("Разработчик") },
+                    headlineContent = { Text(uiText("Разработчик")) },
                     supportingContent = { Text("MSS9LN") },
                     leadingContent = { Icon(Icons.Default.Code, contentDescription = null) }
                 )
@@ -570,29 +584,29 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
     if (showLocalCopies) {
         AlertDialog(
             onDismissRequest = { showLocalCopies = false },
-            title = { Text("Копии на устройстве") },
+            title = { Text(uiText("Копии на устройстве")) },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    if (localCopies.isEmpty()) Text("Автоматических копий пока нет")
+                    if (localCopies.isEmpty()) Text(uiText("Автоматических копий пока нет"))
                     localCopies.forEach { copy ->
                         Text(formatDateTime(copy.info.createdAt), style = MaterialTheme.typography.titleSmall)
-                        Text("Записей: ${copy.info.noteCount}", style = MaterialTheme.typography.bodyMedium)
+                        Text(uiText("Записей: %1\$s", (copy.info.noteCount)), style = MaterialTheme.typography.bodyMedium)
                         androidx.compose.foundation.layout.Row {
                             TextButton(onClick = {
                                 showLocalCopies = false
                                 pendingRestoreUri = android.net.Uri.fromFile(copy.file)
                                 pendingRestore = copy.info
-                            }) { Text("Восстановить") }
+                            }) { Text(uiText("Восстановить")) }
                             TextButton(onClick = {
                                 showLocalCopies = false
                                 exportCopy = copy.file
                                 exportCopyLauncher.launch(BackupManager.suggestedFileName())
-                            }) { Text("Сохранить в папку") }
+                            }) { Text(uiText("Сохранить в папку")) }
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showLocalCopies = false }) { Text("Закрыть") } }
+            confirmButton = { TextButton(onClick = { showLocalCopies = false }) { Text(uiText("Закрыть")) } }
         )
     }
 
@@ -605,17 +619,17 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 pendingRestore = null
                 pendingRestoreUri = null
             },
-            title = { Text("Восстановить резервную копию?") },
+            title = { Text(uiText("Восстановить резервную копию?")) },
             text = {
                 Text(
                     buildString {
                         if (restoreInfo.createdAt > 0) {
-                            append("Бэкап от ${formatDateTime(restoreInfo.createdAt)}")
+                            append(uiText("Бэкап от %1\$s", (formatDateTime(restoreInfo.createdAt))))
                         } else {
-                            append("Бэкап NoteLS")
+                            append(uiText("Бэкап NoteLS"))
                         }
-                        if (restoreInfo.noteCount >= 0) append(", заметок: ${restoreInfo.noteCount}")
-                        append(".\n\nТекущие заметки, задачи и фото будут полностью заменены содержимым архива.")
+                        if (restoreInfo.noteCount >= 0) append(uiText(", заметок: %1\$s", (restoreInfo.noteCount)))
+                        append(uiText(".\n\nТекущие заметки, задачи и фото будут полностью заменены содержимым архива."))
                     }
                 )
             },
@@ -628,20 +642,20 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         val result = BackupManager.restore(context, restoreUri)
                         busy = false
                         if (result.isSuccess) {
-                            snackbarHostState.showSnackbar("Данные восстановлены")
+                            snackbarHostState.showSnackbar(uiText("Данные восстановлены"))
                         } else {
                             snackbarHostState.showSnackbar(
-                                "Не удалось восстановить: ${result.exceptionOrNull()?.message ?: "ошибка"}"
+                                uiText("Не удалось восстановить: %1\$s", (result.exceptionOrNull()?.message ?: uiText("ошибка")))
                             )
                         }
                     }
-                }) { Text("Восстановить") }
+                }) { Text(uiText("Восстановить")) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     pendingRestore = null
                     pendingRestoreUri = null
-                }) { Text("Отмена") }
+                }) { Text(uiText("Отмена")) }
             }
         )
     }

@@ -1,5 +1,7 @@
 package com.notessync.app.data.backup
 
+import com.notessync.app.i18n.uiText
+
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
@@ -33,23 +35,23 @@ internal object BackupArchive {
 
     fun parseManifest(text: String): Info {
         val json = Json.parseToJsonElement(text).jsonObject
-        require(json["kind"]?.jsonPrimitive?.content == "notels-backup") { "Это не резервная копия NoteLS" }
-        require(json["format"]?.jsonPrimitive?.int == 1) { "Неподдерживаемый формат резервной копии" }
+        require(json["kind"]?.jsonPrimitive?.content == "notels-backup") { uiText("Это не резервная копия NoteLS") }
+        require(json["format"]?.jsonPrimitive?.int == 1) { uiText("Неподдерживаемый формат резервной копии") }
         return Info(
             json.getValue("createdAt").jsonPrimitive.long,
             json.getValue("noteCount").jsonPrimitive.long,
             json.getValue("dbVersion").jsonPrimitive.int
         ).also {
-            require(it.createdAt > 0 && it.noteCount >= 0 && it.dbVersion > 0) { "Повреждён манифест копии" }
+            require(it.createdAt > 0 && it.noteCount >= 0 && it.dbVersion > 0) { uiText("Повреждён манифест копии") }
         }
     }
 
     /** Preview stops at the small manifest rather than inflating all the photographs. */
     fun inspect(input: InputStream): Info = ZipInputStream(input.buffered()).use { zip ->
-        val entry = zip.nextEntry ?: error("В архиве нет манифеста NoteLS")
-        require(entry.name == MANIFEST && !entry.isDirectory) { "В архиве нет манифеста NoteLS" }
+        val entry = zip.nextEntry ?: error(uiText("В архиве нет манифеста NoteLS"))
+        require(entry.name == MANIFEST && !entry.isDirectory) { uiText("В архиве нет манифеста NoteLS") }
         parseManifest(readUpTo(zip, MAX_MANIFEST_BYTES + 1).also {
-            require(it.size <= MAX_MANIFEST_BYTES) { "Слишком большой манифест" }
+            require(it.size <= MAX_MANIFEST_BYTES) { uiText("Слишком большой манифест") }
         }.toString(Charsets.UTF_8))
     }
 
@@ -59,29 +61,29 @@ internal object BackupArchive {
         val relative = if (normalized.startsWith(ATTACHMENTS)) normalized.removePrefix(ATTACHMENTS)
             else normalized.substringAfter("/attachments/", normalized)
         require(relative.isNotBlank() && !relative.startsWith('/') && ':' !in relative &&
-            relative.split('/').none { it.isBlank() || it == "." || it == ".." }) { "Некорректный путь фотографии" }
+            relative.split('/').none { it.isBlank() || it == "." || it == ".." }) { uiText("Некорректный путь фотографии") }
         return relative
     }
 
     fun extract(input: InputStream, directory: File, maxBytes: Long = MAX_BYTES): Info {
-        require(directory.isDirectory || directory.mkdirs()) { "Не удалось подготовить восстановление" }
+        require(directory.isDirectory || directory.mkdirs()) { uiText("Не удалось подготовить восстановление") }
         val seen = mutableSetOf<String>()
         var total = 0L
         ZipInputStream(input.buffered()).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
                 val name = entry.name
-                require(seen.add(name) && seen.size <= MAX_ENTRIES) { "Повторяющиеся файлы в архиве" }
+                require(seen.add(name) && seen.size <= MAX_ENTRIES) { uiText("Повторяющиеся файлы в архиве") }
                 require('\\' !in name && (name == MANIFEST || name == DATABASE || name.startsWith(ATTACHMENTS))) {
-                    "Неизвестный файл в резервной копии"
+                    uiText("Неизвестный файл в резервной копии")
                 }
                 if (entry.isDirectory) {
-                    require(name.startsWith(ATTACHMENTS)) { "Некорректный архив" }
+                    require(name.startsWith(ATTACHMENTS)) { uiText("Некорректный архив") }
                     if (name != ATTACHMENTS) relativeAttachmentPath(name.removeSuffix("/"))
                 } else {
                     if (name.startsWith(ATTACHMENTS)) relativeAttachmentPath(name)
                     val target = File(directory, name)
-                    require(target.canonicalPath.startsWith(directory.canonicalPath + File.separator)) { "Некорректный путь в архиве" }
+                    require(target.canonicalPath.startsWith(directory.canonicalPath + File.separator)) { uiText("Некорректный путь в архиве") }
                     check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs())
                     target.outputStream().buffered().use { output ->
                         val buffer = ByteArray(32 * 1024)
@@ -91,8 +93,8 @@ internal object BackupArchive {
                             if (read < 0) break
                             total += read
                             entrySize += read
-                            require(total <= maxBytes) { "Резервная копия слишком велика" }
-                            require(name != MANIFEST || entrySize <= MAX_MANIFEST_BYTES) { "Слишком большой манифест" }
+                            require(total <= maxBytes) { uiText("Резервная копия слишком велика") }
+                            require(name != MANIFEST || entrySize <= MAX_MANIFEST_BYTES) { uiText("Слишком большой манифест") }
                             output.write(buffer, 0, read)
                         }
                     }
@@ -102,8 +104,8 @@ internal object BackupArchive {
         }
         val info = parseManifest(File(directory, MANIFEST).readText())
         val db = File(directory, DATABASE)
-        require(db.isFile) { "В архиве нет базы заметок" }
-        db.inputStream().use { require(readUpTo(it, 16).contentEquals(sqliteHeader)) { "Повреждена база заметок" } }
+        require(db.isFile) { uiText("В архиве нет базы заметок") }
+        db.inputStream().use { require(readUpTo(it, 16).contentEquals(sqliteHeader)) { uiText("Повреждена база заметок") } }
         return info
     }
 

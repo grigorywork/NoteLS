@@ -1,5 +1,7 @@
 package com.notessync.app.ui.quotes
 
+import com.notessync.app.i18n.uiText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -41,7 +43,7 @@ private val colors = listOf("Тема" to 0L, "Белый" to 0xFFFFFFFFL, "Тё
 private fun ColorChoices(value: Long, onChange: (Long) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         colors.forEach { (label, color) -> FilterChip(value == color, { onChange(color) },
-            label = { Text(label) }, leadingIcon = { Box(Modifier.size(12.dp).background(
+            label = { Text(uiText(label)) }, leadingIcon = { Box(Modifier.size(12.dp).background(
                 if (color == 0L) MaterialTheme.colorScheme.primary else Color(color))) }) }
     }
 }
@@ -56,29 +58,29 @@ fun DrawerQuoteDialog(initial: DrawerQuoteAppearance, onSave: (DrawerQuoteAppear
     var foreground by rememberSaveable { mutableLongStateOf(initial.safe().textColor) }
     var background by rememberSaveable { mutableLongStateOf(initial.safe().backgroundColor) }
     val appearance = DrawerQuoteAppearance(enabled, text, AppFont.valueOf(fontName), size, foreground, background)
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Цитата в меню") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(uiText("Цитата в меню")) }, text = {
         Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
             Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Text("Показывать цитату", Modifier.weight(1f)); Switch(enabled, { enabled = it })
+                Text(uiText("Показывать цитату"), Modifier.weight(1f)); Switch(enabled, { enabled = it })
             }
-            OutlinedTextField(text, { text = it }, label = { Text("Свой текст") }, minLines = 2,
-                placeholder = { Text("Пусто — случайная цитата") }, isError = text.length > 3000,
+            OutlinedTextField(text, { text = it }, label = { Text(uiText("Свой текст")) }, minLines = 2,
+                placeholder = { Text(uiText("Пусто — случайная цитата")) }, isError = text.length > 3000,
                 supportingText = { Text("${text.length}/3000") })
-            TextButton(onClick = { text = "" }) { Text("Использовать случайную цитату") }
-            Text("Шрифт")
+            TextButton(onClick = { text = "" }) { Text(uiText("Использовать случайную цитату")) }
+            Text(uiText("Шрифт"))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 AppFont.entries.forEach { font -> FilterChip(fontName == font.name, { fontName = font.name }, label = { Text(font.label) }) }
             }
-            Text("Размер: ${size.toInt()}"); Slider(size, { size = it }, valueRange = 12f..32f, steps = 19)
-            Text("Цвет текста"); ColorChoices(foreground) { foreground = it }
-            Text("Фон"); ColorChoices(background) { background = it }
+            Text(uiText("Размер: %1\$s", (size.toInt()))); Slider(size, { size = it }, valueRange = 12f..32f, steps = 19)
+            Text(uiText("Цвет текста")); ColorChoices(foreground) { foreground = it }
+            Text(uiText("Фон")); ColorChoices(background) { background = it }
             DrawerQuoteCard(appearance)
             val fg = if (foreground == 0L) MaterialTheme.colorScheme.onSurface else Color(foreground)
             val bg = if (background == 0L) MaterialTheme.colorScheme.surfaceContainer else Color(background)
             if ((maxOf(fg.luminance(), bg.luminance()) + 0.05f) / (minOf(fg.luminance(), bg.luminance()) + 0.05f) < 3f)
-                Text("Низкий контраст: текст может быть плохо виден", color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = { fontName = AppFont.SYSTEM.name; size = 16f; foreground = 0L; background = 0L }) { Text("Сбросить оформление") }
+                Text(uiText("Низкий контраст: текст может быть плохо виден"), color = MaterialTheme.colorScheme.error)
+            TextButton(onClick = { fontName = AppFont.SYSTEM.name; size = 16f; foreground = 0L; background = 0L }) { Text(uiText("Сбросить оформление")) }
         }
-    }, confirmButton = { TextButton(enabled = text.length <= 3000, onClick = { onSave(appearance.safe()) }) { Text("Сохранить") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } })
+    }, confirmButton = { TextButton(enabled = text.length <= 3000, onClick = { onSave(appearance.safe()) }) { Text(uiText("Сохранить")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(uiText("Отмена")) } })
 }

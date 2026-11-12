@@ -1,5 +1,7 @@
 package com.notessync.app.reminders
 
+import com.notessync.app.i18n.uiText
+
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -14,7 +16,7 @@ class ReminderReceiver : BroadcastReceiver() {
     @SuppressLint("MissingPermission") // canNotify checks runtime permission and app/channel state.
     override fun onReceive(context: Context, intent: Intent) {
         val noteId = intent.getLongExtra(EXTRA_NOTE_ID, -1L)
-        val title = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { "Заметка" }
+        val title = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { uiText("Заметка") }
         val isTimer = intent.getBooleanExtra(EXTRA_IS_TIMER, false)
 
         val openApp = PendingIntent.getActivity(
@@ -25,7 +27,7 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
-            .setContentTitle(if (isTimer) "Время вышло" else "Напоминание")
+            .setContentTitle(if (isTimer) uiText("Время вышло") else uiText("Напоминание"))
             .setContentText(title)
             .setContentIntent(openApp)
             .setAutoCancel(true)

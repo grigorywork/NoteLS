@@ -15,6 +15,6 @@
     <string name="weekday_friday_short">Пт</string>
     <string name="weekday_saturday_short">Сб</string>
     <string name="weekday_sunday_short">Вс</string>
-    <string name="widget_add_symbol">+</string>
+    <string name="widget_add_symbol" translatable="false">+</string>
     <string name="widget_add_task">Быстрая задача</string>
 </resources>
