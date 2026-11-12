@@ -9,6 +9,9 @@ import androidx.lifecycle.ViewModelStore
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.notes.text.*
 import com.notessync.app.notes.tables.*
+import com.notessync.app.notes.photos.PhotoDisplaySize
+import com.notessync.app.data.local.entity.AttachmentEntity
+import java.io.File
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.settings.*
 import com.notessync.app.ui.notes.md.MarkdownEdit
@@ -51,6 +54,30 @@ class NoteEditorHistoryTest {
     }
     private fun text(value: String, start: Int = value.length, end: Int = start) {
         vm.onContentChange(TextFieldValue(value, TextRange(start, end)))
+    }
+
+    @Test fun `photo size save and note save preserve bytes and reject stale ownership`() = runTest(dispatcher) {
+        text("Photo note"); vm.saveNow()
+        val db = AppDatabase.get(app)
+        val file = File(app.filesDir, "photo-size-original").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+        val id = db.attachmentDao().upsert(AttachmentEntity(noteId = vm.currentNoteId,
+            filePath = file.path, mimeType = "image/jpeg", sizeBytes = 3))
+        val photo = db.attachmentDao().getByNoteId(vm.currentNoteId).single()
+        text("New body")
+        val size = async { vm.savePhotoSize(photo, PhotoDisplaySize(480, 360)) }
+        val saved = async { vm.saveNow() }
+        assertTrue(size.await()); saved.await()
+        val result = db.attachmentDao().getBySyncId(photo.syncId)!!
+        assertEquals(id, result.id); assertEquals(480, result.displayWidthDp); assertEquals(360, result.displayHeightDp)
+        assertEquals("New body", db.noteDao().getById(vm.currentNoteId)!!.content)
+        assertArrayEquals(byteArrayOf(1, 2, 3), file.readBytes())
+        assertFalse(vm.savePhotoSize(photo.copy(noteId = vm.currentNoteId + 1), PhotoDisplaySize()))
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER fail_size BEFORE UPDATE ON attachments BEGIN SELECT RAISE(ABORT, 'test'); END")
+        assertFalse(vm.savePhotoSize(photo, PhotoDisplaySize(300, 200)))
+        assertEquals(EditorMessage.PHOTO_SIZE_FAILED, vm.message)
+        assertEquals(480, db.attachmentDao().getBySyncId(photo.syncId)!!.displayWidthDp)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_size")
+        assertTrue(vm.savePhotoSize(photo, PhotoDisplaySize(300, 200)))
     }
 
     @Test fun `table-only note saves and undo redo includes cells dimensions and deletion`() = runTest(dispatcher) {

@@ -60,7 +60,7 @@ class TablesPersistenceTest {
         }
         val note = AppDatabase.get(app).noteDao().getById(1)!!
         assertEquals("Text", note.content); assertEquals("kept-format", note.textFormat); assertEquals("", note.tablesData)
-        assertEquals(13, AppDatabase.get(app).openHelper.readableDatabase.version)
+        assertEquals(AppDatabase.VERSION, AppDatabase.get(app).openHelper.readableDatabase.version)
     }
     @Test fun `table cells and dimensions survive backup restore and peer exchange`() = runBlocking {
         val app = RuntimeEnvironment.getApplication(); val db = AppDatabase.get(app)

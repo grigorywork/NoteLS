@@ -90,6 +90,7 @@ enum class WidgetCompletedStyle(val label: String) {
 data class SettingsState(
     val editorHistory: Boolean = true,
     val showTables: Boolean = true,
+    val photoResize: Boolean = true,
     val advancedFormatting: Boolean = true,
     val showTaskPriorities: Boolean = true,
     val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
@@ -141,6 +142,7 @@ class SettingsRepository private constructor(context: Context) {
     private fun read() = SettingsState(
         editorHistory = prefs.getBoolean("editor_history", true),
         showTables = prefs.getBoolean("show_tables", true),
+        photoResize = prefs.getBoolean("photo_resize", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
         drawerQuote = runCatching { DrawerQuoteAppearance(
@@ -195,6 +197,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setWidgetColoredTasks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WIDGET_COLORED_TASKS, enabled).apply()
     }
+
+    fun setPhotoResize(value: Boolean) { prefs.edit().putBoolean("photo_resize", value).apply(); _state.value = read() }
 
     fun setShowTables(value: Boolean) { prefs.edit().putBoolean("show_tables", value).apply(); _state.value = read() }
 

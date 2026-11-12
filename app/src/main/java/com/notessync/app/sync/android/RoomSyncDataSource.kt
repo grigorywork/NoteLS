@@ -1,6 +1,12 @@
 package com.notessync.app.sync.android
 
 import android.content.Context
+import com.notessync.app.notes.photos.PhotoDisplaySize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import com.notessync.app.data.attachments.PhotoFileWriter
+import com.notessync.app.sync.protocol.FrameTransport
+import kotlinx.coroutines.withContext
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
 import com.notessync.app.data.local.entity.NoteEntity
@@ -25,8 +31,7 @@ class RoomSyncDataSource(
     private val db: AppDatabase
 ) : SyncDataSource {
 
-    private val attachmentsDir: File
-        get() = File(context.filesDir, "attachments").apply { mkdirs() }
+    private val attachmentsDir = File(context.filesDir, "attachments")
 
     override suspend fun ensureSyncIds() {
         db.noteDao().getWithoutSyncId().forEach {
@@ -135,17 +140,25 @@ class RoomSyncDataSource(
         }
         ProtectionSession.lockTask(dto.syncId)
 
+        val previousAttachments = db.attachmentDao().getByNoteId(localId).associateBy { it.syncId }
         db.attachmentDao().deleteByNoteId(localId)
         for (meta in dto.attachments) {
             // Вложения с небезопасным идентификатором пропускаем (см. attachmentFile).
             if (!SAFE_ATTACHMENT_ID.matches(meta.syncId)) continue
+            val old = previousAttachments[meta.syncId]
+            val size = PhotoDisplaySize(meta.displayWidthDp ?: old?.displayWidthDp ?: PhotoDisplaySize.DEFAULT_WIDTH,
+                meta.displayHeightDp ?: old?.displayHeightDp ?: PhotoDisplaySize.DEFAULT_HEIGHT).bounded()
             db.attachmentDao().upsert(
                 AttachmentEntity(
+                    id = old?.id ?: 0,
                     syncId = meta.syncId,
                     noteId = localId,
-                    filePath = attachmentFile(meta.syncId).absolutePath,
+                    filePath = old?.filePath ?: attachmentFile(meta.syncId).absolutePath,
                     mimeType = meta.mimeType,
-                    sizeBytes = meta.sizeBytes
+                    sizeBytes = meta.sizeBytes,
+                    createdAt = old?.createdAt ?: System.currentTimeMillis(),
+                    displayWidthDp = size.width, displayHeightDp = size.height,
+                    previewRevision = old?.previewRevision ?: 0
                 )
             )
         }
@@ -158,17 +171,22 @@ class RoomSyncDataSource(
         }
     }
 
-    override suspend fun hasAttachmentBytes(attachmentSyncId: String): Boolean =
-        // Небезопасный id считаем «имеющимся», чтобы он никогда не запрашивался.
-        !SAFE_ATTACHMENT_ID.matches(attachmentSyncId) ||
-            attachmentFile(attachmentSyncId).let { it.isFile && it.length() > 0 }
+    override suspend fun hasAttachmentBytes(attachmentSyncId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext true
+        db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) }
+            ?.let { it.isFile && it.length() > 0 } ?: false
+    }
 
-    override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? =
-        attachmentFile(attachmentSyncId).takeIf { it.isFile }?.readBytes()
+    override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? = withContext(Dispatchers.IO) {
+        if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext null
+        db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) }?.takeIf { it.isFile }?.readBytes()
+    }
 
-    override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) {
-        attachmentFile(meta.syncId).writeBytes(data)
-        db.attachmentDao().updateFile(meta.syncId, attachmentFile(meta.syncId).absolutePath, data.size.toLong())
+    override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {
+        require(SAFE_ATTACHMENT_ID.matches(meta.syncId)) { "Некорректный syncId вложения" }
+        val file = db.attachmentDao().getBySyncId(meta.syncId)?.let { File(it.filePath) } ?: attachmentFile(meta.syncId)
+        PhotoFileWriter(FrameTransport.MAX_FRAME_BYTES.toLong()).write(data.inputStream(), file)
+        db.attachmentDao().updateFile(meta.syncId, file.absolutePath, data.size.toLong())
     }
 
     override suspend fun markSynced(changeSet: ChangeSet) {
@@ -226,15 +244,16 @@ class RoomSyncDataSource(
         passwordSalt = passwordSalt
     )
 
-    private fun AttachmentEntity.toDto(noteSyncId: String): AttachmentDto? {
+    private suspend fun AttachmentEntity.toDto(noteSyncId: String): AttachmentDto? = withContext(Dispatchers.IO) {
         val file = File(filePath)
-        if (!file.isFile) return null
-        return AttachmentDto(
+        if (!file.isFile) return@withContext null
+        AttachmentDto(
             syncId = syncId,
             noteSyncId = noteSyncId,
             mimeType = mimeType,
             sizeBytes = file.length(),
-            sha256 = Hashing.sha256Hex(file.readBytes())
+            sha256 = file.inputStream().use { Hashing.sha256Hex(it) },
+            displayWidthDp = displayWidthDp, displayHeightDp = displayHeightDp
         )
     }
 

@@ -1,5 +1,6 @@
 package com.notessync.app.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -25,5 +26,8 @@ data class AttachmentEntity(
     val filePath: String,
     val mimeType: String,
     val sizeBytes: Long,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "240") val displayWidthDp: Int = 240,
+    @ColumnInfo(defaultValue = "180") val displayHeightDp: Int = 180,
+    @ColumnInfo(defaultValue = "0") val previewRevision: Long = 0
 )

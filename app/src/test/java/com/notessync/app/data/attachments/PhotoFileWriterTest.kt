@@ -58,6 +58,17 @@ class PhotoFileWriterTest {
         }
     }
 
+    @Test
+    fun failedReplacementPreservesExistingOriginal() {
+        val destination = File(Files.createTempDirectory("photo-existing").toFile(), "photo")
+        val original = byteArrayOf(1, 2, 3)
+        destination.writeBytes(original)
+        val input = object : InputStream() { override fun read(): Int = throw IOException("failed") }
+        try { PhotoFileWriter(MAX_PHOTO_BYTES).write(input, destination); throw AssertionError("expected failure") }
+        catch (_: IOException) { assertArrayEquals(original, destination.readBytes()) }
+        assertFalse(File(destination.parentFile, "photo.pending").exists())
+    }
+
     private class GeneratedInputStream(private var remaining: Long) : InputStream() {
         override fun read(): Int {
             if (remaining <= 0) return -1

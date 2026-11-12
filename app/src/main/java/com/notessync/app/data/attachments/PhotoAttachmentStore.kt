@@ -62,7 +62,6 @@ internal class PhotoFileWriter(private val maxBytes: Long) {
             return size
         } catch (error: Exception) {
             pending.delete()
-            destination.delete()
             throw error
         }
     }

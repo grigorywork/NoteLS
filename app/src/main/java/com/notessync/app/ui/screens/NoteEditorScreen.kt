@@ -144,6 +144,9 @@ import com.notessync.app.ui.notes.EditorMessage
 import com.notessync.app.ui.notes.EditorScaffold
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.notes.PhotoAttachmentGrid
+import com.notessync.app.ui.notes.photos.PhotoPreviewDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.notessync.app.ui.notes.md.MarkdownEdit
 import com.notessync.app.ui.notes.md.MarkdownLite
 import com.notessync.app.ui.notes.md.MarkdownVisualTransformation
@@ -166,6 +169,7 @@ fun NoteEditorScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddTable by remember { mutableStateOf(false) }
+    var openPhoto by remember { mutableStateOf<Long?>(null) }
     var openTable by remember { mutableStateOf<String?>(null) }
     val titleFocus = remember { FocusRequester() }
     val contentFocus = remember { FocusRequester() }
@@ -302,6 +306,7 @@ fun NoteEditorScreen(
             EditorMessage.HISTORY_LIMIT -> "Изменение слишком велико для истории. Текст сохранён в редакторе."
             EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
             EditorMessage.PHOTO_TOO_LARGE -> "Фото больше 10 МБ. Выберите изображение меньшего размера."
+            EditorMessage.PHOTO_SIZE_FAILED -> "Не удалось сохранить размер фото. Повторите попытку."
             EditorMessage.PHOTO_IMPORT_FAILED -> "Не удалось прикрепить фото. Попробуйте другое изображение."
             EditorMessage.REMINDER_IN_PAST -> "Выберите время напоминания в будущем."
             EditorMessage.REMINDER_NOTIFICATIONS_DISABLED ->
@@ -530,7 +535,7 @@ fun NoteEditorScreen(
             if (attachments.isNotEmpty()) {
                 PhotoAttachmentGrid(
                     attachments = attachments,
-                    onOpen = { openAttachment(context, it.filePath, it.mimeType) },
+                    onOpen = { openPhoto = it.id },
                     onRemove = viewModel::removeAttachment
                 )
             }
@@ -895,6 +900,12 @@ fun NoteEditorScreen(
         }
     }
 
+    val visiblePhoto = attachments.firstOrNull { it.id == openPhoto }
+    if (visiblePhoto != null) PhotoPreviewDialog(visiblePhoto, settingsState.photoResize, snackbarHostState,
+        onSave = { viewModel.savePhotoSize(visiblePhoto, it) },
+        onOriginal = { scope.launch { openAttachment(context, visiblePhoto.filePath, visiblePhoto.mimeType) } },
+        onDismiss = { openPhoto = null })
+
     if (showAddTable) AddTableDialog(onDismiss = { showAddTable = false },
         remainingCells = com.notessync.app.notes.tables.NoteTables.MAX_CELLS - (viewModel.tables?.cellCount ?: 0),
         remainingTables = com.notessync.app.notes.tables.NoteTables.MAX_TABLES - (viewModel.tables?.blocks?.size ?: 0)) { rows, columns ->
@@ -1188,9 +1199,9 @@ private fun openNotificationSettings(context: android.content.Context) {
     }
 }
 
-private fun openAttachment(context: android.content.Context, path: String, mime: String) {
+private suspend fun openAttachment(context: android.content.Context, path: String, mime: String) {
     runCatching {
-        val uri = FileProvider.getUriForFile(context, "com.notessync.app.fileprovider", File(path))
+        val uri = withContext(Dispatchers.IO) { FileProvider.getUriForFile(context, "com.notessync.app.fileprovider", File(path)) }
         context.startActivity(
             Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mime)

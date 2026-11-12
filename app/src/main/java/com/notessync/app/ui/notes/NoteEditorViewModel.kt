@@ -2,6 +2,8 @@ package com.notessync.app.ui.notes
 
 import com.notessync.app.notes.text.*
 import com.notessync.app.notes.tables.*
+import com.notessync.app.notes.photos.PhotoDisplaySize
+import androidx.room.withTransaction
 import com.notessync.app.notes.history.*
 import com.notessync.app.settings.SettingsRepository
 import androidx.compose.runtime.snapshots.Snapshot
@@ -66,6 +68,7 @@ enum class EditorMessage {
     SAVE_FAILED,
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
+    PHOTO_SIZE_FAILED,
     REMINDER_IN_PAST,
     REMINDER_NOTIFICATIONS_DISABLED,
     REMINDER_SCHEDULE_FAILED
@@ -827,6 +830,30 @@ class NoteEditorViewModel(
                 if (error is CancellationException) throw error
                 message = EditorMessage.PHOTO_IMPORT_FAILED
             }
+        }
+    }
+
+    suspend fun savePhotoSize(photo: AttachmentEntity, requested: PhotoDisplaySize): Boolean {
+        return try {
+            saveMutex.withLock {
+                if (deleted || !loaded || accessDenied || photo.noteId != currentNoteId) return@withLock false
+                val size = requested.bounded()
+                withContext(NonCancellable) {
+                    db.withTransaction {
+                        val current = attachmentDao.getBySyncId(photo.syncId) ?: return@withTransaction false
+                        if (current.id != photo.id || current.noteId != currentNoteId) return@withTransaction false
+                        if (current.displayWidthDp == size.width && current.displayHeightDp == size.height) return@withTransaction true
+                        if (attachmentDao.updateDisplaySize(current.id, currentNoteId, size.width, size.height) != 1) return@withTransaction false
+                        noteDao.markContentChanged(currentNoteId)
+                        BackupManager.noteChanged()
+                        true
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            message = EditorMessage.PHOTO_SIZE_FAILED
+            false
         }
     }
 
