@@ -168,6 +168,7 @@ fun NoteEditorScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showPhotoMenu by remember { mutableStateOf(false) }
     var showAddTable by remember { mutableStateOf(false) }
     var openPhoto by remember { mutableStateOf<Long?>(null) }
     var openTable by remember { mutableStateOf<String?>(null) }
@@ -273,6 +274,23 @@ fun NoteEditorScreen(
     val photoPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri -> uri?.let(viewModel::attach) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        com.notessync.app.ui.notes.photos.CameraCaptureContract()
+    ) { viewModel.finishCameraCapture(it) }
+    fun startCamera() {
+        scope.launch {
+            val uri = viewModel.prepareCameraCapture() ?: return@launch
+            try { cameraLauncher.launch(uri) }
+            catch (_: Exception) {
+                viewModel.finishCameraCapture(false)
+                snackbarHostState.showSnackbar("Не удалось открыть камеру. Выберите фото из галереи.")
+            }
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) startCamera()
+        else scope.launch { snackbarHostState.showSnackbar("Для съёмки разрешите доступ к камере в настройках приложения.") }
+    }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -305,6 +323,7 @@ fun NoteEditorScreen(
             EditorMessage.SAVE_FAILED -> "Не удалось сохранить заметку. Повторите попытку."
             EditorMessage.HISTORY_LIMIT -> "Изменение слишком велико для истории. Текст сохранён в редакторе."
             EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
+            EditorMessage.CAMERA_FAILED -> "Не удалось подготовить фото с камеры. Попробуйте ещё раз."
             EditorMessage.PHOTO_TOO_LARGE -> "Фото больше 10 МБ. Выберите изображение меньшего размера."
             EditorMessage.PHOTO_SIZE_FAILED -> "Не удалось сохранить размер фото. Повторите попытку."
             EditorMessage.PHOTO_IMPORT_FAILED -> "Не удалось прикрепить фото. Попробуйте другое изображение."
@@ -327,7 +346,7 @@ fun NoteEditorScreen(
     }
 
     fun exit() {
-        if (viewModel.isClosing) return
+        if (viewModel.isClosing || viewModel.isPhotoBusy) return
         scope.launch {
             // Сначала принудительное сохранение (снимает гонку автосохранения),
             // потом удаление пустой черновой заметки.
@@ -394,7 +413,7 @@ fun NoteEditorScreen(
                         )
                     }
                     if (viewModel.exists) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
+                        IconButton(onClick = { showDeleteDialog = true }, enabled = !viewModel.isPhotoBusy) {
                             Icon(Icons.Default.Delete, contentDescription = "Удалить")
                         }
                     }
@@ -417,11 +436,8 @@ fun NoteEditorScreen(
                         )
                         NavigationBarItem(
                             selected = false,
-                            onClick = {
-                                photoPicker.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                            },
+                            enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady,
+                            onClick = { showPhotoMenu = true },
                             icon = { Icon(Icons.Default.Image, contentDescription = null) },
                             label = { Text("Фото") }
                         )
@@ -444,6 +460,17 @@ fun NoteEditorScreen(
                             label = { Text("Теги") }
                         )
                     }
+                }
+                DropdownMenu(expanded = showPhotoMenu, onDismissRequest = { showPhotoMenu = false }) {
+                    DropdownMenuItem(text = { Text("Из галереи") }, onClick = {
+                        showPhotoMenu = false
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    })
+                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text("Снять фото") }, onClick = {
+                        showPhotoMenu = false
+                        if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
+                        else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    })
                 }
                 DropdownMenu(
                     expanded = showReminderMenu,

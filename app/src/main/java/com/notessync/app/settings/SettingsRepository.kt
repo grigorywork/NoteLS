@@ -91,6 +91,7 @@ data class SettingsState(
     val editorHistory: Boolean = true,
     val showTables: Boolean = true,
     val photoResize: Boolean = true,
+    val cameraCapture: Boolean = true,
     val advancedFormatting: Boolean = true,
     val showTaskPriorities: Boolean = true,
     val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
@@ -143,6 +144,7 @@ class SettingsRepository private constructor(context: Context) {
         editorHistory = prefs.getBoolean("editor_history", true),
         showTables = prefs.getBoolean("show_tables", true),
         photoResize = prefs.getBoolean("photo_resize", true),
+        cameraCapture = prefs.getBoolean("camera_capture", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
         drawerQuote = runCatching { DrawerQuoteAppearance(
@@ -197,6 +199,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setWidgetColoredTasks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WIDGET_COLORED_TASKS, enabled).apply()
     }
+
+    fun setCameraCapture(value: Boolean) { prefs.edit().putBoolean("camera_capture", value).apply(); _state.value = read() }
 
     fun setPhotoResize(value: Boolean) { prefs.edit().putBoolean("photo_resize", value).apply(); _state.value = read() }
 

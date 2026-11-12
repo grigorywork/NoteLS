@@ -9,6 +9,8 @@ import com.notessync.app.settings.SettingsRepository
 import androidx.compose.runtime.snapshots.Snapshot
 import com.notessync.app.ui.notes.md.ParagraphEdit
 import android.app.Application
+import android.content.Intent
+import com.notessync.app.data.attachments.CameraCaptureStore
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -39,6 +41,8 @@ import com.notessync.app.security.PasswordProtector
 import com.notessync.app.security.PasswordRecord
 import com.notessync.app.security.ProtectionSession
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -48,6 +52,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -69,6 +74,7 @@ enum class EditorMessage {
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
     PHOTO_SIZE_FAILED,
+    CAMERA_FAILED,
     REMINDER_IN_PAST,
     REMINDER_NOTIFICATIONS_DISABLED,
     REMINDER_SCHEDULE_FAILED
@@ -77,7 +83,7 @@ enum class EditorMessage {
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class NoteEditorViewModel(
     application: Application,
-    savedState: SavedStateHandle
+    private val savedState: SavedStateHandle
 ) : AndroidViewModel(application) {
 
     private val app = application
@@ -86,12 +92,17 @@ class NoteEditorViewModel(
     private val tagDao = db.tagDao()
     private val attachmentDao = db.attachmentDao()
     private val photoStore = PhotoAttachmentStore(application)
+    private val cameraStore = CameraCaptureStore(application)
+    private var cameraToken: String? = savedState["cameraCapture"]
+    private var cameraProcessing = false
+    var isPhotoBusy by mutableStateOf(cameraToken != null)
+        private set
 
     /** id заметки; -1 — новая, создаётся при первом сохранении. */
     var currentNoteId: Long = savedState.get<Long>("noteId") ?: -1L
         private set
 
-    private var createdHere = false
+    private var createdHere: Boolean = savedState["createdHere"] ?: false
     private var deleted = false
     var isReady by mutableStateOf(false)
         private set
@@ -310,6 +321,8 @@ class NoteEditorViewModel(
             val newId = noteDao.upsert(note)
             currentNoteId = newId
             createdHere = true
+            savedState["noteId"] = newId
+            savedState["createdHere"] = true
             _noteIdFlow.value = newId
         }
         createdAt = note.createdAt
@@ -806,31 +819,98 @@ class NoteEditorViewModel(
     // ---------- Вложения (Этап 3) ----------
 
     fun attach(uri: Uri) {
+        if (isPhotoBusy || isClosing) return
+        isPhotoBusy = true
         viewModelScope.launch {
-            try {
-                saveNow(force = true)
-                val attachmentSyncId = UUID.randomUUID().toString()
-                val stored = withContext(Dispatchers.IO) {
-                    photoStore.import(uri, attachmentSyncId)
+            try { importPhoto { photoStore.import(uri, it) } }
+            finally { isPhotoBusy = false }
+        }
+    }
+
+    private suspend fun importPhoto(import: (String) -> com.notessync.app.data.attachments.StoredPhoto) {
+        try {
+            saveMutex.withLock {
+                if (!loaded || accessDenied || deleted) return@withLock
+                if (exists && noteDao.getById(currentNoteId)?.isDeleted != false) {
+                    message = EditorMessage.PHOTO_IMPORT_FAILED
+                    return@withLock
                 }
-                attachmentDao.upsert(
-                    AttachmentEntity(
-                        syncId = attachmentSyncId,
-                        noteId = currentNoteId,
-                        filePath = stored.file.absolutePath,
-                        mimeType = stored.mimeType,
-                        sizeBytes = stored.sizeBytes
-                    )
-                )
-                BackupManager.noteChanged()
-                noteDao.markContentChanged(currentNoteId)
-            } catch (_: PhotoTooLargeException) {
-                message = EditorMessage.PHOTO_TOO_LARGE
-            } catch (error: Exception) {
-                if (error is CancellationException) throw error
-                message = EditorMessage.PHOTO_IMPORT_FAILED
+                // Exit/delete must wait until both the bounded copy and DB transaction finish.
+                withContext(NonCancellable) {
+                    persistNow(force = true)
+                    val attachmentSyncId = UUID.randomUUID().toString()
+                    val stored = withContext(Dispatchers.IO) { import(attachmentSyncId) }
+                    try {
+                        db.withTransaction {
+                            attachmentDao.upsert(AttachmentEntity(syncId = attachmentSyncId,
+                                noteId = currentNoteId, filePath = stored.file.absolutePath,
+                                mimeType = stored.mimeType, sizeBytes = stored.sizeBytes))
+                            noteDao.markContentChanged(currentNoteId)
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.IO) { stored.file.delete() }
+                        throw error
+                    }
+                    BackupManager.noteChanged()
+                }
+            }
+        } catch (_: PhotoTooLargeException) {
+            message = EditorMessage.PHOTO_TOO_LARGE
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            message = EditorMessage.PHOTO_IMPORT_FAILED
+        }
+    }
+
+    suspend fun prepareCameraCapture(): Uri? {
+        if (isPhotoBusy || isClosing || !loaded || accessDenied || deleted) return null
+        isPhotoBusy = true
+        return try {
+            // Persist the editor before launching another app; note ID and token survive process recreation.
+            saveNow(force = true)
+            val uri = withContext(NonCancellable) {
+                val token = withContext(Dispatchers.IO) { cameraStore.create() }
+                cameraToken = token
+                savedState["cameraCapture"] = token
+                withContext(Dispatchers.IO) { cameraStore.uri(token) }
+            }
+            currentCoroutineContext().ensureActive()
+            uri
+        } catch (error: Exception) {
+            cancelCameraCapture()
+            if (error is CancellationException) throw error
+            message = EditorMessage.CAMERA_FAILED
+            null
+        }
+    }
+
+    fun finishCameraCapture(success: Boolean) = viewModelScope.launch {
+        if (cameraProcessing) return@launch
+        val token = cameraToken ?: return@launch
+        cameraProcessing = true
+        try {
+            if (success) {
+                androidx.compose.runtime.snapshotFlow { isReady || accessDenied }.first { it }
+                importPhoto { cameraStore.import(token, it) }
             }
         }
+        finally {
+            cancelCameraCapture()
+            cameraProcessing = false
+        }
+    }
+
+    private suspend fun cancelCameraCapture() = withContext(NonCancellable) {
+        val token = cameraToken
+        withContext(Dispatchers.IO) {
+            if (token != null) {
+                runCatching { app.revokeUriPermission(cameraStore.uri(token), Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION) }
+                runCatching { cameraStore.delete(token) }
+            }
+        }
+        cameraToken = null
+        savedState["cameraCapture"] = null
+        isPhotoBusy = false
     }
 
     suspend fun savePhotoSize(photo: AttachmentEntity, requested: PhotoDisplaySize): Boolean {
