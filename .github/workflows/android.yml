@@ -34,3 +34,25 @@ jobs:
             app/build/reports/tests/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
+      - name: Prepare cloud debug APK (not an installed-app update)
+        id: debug_apk
+        run: |
+          python3 - <<'PYAPK'
+          import hashlib, json, os, pathlib, shutil
+          meta = json.loads(pathlib.Path('app/build/outputs/apk/debug/output-metadata.json').read_text())['elements'][0]
+          name = f"NoteLS-{meta['versionName']}-code{meta['versionCode']}-cloud-debug-NOT-UPDATE"
+          folder = pathlib.Path('cloud-debug-apk')
+          folder.mkdir(exist_ok=True)
+          apk = folder / (name + '.apk')
+          shutil.copy2('app/build/outputs/apk/debug/app-debug.apk', apk)
+          (folder / 'SHA256SUMS').write_text(hashlib.sha256(apk.read_bytes()).hexdigest() + '  ' + apk.name + '\n')
+          (folder / 'README.txt').write_text('Проверочная облачная Android Debug-сборка. НЕ обновление приложения с постоянной подписью. Ключ пользователя в CI не передаётся.\nИсточник: ' + os.environ['GITHUB_SHA'] + '\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('artifact_name=' + name + '\n')
+          PYAPK
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.debug_apk.outputs.artifact_name }}
+          path: cloud-debug-apk/
+          if-no-files-found: error
+          retention-days: 14
