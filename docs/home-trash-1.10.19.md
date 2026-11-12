@@ -25,3 +25,7 @@
 ## Проверки
 
 Финальный локальный аудит ПРОЙДЕН: 334 теста,0 failures/errors/skipped, lint0 ошибок/13 прежних предупреждений GradleDependency/1 прежняя информация QuotesScreen; assembleDebug успешно, BUILD SUCCESSFUL in4m 12s. JDK17/SDK35/Gradle8.9, git diff --check. 13 новых проверок: реальная миграция14→15, восстановление текста/таблиц/тегов/фото, блокировки и1001 запись, rollback SQL с сохранением оригинала, общие канонические пути, бэкап/JSON/обмен, окончательное удаление без конфликтных копий и поздних файлов, гонка acknowledgement, устаревшее сохранение редактора, DST и Compose320dp. CI/APK проверяются после публикации. Облачные тесты используют SQLite/Room, Robolectric и Compose/NativeBitmap; физический телефон, эмулятор и замеры PSS/CPU/батареи не запускались. Постоянный ключ подписи не менялся; облачный debug APK не является обновлением установленного приложения с постоянной подписью.
+
+## GitHub
+
+[CI43268599454](https://github.com/grigorywork/NoteLS/actions/runs/43268599454) success на3ea6b14d0419404627a85b0c8d90cafb307a307f:334 теста,0 failures/ignored, lint0 ошибок/14 прежних предупреждений/1 информация, assembleDebug успешно за6m36s. Сверены журнал131358750177 и HTML/XML отчётов13968560554, SHA256 ZIPeff3ba9e2d883996280d139e7554b70339e8b6193ac102716a48c0e6c5464199 совпала с GitHub. [APK1.10.19/code42 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43268599454/artifacts/13968900205), Android Debug/NOT-UPDATE; постоянная подпись не менялась.
