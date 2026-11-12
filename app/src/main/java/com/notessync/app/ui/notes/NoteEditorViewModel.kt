@@ -1,6 +1,9 @@
 package com.notessync.app.ui.notes
 
 import com.notessync.app.notes.text.*
+import com.notessync.app.notes.history.*
+import com.notessync.app.settings.SettingsRepository
+import androidx.compose.runtime.snapshots.Snapshot
 import com.notessync.app.ui.notes.md.ParagraphEdit
 import android.app.Application
 import android.net.Uri
@@ -35,11 +38,16 @@ import com.notessync.app.security.ProtectionSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
@@ -52,6 +60,8 @@ import java.util.UUID
 
 enum class EditorMessage {
     FORMATTING_LIMIT,
+    HISTORY_LIMIT,
+    SAVE_FAILED,
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
     REMINDER_IN_PAST,
@@ -78,7 +88,11 @@ class NoteEditorViewModel(
 
     private var createdHere = false
     private var deleted = false
-    private var loaded = false
+    var isReady by mutableStateOf(false)
+        private set
+    private val loaded get() = isReady
+    var isClosing by mutableStateOf(false)
+        private set
     private var lastSavedNote: NoteEntity? = null
 
     var formatting by mutableStateOf(TextFormatting())
@@ -86,8 +100,24 @@ class NoteEditorViewModel(
     private var pendingFormatting by mutableStateOf<Map<FormatKind, String?>>(emptyMap())
     var taskPriority by androidx.compose.runtime.mutableIntStateOf(0)
         private set
-    var title by mutableStateOf("")
+    var titleField by mutableStateOf(TextFieldValue(""))
+        private set
+    val title: String get() = titleField.text
     var contentField by mutableStateOf(TextFieldValue(""))
+        private set
+    private val saveMutex = Mutex()
+    private val history = EditorHistory()
+    private var atomicInput = false
+    var historyEnabled by mutableStateOf(SettingsRepository.get(application).state.value.editorHistory)
+        private set
+    var canUndo by mutableStateOf(false)
+        private set
+    var canRedo by mutableStateOf(false)
+        private set
+    var editorField by mutableStateOf(EditorField.CONTENT)
+        private set
+    var historyRestoreVersion by mutableLongStateOf(0L)
+        private set
     var isFavorite by mutableStateOf(false)
     var isTask by mutableStateOf(savedState.get<Boolean>("isTask") ?: false)
     var isCompleted by mutableStateOf(false)
@@ -128,6 +158,12 @@ class NoteEditorViewModel(
 
     init {
         viewModelScope.launch {
+            SettingsRepository.get(app).state.map { it.editorHistory }.distinctUntilChanged().collect {
+                historyEnabled = it
+                if (!it) { history.clear(); publishHistory() }
+            }
+        }
+        viewModelScope.launch {
             if (currentNoteId != -1L) {
                 noteDao.getById(currentNoteId)?.let { note ->
                     lastSavedNote = note
@@ -140,7 +176,7 @@ class NoteEditorViewModel(
                         accessDenied = true
                         return@launch
                     }
-                    title = note.title
+                    titleField = TextFieldValue(note.title, TextRange(note.title.length))
                     contentField = TextFieldValue(note.content, TextRange(note.content.length))
                     formatting = withContext(Dispatchers.Default) { TextFormatting.decode(note.textFormat, note.content.length) }
                     taskPriority = note.taskPriority
@@ -165,7 +201,7 @@ class NoteEditorViewModel(
                     noteTags = tagDao.getTagNamesForNote(note.id)
                 }
             }
-            loaded = true
+            isReady = true
             startAutosave()
         }
     }
@@ -181,7 +217,13 @@ class NoteEditorViewModel(
             }
                 .drop(1)
                 .debounce(500)
-                .collectLatest { saveNow() }
+                .collect {
+                    try { saveNow() }
+                    catch (error: Exception) {
+                        if (error is CancellationException) throw error
+                        message = EditorMessage.SAVE_FAILED
+                    }
+                }
         }
     }
 
@@ -203,7 +245,13 @@ class NoteEditorViewModel(
         val isProtected: Boolean
     )
 
-    suspend fun saveNow(force: Boolean = false) {
+    suspend fun saveNow(force: Boolean = false) = saveMutex.withLock {
+        if (!loaded || accessDenied || deleted) return@withLock
+        // An insert and its returned ID/cache update must finish together even if the caller exits.
+        withContext(NonCancellable) { persistNow(force) }
+    }
+
+    private suspend fun persistNow(force: Boolean) {
         if (deleted) return
         if (!force && !exists && title.isBlank() && contentField.text.isBlank()) return
 
@@ -257,20 +305,100 @@ class NoteEditorViewModel(
      * ввод и мгновенный выход (в пределах 500 мс debounce) терял хвост правки,
      * потому что экран закрывался раньше срабатывания автосохранения.
      */
-    suspend fun flushOnExit() {
-        // Пустая новая заметка не создаётся — условие как у раннего выхода saveNow.
-        if (exists || title.isNotBlank() || contentField.text.isNotBlank()) {
-            saveNow(force = true)
+    suspend fun flushOnExit(): Boolean {
+        isClosing = true
+        return try {
+            // Freeze edits while the final write is pending, so exit cannot drop a late edit.
+            if (exists || title.isNotBlank() || contentField.text.isNotBlank()) saveNow(force = true)
+            discardIfEmptyOnExit()
+            BackupManager.requestAutoBackup(app, afterNote = true)
+            true
+        } catch (error: Exception) {
+            isClosing = false
+            if (error is CancellationException) throw error
+            message = EditorMessage.SAVE_FAILED
+            false
         }
-        discardIfEmptyOnExit()
-        BackupManager.requestAutoBackup(app, afterNote = true)
     }
 
     // ---------- Форматирование (Этап 3) ----------
 
-    /** Ввод в поле текста: перехватывает Enter для автопродолжения списков. */
+    private fun snapshot() = EditorSnapshot(title, contentField.text, formatting, EditorCursor(
+        EditorSelection(titleField.selection.start, titleField.selection.end),
+        EditorSelection(contentField.selection.start, contentField.selection.end), editorField, pendingFormatting))
+
+    private fun publishHistory() { canUndo = history.canUndo; canRedo = history.canRedo }
+
+    private inline fun edit(kind: EditKind = EditKind.ATOMIC, change: () -> Unit) {
+        if (!loaded || accessDenied || deleted || isClosing) return
+        val before = if (historyEnabled) snapshot() else null
+        if (kind == EditKind.ATOMIC) history.breakGroup()
+        Snapshot.withMutableSnapshot { change() }
+        if (before != null && history.record(before, snapshot(), kind) == HistoryResult.TOO_LARGE) {
+            message = EditorMessage.HISTORY_LIMIT
+        }
+        publishHistory()
+    }
+
+    fun onEditorFocus(field: EditorField) {
+        if (editorField != field) { history.breakGroup(); editorField = field }
+    }
+
+    fun onTitleChange(next: TextFieldValue) {
+        if (!loaded || accessDenied || deleted || isClosing) return
+        onEditorFocus(EditorField.TITLE)
+        val before = titleField
+        if (before.text == next.text) {
+            if (before.selection != next.selection || before.composition != next.composition) history.breakGroup()
+            titleField = next
+            return
+        }
+        edit(inputKind(before, next)) { titleField = next }
+        if (before.composition != null && next.composition == null) history.breakGroup()
+    }
+
+    fun prepareClipboardEdit() { atomicInput = true; history.breakGroup() }
+
+    /** IME composition is one group; bulk replacements, paste and Enter are separate edits. */
+    private fun inputKind(before: TextFieldValue, next: TextFieldValue): EditKind {
+        if (atomicInput) { atomicInput = false; return EditKind.ATOMIC }
+        return when {
+            before.composition != null || next.composition != null -> EditKind.COMPOSITION
+            !before.selection.collapsed || !next.selection.collapsed -> EditKind.ATOMIC
+            kotlin.math.abs(next.text.length - before.text.length) != 1 -> EditKind.ATOMIC
+            else -> EditKind.INPUT
+        }
+    }
+
     fun onContentChange(newValue: TextFieldValue) {
-        updateContent(MarkdownEdit.handleEnter(contentField, newValue))
+        if (!loaded || accessDenied || deleted || isClosing) return
+        onEditorFocus(EditorField.CONTENT)
+        val before = contentField
+        if (before.text == newValue.text) {
+            if (before.selection != newValue.selection || before.composition != newValue.composition) history.breakGroup()
+            updateContent(newValue)
+            return
+        }
+        val next = MarkdownEdit.handleEnter(before, newValue)
+        edit(inputKind(before, next)) { updateContent(next) }
+        if (before.composition != null && next.composition == null) history.breakGroup()
+    }
+
+    fun undo() = restoreHistory(backwards = true)
+    fun redo() = restoreHistory(backwards = false)
+    private fun restoreHistory(backwards: Boolean) {
+        if (!historyEnabled || !loaded || accessDenied || deleted || isClosing) return
+        atomicInput = false
+        val state = if (backwards) history.undo(snapshot()) else history.redo(snapshot())
+        state?.let {
+            Snapshot.withMutableSnapshot {
+                titleField = TextFieldValue(it.title, TextRange(it.cursor.title.start, it.cursor.title.end))
+                contentField = TextFieldValue(it.content, TextRange(it.cursor.content.start, it.cursor.content.end))
+                formatting = it.formatting; pendingFormatting = it.cursor.pending; editorField = it.cursor.field
+                historyRestoreVersion++
+            }
+        }
+        publishHistory()
     }
 
     private fun updateContent(next: TextFieldValue) {
@@ -289,7 +417,8 @@ class NoteEditorViewModel(
     val activeFormatting: Map<FormatKind, String?>
         get() = formatting.at(contentField.selection.min, preferLeft = contentField.selection.collapsed) + pendingFormatting
 
-    fun formatSelection(kind: FormatKind, value: String?) {
+    fun formatSelection(kind: FormatKind, value: String?) = edit { applySelectionFormat(kind, value) }
+    private fun applySelectionFormat(kind: FormatKind, value: String?) {
         if (value != null && !kind.valid(value)) return
         val selection = contentField.selection
         if (selection.collapsed) pendingFormatting = pendingFormatting + (kind to value)
@@ -297,6 +426,7 @@ class NoteEditorViewModel(
         catch (_: FormattingLimitReached) { message = EditorMessage.FORMATTING_LIMIT }
     }
     fun selectAllContent() {
+        history.breakGroup()
         pendingFormatting = emptyMap()
         contentField = contentField.copy(selection = TextRange(0, contentField.text.length))
     }
@@ -311,17 +441,17 @@ class NoteEditorViewModel(
         val active = activeFormatting[kind]?.let { it == "1" } ?: legacy
         formatSelection(kind, if (active) "0" else "1")
     }
-    private fun updateLines(next: TextFieldValue) {
+    private fun updateLines(next: TextFieldValue) = edit {
         formatting = formatting.editedLines(contentField.text, next.text)
         pendingFormatting = emptyMap(); contentField = next
     }
     fun toggleHeading(level: Int = 1) { updateLines(MarkdownEdit.toggleLinePrefix(contentField, "#".repeat(level.coerceIn(1, 3)) + " ")) }
     fun toggleList(kind: MarkdownEdit.ListKind = MarkdownEdit.ListKind.BULLET) { updateLines(MarkdownEdit.toggleListKind(contentField, kind)) }
     fun toggleChecklist() { updateLines(MarkdownEdit.toggleListKind(contentField, MarkdownEdit.ListKind.CHECKLIST)) }
-    fun formatParagraph(kind: FormatKind, value: String) {
-        if (kind != FormatKind.ALIGN && kind != FormatKind.INDENT) return
+    fun formatParagraph(kind: FormatKind, value: String) = edit {
+        if (kind != FormatKind.ALIGN && kind != FormatKind.INDENT) return@edit
         val range = ParagraphEdit.bounds(contentField)
-        if (range.isEmpty()) formatSelection(kind, value)
+        if (range.isEmpty()) applySelectionFormat(kind, value)
         else try { formatting = formatting.apply(range.first, range.last + 1, kind, value) }
         catch (_: FormattingLimitReached) { message = EditorMessage.FORMATTING_LIMIT }
     }
@@ -340,7 +470,7 @@ class NoteEditorViewModel(
     fun toggleCheckboxAtLine(lineIndex: Int) {
         MarkdownLite.toggleCheckbox(contentField.text, lineIndex)?.let {
             // Длина текста не меняется (префиксы равной длины) — курсор остаётся на месте.
-            updateContent(TextFieldValue(it, contentField.selection))
+            edit { updateContent(TextFieldValue(it, contentField.selection)) }
         }
     }
 
@@ -376,10 +506,10 @@ class NoteEditorViewModel(
             else -> ""
         }
         val inserted = prefix + processed + suffix
-        updateContent(TextFieldValue(
+        edit { updateContent(TextFieldValue(
             before + inserted + after,
             TextRange((before + inserted).length)
-        ))
+        )) }
     }
 
     // ---------- Организация (Этап 2) ----------
@@ -551,6 +681,7 @@ class NoteEditorViewModel(
     }
 
     fun lockTask() {
+        history.clear(); publishHistory()
         ProtectionSession.lockTask(syncId)
     }
 
@@ -685,24 +816,32 @@ class NoteEditorViewModel(
 
     // ---------- Удаление / выход ----------
 
-    suspend fun discardIfEmptyOnExit() {
+    suspend fun discardIfEmptyOnExit() = saveMutex.withLock {
         val hasAttachments = exists && attachmentDao.countByNoteId(currentNoteId) > 0
         if (loaded && createdHere && title.isBlank() && contentField.text.isBlank() &&
             reminderAt == null && !hasAttachments && exists
         ) {
+            withContext(NonCancellable) { noteDao.softDelete(currentNoteId); deleted = true }
+        }
+        history.clear(); publishHistory()
+    }
+
+    suspend fun deleteNow(): Long = saveMutex.withLock {
+        withContext(NonCancellable) {
+            if (exists) {
+                ReminderScheduler.cancel(app, currentNoteId)
+                ReminderScheduler.cancelTimer(app, currentNoteId)
+                noteDao.softDelete(currentNoteId)
+                if (dayKey != null) CalendarWidgetProvider.refreshAll(app)
+            }
             deleted = true
-            noteDao.softDelete(currentNoteId)
+            history.clear(); publishHistory()
+            currentNoteId
         }
     }
 
-    suspend fun deleteNow(): Long {
-        deleted = true
-        if (exists) {
-            ReminderScheduler.cancel(app, currentNoteId)
-            ReminderScheduler.cancelTimer(app, currentNoteId)
-            noteDao.softDelete(currentNoteId)
-            if (dayKey != null) CalendarWidgetProvider.refreshAll(app)
-        }
-        return currentNoteId
+    override fun onCleared() {
+        history.clear()
+        super.onCleared()
     }
 }

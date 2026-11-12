@@ -320,6 +320,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             SectionTitle("Редактор")
             Card(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("История изменений", Modifier.weight(1f))
+                    androidx.compose.material3.Switch(state.editorHistory, settings::setEditorHistory)
+                }
+            }
+            Card(Modifier.fillMaxWidth()) {
+                androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Расширенное оформление", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.advancedFormatting, settings::setAdvancedFormatting)
                 }

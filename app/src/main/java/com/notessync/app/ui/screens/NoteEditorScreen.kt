@@ -101,6 +101,19 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import com.notessync.app.notes.history.EditorField
+import com.notessync.app.ui.notes.text.EditorHistoryActions
+import com.notessync.app.ui.notes.text.HistoryInput
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -148,6 +161,13 @@ fun NoteEditorScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val titleFocus = remember { FocusRequester() }
+    val contentFocus = remember { FocusRequester() }
+    LaunchedEffect(viewModel.historyRestoreVersion, viewModel.previewMode) {
+        if (viewModel.historyRestoreVersion > 0 && !viewModel.previewMode) {
+            if (viewModel.editorField == EditorField.TITLE) titleFocus.requestFocus() else contentFocus.requestFocus()
+        }
+    }
 
     val attachments by viewModel.attachments.collectAsStateWithLifecycle()
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
@@ -271,6 +291,8 @@ fun NoteEditorScreen(
     LaunchedEffect(viewModel.message) {
         val current = viewModel.message ?: return@LaunchedEffect
         val text = when (current) {
+            EditorMessage.SAVE_FAILED -> "Не удалось сохранить заметку. Повторите попытку."
+            EditorMessage.HISTORY_LIMIT -> "Изменение слишком велико для истории. Текст сохранён в редакторе."
             EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
             EditorMessage.PHOTO_TOO_LARGE -> "Фото больше 10 МБ. Выберите изображение меньшего размера."
             EditorMessage.PHOTO_IMPORT_FAILED -> "Не удалось прикрепить фото. Попробуйте другое изображение."
@@ -293,14 +315,24 @@ fun NoteEditorScreen(
     }
 
     fun exit() {
+        if (viewModel.isClosing) return
         scope.launch {
             // Сначала принудительное сохранение (снимает гонку автосохранения),
             // потом удаление пустой черновой заметки.
-            viewModel.flushOnExit()
-            onBack()
+            if (viewModel.flushOnExit()) onBack()
         }
     }
     BackHandler { exit() }
+    val historyKeys = Modifier.onPreviewKeyEvent {
+        if (!viewModel.historyEnabled || !it.isCtrlPressed || it.type != KeyEventType.KeyDown) false
+        else when (it.key) {
+            Key.Z -> { if (it.isShiftPressed) viewModel.redo() else viewModel.undo(); true }
+            Key.Y -> { viewModel.redo(); true }
+            Key.V, Key.X -> { viewModel.prepareClipboardEdit(); false }
+            else -> false
+        }
+    }
+
 
     EditorScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -359,41 +391,47 @@ fun NoteEditorScreen(
         },
         bottomBar = {
             Box {
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = showFormattingPanel,
-                        onClick = { showFormattingPanel = !showFormattingPanel },
-                        icon = { Icon(Icons.Default.FormatBold, contentDescription = null) },
-                        label = { Text("Текст") }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = {
-                            photoPicker.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
-                        },
-                        icon = { Icon(Icons.Default.Image, contentDescription = null) },
-                        label = { Text("Фото") }
-                    )
-                    NavigationBarItem(
-                        selected = viewModel.reminderAt != null,
-                        onClick = { openReminderMenu() },
-                        icon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-                        label = { Text("Сигнал") }
-                    )
-                    NavigationBarItem(
-                        selected = viewModel.notebookName != null,
-                        onClick = { showNotebookMenu = true },
-                        icon = { Icon(Icons.Default.Folder, contentDescription = null) },
-                        label = { Text("Блокнот") }
-                    )
-                    NavigationBarItem(
-                        selected = viewModel.noteTags.isNotEmpty(),
-                        onClick = { showTagDialog = true },
-                        icon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                        label = { Text("Теги") }
-                    )
+                Column {
+                    if (viewModel.historyEnabled) EditorHistoryActions(
+                        canUndo = viewModel.canUndo && !viewModel.isClosing,
+                        canRedo = viewModel.canRedo && !viewModel.isClosing,
+                        onUndo = viewModel::undo, onRedo = viewModel::redo)
+                    NavigationBar {
+                        NavigationBarItem(
+                            selected = showFormattingPanel,
+                            onClick = { showFormattingPanel = !showFormattingPanel },
+                            icon = { Icon(Icons.Default.FormatBold, contentDescription = null) },
+                            label = { Text("Текст") }
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = {
+                                photoPicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                            icon = { Icon(Icons.Default.Image, contentDescription = null) },
+                            label = { Text("Фото") }
+                        )
+                        NavigationBarItem(
+                            selected = viewModel.reminderAt != null,
+                            onClick = { openReminderMenu() },
+                            icon = { Icon(Icons.Default.Alarm, contentDescription = null) },
+                            label = { Text("Сигнал") }
+                        )
+                        NavigationBarItem(
+                            selected = viewModel.notebookName != null,
+                            onClick = { showNotebookMenu = true },
+                            icon = { Icon(Icons.Default.Folder, contentDescription = null) },
+                            label = { Text("Блокнот") }
+                        )
+                        NavigationBarItem(
+                            selected = viewModel.noteTags.isNotEmpty(),
+                            onClick = { showTagDialog = true },
+                            icon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
+                            label = { Text("Теги") }
+                        )
+                    }
                 }
                 DropdownMenu(
                     expanded = showReminderMenu,
@@ -725,26 +763,31 @@ fun NoteEditorScreen(
                         onIndent = viewModel::changeIndent,
                         onChecklist = viewModel::toggleChecklist, onSelectAll = viewModel::selectAllContent)
                 }
-                TextField(
-                    value = viewModel.title,
-                    onValueChange = { viewModel.title = it },
-                    placeholder = {
-                        Text(
-                            if (viewModel.isTask) "Название задачи" else "Заголовок",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    textStyle = MaterialTheme.typography.titleLarge.copy(
-                        // Этап 35: название задачи — цветом задачи.
-                        color = if (viewModel.isTask) {
-                            taskColorOption(viewModel.taskColor).accent
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    ),
-                    colors = borderlessColors(),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                HistoryInput(viewModel::prepareClipboardEdit) {
+                    TextField(
+                        enabled = viewModel.isReady && !viewModel.isClosing,
+                        value = viewModel.titleField,
+                        onValueChange = viewModel::onTitleChange,
+                        placeholder = {
+                            Text(
+                                if (viewModel.isTask) "Название задачи" else "Заголовок",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        textStyle = MaterialTheme.typography.titleLarge.copy(
+                            // Этап 35: название задачи — цветом задачи.
+                            color = if (viewModel.isTask) {
+                                taskColorOption(viewModel.taskColor).accent
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        ),
+                        colors = borderlessColors(),
+                        modifier = Modifier.then(historyKeys).focusRequester(titleFocus)
+                            .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.TITLE) }
+                            .fillMaxWidth()
+                    )
+                }
                 val visualTransformation = remember(viewModel.formatting) {
                     com.notessync.app.ui.notes.text.FormattedTextTransformation(viewModel.formatting)
                 }
@@ -755,70 +798,74 @@ fun NoteEditorScreen(
                 val padTopPx = with(density) { 16.dp.toPx() }
                 val glyphZonePx = with(density) { 56.dp.toPx() }
                 val editorInteractionSource = remember { MutableInteractionSource() }
-                BasicTextField(
-                    value = viewModel.contentField,
-                    onValueChange = viewModel::onContentChange,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    // Этап 27: маркеры скрыты всегда; стили вводятся кнопками-режимами.
-                    visualTransformation = visualTransformation,
-                    onTextLayout = { editorLayout = it },
-                    interactionSource = editorInteractionSource,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        // Тап по квадратику чекбокса переключает его, не двигая курсор.
-                        .pointerInput(visualTransformation) {
-                            awaitEachGesture {
-                                val down = awaitFirstDown(
-                                    requireUnconsumed = false,
-                                    pass = PointerEventPass.Initial
-                                )
-                                val layout = editorLayout ?: return@awaitEachGesture
-                                val source = viewModel.contentField.text
-                                val position = Offset(
-                                    down.position.x - padStartPx,
-                                    down.position.y - padTopPx
-                                )
-                                val transformedOffset = layout.getOffsetForPosition(position)
-                                val original = visualTransformation
-                                    .filter(AnnotatedString(source))
-                                    .offsetMapping.transformedToOriginal(transformedOffset)
-                                val lineStart = source.lastIndexOf('\n', original - 1)
-                                    .let { if (it < 0) 0 else it + 1 }
-                                val lineEnd = source.indexOf('\n', original)
-                                    .let { if (it < 0) source.length else it }
-                                val line = source.substring(lineStart, lineEnd)
-                                val isCheckbox = line.startsWith("- [ ] ") ||
-                                    line.startsWith("- [x] ") || line.startsWith("- [X] ")
-                                val onMarker = original in lineStart until lineStart + 6
-                                if (isCheckbox && (onMarker || position.x <= glyphZonePx)) {
-                                    down.consume()
-                                    waitForUpOrCancellation(PointerEventPass.Initial)?.consume()
-                                    val lineIndex =
-                                        source.substring(0, lineStart).count { it == '\n' }
-                                    viewModel.toggleCheckboxAtLine(lineIndex)
+                HistoryInput(viewModel::prepareClipboardEdit) {
+                    BasicTextField(
+                        enabled = viewModel.isReady && !viewModel.isClosing,
+                        value = viewModel.contentField,
+                        onValueChange = viewModel::onContentChange,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        // Этап 27: маркеры скрыты всегда; стили вводятся кнопками-режимами.
+                        visualTransformation = visualTransformation,
+                        onTextLayout = { editorLayout = it },
+                        interactionSource = editorInteractionSource,
+                        modifier = Modifier.then(historyKeys).focusRequester(contentFocus)
+                            .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.CONTENT) }
+                            .fillMaxWidth()
+                            .weight(1f)
+                            // Тап по квадратику чекбокса переключает его, не двигая курсор.
+                            .pointerInput(visualTransformation) {
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(
+                                        requireUnconsumed = false,
+                                        pass = PointerEventPass.Initial
+                                    )
+                                    val layout = editorLayout ?: return@awaitEachGesture
+                                    val source = viewModel.contentField.text
+                                    val position = Offset(
+                                        down.position.x - padStartPx,
+                                        down.position.y - padTopPx
+                                    )
+                                    val transformedOffset = layout.getOffsetForPosition(position)
+                                    val original = visualTransformation
+                                        .filter(AnnotatedString(source))
+                                        .offsetMapping.transformedToOriginal(transformedOffset)
+                                    val lineStart = source.lastIndexOf('\n', original - 1)
+                                        .let { if (it < 0) 0 else it + 1 }
+                                    val lineEnd = source.indexOf('\n', original)
+                                        .let { if (it < 0) source.length else it }
+                                    val line = source.substring(lineStart, lineEnd)
+                                    val isCheckbox = line.startsWith("- [ ] ") ||
+                                        line.startsWith("- [x] ") || line.startsWith("- [X] ")
+                                    val onMarker = original in lineStart until lineStart + 6
+                                    if (isCheckbox && (onMarker || position.x <= glyphZonePx)) {
+                                        down.consume()
+                                        waitForUpOrCancellation(PointerEventPass.Initial)?.consume()
+                                        val lineIndex =
+                                            source.substring(0, lineStart).count { it == '\n' }
+                                        viewModel.toggleCheckboxAtLine(lineIndex)
+                                    }
                                 }
-                            }
-                        },
-                    decorationBox = { innerTextField ->
-                        TextFieldDefaults.DecorationBox(
-                            value = viewModel.contentField.text,
-                            innerTextField = innerTextField,
-                            enabled = true,
-                            singleLine = false,
-                            visualTransformation = visualTransformation,
-                            interactionSource = editorInteractionSource,
-                            placeholder = {
-                                Text(if (viewModel.isTask) "Описание задачи" else "Текст заметки")
                             },
-                            colors = borderlessColors(),
-                            contentPadding = PaddingValues(16.dp)
-                        )
-                    }
-                )
+                        decorationBox = { innerTextField ->
+                            TextFieldDefaults.DecorationBox(
+                                value = viewModel.contentField.text,
+                                innerTextField = innerTextField,
+                                enabled = true,
+                                singleLine = false,
+                                visualTransformation = visualTransformation,
+                                interactionSource = editorInteractionSource,
+                                placeholder = {
+                                    Text(if (viewModel.isTask) "Описание задачи" else "Текст заметки")
+                                },
+                                colors = borderlessColors(),
+                                contentPadding = PaddingValues(16.dp)
+                            )
+                        }
+                    )
+                }
             }
 
         }
