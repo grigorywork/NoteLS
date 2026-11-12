@@ -61,7 +61,7 @@ class RoomSyncDataSource(
         var appliedNotes = 0
         var conflicts = 0
 
-        for (dto in changes.notebooks) {
+        for (dto in changes.notebooks) db.withTransaction {
             val local = db.notebookDao().getBySyncId(dto.syncId)
             if (local == null || dto.updatedAt > local.updatedAt) {
                 val entity = NotebookEntity(
@@ -76,8 +76,8 @@ class RoomSyncDataSource(
                     updatedAt = dto.updatedAt,
                     dirty = false
                 )
-                if (local == null) db.notebookDao().upsert(entity) else db.notebookDao().update(entity)
                 ProtectionSession.lockNotebook(local?.id ?: entity.id)
+                if (local == null) db.notebookDao().upsert(entity) else db.notebookDao().update(entity)
                 appliedNotebooks++
             }
         }

@@ -161,6 +161,8 @@ object BackupManager {
                         val target = live.openHelper.writableDatabase
                         tables.asReversed().forEach { target.execSQL("DELETE FROM `$it`") }
                         tables.forEach { copyTable(packed, target, it) }
+                        // Local numeric IDs may now belong to different protected notebooks.
+                        com.notessync.app.security.ProtectionSession.lockAll()
                     }
                     committed = true
                     // Only after commit may files referenced by the old DB be removed.

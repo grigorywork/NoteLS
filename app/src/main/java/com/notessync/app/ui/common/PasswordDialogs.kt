@@ -76,7 +76,9 @@ fun UnlockPasswordDialog(
     title: String,
     showError: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String) -> Unit,
+    busy: Boolean = false,
+    alternative: (@Composable () -> Unit)? = null
 ) {
     var password by remember { mutableStateOf("") }
 
@@ -90,6 +92,7 @@ fun UnlockPasswordDialog(
                     onValueChange = { password = it },
                     label = "Пароль"
                 )
+                alternative?.invoke()
                 if (showError) {
                     Text(
                         text = "Неверный пароль",
@@ -101,7 +104,7 @@ fun UnlockPasswordDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(password) }, enabled = password.isNotEmpty()) {
+            TextButton(onClick = { onConfirm(password) }, enabled = password.isNotEmpty() && !busy) {
                 Text("Подтвердить")
             }
         },

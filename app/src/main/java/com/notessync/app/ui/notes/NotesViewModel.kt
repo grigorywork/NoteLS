@@ -59,6 +59,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private val noteDao = db.noteDao()
     private val notebookDao = db.notebookDao()
     private val tagDao = db.tagDao()
+    val biometrics = com.notessync.app.security.biometrics.NotebookBiometricController(viewModelScope, db,
+        com.notessync.app.security.biometrics.AndroidNotebookBiometricVault(application))
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -118,60 +120,55 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun renameNotebook(notebook: NotebookEntity, name: String) {
         viewModelScope.launch {
-            notebookDao.update(
-                notebook.copy(name = name.trim(), updatedAt = System.currentTimeMillis(), dirty = true)
-            )
+            db.withTransaction {
+                val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
+                if (fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction
+                notebookDao.update(fresh.copy(name = name.trim(), updatedAt = System.currentTimeMillis(), dirty = true))
+            }
         }
     }
 
     fun protectNotebook(notebook: NotebookEntity, password: String) {
+        biometrics.cancel()
         viewModelScope.launch {
             val record = withContext(Dispatchers.Default) { PasswordProtector.create(password) }
-            notebookDao.update(
-                notebook.copy(
-                    isProtected = true,
-                    passwordHash = record.hash,
-                    passwordSalt = record.salt,
-                    updatedAt = System.currentTimeMillis(),
-                    dirty = true
-                )
-            )
-            ProtectionSession.unlockNotebook(notebook.id)
+            db.withTransaction {
+                val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
+                if (fresh.isDeleted || fresh.isProtected || fresh.syncId != notebook.syncId) return@withTransaction
+                notebookDao.update(fresh.copy(isProtected = true, passwordHash = record.hash, passwordSalt = record.salt,
+                    updatedAt = System.currentTimeMillis(), dirty = true))
+                ProtectionSession.unlockNotebook(fresh.id)
+            }
         }
     }
 
     fun unlockNotebook(notebook: NotebookEntity, password: String, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val unlocked = verify(notebook.passwordRecord(), password)
-            if (unlocked) ProtectionSession.unlockNotebook(notebook.id)
-            onResult(unlocked)
-        }
+        biometrics.unlockPassword(notebook, password, onResult)
     }
 
-    fun removeNotebookProtection(
-        notebook: NotebookEntity,
-        password: String,
-        onResult: (Boolean) -> Unit
-    ) {
+    fun removeNotebookProtection(notebook: NotebookEntity, password: String, onResult: (Boolean) -> Unit) {
+        biometrics.cancel()
         viewModelScope.launch {
-            val verified = verify(notebook.passwordRecord(), password)
-            if (verified) {
-                notebookDao.update(
-                    notebook.copy(
-                        isProtected = false,
-                        passwordHash = null,
-                        passwordSalt = null,
-                        updatedAt = System.currentTimeMillis(),
-                        dirty = true
-                    )
-                )
-                ProtectionSession.lockNotebook(notebook.id)
+            val fresh = notebookDao.getById(notebook.id)
+            val expected = fresh?.passwordRecord()
+            val verified = fresh?.syncId == notebook.syncId && verify(expected, password)
+            val removed = db.withTransaction {
+                val latest = notebookDao.getById(notebook.id)
+                if (!verified || latest == null || latest.isDeleted || latest.syncId != notebook.syncId || latest.passwordRecord() != expected) false
+                else {
+                    notebookDao.update(latest.copy(isProtected = false, passwordHash = null, passwordSalt = null,
+                        updatedAt = System.currentTimeMillis(), dirty = true))
+                    ProtectionSession.lockNotebook(notebook.id)
+                    true
+                }
             }
-            onResult(verified)
+            if (removed) biometrics.revoke(notebook.syncId) {}
+            onResult(removed)
         }
     }
 
     fun lockNotebook(notebook: NotebookEntity) {
+        biometrics.cancel()
         ProtectionSession.lockNotebook(notebook.id)
     }
 
@@ -195,14 +192,24 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Заметки блокнота не удаляются, а переходят в «Все заметки». */
     fun deleteNotebook(notebook: NotebookEntity) {
+        biometrics.cancel()
         viewModelScope.launch {
-            noteDao.clearNotebook(notebook.id)
-            notebookDao.softDelete(notebook.id)
-            if ((_filter.value as? NoteFilter.Notebook)?.id == notebook.id) {
-                _filter.value = NoteFilter.All
+            val removed = db.withTransaction {
+                val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction false
+                if (fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction false
+                noteDao.clearNotebook(fresh.id)
+                notebookDao.softDelete(fresh.id)
+                true
+            }
+            if (removed) {
+                ProtectionSession.lockNotebook(notebook.id)
+                biometrics.revoke(notebook.syncId) {}
+                if ((_filter.value as? NoteFilter.Notebook)?.id == notebook.id) _filter.value = NoteFilter.All
             }
         }
     }
+
+    override fun onCleared() { biometrics.cancel(); super.onCleared() }
 
     private val actions = NoteActions(application, db)
 

@@ -3,6 +3,11 @@ package com.notessync.app.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.notessync.app.security.biometrics.*
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -146,6 +151,15 @@ fun NotesListScreen(
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val photos by viewModel.firstPhotos.collectAsStateWithLifecycle()
     val cardsState = rememberLazyStaggeredGridState()
+    val biometricRequest by viewModel.biometrics.request.collectAsStateWithLifecycle()
+    val biometricBusy by viewModel.biometrics.busy.collectAsStateWithLifecycle()
+    val biometricBindings by viewModel.biometrics.bindings.collectAsStateWithLifecycle()
+    val biometricLifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(viewModel, biometricLifecycle) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) viewModel.biometrics.cancel() }
+        biometricLifecycle.addObserver(observer)
+        onDispose { biometricLifecycle.removeObserver(observer); viewModel.biometrics.cancel() }
+    }
     val lockedTasks by viewModel.lockedTasks.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
@@ -200,6 +214,8 @@ fun NotesListScreen(
     var notebookToDelete by remember { mutableStateOf<NotebookEntity?>(null) }
     var notebookToProtect by remember { mutableStateOf<NotebookEntity?>(null) }
     var notebookToUnlock by remember { mutableStateOf<NotebookEntity?>(null) }
+    var notebookToEnrollBiometric by remember { mutableStateOf<NotebookEntity?>(null) }
+    var biometricPasswordError by remember { mutableStateOf(false) }
     var notebookToUnprotect by remember { mutableStateOf<NotebookEntity?>(null) }
     var taskToUnlock by remember { mutableStateOf<NoteEntity?>(null) }
     var notebookUnlockError by remember { mutableStateOf(false) }
@@ -336,6 +352,8 @@ fun NotesListScreen(
                 }
                 notebooks.forEach { notebook ->
                     var menuOpen by remember(notebook.id) { mutableStateOf(false) }
+                    val biometricTag = remember(notebook) { NotebookBiometricBinding.from(notebook)?.credentialTag }
+                    val biometricEnrolled = biometricTag != null && biometricBindings[notebook.syncId] == biometricTag
                     val unlocked = !notebook.isProtected || notebook.id in protectionState.notebookIds
                     NavigationDrawerItem(
                         label = { Text(notebook.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -382,6 +400,17 @@ fun NotesListScreen(
                                                 }
                                             )
                                         }
+                                        if (unlocked) DropdownMenuItem(
+                                            text = { Text(if (biometricEnrolled) "Выключить биометрию" else "Включить биометрию") },
+                                            onClick = {
+                                                menuOpen = false
+                                                if (biometricEnrolled) {
+                                                    viewModel.biometrics.revoke(notebook.syncId) { success -> scope.launch { snackbarHostState.showSnackbar(if (success) "Биометрия выключена" else "Не удалось выключить биометрию") } }
+                                                } else if (canUseNotebookBiometrics(settingsContext)) {
+                                                    biometricPasswordError = false; notebookToEnrollBiometric = notebook
+                                                } else scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Проверьте отпечаток в настройках телефона.") }
+                                            }
+                                        )
                                         DropdownMenuItem(
                                             text = { Text("Снять защиту") },
                                             leadingIcon = { Icon(Icons.Default.LockOpen, contentDescription = null) },
@@ -653,11 +682,47 @@ fun NotesListScreen(
         )
     }
 
+    notebookToEnrollBiometric?.let { notebook ->
+        UnlockPasswordDialog(title = "Включить биометрию: пароль блокнота", showError = biometricPasswordError,
+            onDismiss = { notebookToEnrollBiometric = null; viewModel.biometrics.cancel() }, busy = biometricBusy,
+            onConfirm = { password -> viewModel.biometrics.prepare(notebook, true, password) { ready ->
+                when (ready) {
+                    NotebookBiometricController.PrepareResult.READY -> notebookToEnrollBiometric = null
+                    NotebookBiometricController.PrepareResult.PASSWORD -> biometricPasswordError = true
+                    else -> {
+                        notebookToEnrollBiometric = null
+                        scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Откройте блокнот паролем и повторите.") }
+                    }
+                }
+            } }
+        )
+    }
+    biometricRequest?.let { request ->
+        NotebookBiometricPrompt(request,
+            onAuthenticated = { cipher -> viewModel.biometrics.authenticate(request, cipher) { accepted ->
+                if (accepted && !request.challenge.enroll) {
+                    notebookToUnlock = null
+                    val book = notebooks.firstOrNull { it.id == request.notebookId }
+                    if (book != null) { viewModel.selectFilter(NoteFilter.Notebook(book.id, book.name)); scope.launch { drawerState.close() } }
+                } else scope.launch { snackbarHostState.showSnackbar(if (accepted) "Биометрия включена" else "Биометрия не подтверждена. Используйте пароль.") }
+            } },
+            onFallback = { viewModel.biometrics.cancelIfPending(request) },
+            onDisposed = { viewModel.biometrics.cancelIfPending(request) })
+    }
+
     notebookToUnlock?.let { notebook ->
+        val biometricTag = remember(notebook) { NotebookBiometricBinding.from(notebook)?.credentialTag }
         UnlockPasswordDialog(
             title = "Открыть «${notebook.name}»",
             showError = notebookUnlockError,
-            onDismiss = { notebookToUnlock = null },
+            busy = biometricBusy,
+            alternative = {
+                if (biometricTag != null && biometricBindings[notebook.syncId] == biometricTag) TextButton(
+                    enabled = !biometricBusy,
+                    onClick = { viewModel.biometrics.prepare(notebook, false) { ready -> if (ready != NotebookBiometricController.PrepareResult.READY) scope.launch { snackbarHostState.showSnackbar("Биометрия недоступна. Введите пароль.") } } }
+                ) { Text("Открыть по биометрии") }
+            },
+            onDismiss = { notebookToUnlock = null; viewModel.biometrics.cancel() },
             onConfirm = { password ->
                 viewModel.unlockNotebook(notebook, password) { unlocked ->
                     if (unlocked) {

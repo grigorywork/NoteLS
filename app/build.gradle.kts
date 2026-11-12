@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 42
-        versionName = "1.10.19"
+        versionCode = 43
+        versionName = "1.10.20"
     }
 
     signingConfigs {
@@ -83,6 +83,8 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment:1.8.5")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("androidx.activity:activity-compose:1.9.3")

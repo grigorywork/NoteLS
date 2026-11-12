@@ -1,8 +1,7 @@
 package com.notessync.app.ui.notes
 
 import android.app.Application
-import android.os.Looper
-import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowSystemClock
 import java.time.Duration
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -47,17 +46,17 @@ class HomeActionsTest {
         }
     }
     private fun awaitCard(id: Long) = compose.waitUntil(10_000) {
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350))
+        ShadowSystemClock.advanceBy(Duration.ofMillis(350))
         compose.waitForIdle(); compose.onAllNodesWithTag("note-card-$id").fetchSemanticsNodes().isNotEmpty()
     }
     private fun trash() {
         compose.onNodeWithContentDescription("Меню").performClick()
         compose.onNodeWithText("Корзина").performClick()
     }
-    @Test fun `home long press selects multiple notes search focuses and trash restores all`() = runBlocking {
+    @Test fun `home long press selects multiple notes search focuses and trash restores all`() {
         val db = AppDatabase.get(app)
-        val first = db.noteDao().upsert(NoteEntity(title = "First", content = "Body"))
-        val second = db.noteDao().upsert(NoteEntity(title = "Second"))
+        val first = runBlocking { db.noteDao().upsert(NoteEntity(title = "First", content = "Body")) }
+        val second = runBlocking { db.noteDao().upsert(NoteEntity(title = "Second")) }
         start(); awaitCard(first)
         compose.onNodeWithContentDescription("Поиск заметок").performClick()
         compose.onNode(hasSetTextAction()).assertIsFocused()
@@ -67,33 +66,33 @@ class HomeActionsTest {
         compose.onNodeWithText("Выбрано: 2").assertIsDisplayed()
         compose.onNodeWithContentDescription("В корзину").performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithTag("note-card-$first").fetchSemanticsNodes().isEmpty() }
-        assertTrue(db.noteDao().getById(first)!!.isDeleted); assertTrue(db.noteDao().getById(second)!!.isDeleted)
+        runBlocking { assertTrue(db.noteDao().getById(first)!!.isDeleted); assertTrue(db.noteDao().getById(second)!!.isDeleted) }
         trash(); awaitCard(first)
         compose.onNodeWithText("Восстановить все").performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithTag("note-card-$first").fetchSemanticsNodes().isEmpty() }
-        assertFalse(db.noteDao().getById(first)!!.isDeleted); assertFalse(db.noteDao().getById(second)!!.isDeleted)
+        runBlocking { assertFalse(db.noteDao().getById(first)!!.isDeleted); assertFalse(db.noteDao().getById(second)!!.isDeleted) }
     }
-    @Test fun `trash selected permanent deletion requires confirmation and grid keeps pin actions`() = runBlocking {
+    @Test fun `trash selected permanent deletion requires confirmation and grid keeps pin actions`() {
         val db = AppDatabase.get(app)
-        val first = db.noteDao().upsert(NoteEntity(title = "Pinned"))
-        val second = db.noteDao().upsert(NoteEntity(title = "Discard", isDeleted = true))
+        val first = runBlocking { db.noteDao().upsert(NoteEntity(title = "Pinned")) }
+        val second = runBlocking { db.noteDao().upsert(NoteEntity(title = "Discard", isDeleted = true)) }
         SettingsRepository.get(app).setNotesLayout(NotesLayout.GRID)
         start(); awaitCard(first)
         compose.onNode(hasContentDescription("Действия") and hasAnyAncestor(hasTestTag("note-card-$first"))).performClick()
         compose.onNodeWithText("Закрепить").performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithContentDescription("Закреплено", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
-        assertTrue(db.noteDao().getById(first)!!.isPinned)
+        runBlocking { assertTrue(db.noteDao().getById(first)!!.isPinned) }
         trash(); awaitCard(second)
         compose.onNodeWithTag("note-card-$second").performClick()
         compose.onNodeWithContentDescription("Удалить выбранные навсегда").performClick()
         compose.onNodeWithText("Удалить навсегда?").assertIsDisplayed()
-        assertFalse(db.noteDao().getById(second)!!.isPurged)
+        runBlocking { assertFalse(db.noteDao().getById(second)!!.isPurged) }
         compose.onNodeWithText("Отмена").performClick()
-        assertFalse(db.noteDao().getById(second)!!.isPurged)
+        runBlocking { assertFalse(db.noteDao().getById(second)!!.isPurged) }
         compose.onNodeWithContentDescription("Удалить выбранные навсегда").performClick()
         compose.onNodeWithText("Удалить навсегда").performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithTag("note-card-$second").fetchSemanticsNodes().isEmpty() }
-        assertTrue(db.noteDao().getById(second)!!.isPurged)
-        assertFalse(db.noteDao().getById(first)!!.isDeleted)
+        runBlocking { assertTrue(db.noteDao().getById(second)!!.isPurged) }
+        runBlocking { assertFalse(db.noteDao().getById(first)!!.isDeleted) }
     }
 }
