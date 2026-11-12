@@ -53,13 +53,16 @@ data class NoteDto(
     val taskTimerStartedAt: Long? = null,
     // Аудит 2026-11-11: обратный отсчёт и дата выполнения тоже синхронизируются.
     // Поля с значениями по умолчанию: старые сборки игнорируют их (ignoreUnknownKeys),
-    // новые читают данные старых как «таймера нет» — протокол остаётся версии 1.
+    // новые читают данные старых как «таймера нет». Протокол2 обязателен для безопасного окончательного удаления.
     val taskCountdownMillis: Long = 0L,
     val taskCountdownEndAt: Long? = null,
     val taskCompletedAt: Long? = null,
     val isProtected: Boolean = false,
     val passwordHash: String? = null,
-    val passwordSalt: String? = null
+    val passwordSalt: String? = null,
+    val pinned: Boolean? = null,
+    val purged: Boolean? = null,
+    val noteColor: String? = null
 )
 
 // Пакет изменений: блокноты + заметки (теги едут внутри заметок по именам).
@@ -111,7 +114,7 @@ sealed interface SyncMessage {
     data class Error(val message: String) : SyncMessage
 
     companion object {
-        const val PROTOCOL_VERSION = 1
+        const val PROTOCOL_VERSION = 2
 
         val json: Json = Json {
             ignoreUnknownKeys = true

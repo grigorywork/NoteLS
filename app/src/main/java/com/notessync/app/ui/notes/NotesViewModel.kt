@@ -1,6 +1,8 @@
 package com.notessync.app.ui.notes
 
 import android.app.Application
+import androidx.room.withTransaction
+import com.notessync.app.notes.actions.NoteActions
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -35,6 +37,7 @@ import kotlinx.coroutines.withContext
 enum class NoteSort { BY_DATE, BY_NAME }
 
 sealed interface NoteFilter {
+    data object Trash : NoteFilter
     data object All : NoteFilter
     data object Tasks : NoteFilter
     data object Favorites : NoteFilter
@@ -97,10 +100,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(0), emptyMap())
 
-    val lockedTasks: StateFlow<List<NoteEntity>> = ProtectionSession.state
-        .flatMapLatest { protection ->
+    val lockedTasks: StateFlow<List<NoteEntity>> = combine(ProtectionSession.state, _filter) { protection, filter -> protection to filter }
+        .flatMapLatest { (protection, filter) ->
             noteDao.rawQuery(
-                buildLockedTasksQuery(protection.notebookIds, protection.taskSyncIds)
+                buildLockedTasksQuery(protection.notebookIds, protection.taskSyncIds, filter == NoteFilter.Trash)
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -201,42 +204,37 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun delete(note: NoteEntity) {
-        noteDao.softDelete(note.id)
-        if (note.dayKey != null) CalendarWidgetProvider.refreshAll(getApplication())
-    }
+    private val actions = NoteActions(application, db)
 
-    suspend fun restore(noteId: Long) {
-        noteDao.restore(noteId)
-        CalendarWidgetProvider.refreshAll(getApplication())
-    }
+    suspend fun delete(note: NoteEntity): Int = actions.apply(setOf(note.id), NoteActions.Action.TRASH)
+    suspend fun restore(noteId: Long) { actions.apply(setOf(noteId), NoteActions.Action.RESTORE) }
+    suspend fun applyAction(ids: Set<Long>?, action: NoteActions.Action): Int = actions.apply(ids, action)
 
     fun toggleCompleted(note: NoteEntity) {
-        if (!note.isTask) return
-        val updated = TaskCompletion.toggle(note)
         viewModelScope.launch {
-            noteDao.update(updated)
-            if (updated.isCompleted) {
-                ReminderScheduler.cancel(getApplication(), note.id)
-                ReminderScheduler.cancelTimer(getApplication(), note.id)
+            db.withTransaction {
+                val fresh = noteDao.getById(note.id) ?: return@withTransaction
+                if (!fresh.isTask || fresh.isDeleted || !actions.canAccess(fresh)) return@withTransaction
+                val updated = TaskCompletion.toggle(fresh)
+                noteDao.update(updated)
+                if (updated.isCompleted) {
+                    ReminderScheduler.cancel(getApplication(), note.id)
+                    ReminderScheduler.cancelTimer(getApplication(), note.id)
+                }
             }
             CalendarWidgetProvider.refreshAll(getApplication())
         }
     }
 
     fun toggleTaskTimer(note: NoteEntity) {
-        if (!note.isTask || (note.isCompleted && note.taskTimerStartedAt == null)) return
-        val now = System.currentTimeMillis()
-        val timer = TaskTimer.toggle(note.taskElapsedMillis, note.taskTimerStartedAt, now)
         viewModelScope.launch {
-            noteDao.update(
-                note.copy(
-                    taskElapsedMillis = timer.elapsedMillis,
-                    taskTimerStartedAt = timer.startedAt,
-                    updatedAt = now,
-                    dirty = true
-                )
-            )
+            db.withTransaction {
+                val fresh = noteDao.getById(note.id) ?: return@withTransaction
+                if (!fresh.isTask || fresh.isDeleted || !actions.canAccess(fresh) || (fresh.isCompleted && fresh.taskTimerStartedAt == null)) return@withTransaction
+                val now = System.currentTimeMillis()
+                val timer = TaskTimer.toggle(fresh.taskElapsedMillis, fresh.taskTimerStartedAt, now)
+                noteDao.update(fresh.copy(taskElapsedMillis = timer.elapsedMillis, taskTimerStartedAt = timer.startedAt, updatedAt = now, dirty = true))
+            }
         }
     }
 
@@ -247,10 +245,11 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
         fun buildLockedTasksQuery(
             unlockedNotebookIds: Set<Long> = emptySet(),
-            unlockedTaskIds: Set<String> = emptySet()
+            unlockedTaskIds: Set<String> = emptySet(),
+            trash: Boolean = false
         ): SupportSQLiteQuery {
             val sql = StringBuilder(
-                "SELECT notes.* FROM notes WHERE notes.isDeleted = 0" +
+                "SELECT notes.* FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (trash) 1 else 0}" +
                     " AND notes.isTask = 1 AND notes.isProtected = 1"
             )
             val args = mutableListOf<Any>()
@@ -278,10 +277,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             unlockedNotebookIds: Set<Long> = emptySet(),
             unlockedTaskIds: Set<String> = emptySet()
         ): SupportSQLiteQuery {
-            val sql = StringBuilder("SELECT notes.* FROM notes WHERE notes.isDeleted = 0")
+            val sql = StringBuilder("SELECT notes.* FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (filter == NoteFilter.Trash) 1 else 0}")
             val args = mutableListOf<Any>()
             when (filter) {
-                NoteFilter.All -> Unit
+                NoteFilter.All, NoteFilter.Trash -> Unit
                 NoteFilter.Tasks -> sql.append(" AND notes.isTask = 1")
                 NoteFilter.Favorites -> sql.append(" AND notes.isFavorite = 1")
                 is NoteFilter.Notebook -> {
@@ -323,8 +322,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 args.add(escaped)
             }
             sql.append(
-                if (sort == NoteSort.BY_DATE) " ORDER BY notes.updatedAt DESC"
-                else " ORDER BY notes.title COLLATE NOCASE ASC"
+                if (sort == NoteSort.BY_DATE) " ORDER BY notes.isPinned DESC, notes.updatedAt DESC"
+                else " ORDER BY notes.isPinned DESC, notes.title COLLATE NOCASE ASC"
             )
             return SimpleSQLiteQuery(sql.toString(), args.toTypedArray())
         }

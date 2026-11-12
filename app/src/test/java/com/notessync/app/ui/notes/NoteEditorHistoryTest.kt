@@ -56,6 +56,23 @@ class NoteEditorHistoryTest {
         vm.onContentChange(TextFieldValue(value, TextRange(start, end)))
     }
 
+    @Test fun `editor preserves fresh pin and cannot autosave a trashed or purged note`() = runTest(dispatcher) {
+        text("Original"); vm.saveNow()
+        val db = AppDatabase.get(app); val id = vm.currentNoteId
+        val actions = com.notessync.app.notes.actions.NoteActions(app, db)
+        actions.apply(setOf(id), com.notessync.app.notes.actions.NoteActions.Action.PIN)
+        text("Latest"); vm.chooseTaskColor("mint"); vm.saveNow()
+        assertTrue(db.noteDao().getById(id)!!.isPinned)
+        assertEquals("mint", db.noteDao().getById(id)!!.noteColor)
+        actions.apply(setOf(id), com.notessync.app.notes.actions.NoteActions.Action.TRASH)
+        text("Late autosave"); vm.saveNow(force = true)
+        assertTrue(db.noteDao().getById(id)!!.isDeleted)
+        assertEquals("Latest", db.noteDao().getById(id)!!.content)
+        actions.apply(setOf(id), com.notessync.app.notes.actions.NoteActions.Action.PURGE)
+        vm.saveNow(force = true)
+        assertTrue(db.noteDao().getById(id)!!.isPurged); assertEquals("", db.noteDao().getById(id)!!.content)
+    }
+
     @Test fun `photo size save and note save preserve bytes and reject stale ownership`() = runTest(dispatcher) {
         text("Photo note"); vm.saveNow()
         val db = AppDatabase.get(app)

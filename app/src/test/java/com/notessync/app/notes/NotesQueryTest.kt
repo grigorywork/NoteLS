@@ -13,10 +13,11 @@ class NotesQueryTest {
     @Test
     fun `все заметки по дате`() {
         val q = NotesViewModel.buildQuery("", NoteFilter.All, NoteSort.BY_DATE)
-        assertTrue(q.sql.startsWith("SELECT notes.* FROM notes WHERE notes.isDeleted = 0"))
+        assertTrue(q.sql.contains("notes.isDeleted = 0"))
+        assertTrue(q.sql.contains("notes.isPurged = 0"))
         assertTrue(q.sql.contains("notes.isProtected = 0"))
         assertTrue(q.sql.contains("notebooks WHERE isProtected = 1"))
-        assertTrue(q.sql.contains("ORDER BY notes.updatedAt DESC"))
+        assertTrue(q.sql.contains("ORDER BY notes.isPinned DESC, notes.updatedAt DESC"))
         assertEquals(0, q.argCount)
     }
 
@@ -46,7 +47,7 @@ class NotesQueryTest {
     fun `избранное по имени`() {
         val q = NotesViewModel.buildQuery("", NoteFilter.Favorites, NoteSort.BY_NAME)
         assertTrue(q.sql.contains("notes.isFavorite = 1"))
-        assertTrue(q.sql.contains("ORDER BY notes.title COLLATE NOCASE ASC"))
+        assertTrue(q.sql.contains("ORDER BY notes.isPinned DESC, notes.title COLLATE NOCASE ASC"))
     }
 
     @Test

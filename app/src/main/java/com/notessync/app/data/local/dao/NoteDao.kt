@@ -24,6 +24,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: Long): NoteEntity?
 
+    @Query("SELECT * FROM notes WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<Long>): List<NoteEntity>
+
     @Query("SELECT * FROM notes WHERE syncId = :syncId")
     suspend fun getBySyncId(syncId: String): NoteEntity?
 
@@ -41,11 +44,20 @@ interface NoteDao {
     suspend fun clearFailedReminder(id: Long, expected: Long, timestamp: Long = System.currentTimeMillis()): Int
 
     // Мягкое удаление: запись помечается, чтобы удаление могло синхронизироваться (Этап 5).
-    @Query("UPDATE notes SET isDeleted = 1, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
+    @Query("UPDATE notes SET isDeleted = 1, taskElapsedMillis = MAX(0, taskElapsedMillis) + CASE WHEN taskTimerStartedAt IS NULL THEN 0 ELSE MAX(0, :timestamp - taskTimerStartedAt) END, taskTimerStartedAt = NULL, taskCountdownMillis = CASE WHEN taskCountdownEndAt IS NULL THEN taskCountdownMillis ELSE MAX(0, taskCountdownEndAt - :timestamp) END, taskCountdownEndAt = NULL, updatedAt = :timestamp, dirty = 1 WHERE id = :id AND isPurged = 0")
     suspend fun softDelete(id: Long, timestamp: Long = System.currentTimeMillis())
 
+    @Query("SELECT * FROM notes WHERE isDeleted = 1 AND isPurged = 0 AND id > :afterId ORDER BY id LIMIT 400")
+    suspend fun getTrashBatch(afterId: Long): List<NoteEntity>
+
+    @Query("SELECT * FROM notes WHERE isDeleted = 1 AND isPurged = 0")
+    suspend fun getTrash(): List<NoteEntity>
+
+    @Query("UPDATE notes SET dirty = 0 WHERE syncId = :syncId AND updatedAt = :timestamp")
+    suspend fun markVersionSynced(syncId: String, timestamp: Long)
+
     // Отмена удаления (Snackbar «Отменить», Этап 1).
-    @Query("UPDATE notes SET isDeleted = 0, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
+    @Query("UPDATE notes SET isDeleted = 0, updatedAt = :timestamp, dirty = 1 WHERE id = :id AND isPurged = 0")
     suspend fun restore(id: Long, timestamp: Long = System.currentTimeMillis())
 
     // Аудит 2026-11-11: вызывающий код обязан экранировать %, _ и \ в запросе

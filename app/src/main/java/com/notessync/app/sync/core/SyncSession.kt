@@ -102,7 +102,7 @@ class SyncSession(
         when (val msg = readMessage()) {
             is SyncMessage.Hello -> {
                 if (msg.protocol != SyncMessage.PROTOCOL_VERSION) {
-                    throw SyncException("Несовместимая версия протокола: ${msg.protocol}")
+                    throw SyncException("Обновите NoteLS на обоих устройствах (протокол ${msg.protocol})")
                 }
                 peerName = msg.deviceName
             }

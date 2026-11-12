@@ -35,6 +35,9 @@ interface AttachmentDao {
     @Query("UPDATE attachments SET displayWidthDp = :width, displayHeightDp = :height WHERE id = :id AND noteId = :noteId")
     suspend fun updateDisplaySize(id: Long, noteId: Long, width: Int, height: Int): Int
 
+    @Query("SELECT filePath FROM attachments")
+    suspend fun getFilePaths(): List<String>
+
     @Query("DELETE FROM attachments WHERE noteId = :noteId")
     suspend fun deleteByNoteId(noteId: Long)
 

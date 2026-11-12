@@ -1,6 +1,7 @@
 package com.notessync.app.ui.notes
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -31,31 +32,35 @@ import com.notessync.app.ui.notes.photos.rememberPhotoBitmap
 import com.notessync.app.ui.tasks.*
 import com.notessync.app.ui.theme.*
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriority: Boolean,
-    onClick: () -> Unit, onDelete: () -> Unit, onToggleCompleted: () -> Unit, onToggleTimer: () -> Unit
+    onClick: () -> Unit, onDelete: () -> Unit, onToggleCompleted: () -> Unit, onToggleTimer: () -> Unit,
+    onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true
 ) {
-    val accent = taskColorOption(note.taskColor).accent
+    val accent = noteAccent(note)
     val glass = LocalGlassTheme.current
     val completed = taskColorOption(note.taskColor).completedContainer
     val colors = if (note.isTask && note.isCompleted) CardDefaults.cardColors(
         containerColor = if (glass.enabled) completed.copy(alpha = .55f) else completed,
         contentColor = androidx.compose.ui.graphics.Color(0xFF1D1B20)
-    ) else CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    ) else CardDefaults.cardColors(containerColor = noteCardContainer(note),
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
-    Card(onClick = onClick, colors = colors, shape = if (glass.enabled) GlassPanelShape else MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth().testTag("note-card-${note.id}").glassBorder()) {
+    Card(colors = colors, shape = if (glass.enabled) GlassPanelShape else MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth().testTag("note-card-${note.id}").combinedClickable(onClick = onClick, onLongClick = onSelect).glassBorder()) {
         Column(Modifier.padding(8.dp)) {
+            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = "Выбрать: " + notePreviewText(note.title, 128) })
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(notePreviewText(note.title, 256).ifBlank { "Без названия" }, Modifier.weight(1f), maxLines = 3,
                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium,
-                    color = if (note.isTask && !note.isCompleted) accent else LocalContentColor.current)
-                GridCardMenu(onDelete)
+                    color = accent)
+                NoteCardMenu(note, onDelete, onSelect, onPin, onRestore)
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (showPriority && note.isTask && note.taskPriority != 0) Icon(Icons.Default.Flag,
                     TaskPriority.from(note.taskPriority).label, tint = priorityColor(note.taskPriority), modifier = Modifier.size(18.dp))
+                if (note.isPinned) Icon(Icons.Default.PushPin, "Закреплено", modifier = Modifier.size(18.dp))
                 if (note.isFavorite) Icon(Icons.Default.Star, "Избранное", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 if (note.isProtected) Icon(Icons.Default.Lock, "Защищено паролем", modifier = Modifier.size(18.dp))
                 if (note.tablesData.isNotEmpty()) Text("Таблица", style = MaterialTheme.typography.labelSmall)
@@ -66,7 +71,7 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
                 style = MaterialTheme.typography.bodyMedium, maxLines = 8, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(vertical = 4.dp))
             if (note.isTask) {
-                Row {
+                if (!selecting && !note.isDeleted) Row {
                     Checkbox(note.isCompleted, { onToggleCompleted() },
                         modifier = Modifier.semantics { contentDescription = (if (note.isCompleted) "Снять выполнение: " else "Выполнить задачу: ") + notePreviewText(note.title, 128).ifBlank { "Без названия" } },
                         colors = CheckboxDefaults.colors(checkedColor = accent, uncheckedColor = accent))
@@ -75,9 +80,9 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
                             if (note.taskTimerStartedAt != null) "Поставить таймер на паузу" else "Запустить таймер")
                     }
                 }
-                TaskTimerIndicator(note.taskElapsedMillis, note.taskTimerStartedAt)
+                TaskTimerIndicator(note.taskElapsedMillis, note.taskTimerStartedAt, contentColor = accent, animateIcon = true, active = active)
                 if (note.taskCountdownMillis > 0 || note.taskCountdownEndAt != null)
-                    CountdownIndicator(note.taskCountdownMillis, note.taskCountdownEndAt, animateIcon = false)
+                    CountdownIndicator(note.taskCountdownMillis, note.taskCountdownEndAt, animateIcon = true, contentColor = accent, active = active)
             }
             Text(formatDateTime(note.updatedAt), style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp))
@@ -101,18 +106,6 @@ internal fun NotePhotoPreview(photo: AttachmentEntity, maxHeight: Int) {
                 modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
             PhotoBitmapState.Loading -> Icon(Icons.Default.Image, "Подготовка фото")
             PhotoBitmapState.Unavailable -> Icon(Icons.Default.BrokenImage, "Фото недоступно")
-        }
-    }
-}
-
-@Composable
-private fun GridCardMenu(onDelete: () -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.Default.MoreVert, "Действия") }
-        DropdownMenu(open, { open = false }) {
-            DropdownMenuItem(text = { Text("Удалить") }, leadingIcon = { Icon(Icons.Default.Delete, null) },
-                onClick = { open = false; onDelete() })
         }
     }
 }

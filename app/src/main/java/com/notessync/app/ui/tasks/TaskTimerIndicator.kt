@@ -5,6 +5,10 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -30,35 +34,42 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 
-/**
- * Секундомер. Этап 35: значок СТАТИЧНЫЙ (ничего не крутится) —
- * движение только у песочных часов обратного отсчёта.
- */
+/** Visible running stopwatch; epoch timestamps remain independent of UI refresh. */
 @Composable
 fun TaskTimerIndicator(
     elapsedMillis: Long,
     startedAt: Long?,
     modifier: Modifier = Modifier,
-    contentColor: Color = Color.Unspecified
+    contentColor: Color = Color.Unspecified,
+    animateIcon: Boolean = false,
+    active: Boolean = true
 ) {
     var now by remember(startedAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = startedAt != null
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(startedAt, lifecycle) {
-        if (startedAt != null) lifecycle.runVisibleClock({ true }) {
+    LaunchedEffect(startedAt, lifecycle, active) {
+        if (startedAt != null && active) lifecycle.runVisibleClock({ true }) {
             now = System.currentTimeMillis()
         }
     }
+    val lifecycleState by lifecycle.currentStateAsState()
+    val motion = animateIcon && active && running && lifecycleState.isAtLeast(Lifecycle.State.STARTED) && android.animation.ValueAnimator.areAnimatorsEnabled()
+    val angle = if (motion) {
+        val transition = rememberInfiniteTransition(label = "stopwatch")
+        transition.animateFloat(0f, 360f,
+            infiniteRepeatable(tween(60_000, easing = LinearEasing)), label = "stopwatch-hand")
+    } else remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val color = if (contentColor == Color.Unspecified) LocalContentColor.current else contentColor
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.Schedule,
             contentDescription = if (running) "Секундомер работает" else "Секундомер на паузе",
-            tint = color
+            tint = color,
+            modifier = Modifier.graphicsLayer { rotationZ = angle.value }
         )
         Text(
             text = TaskTimer.format(TaskTimer.elapsedAt(elapsedMillis, startedAt, now)),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
             color = color,
             modifier = Modifier.padding(start = 6.dp)
         )
@@ -77,18 +88,19 @@ fun CountdownIndicator(
     endAt: Long?,
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Unspecified,
-    animateIcon: Boolean = true
+    animateIcon: Boolean = true,
+    active: Boolean = true
 ) {
     var now by remember(endAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = endAt != null
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     // Cards need one-second text updates, not a frame-by-frame animation observer.
-    val canAnimate = if (animateIcon) {
+    val canAnimate = if (animateIcon && active && android.animation.ValueAnimator.areAnimatorsEnabled()) {
         val lifecycleState by lifecycle.currentStateAsState()
         lifecycleState.isAtLeast(Lifecycle.State.STARTED)
     } else false
-    LaunchedEffect(endAt, lifecycle) {
-        if (endAt != null) lifecycle.runVisibleClock(
+    LaunchedEffect(endAt, lifecycle, active) {
+        if (endAt != null && active) lifecycle.runVisibleClock(
             keepTicking = { !TaskTimer.countdownFinished(countdownMillis, endAt, now) }
         ) { now = System.currentTimeMillis() }
     }
@@ -96,7 +108,7 @@ fun CountdownIndicator(
     val finished = TaskTimer.countdownFinished(countdownMillis, endAt, now)
     val rotation = if (canAnimate && running && !finished) {
         val transition = rememberInfiniteTransition(label = "countdownRotation")
-        val angle by transition.animateFloat(
+        transition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
@@ -112,9 +124,8 @@ fun CountdownIndicator(
             ),
             label = "countdownAngle"
         )
-        angle
     } else {
-        0f
+        remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     }
     val color = when {
         finished -> MaterialTheme.colorScheme.error
@@ -130,11 +141,11 @@ fun CountdownIndicator(
                 else -> "Таймер на паузе"
             },
             tint = color,
-            modifier = if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation } else Modifier
+            modifier = if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation.value } else Modifier
         )
         Text(
             text = if (finished) "Время вышло" else TaskTimer.format(remaining),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
             color = color,
             modifier = Modifier.padding(start = 6.dp)
         )

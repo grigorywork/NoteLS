@@ -1,6 +1,9 @@
 package com.notessync.app.sync.android
 
 import android.content.Context
+import androidx.room.withTransaction
+import com.notessync.app.notes.actions.NoteActions
+import com.notessync.app.reminders.ReminderScheduler
 import com.notessync.app.notes.photos.PhotoDisplaySize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -42,7 +45,7 @@ class RoomSyncDataSource(
         }
     }
 
-    override suspend fun getChangesSince(since: Long): ChangeSet {
+    override suspend fun getChangesSince(since: Long): ChangeSet = db.withTransaction {
         val notebooks = db.notebookDao().getChangedSince(since).map { it.toDto() }
         val notes = db.noteDao().getChangedSince(since).map { note ->
             // notebookId локальный — в обмен уходит глобальный syncId блокнота.
@@ -50,10 +53,10 @@ class RoomSyncDataSource(
             val attachments = db.attachmentDao().getByNoteId(note.id).mapNotNull { it.toDto(note.syncId) }
             note.toDto(notebookSyncId, db.tagDao().getTagNamesForNote(note.id), attachments)
         }
-        return ChangeSet(notebooks = notebooks, notes = notes)
+        ChangeSet(notebooks = notebooks, notes = notes)
     }
 
-    override suspend fun applyChanges(changes: ChangeSet): ApplyStats {
+    override suspend fun applyChanges(changes: ChangeSet): ApplyStats = withContext(NonCancellable) {
         var appliedNotebooks = 0
         var appliedNotes = 0
         var conflicts = 0
@@ -79,17 +82,18 @@ class RoomSyncDataSource(
             }
         }
 
-        for (dto in changes.notes) {
+        val discardedFiles = mutableListOf<String>()
+        for (dto in changes.notes) db.withTransaction {
             val local = db.noteDao().getBySyncId(dto.syncId)
             val resolution = ConflictResolver.resolve(local?.toDto(null, emptyList(), emptyList()), dto, local?.dirty ?: false)
             when (resolution) {
                 is ConflictResolver.Resolution.ApplyRemote -> {
-                    applyNote(dto, local)
+                    applyNote(dto, local, discardedFiles)
                     appliedNotes++
                 }
                 is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
-                    applyNote(dto, local)
-                    applyNote(resolution.conflictCopy, existing = null)
+                    applyNote(dto, local, discardedFiles)
+                    applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles)
                     appliedNotes++
                     conflicts++
                 }
@@ -97,14 +101,17 @@ class RoomSyncDataSource(
             }
         }
 
+        withContext(NonCancellable) { runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } } }
         val missing = changes.notes
+            .filter { db.noteDao().getBySyncId(it.syncId)?.isPurged == false }
             .flatMap { it.attachments }
+            .filter { db.attachmentDao().getBySyncId(it.syncId)?.let { row -> db.noteDao().getById(row.noteId)?.syncId == it.noteSyncId } == true }
             .filter { !hasAttachmentBytes(it.syncId) }
-        return ApplyStats(appliedNotes, appliedNotebooks, conflicts, missing)
+        ApplyStats(appliedNotes, appliedNotebooks, conflicts, missing)
     }
 
-    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?) {
-        val entity = NoteEntity(
+    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>) {
+        val rawEntity = NoteEntity(
             id = existing?.id ?: 0,
             syncId = dto.syncId,
             title = dto.title,
@@ -114,6 +121,9 @@ class RoomSyncDataSource(
             notebookId = dto.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.id },
             isFavorite = dto.favorite,
             isDeleted = dto.deleted,
+            isPinned = dto.pinned ?: existing?.isPinned ?: false,
+            isPurged = dto.purged == true,
+            noteColor = dto.noteColor ?: existing?.noteColor.orEmpty(),
             createdAt = dto.createdAt,
             reminderAt = dto.reminderAt,
             dayKey = dto.dayKey,
@@ -132,6 +142,11 @@ class RoomSyncDataSource(
             updatedAt = dto.updatedAt,
             dirty = false
         )
+        val entity = when {
+            dto.purged == true -> NoteActions.tombstone(rawEntity, dto.updatedAt).copy(dirty = false)
+            dto.deleted -> NoteActions.paused(rawEntity, System.currentTimeMillis())
+            else -> rawEntity
+        }
         val localId = if (existing == null) {
             db.noteDao().upsert(entity)
         } else {
@@ -142,7 +157,8 @@ class RoomSyncDataSource(
 
         val previousAttachments = db.attachmentDao().getByNoteId(localId).associateBy { it.syncId }
         db.attachmentDao().deleteByNoteId(localId)
-        for (meta in dto.attachments) {
+        if (entity.isPurged) discardedFiles.addAll(previousAttachments.values.map { it.filePath })
+        for (meta in if (entity.isPurged) emptyList() else dto.attachments) {
             // Вложения с небезопасным идентификатором пропускаем (см. attachmentFile).
             if (!SAFE_ATTACHMENT_ID.matches(meta.syncId)) continue
             val old = previousAttachments[meta.syncId]
@@ -164,7 +180,11 @@ class RoomSyncDataSource(
         }
 
         db.tagDao().detachAllFromNote(localId)
-        for (name in dto.tagNames) {
+        if (entity.isDeleted || entity.isCompleted) {
+            ReminderScheduler.cancel(context, localId)
+            ReminderScheduler.cancelTimer(context, localId)
+        }
+        for (name in if (entity.isPurged) emptyList() else dto.tagNames) {
             val tag = db.tagDao().getByName(name) ?: TagEntity(name = name, dirty = false)
                 .also { db.tagDao().insert(it) }
             db.tagDao().attachToNote(NoteTagCrossRef(noteId = localId, tagId = tag.id))
@@ -185,13 +205,19 @@ class RoomSyncDataSource(
 
     override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {
         require(SAFE_ATTACHMENT_ID.matches(meta.syncId)) { "Некорректный syncId вложения" }
-        val file = db.attachmentDao().getBySyncId(meta.syncId)?.let { File(it.filePath) } ?: attachmentFile(meta.syncId)
-        PhotoFileWriter(FrameTransport.MAX_FRAME_BYTES.toLong()).write(data.inputStream(), file)
-        db.attachmentDao().updateFile(meta.syncId, file.absolutePath, data.size.toLong())
+        db.withTransaction {
+            val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withTransaction
+            if (parent.isPurged) return@withTransaction
+            val row = db.attachmentDao().getBySyncId(meta.syncId)
+            if (row != null && row.noteId != parent.id) return@withTransaction
+            val file = row?.let { File(it.filePath) } ?: attachmentFile(meta.syncId)
+            PhotoFileWriter(FrameTransport.MAX_FRAME_BYTES.toLong()).write(data.inputStream(), file)
+            db.attachmentDao().updateFile(meta.syncId, file.absolutePath, data.size.toLong())
+        }
     }
 
     override suspend fun markSynced(changeSet: ChangeSet) {
-        db.noteDao().markSyncedBySyncId(changeSet.notes.map { it.syncId })
+        changeSet.notes.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) }
         db.notebookDao().markSyncedBySyncId(changeSet.notebooks.map { it.syncId })
     }
 
@@ -223,6 +249,7 @@ class RoomSyncDataSource(
         textFormat = textFormat,
         tablesData = tablesData,
         favorite = isFavorite,
+        pinned = isPinned, purged = isPurged, noteColor = noteColor,
         deleted = isDeleted,
         createdAt = createdAt,
         updatedAt = updatedAt,

@@ -143,6 +143,8 @@ class NoteEditorViewModel(
     var isFavorite by mutableStateOf(false)
     var isTask by mutableStateOf(savedState.get<Boolean>("isTask") ?: false)
     var isCompleted by mutableStateOf(false)
+    var noteColor by mutableStateOf("")
+        private set
     var taskColor by mutableStateOf(DEFAULT_TASK_COLOR)
     var taskElapsedMillis by mutableLongStateOf(0L)
     var taskTimerStartedAt by mutableStateOf<Long?>(null)
@@ -194,7 +196,7 @@ class NoteEditorViewModel(
                         it.isProtected && !ProtectionSession.isUnlocked(it)
                     } == true
                     val noteLocked = note.isProtected && !ProtectionSession.isUnlocked(note)
-                    if (notebookLocked || noteLocked) {
+                    if (note.isDeleted || notebookLocked || noteLocked) {
                         accessDenied = true
                         return@launch
                     }
@@ -207,6 +209,7 @@ class NoteEditorViewModel(
                     isFavorite = note.isFavorite
                     isTask = note.isTask
                     isCompleted = note.isCompleted
+                    noteColor = note.noteColor
                     taskColor = note.taskColor
                     taskElapsedMillis = note.taskElapsedMillis
                     taskTimerStartedAt = note.taskTimerStartedAt
@@ -235,7 +238,7 @@ class NoteEditorViewModel(
             snapshotFlow {
                 AutosaveKey(
                     title, contentField.text, formatting, tables, taskPriority, isFavorite, reminderAt,
-                    isTask, isCompleted, taskColor, taskElapsedMillis, taskTimerStartedAt,
+                    isTask, isCompleted, taskColor, noteColor, taskElapsedMillis, taskTimerStartedAt,
                     taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, isProtected
                 )
             }
@@ -262,6 +265,7 @@ class NoteEditorViewModel(
         val isTask: Boolean,
         val isCompleted: Boolean,
         val taskColor: String,
+        val noteColor: String,
         val taskElapsedMillis: Long,
         val taskTimerStartedAt: Long?,
         val taskCountdownMillis: Long,
@@ -299,6 +303,7 @@ class NoteEditorViewModel(
             isTask = isTask,
             isCompleted = isCompleted,
             taskColor = taskColor,
+            noteColor = noteColor,
             taskElapsedMillis = taskElapsedMillis,
             taskTimerStartedAt = taskTimerStartedAt,
             taskCountdownMillis = taskCountdownMillis,
@@ -311,22 +316,25 @@ class NoteEditorViewModel(
             dirty = true
         )
         val encodedTables = withContext(Dispatchers.Default) { tablesSnapshot?.encode() ?: unknownSnapshot }
-        val note = baseNote.copy(tablesData = encodedTables)
-        // Opening/closing an unchanged note must not write the DB or produce another ZIP.
-        val previous = lastSavedNote
-        if (previous != null && note.copy(updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return
-        if (exists) {
-            noteDao.update(note)
-        } else {
-            val newId = noteDao.upsert(note)
-            currentNoteId = newId
-            createdHere = true
-            savedState["noteId"] = newId
-            savedState["createdHere"] = true
-            _noteIdFlow.value = newId
+        val didWrite = db.withTransaction {
+            val fresh = if (exists) noteDao.getById(currentNoteId) else null
+            if (exists && (fresh == null || fresh.isDeleted)) { deleted = true; return@withTransaction false }
+            val note = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
+            val previous = lastSavedNote
+            if (previous != null && note.copy(isPinned = previous.isPinned, updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return@withTransaction false
+            if (exists) noteDao.update(note) else {
+                val newId = noteDao.upsert(note)
+                currentNoteId = newId
+                createdHere = true
+                savedState["noteId"] = newId
+                savedState["createdHere"] = true
+                _noteIdFlow.value = newId
+            }
+            createdAt = note.createdAt
+            lastSavedNote = note.copy(id = currentNoteId)
+            true
         }
-        createdAt = note.createdAt
-        lastSavedNote = note.copy(id = currentNoteId)
+        if (!didWrite) return
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
         BackupManager.noteChanged()
     }
@@ -644,7 +652,7 @@ class NoteEditorViewModel(
     }
 
     fun chooseTaskColor(color: String) {
-        taskColor = color
+        if (isTask) taskColor = color else noteColor = color
     }
 
     fun toggleTaskTimer() {
@@ -678,6 +686,21 @@ class NoteEditorViewModel(
         TaskTimer.countdownFinished(taskCountdownMillis, taskCountdownEndAt, now)
 
     /** Установить длительность и сразу запустить отсчёт. */
+    fun startCountdownUntil(target: Long): Boolean {
+        val now = System.currentTimeMillis()
+        if (!isTask || target <= now) return false
+        taskCountdownMillis = target - now
+        taskCountdownEndAt = target
+        viewModelScope.launch {
+            try { saveNow(force = true); if (!deleted) scheduleCountdownAlarm() }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                message = EditorMessage.SAVE_FAILED
+            }
+        }
+        return true
+    }
+
     fun startCountdown(durationMillis: Long) {
         if (!isTask || durationMillis <= 0L) return
         val now = System.currentTimeMillis()
@@ -1004,7 +1027,7 @@ class NoteEditorViewModel(
             if (exists) {
                 ReminderScheduler.cancel(app, currentNoteId)
                 ReminderScheduler.cancelTimer(app, currentNoteId)
-                noteDao.softDelete(currentNoteId)
+                com.notessync.app.notes.actions.NoteActions(app, db).apply(setOf(currentNoteId), com.notessync.app.notes.actions.NoteActions.Action.TRASH)
                 if (dayKey != null) CalendarWidgetProvider.refreshAll(app)
             }
             deleted = true

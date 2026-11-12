@@ -23,6 +23,9 @@ object ConflictResolver {
 
     fun resolve(local: NoteDto?, remote: NoteDto, localDirty: Boolean): Resolution {
         if (local == null) return Resolution.ApplyRemote
+        // A permanent deletion never creates a content-bearing conflict copy or revives.
+        if (local.purged == true) return Resolution.KeepLocal
+        if (remote.purged == true) return Resolution.ApplyRemote
         if (remote.updatedAt <= local.updatedAt) return Resolution.KeepLocal
         return if (localDirty && contentDiffers(local, remote)) {
             Resolution.ApplyRemoteKeepConflictCopy(conflictCopyOf(local))
@@ -33,7 +36,8 @@ object ConflictResolver {
 
     private fun contentDiffers(a: NoteDto, b: NoteDto): Boolean =
         a.title != b.title || a.content != b.content || a.textFormat != b.textFormat || (b.tablesData != null && a.tablesData.orEmpty() != b.tablesData) || a.taskPriority != b.taskPriority || a.favorite != b.favorite ||
-            a.deleted != b.deleted || a.reminderAt != b.reminderAt ||
+            a.deleted != b.deleted || (b.pinned != null && a.pinned != b.pinned) ||
+            (b.noteColor != null && a.noteColor.orEmpty() != b.noteColor) || a.reminderAt != b.reminderAt ||
             a.dayKey != b.dayKey || a.isTask != b.isTask || a.isCompleted != b.isCompleted ||
             a.taskColor != b.taskColor || a.taskElapsedMillis != b.taskElapsedMillis ||
             a.taskTimerStartedAt != b.taskTimerStartedAt || a.isProtected != b.isProtected ||

@@ -1,6 +1,19 @@
 package com.notessync.app.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.material.icons.filled.RestoreFromTrash
+import androidx.compose.material.icons.filled.SelectAll
+import com.notessync.app.notes.actions.NoteActions
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.material.icons.filled.PushPin
+import com.notessync.app.ui.notes.noteCardContainer
+import com.notessync.app.ui.notes.noteAccent
+import com.notessync.app.ui.notes.NoteCardMenu
 import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -79,6 +92,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -139,7 +154,7 @@ fun NotesListScreen(
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
 
-    val shownNotes = remember(notes, notebooks, protectionState) { visibleNotes(notes, notebooks, protectionState) }
+    val shownNotes = remember(notes, notebooks, protectionState, filter) { visibleNotes(notes, notebooks, protectionState, filter == NoteFilter.Trash) }
 
     val settingsContext = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(settingsContext) }
@@ -152,6 +167,32 @@ fun NotesListScreen(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var selected by remember { mutableStateOf(emptySet<Long>()) }
+    var pendingPurge by remember { mutableStateOf(false) }
+    var purgeIds by remember { mutableStateOf<Set<Long>?>(emptySet()) }
+    var busy by remember { mutableStateOf(false) }
+    val searchFocus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(query, filter) { selected = emptySet() }
+    LaunchedEffect(shownNotes) { selected = selected.intersect(shownNotes.map { it.id }.toSet()) }
+    BackHandler(selected.isNotEmpty()) { selected = emptySet() }
+    fun select(note: NoteEntity) { if (!busy) selected = if (note.id in selected) selected - note.id else selected + note.id }
+    fun apply(ids: Set<Long>?, action: NoteActions.Action) {
+        if (busy) return
+        busy = true
+        scope.launch {
+            val message = try {
+                val count = viewModel.applyAction(ids, action)
+                selected = emptySet()
+                "Обработано: $count"
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                "Не удалось выполнить действие. Повторите."
+            } finally { busy = false }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     var deleteCandidate by remember { mutableStateOf<NoteEntity?>(null) }
     var showCreateNotebook by remember { mutableStateOf(false) }
@@ -168,7 +209,7 @@ fun NotesListScreen(
     val notebookFilterId = (filter as? NoteFilter.Notebook)?.id
     val visibleLockedTasks = if (query.isBlank()) {
         lockedTasks.filter { task ->
-            filter == NoteFilter.All || filter == NoteFilter.Tasks ||
+            filter == NoteFilter.All || filter == NoteFilter.Tasks || filter == NoteFilter.Trash ||
                 (notebookFilterId != null && task.notebookId == notebookFilterId)
         }
     } else {
@@ -223,6 +264,12 @@ fun NotesListScreen(
                         viewModel.selectFilter(NoteFilter.Favorites)
                         scope.launch { drawerState.close() }
                     },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text("Корзина") }, icon = { Icon(Icons.Default.Delete, null) },
+                    selected = filter == NoteFilter.Trash,
+                    onClick = { viewModel.selectFilter(NoteFilter.Trash); scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
@@ -399,7 +446,7 @@ fun NotesListScreen(
                 )
             },
             floatingActionButton = {
-                Column(horizontalAlignment = Alignment.End) {
+                if (filter != NoteFilter.Trash && selected.isEmpty()) Column(horizontalAlignment = Alignment.End) {
                     SmallFloatingActionButton(
                         onClick = { onOpenEditor(-1L, true) },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -423,7 +470,10 @@ fun NotesListScreen(
                             expanded = false,
                             onExpandedChange = {},
                             placeholder = { Text("Поиск") },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            modifier = Modifier.focusRequester(searchFocus),
+                            leadingIcon = { IconButton(onClick = { searchFocus.requestFocus(); keyboard?.show() }) {
+                                Icon(Icons.Default.Search, contentDescription = "Поиск заметок", tint = MaterialTheme.colorScheme.primary)
+                            } },
                             trailingIcon = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { settingsRepository.setNotesLayout(
@@ -447,6 +497,25 @@ fun NotesListScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     content = {}
                 )
+
+                if (selected.isNotEmpty()) FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Выбрано: ${selected.size}", modifier = Modifier.padding(12.dp))
+                    IconButton(onClick = { selected = emptySet() }, enabled = !busy) { Icon(Icons.Default.Close, "Снять выделение") }
+                    IconButton(onClick = { selected = shownNotes.map { it.id }.toSet() }, enabled = !busy) { Icon(Icons.Default.SelectAll, "Выбрать все найденные") }
+                    if (filter == NoteFilter.Trash) IconButton(onClick = { apply(selected, NoteActions.Action.RESTORE) }, enabled = !busy) { Icon(Icons.Default.RestoreFromTrash, "Восстановить выбранные") }
+                    else IconButton(onClick = { apply(selected, if (shownNotes.filter { it.id in selected }.all { it.isPinned }) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, enabled = !busy) { Icon(Icons.Default.PushPin, "Закрепить или открепить выбранные") }
+                    IconButton(onClick = {
+                        if (filter == NoteFilter.Trash) { purgeIds = selected; pendingPurge = true }
+                        else apply(selected, NoteActions.Action.TRASH)
+                    }, enabled = !busy) { Icon(Icons.Default.Delete, if (filter == NoteFilter.Trash) "Удалить выбранные навсегда" else "В корзину") }
+                }
+                if (filter == NoteFilter.Trash) {
+                    FlowRow(Modifier.padding(horizontal = 12.dp)) {
+                        TextButton(onClick = { apply(null, NoteActions.Action.RESTORE) }, enabled = !busy) { Text("Восстановить все") }
+                        TextButton(onClick = { purgeIds = null; pendingPurge = true }, enabled = !busy) { Text("Очистить корзину") }
+                    }
+                    Text("Закрытые записи доступны после разблокировки.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp))
+                }
 
                 if (tags.isNotEmpty()) {
                     FlowRow(modifier = Modifier
@@ -476,6 +545,7 @@ fun NotesListScreen(
                         Text(
                             text = when {
                                 query.isNotBlank() -> "Ничего не найдено"
+                                filter == NoteFilter.Trash -> "Корзина пуста"
                                 filter == NoteFilter.Tasks -> "Пока нет задач"
                                 else -> "Пока нет заметок"
                             },
@@ -488,16 +558,26 @@ fun NotesListScreen(
                     NotesCardsLayout(shownNotes, visibleLockedTasks, displaySettings.notesLayout, photos,
                         displaySettings.showTaskPriorities, state = cardsState,
                         onOpen = { note ->
-                            if (ProtectionSession.isUnlocked(note)) onOpenEditor(note.id, note.isTask)
+                            if (selected.isNotEmpty() || filter == NoteFilter.Trash) select(note)
+                            else if (ProtectionSession.isUnlocked(note)) onOpenEditor(note.id, note.isTask)
                             else { taskUnlockError = false; taskToUnlock = note }
                         }, onUnlock = { task -> taskUnlockError = false; taskToUnlock = task },
-                        onDelete = { deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
-                        onToggleTimer = viewModel::toggleTaskTimer)
+                        onDelete = { if (filter == NoteFilter.Trash) { purgeIds = setOf(it.id); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
+                        onToggleTimer = viewModel::toggleTaskTimer, selected = selected, onSelect = ::select,
+                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE) })
 
                 }
             }
         }
     }
+
+    if (pendingPurge) AlertDialog(
+        onDismissRequest = { pendingPurge = false },
+        title = { Text(if (purgeIds == null) "Очистить корзину?" else "Удалить навсегда?") },
+        text = { Text("Текст и вложения будут удалены. Восстановить из корзины нельзя. Закрытые записи останутся до разблокировки.") },
+        confirmButton = { TextButton(onClick = { pendingPurge = false; apply(purgeIds, NoteActions.Action.PURGE) }, enabled = !busy) { Text("Удалить навсегда") } },
+        dismissButton = { TextButton(onClick = { pendingPurge = false }) { Text("Отмена") } }
+    )
 
     deleteCandidate?.let { note ->
         AlertDialog(
@@ -508,9 +588,15 @@ fun NotesListScreen(
                 TextButton(onClick = {
                     deleteCandidate = null
                     scope.launch {
-                        viewModel.delete(note)
-                        val result = snackbarHostState.showSnackbar("Заметка удалена", actionLabel = "Отменить")
-                        if (result == SnackbarResult.ActionPerformed) viewModel.restore(note.id)
+                        try {
+                            if (viewModel.delete(note) > 0) {
+                                val result = snackbarHostState.showSnackbar("Заметка в корзине", actionLabel = "Отменить")
+                                if (result == SnackbarResult.ActionPerformed) viewModel.restore(note.id)
+                            }
+                        } catch (error: Exception) {
+                            if (error is kotlinx.coroutines.CancellationException) throw error
+                            snackbarHostState.showSnackbar("Не удалось выполнить действие. Повторите.")
+                        }
                     }
                 }) { Text("Удалить") }
             },
@@ -706,6 +792,7 @@ private fun LockedTaskCard(onClick: () -> Unit, horizontalPadding: Dp = 16.dp) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NoteCard(
     note: NoteEntity,
@@ -714,32 +801,33 @@ private fun NoteCard(
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onToggleCompleted: () -> Unit,
-    onToggleTimer: () -> Unit
+    onToggleTimer: () -> Unit,
+    onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val glass = LocalGlassTheme.current
     val completedColor = taskColorOption(note.taskColor).completedContainer
     // Этап 35: акцент задачи — цвет виден в заголовке и галочке.
-    val accent = taskColorOption(note.taskColor).accent
+    val accent = noteAccent(note)
     val cardColors = when {
-        !note.isTask -> CardDefaults.elevatedCardColors()
+        !note.isTask -> CardDefaults.elevatedCardColors(containerColor = noteCardContainer(note), contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
         note.isCompleted -> CardDefaults.elevatedCardColors(
             // Стекло: выполненная задача тоже полупрозрачная.
             containerColor = if (glass.enabled) completedColor.copy(alpha = 0.55f) else completedColor,
             contentColor = Color(0xFF1D1B20)
         )
         else -> CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = noteCardContainer(note),
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 
     ElevatedCard(
-        onClick = onClick,
         colors = cardColors,
         shape = if (glass.enabled) GlassPanelShape else CardDefaults.elevatedShape,
         modifier = Modifier
-            .fillMaxWidth().testTag("note-card-${note.id}")
+            .fillMaxWidth().testTag("note-card-${note.id}").combinedClickable(onClick = onClick, onLongClick = onSelect)
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .glassBorder()
     ) {
@@ -749,7 +837,8 @@ private fun NoteCard(
                 .padding(start = if (note.isTask) 4.dp else 16.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (note.isTask) {
+            if (selecting) Checkbox(selected, { onSelect() }, modifier = Modifier.semantics { contentDescription = "Выбрать: " + notePreviewText(note.title, 128) })
+            if (note.isTask && !selecting && !note.isDeleted) {
                 Checkbox(
                     checked = note.isCompleted,
                     onCheckedChange = { onToggleCompleted() },
@@ -773,6 +862,7 @@ private fun NoteCard(
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
+                    if (note.isPinned) Icon(Icons.Default.PushPin, "Закреплено", modifier = Modifier.padding(end = 4.dp))
                     if (note.isFavorite) {
                         Icon(
                             Icons.Default.Star,
@@ -785,8 +875,7 @@ private fun NoteCard(
                         text = notePreviewText(note.title, 256).ifBlank { "Без названия" },
                         style = MaterialTheme.typography.titleMedium,
                         // Этап 35: активная задача — заголовок цветом задачи.
-                        color = if (note.isTask && !note.isCompleted) accent
-                        else LocalContentColor.current,
+                        color = accent,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -808,14 +897,15 @@ private fun NoteCard(
                     TaskTimerIndicator(
                         elapsedMillis = note.taskElapsedMillis,
                         startedAt = note.taskTimerStartedAt,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp),
+                        contentColor = accent, animateIcon = true, active = active
                     )
                     if (note.taskCountdownMillis > 0L || note.taskCountdownEndAt != null) {
                         CountdownIndicator(
                             countdownMillis = note.taskCountdownMillis,
                             endAt = note.taskCountdownEndAt,
                             modifier = Modifier.padding(top = 4.dp),
-                            animateIcon = false
+                            animateIcon = true, contentColor = accent, active = active
                         )
                     }
                 }
@@ -825,7 +915,7 @@ private fun NoteCard(
                     color = LocalContentColor.current.copy(alpha = 0.65f)
                 )
             }
-            if (note.isTask) {
+            if (note.isTask && !selecting && !note.isDeleted) {
                 IconButton(
                     onClick = onToggleTimer,
                     enabled = !note.isCompleted || note.taskTimerStartedAt != null
@@ -841,26 +931,13 @@ private fun NoteCard(
                     )
                 }
             }
-            Box {
-                IconButton(onClick = { menuOpen = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Действия")
-                }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Удалить") },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                        onClick = {
-                            menuOpen = false
-                            onDelete()
-                        }
-                    )
-                }
-            }
+            NoteCardMenu(note, onDelete, onSelect, onPin, onRestore)
         }
     }
 }
 
 private fun filterTitle(filter: NoteFilter): String = when (filter) {
+    NoteFilter.Trash -> "Корзина"
     NoteFilter.All -> "Заметки"
     NoteFilter.Tasks -> "Задачи"
     NoteFilter.Favorites -> "Избранное"
@@ -877,7 +954,9 @@ internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>,
     photos: Map<Long, AttachmentEntity>, showPriority: Boolean,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     onOpen: (NoteEntity) -> Unit, onUnlock: (NoteEntity) -> Unit, onDelete: (NoteEntity) -> Unit,
-    onToggleCompleted: (NoteEntity) -> Unit, onToggleTimer: (NoteEntity) -> Unit
+    onToggleCompleted: (NoteEntity) -> Unit, onToggleTimer: (NoteEntity) -> Unit,
+    selected: Set<Long> = emptySet(), onSelect: (NoteEntity) -> Unit = {},
+    onPin: (NoteEntity) -> Unit = {}, onRestore: (NoteEntity) -> Unit = {}
 ) {
     val grid = layout == NotesLayout.GRID
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -903,10 +982,13 @@ internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>,
                 LockedTaskCard({ onUnlock(task) }, horizontalPadding = if (grid) 0.dp else 16.dp)
             }
             items(notes, key = { "note-${it.id}" }, contentType = { if (grid) "grid" else "list" }) { note ->
+                val active by remember(state, note.id) { derivedStateOf { state.layoutInfo.visibleItemsInfo.any { it.key == "note-${note.id}" } } }
                 if (grid) NoteGridCard(note, photos[note.id], showPriority,
-                    { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) })
+                    { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) },
+                    { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active)
                 else NoteCard(note, showPriority, photos[note.id], { onOpen(note) }, { onDelete(note) },
-                    { onToggleCompleted(note) }, { onToggleTimer(note) })
+                    { onToggleCompleted(note) }, { onToggleTimer(note) }, { onSelect(note) }, { onPin(note) },
+                    { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active)
             }
         }
     }

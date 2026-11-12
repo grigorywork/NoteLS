@@ -190,6 +190,7 @@ fun NoteEditorScreen(
     var showColorDialog by remember { mutableStateOf(false) }
     var showTimerResetDialog by remember { mutableStateOf(false) }
     var showCountdownMenu by remember { mutableStateOf(false) }
+    var showCountdownUntil by remember { mutableStateOf(false) }
     var showCountdownCustomDialog by remember { mutableStateOf(false) }
     var showTaskPasswordDialog by remember { mutableStateOf(false) }
     var showTaskProtectionMenu by remember { mutableStateOf(false) }
@@ -587,25 +588,25 @@ fun NoteEditorScreen(
                     leadingIcon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
                     modifier = Modifier.padding(end = 8.dp)
                 )
+                    AssistChip(
+                        onClick = { showColorDialog = true },
+                        label = { Text(if (!viewModel.isTask && viewModel.noteColor.isEmpty()) "Цвет" else taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).label) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Palette,
+                                contentDescription = null,
+                                // Этап 35: насыщенный акцент вместо бледной пастели.
+                                tint = taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).accent
+                            )
+                        },
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                 if (viewModel.isTask) {
                     FilterChip(
                         selected = viewModel.isCompleted,
                         onClick = viewModel::toggleCompleted,
                         label = { Text(if (viewModel.isCompleted) "Выполнено" else "Выполнить") },
                         leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    AssistChip(
-                        onClick = { showColorDialog = true },
-                        label = { Text(taskColorOption(viewModel.taskColor).label) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Palette,
-                                contentDescription = null,
-                                // Этап 35: насыщенный акцент вместо бледной пастели.
-                                tint = taskColorOption(viewModel.taskColor).accent
-                            )
-                        },
                         modifier = Modifier.padding(end = 8.dp)
                     )
                     AssistChip(
@@ -661,6 +662,7 @@ fun NoteEditorScreen(
                                     showCountdownCustomDialog = true
                                 }
                             )
+                            DropdownMenuItem(text = { Text("До времени…") }, onClick = { showCountdownMenu = false; showCountdownUntil = true })
                             if (countdownActive) {
                                 if (viewModel.taskCountdownEndAt != null) {
                                     DropdownMenuItem(
@@ -959,6 +961,11 @@ fun NoteEditorScreen(
         )
     }
 
+    if (showCountdownUntil) com.notessync.app.ui.tasks.CountdownUntilDialog(
+        onDismiss = { showCountdownUntil = false },
+        onStart = { target -> viewModel.startCountdownUntil(target) }
+    )
+
     if (showCountdownCustomDialog) {
         var hoursText by remember { mutableStateOf("") }
         var minutesText by remember { mutableStateOf("") }
@@ -1007,12 +1014,15 @@ fun NoteEditorScreen(
     if (showColorDialog) {
         AlertDialog(
             onDismissRequest = { showColorDialog = false },
-            title = { Text("Цвет задачи") },
+            title = { Text(if (viewModel.isTask) "Цвет задачи" else "Цвет заметки") },
             text = {
                 FlowRow {
+                    if (!viewModel.isTask) FilterChip(selected = viewModel.noteColor.isEmpty(), onClick = {
+                        viewModel.chooseTaskColor(""); showColorDialog = false
+                    }, label = { Text("По теме") }, modifier = Modifier.padding(end = 8.dp, bottom = 8.dp))
                     taskColorOptions.forEach { option ->
                         FilterChip(
-                            selected = viewModel.taskColor == option.key,
+                            selected = (if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor) == option.key,
                             onClick = {
                                 viewModel.chooseTaskColor(option.key)
                                 showColorDialog = false

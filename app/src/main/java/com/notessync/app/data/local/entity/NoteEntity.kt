@@ -17,7 +17,7 @@ import java.util.UUID
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("notebookId"), Index("updatedAt"), Index("syncId"), Index("dayKey")]
+    indices = [Index("notebookId"), Index("updatedAt"), Index("syncId"), Index("dayKey"), Index(value = ["isDeleted", "isPurged", "isPinned", "updatedAt"])]
 )
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -30,6 +30,9 @@ data class NoteEntity(
     val notebookId: Long? = null,
     val isFavorite: Boolean = false,
     val isDeleted: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val isPurged: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val isPinned: Boolean = false,
+    @ColumnInfo(defaultValue = "''") val noteColor: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val reminderAt: Long? = null,
     val dayKey: Long? = null,
