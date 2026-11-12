@@ -21,3 +21,7 @@ SQL получает скалярную проекцию без content/форм
 Код приложения: **15565 физических строк Kotlin в113 файлах app/src/main** (с пустыми/комментариями и каталогом, без тестов/Gradle/XML/зависимостей), относительно56 **+251/−108**, net+143.
 
 Облачные JVM/Compose/Robolectric/SQLite проверки. Телефон/эмулятор и замеры PSS/CPU/батареи не запускались. Постоянная подпись не менялась. Облачный Android Debug APK не является обновлением установленного приложения с постоянной подписью.
+
+## GitHub
+
+[CI43288720150](https://github.com/grigorywork/NoteLS/actions/runs/43288720150) success на3a68adbfb6ac1fddbb7ff58f83c0c7735fb47b17:369 тестов,0 failures/ignored, lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за7m6s. Сверены журнал131428951291 и HTML/XML отчётов13976433456; SHA256 ZIP0964c744bb7812f85149918d02b8393b25b0fdd935717fe1e96358499da40c3b совпала с GitHub. [APK1.10.22/code45 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43288720150/artifacts/13976857499), Android Debug/NOT-UPDATE; постоянная подпись не менялась.
