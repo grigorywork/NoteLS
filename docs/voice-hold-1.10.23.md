@@ -25,3 +25,7 @@
 Код приложения: **15786 физических строк Kotlin в116 файлах app/src/main** (пустые/комментарии/каталог включены, тесты/Gradle/XML/зависимости исключены); относительно57 **+405/−184**, net+221.
 
 Это JVM/Compose/Robolectric/SQLite и управляемые callback SpeechRecognizer на облаке. Реального звука/телефона/сенсора/провайдера, эмулятора и замеров PSS/CPU/батареи нет. Нельзя трактовать их как проверку качества распознавания или скорости слабого телефона. Cloud debug APK не является обновлением с постоянной подписью.
+
+## GitHub
+
+[CI43292238220](https://github.com/grigorywork/NoteLS/actions/runs/43292238220) success наbb155bc18709c73da5fc956a6b3a8c633b318bf6:392 теста,0 failures/ignored, lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за7m29s. Сверены журнал131441181204 и HTML/XML отчётов13978246592; SHA256 ZIP2e53233aa68ddee49699c8409f5ce7dfd86f1ff140b3fc0b14c12ff1df5e23ff совпала с GitHub. [APK1.10.23/code46 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43292238220/artifacts/13978266562), Android Debug/NOT-UPDATE; постоянная подпись не менялась.
