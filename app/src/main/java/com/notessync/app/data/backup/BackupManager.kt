@@ -76,7 +76,7 @@ object BackupManager {
                     while (cursor.moveToNext()) {
                         val photo = File(cursor.getString(0)).canonicalFile
                         check(photo.path.startsWith(root.path + File.separator) && photo.isFile) {
-                            uiText("Не найдена фотография: %1\$s", (photo.name))
+                            uiText("Не найдено вложение: %1\$s", (photo.name))
                         }
                         photos[photo.relativeTo(root).invariantSeparatorsPath] = photo
                     }

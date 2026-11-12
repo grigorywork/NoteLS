@@ -1,6 +1,9 @@
 package com.notessync.app.ui.notes
 
 import com.notessync.app.i18n.uiText
+import com.notessync.app.audio.*
+import com.notessync.app.notes.actions.NoteActions
+import kotlinx.coroutines.flow.combine
 
 import com.notessync.app.notes.text.*
 import com.notessync.app.notes.tables.*
@@ -83,9 +86,10 @@ enum class EditorMessage {
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-class NoteEditorViewModel(
+class NoteEditorViewModel @JvmOverloads constructor(
     application: Application,
-    private val savedState: SavedStateHandle
+    private val savedState: SavedStateHandle,
+    audioDependencies: EditorAudioDependencies? = null
 ) : AndroidViewModel(application) {
 
     private val app = application
@@ -94,6 +98,12 @@ class NoteEditorViewModel(
     private val tagDao = db.tagDao()
     private val attachmentDao = db.attachmentDao()
     private val photoStore = PhotoAttachmentStore(application)
+    private val audioFiles = audioDependencies?.files ?: AudioFiles(application)
+    val audioPlayback = AudioPlayback(audioDependencies?.playbackFactory ?: AndroidAudioPlaybackFactory(application), ::resolveAudio,
+        audioDependencies?.dispatcher ?: Dispatchers.IO)
+    val audioCapture = AudioCapture(audioDependencies?.captureFactory ?: AndroidAudioCaptureFactory(application), audioFiles,
+        audioDependencies?.clock ?: android.os.SystemClock::elapsedRealtime, ::commitRecordedAudio,
+        beforeStart = { ensureAudioParent(); audioPlayback.stop().await() }, dispatcher = audioDependencies?.dispatcher ?: Dispatchers.IO)
     private val cameraStore = CameraCaptureStore(application)
     private var cameraToken: String? = savedState["cameraCapture"]
     private var cameraProcessing = false
@@ -183,6 +193,17 @@ class NoteEditorViewModel(
         get() = currentNoteId != -1L
 
     init {
+        viewModelScope.launch {
+            combine(audioCapture.state, audioPlayback.state, _noteIdFlow) { capture, playback, id -> (capture.busy || playback.active) to id }
+                .distinctUntilChanged().flatMapLatest { (active, id) ->
+                    if (!active || id < 0) flowOf(true)
+                    else combine(noteDao.observeAccess(id), ProtectionSession.state) { access, session ->
+                        access?.allowed(id, syncId, session) == true
+                    }
+                }.collect { allowed ->
+                    if (!allowed) { audioCapture.cancel(); audioPlayback.stop() }
+                }
+        }
         viewModelScope.launch {
             SettingsRepository.get(app).state.map { it.editorHistory }.distinctUntilChanged().collect {
                 historyEnabled = it
@@ -320,7 +341,8 @@ class NoteEditorViewModel(
         val encodedTables = withContext(Dispatchers.Default) { tablesSnapshot?.encode() ?: unknownSnapshot }
         val didWrite = db.withTransaction {
             val fresh = if (exists) noteDao.getById(currentNoteId) else null
-            if (exists && (fresh == null || fresh.isDeleted)) { deleted = true; return@withTransaction false }
+            if (exists && (fresh == null || fresh.isDeleted || fresh.isPurged || fresh.syncId != syncId)) { deleted = true; return@withTransaction false }
+            if (fresh != null && !NoteActions(app, db).canAccess(fresh)) { accessDenied = true; return@withTransaction false }
             val note = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
             val previous = lastSavedNote
             if (previous != null && note.copy(isPinned = previous.isPinned, updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return@withTransaction false
@@ -330,13 +352,14 @@ class NoteEditorViewModel(
                 createdHere = true
                 savedState["noteId"] = newId
                 savedState["createdHere"] = true
-                _noteIdFlow.value = newId
             }
             createdAt = note.createdAt
             lastSavedNote = note.copy(id = currentNoteId)
             true
         }
         if (!didWrite) return
+        // Observers must not see the new ID before the insert transaction commits.
+        _noteIdFlow.value = currentNoteId
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
         BackupManager.noteChanged()
     }
@@ -843,6 +866,50 @@ class NoteEditorViewModel(
 
     // ---------- Вложения (Этап 3) ----------
 
+    /** Reserve the capture synchronously so Back/pause can cancel a pending note save as well. */
+    fun startAudioRecording() {
+        if (!SettingsRepository.get(app).state.value.audioRecording || isClosing || isPhotoBusy || !loaded || accessDenied || deleted) return
+        audioCapture.start()
+    }
+    private suspend fun ensureAudioParent() = saveMutex.withLock {
+        check(SettingsRepository.get(app).state.value.audioRecording && !isClosing && !isPhotoBusy && loaded && !accessDenied && !deleted)
+        check(!exists || accessibleParent() != null)
+        withContext(NonCancellable) { persistNow(force = true) }
+        check(!isClosing && !deleted && !accessDenied && accessibleParent() != null)
+    }
+
+    private suspend fun accessibleParent(): NoteEntity? {
+        val current = noteDao.getById(currentNoteId) ?: return null
+        return current.takeIf { it.syncId == syncId && !it.isDeleted && !it.isPurged && NoteActions(app, db).canAccess(it) }
+    }
+    private suspend fun commitRecordedAudio(draft: AudioDraft): Boolean = saveMutex.withLock {
+        if (!loaded || accessDenied || deleted || accessibleParent() == null) return@withLock false
+        withContext(NonCancellable) {
+            val attachmentId = UUID.randomUUID().toString()
+            val stored = withContext(Dispatchers.IO) { audioFiles.store(draft, attachmentId) }
+            var committed = false
+            try {
+                committed = db.withTransaction {
+                    if (accessibleParent() == null) return@withTransaction false
+                    attachmentDao.upsert(AttachmentEntity(syncId = attachmentId, noteId = currentNoteId,
+                        filePath = stored.file.absolutePath, mimeType = stored.mimeType, sizeBytes = stored.sizeBytes))
+                    noteDao.markContentChanged(currentNoteId)
+                    true
+                }
+                if (committed) BackupManager.noteChanged()
+                committed
+            } finally { if (!committed) withContext(Dispatchers.IO) { stored.file.delete() } }
+        }
+    }
+    private suspend fun resolveAudio(attachmentSyncId: String): String? = withContext(Dispatchers.IO) {
+        val row = attachmentDao.getBySyncId(attachmentSyncId) ?: return@withContext null
+        if (row.noteId != currentNoteId || !row.mimeType.startsWith("audio/", ignoreCase = true)) return@withContext null
+        if (noteDao.getAccess(currentNoteId)?.allowed(currentNoteId, syncId, ProtectionSession.state.value) != true) return@withContext null
+        val root = File(app.filesDir, "attachments").canonicalFile
+        val file = File(row.filePath).canonicalFile
+        file.takeIf { it.toPath().startsWith(root.toPath()) && it != root && it.isFile && it.length() in 1..MAX_AUDIO_BYTES }?.absolutePath
+    }
+
     fun attach(uri: Uri) {
         if (isPhotoBusy || isClosing) return
         isPhotoBusy = true
@@ -856,17 +923,19 @@ class NoteEditorViewModel(
         try {
             saveMutex.withLock {
                 if (!loaded || accessDenied || deleted) return@withLock
-                if (exists && noteDao.getById(currentNoteId)?.isDeleted != false) {
+                if (exists && accessibleParent() == null) {
                     message = EditorMessage.PHOTO_IMPORT_FAILED
                     return@withLock
                 }
                 // Exit/delete must wait until both the bounded copy and DB transaction finish.
                 withContext(NonCancellable) {
                     persistNow(force = true)
+                    if (deleted || accessDenied || accessibleParent() == null) return@withContext
                     val attachmentSyncId = UUID.randomUUID().toString()
                     val stored = withContext(Dispatchers.IO) { import(attachmentSyncId) }
                     try {
                         db.withTransaction {
+                            check(accessibleParent() != null) { "The attachment parent is no longer accessible" }
                             attachmentDao.upsert(AttachmentEntity(syncId = attachmentSyncId,
                                 noteId = currentNoteId, filePath = stored.file.absolutePath,
                                 mimeType = stored.mimeType, sizeBytes = stored.sizeBytes))
@@ -963,11 +1032,26 @@ class NoteEditorViewModel(
     }
 
     fun removeAttachment(attachment: AttachmentEntity) {
+        if (attachment.noteId != currentNoteId) return
+        if (audioPlayback.state.value.key == attachment.syncId) audioPlayback.stop()
         viewModelScope.launch {
-            attachmentDao.deleteById(attachment.id)
-            BackupManager.noteChanged()
-            withContext(Dispatchers.IO) { File(attachment.filePath).delete() }
-            noteDao.markContentChanged(attachment.noteId)
+            saveMutex.withLock {
+                withContext(NonCancellable) {
+                    var removed: AttachmentEntity? = null
+                    db.withTransaction {
+                        if (accessibleParent() == null) return@withTransaction
+                        val fresh = attachmentDao.getBySyncId(attachment.syncId) ?: return@withTransaction
+                        if (fresh.id != attachment.id || fresh.noteId != currentNoteId) return@withTransaction
+                        attachmentDao.deleteById(fresh.id)
+                        noteDao.markContentChanged(currentNoteId)
+                        removed = fresh
+                    }
+                    removed?.let { row ->
+                        BackupManager.noteChanged()
+                        db.withTransaction { NoteActions.deleteUnreferencedFiles(app, db, listOf(row.filePath)) }
+                    }
+                }
+            }
         }
     }
 
@@ -1015,30 +1099,37 @@ class NoteEditorViewModel(
     // ---------- Удаление / выход ----------
 
     suspend fun discardIfEmptyOnExit() = saveMutex.withLock {
-        val hasAttachments = exists && attachmentDao.countByNoteId(currentNoteId) > 0
-        if (loaded && createdHere && title.isBlank() && contentField.text.isBlank() && !hasTables &&
-            reminderAt == null && !hasAttachments && exists
-        ) {
-            withContext(NonCancellable) { noteDao.softDelete(currentNoteId); deleted = true }
+        if (loaded && createdHere && !deleted && !accessDenied && title.isBlank() && contentField.text.isBlank() && !hasTables && reminderAt == null && exists) {
+            withContext(NonCancellable) {
+                db.withTransaction {
+                    val fresh = accessibleParent() ?: return@withTransaction
+                    if (fresh.title.isBlank() && fresh.content.isBlank() && fresh.tablesData.isBlank() && fresh.reminderAt == null &&
+                        attachmentDao.countByNoteId(currentNoteId) == 0) {
+                        noteDao.softDelete(currentNoteId); deleted = true
+                    }
+                }
+            }
         }
         history.clear(); publishHistory()
     }
 
     suspend fun deleteNow(): Long = saveMutex.withLock {
         withContext(NonCancellable) {
-            if (exists) {
-                ReminderScheduler.cancel(app, currentNoteId)
-                ReminderScheduler.cancelTimer(app, currentNoteId)
-                com.notessync.app.notes.actions.NoteActions(app, db).apply(setOf(currentNoteId), com.notessync.app.notes.actions.NoteActions.Action.TRASH)
-                if (dayKey != null) CalendarWidgetProvider.refreshAll(app)
+            val deletedId = if (!exists) -1L else db.withTransaction {
+                if (accessibleParent() == null) return@withTransaction -1L
+                val changed = NoteActions(app, db).apply(setOf(currentNoteId), NoteActions.Action.TRASH)
+                if (changed > 0) currentNoteId else -1L
             }
+            if (deletedId > 0 && dayKey != null) CalendarWidgetProvider.refreshAll(app)
             deleted = true
             history.clear(); publishHistory()
-            currentNoteId
+            deletedId
         }
     }
 
     override fun onCleared() {
+        audioPlayback.close()
+        audioCapture.close()
         history.clear()
         super.onCleared()
     }

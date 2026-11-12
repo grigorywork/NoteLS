@@ -1,6 +1,11 @@
 package com.notessync.app.ui.screens
 
 import com.notessync.app.i18n.uiText
+import com.notessync.app.audio.*
+import com.notessync.app.ui.notes.audio.*
+import androidx.compose.material.icons.filled.AttachFile
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 import android.Manifest
 import android.content.Intent
@@ -182,6 +187,12 @@ fun NoteEditorScreen(
 
     val attachments by viewModel.attachments.collectAsStateWithLifecycle()
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
+    val captureState by viewModel.audioCapture.state.collectAsStateWithLifecycle()
+    val audioPlaying by remember(viewModel) { viewModel.audioPlayback.state.map { it.active }.distinctUntilChanged() }
+        .collectAsStateWithLifecycle(initialValue = false)
+    val photos = remember(attachments) { attachments.filterNot { it.mimeType.startsWith("audio/", ignoreCase = true) } }
+    val audios = remember(attachments) { attachments.filter { it.mimeType.startsWith("audio/", ignoreCase = true) } }
+
     val settingsState by remember { SettingsRepository.get(context).state }.collectAsStateWithLifecycle()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -225,8 +236,19 @@ fun NoteEditorScreen(
                 }
             })
     }
-    DisposableEffect(voiceManager) { onDispose { voiceManager.cancel() } }
+    DisposableEffect(voiceManager) { onDispose {
+        voiceManager.cancel(); viewModel.audioCapture.finish(); viewModel.audioPlayback.stop()
+    } }
+    LaunchedEffect(settingsState.audioRecording) { if (!settingsState.audioRecording) viewModel.audioCapture.finish() }
+    LaunchedEffect(captureState.token, captureState.message) {
+        captureState.message?.let {
+            snackbarHostState.showSnackbar(captureMessage(it))
+            viewModel.audioCapture.clearMessage(captureState.token)
+        }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
+        viewModel.audioCapture.finish()
+        viewModel.audioPlayback.stop()
         voiceManager.cancel()
         voicePartial = ""
     }
@@ -240,7 +262,7 @@ fun NoteEditorScreen(
         }
     }
     fun startVoiceInput() {
-        if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || voiceClosing) return
+        if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || voiceClosing || captureState.busy || audioPlaying) return
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || permissionPending) return
         val engine = currentVoiceEngine.value
         if (!voiceManager.isAvailable(engine)) {
@@ -254,6 +276,19 @@ fun NoteEditorScreen(
             permissionPending = true
             micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
+    }
+
+    var audioPermissionPending by remember { mutableStateOf(false) }
+    val audioPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        audioPermissionPending = false
+        scope.launch { snackbarHostState.showSnackbar(if (granted) uiText("Разрешение получено. Снова выберите запись аудио.")
+            else uiText("Без разрешения на микрофон запись аудио недоступна.")) }
+    }
+    fun startAudioRecording() {
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || voiceClosing || permissionPending || audioPermissionPending || captureState.busy) return
+        voiceManager.cancel()
+        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) viewModel.startAudioRecording()
+        else { audioPermissionPending = true; audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
     }
 
     val photoPicker = rememberLauncherForActivityResult(
@@ -332,9 +367,12 @@ fun NoteEditorScreen(
 
     fun exit() {
         voiceManager.cancel()
+        val audioSaved = viewModel.audioCapture.finish()
+        viewModel.audioPlayback.stop()
         if (viewModel.isClosing || viewModel.isPhotoBusy) return
         voiceClosing = true
         scope.launch {
+            if (!audioSaved.await()) { voiceClosing = false; return@launch }
             // Сначала принудительное сохранение (снимает гонку автосохранения),
             // потом удаление пустой черновой заметки.
             if (viewModel.flushOnExit()) onBack() else voiceClosing = false
@@ -365,7 +403,7 @@ fun NoteEditorScreen(
                 actions = {
                     com.notessync.app.ui.notes.VoiceInputButton(settingsState.voiceControl, voiceState,
                         onStart = { startVoiceInput() }, onFinish = voiceManager::finish, onCancel = voiceManager::cancel,
-                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing)
+                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing && !captureState.busy && !audioPlaying)
                     IconButton(onClick = viewModel::toggleFavorite) {
                         Icon(
                             if (viewModel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
@@ -405,10 +443,10 @@ fun NoteEditorScreen(
                         )
                         NavigationBarItem(
                             selected = false,
-                            enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady,
+                            enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady && !captureState.busy && !voiceClosing,
                             onClick = { showPhotoMenu = true },
-                            icon = { Icon(Icons.Default.Image, contentDescription = null) },
-                            label = { Text(uiText("Фото")) }
+                            icon = { Icon(Icons.Default.AttachFile, contentDescription = null) },
+                            label = { Text(uiText("Файлы")) }
                         )
                         NavigationBarItem(
                             selected = viewModel.reminderAt != null,
@@ -431,6 +469,10 @@ fun NoteEditorScreen(
                     }
                 }
                 DropdownMenu(expanded = showPhotoMenu, onDismissRequest = { showPhotoMenu = false }) {
+                    if (settingsState.audioRecording) DropdownMenuItem(text = { Text(uiText("Записать аудио")) }, onClick = {
+                        showPhotoMenu = false
+                        startAudioRecording()
+                    })
                     DropdownMenuItem(text = { Text(uiText("Из галереи")) }, onClick = {
                         showPhotoMenu = false
                         photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -532,9 +574,13 @@ fun NoteEditorScreen(
                     }
                 }
             }
-            if (attachments.isNotEmpty()) {
+            AudioRecordingPanel(viewModel.audioCapture, captureState)
+            AudioAttachmentList(audios, viewModel.audioPlayback, viewModel::removeAttachment) { message ->
+                scope.launch { snackbarHostState.showSnackbar(message) }
+            }
+            if (photos.isNotEmpty()) {
                 PhotoAttachmentGrid(
-                    attachments = attachments,
+                    attachments = photos,
                     onOpen = { openPhoto = it.id },
                     onRemove = viewModel::removeAttachment
                 )
@@ -1058,8 +1104,11 @@ fun NoteEditorScreen(
                     showDeleteDialog = false
                     voiceClosing = true
                     voiceManager.cancel()
+                    val discardedAudio = viewModel.audioCapture.cancel()
+                    viewModel.audioPlayback.stop()
                     scope.launch {
                         try {
+                            discardedAudio.await()
                             val id = viewModel.deleteNow()
                             onDeleted(id)
                         } finally { voiceClosing = false }

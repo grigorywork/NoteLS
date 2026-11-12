@@ -480,6 +480,19 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
+            SectionTitle(uiText("Аудиовложения"))
+            SettingsCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(uiText("Запись аудио в заметку"), Modifier.weight(1f))
+                        androidx.compose.material3.Switch(state.audioRecording, settings::setAudioRecording)
+                    }
+                    Text(uiText("До 20 минут и 10 МиБ на файл. Выключение скрывает запись; готовые аудиовложения остаются доступны."),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+
             SectionTitle(uiText("Синхронизация"))
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 SettingsItem(

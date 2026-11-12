@@ -95,6 +95,12 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND reminderAt IS NOT NULL AND reminderAt > :now")
     suspend fun getWithFutureReminders(now: Long): List<NoteEntity>
 
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    suspend fun getAccess(id: Long): com.notessync.app.data.local.model.NoteAccess?
+
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    fun observeAccess(id: Long): Flow<com.notessync.app.data.local.model.NoteAccess?>
+
     // Lightweight statistics, including ordinary notes. No bodies, tables, formatting or attachment paths.
     @Query("SELECT id, CASE WHEN isTask = 1 THEN SUBSTR(title, 1, 256) ELSE '' END AS title, notebookId, isTask, isCompleted, updatedAt, taskCompletedAt, taskElapsedMillis, taskColor, isDeleted, isPurged, isProtected FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1))")
     fun observeForAnalytics(): Flow<List<com.notessync.app.data.local.model.AnalyticsEntry>>

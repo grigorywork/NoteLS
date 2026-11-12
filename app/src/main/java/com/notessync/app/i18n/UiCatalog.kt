@@ -571,7 +571,29 @@ object UiCatalog {
             "Распознаю…" to "Recognizing…",
             "Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет." to "Online mode uses the system service: audio may be sent to its provider. On-device mode requires Android 12+ and an available model; it never switches online automatically.",
             "Управление микрофоном" to "Microphone control",
-            "Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса." to "Hold the microphone and speak; release it to get text. Tap mode and the keyboard are available if holding is difficult. Text structuring uses local rules, without a separate AI service."
+            "Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса." to "Hold the microphone and speak; release it to get text. Tap mode and the keyboard are available if holding is difficult. Text structuring uses local rules, without a separate AI service.",
+            "Запись аудио: %1\$s" to "Recording audio: %1\$s",
+            "Подготовка записи…" to "Preparing recording…",
+            "Сохранение аудио…" to "Saving audio…",
+            "Сохранить аудио" to "Save audio",
+            "Отменить запись" to "Cancel recording",
+            "Не удалось воспроизвести аудио. Проверьте файл и повторите попытку." to "Could not play audio. Check the file and try again.",
+            "Воспроизвести аудио" to "Play audio",
+            "Аудиозапись" to "Audio recording",
+            "Удалить аудио" to "Delete audio",
+            "Недостаточно места для аудиозаписи. Освободите не менее 12 МиБ." to "Not enough space for audio. Free at least 12 MiB.",
+            "Не удалось начать запись звука. Проверьте микрофон и повторите попытку." to "Could not start recording. Check the microphone and try again.",
+            "Не удалось сохранить аудио. Проверьте свободное место, запись и доступ к заметке." to "Could not save audio. Check available storage, the recording and access to the note.",
+            "Достигнут предел записи. Аудио сохранено." to "Recording limit reached. Audio was saved.",
+            "Запись прервана системой. Аудио сохранено." to "Recording interrupted by the system. Audio was saved.",
+            "Разрешение получено. Снова выберите запись аудио." to "Permission granted. Select audio recording again.",
+            "Без разрешения на микрофон запись аудио недоступна." to "Microphone permission is required to record audio.",
+            "Файлы" to "Files",
+            "Записать аудио" to "Record audio",
+            "Аудиовложения" to "Audio attachments",
+            "Запись аудио в заметку" to "Record audio in notes",
+            "До 20 минут и 10 МиБ на файл. Выключение скрывает запись; готовые аудиовложения остаются доступны." to "Up to 20 minutes and 10 MiB per file. Turning this off hides recording; existing audio attachments remain available.",
+            "Не найдено вложение: %1\$s" to "Attachment not found: %1\$s"
         )
     }
 
