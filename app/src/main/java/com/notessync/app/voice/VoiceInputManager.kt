@@ -1,105 +1,50 @@
 package com.notessync.app.voice
 
-import com.notessync.app.i18n.uiText
-
 import android.content.Context
-import android.content.Intent
-import android.os.Build
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
+import android.os.Handler
+import android.os.Looper
+import com.notessync.app.i18n.uiText
 import com.notessync.app.settings.VoiceEngine
 
-/**
- * Этап 32: обёртка над SpeechRecognizer.
- * Онлайн — облачное распознавание системы; локально — on-device (Android 12+),
- * с откатом к EXTRA_PREFER_OFFLINE на старых версиях.
- * Все колбэки приходят на главный поток, распознавание не блокирует ввод.
- */
-class VoiceInputManager(
-    private val context: Context,
-    private val listener: Listener
-) {
+/** Android adapter. Created and used on Main; no service, model download or automatic restart. */
+@androidx.annotation.MainThread
+class VoiceInputManager(context: Context, listener: Listener) {
     interface Listener {
-        fun onReady()
+        fun onState(state: VoiceState)
         fun onPartial(text: String)
         fun onFinal(text: String)
         fun onError(message: String)
-        fun onEnd()
     }
+    private val handler = Handler(Looper.getMainLooper())
+    private val session = VoiceSession(AndroidVoiceRecognizerFactory(context), VoiceDeadline { delay, action ->
+        val task = Runnable(action)
+        handler.postDelayed(task, delay)
+        val cancel: () -> Unit = { handler.removeCallbacks(task) }
+        cancel
+    }, object : VoiceSession.Listener {
+        override fun state(state: VoiceState) = listener.onState(state)
+        override fun partial(text: String) = listener.onPartial(text)
+        override fun result(text: String) = listener.onFinal(text)
+        override fun error(failure: VoiceFailure) = listener.onError(message(failure))
+    })
+    fun isAvailable(engine: VoiceEngine) = session.available(engine)
+    fun start(engine: VoiceEngine) = session.start(engine)
+    fun finish() = session.finish()
+    fun cancel() = session.cancel()
+    fun unavailableMessage(engine: VoiceEngine): String = message(
+        if (engine == VoiceEngine.LOCAL) VoiceFailure.LOCAL_UNAVAILABLE else VoiceFailure.UNAVAILABLE)
 
-    private var recognizer: SpeechRecognizer? = null
-
-    val isAvailable: Boolean
-        get() = SpeechRecognizer.isRecognitionAvailable(context)
-
-    fun start(engine: VoiceEngine) {
-        stop()
-        val preferOffline = engine == VoiceEngine.LOCAL
-        val created = if (
-            preferOffline && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
-        ) {
-            SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
-        } else {
-            SpeechRecognizer.createSpeechRecognizer(context)
-        }
-        recognizer = created
-        created.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) = listener.onReady()
-            override fun onBeginningOfSpeech() = Unit
-            override fun onRmsChanged(rmsdB: Float) = Unit
-            override fun onBufferReceived(buffer: ByteArray?) = Unit
-            override fun onEndOfSpeech() = Unit
-            override fun onError(error: Int) {
-                listener.onError(errorMessage(error))
-                listener.onEnd()
-            }
-            override fun onResults(results: Bundle?) {
-                val text = results
-                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    ?.firstOrNull().orEmpty()
-                if (text.isNotBlank()) listener.onFinal(text)
-                listener.onEnd()
-            }
-            override fun onPartialResults(partialResults: Bundle?) {
-                val text = partialResults
-                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    ?.firstOrNull().orEmpty()
-                if (text.isNotBlank()) listener.onPartial(text)
-            }
-            override fun onEvent(eventType: Int, params: Bundle?) = Unit
-        })
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            if (preferOffline) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-        }
-        created.startListening(intent)
-    }
-
-    fun stop() {
-        runCatching { recognizer?.stopListening() }
-        runCatching { recognizer?.destroy() }
-        recognizer = null
-    }
-
-    private fun errorMessage(error: Int): String = when (error) {
-        SpeechRecognizer.ERROR_AUDIO -> uiText("Ошибка записи звука")
-        SpeechRecognizer.ERROR_CLIENT -> uiText("Распознавание остановлено")
-        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> uiText("Нужно разрешение на микрофон")
-        SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT ->
-            uiText("Нет сети. Переключитесь на локальный режим в настройках")
-        SpeechRecognizer.ERROR_NO_MATCH -> uiText("Не удалось разобрать речь")
-        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> uiText("Распознаватель занят, подождите")
-        SpeechRecognizer.ERROR_SERVER -> uiText("Сервис распознавания недоступен")
-        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> uiText("Тишина. Говорите после сигнала")
-        else -> uiText("Ошибка распознавания (%1\$s)", (error))
+    private fun message(failure: VoiceFailure): String = when (failure) {
+        VoiceFailure.AUDIO -> uiText("Ошибка записи звука")
+        VoiceFailure.CLIENT -> uiText("Распознавание остановлено")
+        VoiceFailure.PERMISSION -> uiText("Нужно разрешение на микрофон")
+        VoiceFailure.NETWORK -> uiText("Нет сети. Используйте клавиатуру или выберите доступный локальный режим в настройках.")
+        VoiceFailure.NO_MATCH -> uiText("Не удалось разобрать речь")
+        VoiceFailure.BUSY -> uiText("Распознаватель занят, подождите")
+        VoiceFailure.UNAVAILABLE -> uiText("Распознавание речи недоступно на этом устройстве")
+        VoiceFailure.SILENCE -> uiText("Тишина. Говорите после сигнала")
+        VoiceFailure.TIMEOUT -> uiText("Распознавание не ответило. Попробуйте снова или используйте клавиатуру.")
+        VoiceFailure.LANGUAGE -> uiText("Для этого языка нет доступной модели. Используйте клавиатуру или выберите другой режим в настройках.")
+        VoiceFailure.LOCAL_UNAVAILABLE -> uiText("Локальное распознавание недоступно. Используйте клавиатуру или выберите онлайн в настройках.")
     }
 }

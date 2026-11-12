@@ -74,6 +74,7 @@ import com.notessync.app.settings.CompletedStyle
 import com.notessync.app.settings.InterfaceStyle
 import com.notessync.app.settings.SettingsRepository
 import com.notessync.app.settings.ThemeMode
+import com.notessync.app.settings.VoiceControl
 import com.notessync.app.settings.VoiceEngine
 import com.notessync.app.settings.VoiceStructure
 import com.notessync.app.ui.common.formatDateTime
@@ -445,6 +446,17 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
                     )
+                    Text(uiText("Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет."),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp))
+                    Text(uiText("Управление микрофоном"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)) {
+                        VoiceControl.entries.forEach { control ->
+                            SettingsChoice(selected = state.voiceControl == control, onClick = { settings.setVoiceControl(control) },
+                                label = { Text(control.label) })
+                        }
+                    }
                     Text(uiText("Структуризация текста"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -460,8 +472,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text(
-                        uiText("Кнопка микрофона с подписью AI — в верхней панели редактора. ") +
-                            uiText("«По пунктам» превращает речь в список, «Основная мысль» выделяет главное."),
+                        uiText("Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)

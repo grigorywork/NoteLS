@@ -37,6 +37,11 @@ enum class VoiceEngine(private val labelRu: String) {
     val label: String get() = uiText(labelRu)
 }
 
+enum class VoiceControl(private val labelRu: String) {
+    HOLD("Удерживать"), TAP("Нажать для старта и остановки");
+    val label: String get() = uiText(labelRu)
+}
+
 enum class VoiceStructure(private val labelRu: String) {
     RAW("Как есть"),
     POINTS("По пунктам"),
@@ -119,6 +124,7 @@ data class SettingsState(
     val completedStyle: CompletedStyle = CompletedStyle.STRIKE,
     val accentColor: AccentColor = AccentColor.DYNAMIC,
     val voiceEngine: VoiceEngine = VoiceEngine.ONLINE,
+    val voiceControl: VoiceControl = VoiceControl.HOLD,
     val voiceStructure: VoiceStructure = VoiceStructure.POINTS,
     // Этап 33: цветная подсветка задач в виджете (чтобы не сливались).
     val widgetColoredTasks: Boolean = false,
@@ -182,6 +188,7 @@ class SettingsRepository private constructor(context: Context) {
         completedStyle = enumPref(KEY_COMPLETED_STYLE, CompletedStyle.STRIKE),
         accentColor = enumPref(KEY_ACCENT_COLOR, AccentColor.DYNAMIC),
         voiceEngine = enumPref(KEY_VOICE_ENGINE, VoiceEngine.ONLINE),
+        voiceControl = enumPref("voice_control", VoiceControl.HOLD),
         voiceStructure = enumPref(KEY_VOICE_STRUCTURE, VoiceStructure.POINTS),
         widgetColoredTasks = prefs.getBoolean(KEY_WIDGET_COLORED_TASKS, false),
         appFont = enumPref(KEY_APP_FONT, AppFont.SYSTEM),
@@ -225,6 +232,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setVoiceEngine(engine: VoiceEngine) {
         prefs.edit().putString(KEY_VOICE_ENGINE, engine.name).apply()
     }
+
+    fun setVoiceControl(control: VoiceControl) { prefs.edit().putString("voice_control", control.name).apply(); _state.value = read() }
 
     fun setVoiceStructure(structure: VoiceStructure) {
         prefs.edit().putString(KEY_VOICE_STRUCTURE, structure.name).apply()

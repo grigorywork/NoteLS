@@ -2,7 +2,7 @@ package com.notessync.app.voice
 
 /**
  * Этап 32: лёгкая структуризация распознанной речи.
- * Работает локально и мгновенно (без сети и задержек): разбивает поток слов
+ * Работает локально без сети: разбивает поток слов
  * на пункты или выделяет главную мысль по ключевым словам.
  */
 object TextStructurer {
@@ -26,11 +26,18 @@ object TextStructurer {
         "the", "a", "an", "and", "or", "to", "of", "in", "on", "is", "are"
     )
 
+    // Compile only the rules used by the selected mode, once rather than for every sentence.
+    private val whitespace by lazy { Regex("\\s+") }
+    private val punctuationSpace by lazy { Regex("\\s+([,.!?;:…])") }
+    private val sentenceBreak by lazy { Regex("(?<=[.!?…])\\s+|\\|") }
+    private val wordSeparators by lazy { Regex("[^\\p{L}\\p{N}\\s-]") }
+    private val pointPatterns by lazy { POINT_MARKERS.map { Regex("(?i)(^|\\s)${Regex.escape(it)}[,:]?\\s+") } }
+
     /** Убрать лишние пробелы, нормализовать пунктуацию. */
     fun normalize(text: String): String =
         text.trim()
-            .replace(Regex("\\s+"), " ")
-            .replace(Regex("\\s+([,.!?;:…])"), "$1")
+            .replace(whitespace, " ")
+            .replace(punctuationSpace, "$1")
 
     /** Разбить текст на предложения (по пунктуации и маркерам речи). */
     fun sentences(text: String): List<String> {
@@ -38,12 +45,10 @@ object TextStructurer {
         if (normalized.isEmpty()) return emptyList()
         // Маркеры речи превращаем в границы предложений.
         var marked = normalized
-        POINT_MARKERS.forEach { marker ->
-            marked = marked.replace(
-                Regex("(?i)(^|\\s)${Regex.escape(marker)}[,:]?\\s+")
-            ) { match -> match.groupValues[1] + "|" }
+        pointPatterns.forEach { pattern ->
+            marked = marked.replace(pattern) { match -> match.groupValues[1] + "|" }
         }
-        return marked.split(Regex("(?<=[.!?…])\\s+|\\|"))
+        return marked.split(sentenceBreak)
             .map { it.trim().trim(',', ';', ':') }
             .filter { it.isNotBlank() }
     }
@@ -92,8 +97,8 @@ object TextStructurer {
 
     private fun words(text: String): List<String> =
         text.lowercase()
-            .replace(Regex("[^\\p{L}\\p{N}\\s-]"), " ")
-            .split(Regex("\\s+"))
+            .replace(wordSeparators, " ")
+            .split(whitespace)
             .map { it.trim('-') }
             .filter { it.isNotBlank() && it !in STOP_WORDS && it.length > 2 }
 

@@ -554,7 +554,24 @@ object UiCatalog {
             "Всего записей" to "Total entries",
             "Обычных заметок" to "Notes",
             "Всего задач" to "Total tasks",
-            "Время выполненных задач" to "Time on completed tasks"
+            "Время выполненных задач" to "Time on completed tasks",
+            "Удерживать" to "Hold",
+            "Нажать для старта и остановки" to "Tap to start and stop",
+            "Нет сети. Используйте клавиатуру или выберите доступный локальный режим в настройках." to "No network. Use the keyboard or select an available on-device mode in settings.",
+            "Распознавание не ответило. Попробуйте снова или используйте клавиатуру." to "Recognition did not respond. Try again or use the keyboard.",
+            "Для этого языка нет доступной модели. Используйте клавиатуру или выберите другой режим в настройках." to "No model is available for this language. Use the keyboard or choose another mode in settings.",
+            "Локальное распознавание недоступно. Используйте клавиатуру или выберите онлайн в настройках." to "On-device recognition is unavailable. Use the keyboard or choose online in settings.",
+            "Диктовка: удерживайте микрофон" to "Dictation: hold the microphone",
+            "Начать диктовку" to "Start dictation",
+            "Отменить распознавание" to "Cancel recognition",
+            "Завершить диктовку" to "Finish dictation",
+            "Разрешение получено. Снова удерживайте микрофон для диктовки." to "Permission granted. Hold the microphone again to dictate.",
+            "Разрешение получено. Нажмите микрофон ещё раз." to "Permission granted. Tap the microphone again.",
+            "Запуск микрофона…" to "Starting microphone…",
+            "Распознаю…" to "Recognizing…",
+            "Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет." to "Online mode uses the system service: audio may be sent to its provider. On-device mode requires Android 12+ and an available model; it never switches online automatically.",
+            "Управление микрофоном" to "Microphone control",
+            "Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса." to "Hold the microphone and speak; release it to get text. Tap mode and the keyboard are available if holding is difficult. Text structuring uses local rules, without a separate AI service."
         )
     }
 

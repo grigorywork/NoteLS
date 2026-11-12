@@ -60,8 +60,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -203,73 +201,57 @@ fun NoteEditorScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePickerFor by remember { mutableStateOf<Long?>(null) }
     // Этап 32: голосовой ввод.
-    var voiceListening by remember { mutableStateOf(false) }
+    var voiceState by remember { mutableStateOf(com.notessync.app.voice.VoiceState.IDLE) }
+    var voiceClosing by remember { mutableStateOf(false) }
     var voicePartial by remember { mutableStateOf("") }
+    var voiceStructureAtStart by remember { mutableStateOf(settingsState.voiceStructure) }
+    var permissionPending by remember { mutableStateOf(false) }
     val currentVoiceEngine = rememberUpdatedState(settingsState.voiceEngine)
-    val currentVoiceStructure = rememberUpdatedState(settingsState.voiceStructure)
+    val currentVoiceControl = rememberUpdatedState(settingsState.voiceControl)
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     val voiceManager = remember {
-        com.notessync.app.voice.VoiceInputManager(
-            context,
+        com.notessync.app.voice.VoiceInputManager(context,
             object : com.notessync.app.voice.VoiceInputManager.Listener {
-                override fun onReady() {
-                    voiceListening = true
-                    voicePartial = ""
+                override fun onState(state: com.notessync.app.voice.VoiceState) {
+                    voiceState = state
+                    if (state == com.notessync.app.voice.VoiceState.IDLE) voicePartial = ""
                 }
-                override fun onPartial(text: String) {
-                    voicePartial = text
-                }
+                override fun onPartial(text: String) { voicePartial = text }
                 override fun onFinal(text: String) {
-                    viewModel.insertVoiceText(text, currentVoiceStructure.value)
-                    voicePartial = ""
+                    viewModel.insertVoiceText(text, voiceStructureAtStart)
                 }
                 override fun onError(message: String) {
-                    voicePartial = ""
                     scope.launch { snackbarHostState.showSnackbar(message) }
                 }
-                override fun onEnd() {
-                    voiceListening = false
-                    voicePartial = ""
-                }
-            }
-        )
+            })
     }
-    DisposableEffect(Unit) {
-        onDispose { voiceManager.stop() }
-    }
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        voiceManager.stop()
-        voiceListening = false
+    DisposableEffect(voiceManager) { onDispose { voiceManager.cancel() } }
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
+        voiceManager.cancel()
         voicePartial = ""
     }
-    val micPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            voiceManager.start(currentVoiceEngine.value)
-        } else {
-            scope.launch {
-                snackbarHostState.showSnackbar(uiText("Без разрешения на микрофон голосовой ввод недоступен"))
-            }
+    val micPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        permissionPending = false
+        scope.launch {
+            snackbarHostState.showSnackbar(if (!granted) uiText("Без разрешения на микрофон голосовой ввод недоступен")
+                else if (currentVoiceControl.value == com.notessync.app.settings.VoiceControl.HOLD)
+                    uiText("Разрешение получено. Снова удерживайте микрофон для диктовки.")
+                else uiText("Разрешение получено. Нажмите микрофон ещё раз."))
         }
     }
-    fun toggleVoiceInput() {
-        if (voiceListening) {
-            voiceManager.stop()
-            voiceListening = false
-            voicePartial = ""
+    fun startVoiceInput() {
+        if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || voiceClosing) return
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || permissionPending) return
+        val engine = currentVoiceEngine.value
+        if (!voiceManager.isAvailable(engine)) {
+            scope.launch { snackbarHostState.showSnackbar(voiceManager.unavailableMessage(engine)) }
             return
         }
-        if (!voiceManager.isAvailable) {
-            scope.launch {
-                snackbarHostState.showSnackbar(uiText("Распознавание речи недоступно на этом устройстве"))
-            }
-            return
-        }
-        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            voiceManager.start(currentVoiceEngine.value)
+        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            voiceStructureAtStart = settingsState.voiceStructure
+            voiceManager.start(engine)
         } else {
+            permissionPending = true
             micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
@@ -349,11 +331,13 @@ fun NoteEditorScreen(
     }
 
     fun exit() {
+        voiceManager.cancel()
         if (viewModel.isClosing || viewModel.isPhotoBusy) return
+        voiceClosing = true
         scope.launch {
             // Сначала принудительное сохранение (снимает гонку автосохранения),
             // потом удаление пустой черновой заметки.
-            if (viewModel.flushOnExit()) onBack()
+            if (viewModel.flushOnExit()) onBack() else voiceClosing = false
         }
     }
     BackHandler { exit() }
@@ -379,27 +363,9 @@ fun NoteEditorScreen(
                     }
                 },
                 actions = {
-                    // Этап 32: микрофон с мелкой подписью AI.
-                    IconButton(onClick = { toggleVoiceInput() }) {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = if (voiceListening) {
-                                        MaterialTheme.colorScheme.error
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    }
-                                ) { Text("AI", style = MaterialTheme.typography.labelSmall) }
-                            }
-                        ) {
-                            Icon(
-                                if (voiceListening) Icons.Default.Stop else Icons.Default.Mic,
-                                contentDescription = uiText("Голосовой ввод AI"),
-                                tint = if (voiceListening) MaterialTheme.colorScheme.error
-                                else LocalContentColor.current
-                            )
-                        }
-                    }
+                    com.notessync.app.ui.notes.VoiceInputButton(settingsState.voiceControl, voiceState,
+                        onStart = { startVoiceInput() }, onFinish = voiceManager::finish, onCancel = voiceManager::cancel,
+                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing)
                     IconButton(onClick = viewModel::toggleFavorite) {
                         Icon(
                             if (viewModel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
@@ -537,8 +503,8 @@ fun NoteEditorScreen(
         }
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Этап 32: плашка «Слушаю…» с промежуточным текстом.
-            if (voiceListening) {
+            // Listening and waiting for the final result are distinct; partial text is never inserted.
+            if (voiceState != com.notessync.app.voice.VoiceState.IDLE) {
                 Surface(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     modifier = Modifier.fillMaxWidth()
@@ -554,7 +520,11 @@ fun NoteEditorScreen(
                         )
                         Spacer(Modifier.padding(horizontal = 4.dp))
                         Text(
-                            if (voicePartial.isBlank()) uiText("Слушаю… Говорите.") else voicePartial,
+                            when (voiceState) {
+                                com.notessync.app.voice.VoiceState.STARTING -> uiText("Запуск микрофона…")
+                                com.notessync.app.voice.VoiceState.PROCESSING -> uiText("Распознаю…")
+                                else -> voicePartial.ifBlank { uiText("Слушаю… Говорите.") }
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -1086,9 +1056,13 @@ fun NoteEditorScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
+                    voiceClosing = true
+                    voiceManager.cancel()
                     scope.launch {
-                        val id = viewModel.deleteNow()
-                        onDeleted(id)
+                        try {
+                            val id = viewModel.deleteNow()
+                            onDeleted(id)
+                        } finally { voiceClosing = false }
                     }
                 }) { Text(uiText("Удалить")) }
             },
