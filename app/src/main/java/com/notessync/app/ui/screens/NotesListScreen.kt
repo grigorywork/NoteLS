@@ -1,5 +1,10 @@
 package com.notessync.app.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.lazy.staggeredgrid.*
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,8 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -63,6 +68,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,14 +81,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.notessync.app.data.local.entity.AttachmentEntity
+import com.notessync.app.settings.NotesLayout
+import com.notessync.app.settings.SettingsRepository
+import com.notessync.app.notes.text.notePreviewText
+import com.notessync.app.ui.notes.NoteGridCard
+import com.notessync.app.ui.notes.NotePhotoPreview
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.data.local.entity.NotebookEntity
 import com.notessync.app.security.ProtectionSession
+import com.notessync.app.security.visibleNotes
 import com.notessync.app.ui.common.SetPasswordDialog
 import com.notessync.app.ui.common.UnlockPasswordDialog
 import com.notessync.app.ui.common.formatDateTime
@@ -94,6 +111,7 @@ import com.notessync.app.ui.tasks.taskColorOption
 import com.notessync.app.ui.theme.GlassPanelShape
 import com.notessync.app.ui.theme.LocalGlassTheme
 import com.notessync.app.ui.theme.glassBorder
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -111,6 +129,8 @@ fun NotesListScreen(
     viewModel: NotesViewModel = viewModel()
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
+    val photos by viewModel.firstPhotos.collectAsStateWithLifecycle()
+    val cardsState = rememberLazyStaggeredGridState()
     val lockedTasks by viewModel.lockedTasks.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
@@ -119,8 +139,11 @@ fun NotesListScreen(
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
 
+    val shownNotes = remember(notes, notebooks, protectionState) { visibleNotes(notes, notebooks, protectionState) }
+
     val settingsContext = androidx.compose.ui.platform.LocalContext.current
-    val displaySettings by remember { com.notessync.app.settings.SettingsRepository.get(settingsContext).state }.collectAsStateWithLifecycle()
+    val settingsRepository = remember { SettingsRepository.get(settingsContext) }
+    val displaySettings by settingsRepository.state.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var drawerQuoteIndex by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
     androidx.compose.runtime.LaunchedEffect(drawerState.isOpen, displaySettings.drawerQuote.enabled) {
@@ -402,10 +425,17 @@ fun NotesListScreen(
                             placeholder = { Text("Поиск") },
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                             trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { settingsRepository.setNotesLayout(
+                                    if (displaySettings.notesLayout == NotesLayout.LIST) NotesLayout.GRID else NotesLayout.LIST) }) {
+                                    Icon(if (displaySettings.notesLayout == NotesLayout.LIST) Icons.Default.GridView else Icons.AutoMirrored.Filled.ViewList,
+                                        if (displaySettings.notesLayout == NotesLayout.LIST) "Показать сетку" else "Показать список")
+                                }
                                 if (query.isNotEmpty()) {
                                     IconButton(onClick = { viewModel.onQueryChange("") }) {
                                         Icon(Icons.Default.Close, contentDescription = "Очистить")
                                     }
+                                }
                                 }
                             }
                         )
@@ -438,7 +468,7 @@ fun NotesListScreen(
                     }
                 }
 
-                if (notes.isEmpty() && visibleLockedTasks.isEmpty()) {
+                if (shownNotes.isEmpty() && visibleLockedTasks.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -455,33 +485,15 @@ fun NotesListScreen(
                         )
                     }
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(visibleLockedTasks, key = { "locked-${it.id}" }) { task ->
-                            LockedTaskCard(
-                                onClick = {
-                                    taskUnlockError = false
-                                    taskToUnlock = task
-                                }
-                            )
-                        }
-                        items(notes, key = { it.id }) { note ->
-                            NoteCard(
-                                note = note,
-                                showPriority = displaySettings.showTaskPriorities,
-                                onClick = {
-                                    if (ProtectionSession.isUnlocked(note)) {
-                                        onOpenEditor(note.id, note.isTask)
-                                    } else {
-                                        taskUnlockError = false
-                                        taskToUnlock = note
-                                    }
-                                },
-                                onDelete = { deleteCandidate = note },
-                                onToggleCompleted = { viewModel.toggleCompleted(note) },
-                                onToggleTimer = { viewModel.toggleTaskTimer(note) }
-                            )
-                        }
-                    }
+                    NotesCardsLayout(shownNotes, visibleLockedTasks, displaySettings.notesLayout, photos,
+                        displaySettings.showTaskPriorities, state = cardsState,
+                        onOpen = { note ->
+                            if (ProtectionSession.isUnlocked(note)) onOpenEditor(note.id, note.isTask)
+                            else { taskUnlockError = false; taskToUnlock = note }
+                        }, onUnlock = { task -> taskUnlockError = false; taskToUnlock = task },
+                        onDelete = { deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
+                        onToggleTimer = viewModel::toggleTaskTimer)
+
                 }
             }
         }
@@ -660,14 +672,14 @@ private fun NotebookNameDialog(
 }
 
 @Composable
-private fun LockedTaskCard(onClick: () -> Unit) {
+private fun LockedTaskCard(onClick: () -> Unit, horizontalPadding: Dp = 16.dp) {
     val glass = LocalGlassTheme.current
     ElevatedCard(
         onClick = onClick,
         shape = if (glass.enabled) GlassPanelShape else CardDefaults.elevatedShape,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(horizontal = horizontalPadding, vertical = 6.dp)
             .glassBorder()
     ) {
         Row(
@@ -698,6 +710,7 @@ private fun LockedTaskCard(onClick: () -> Unit) {
 private fun NoteCard(
     note: NoteEntity,
     showPriority: Boolean = true,
+    photo: AttachmentEntity? = null,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onToggleCompleted: () -> Unit,
@@ -726,7 +739,7 @@ private fun NoteCard(
         colors = cardColors,
         shape = if (glass.enabled) GlassPanelShape else CardDefaults.elevatedShape,
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().testTag("note-card-${note.id}")
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .glassBorder()
     ) {
@@ -769,7 +782,7 @@ private fun NoteCard(
                         )
                     }
                     Text(
-                        text = note.title.ifBlank { "Без названия" },
+                        text = notePreviewText(note.title, 256).ifBlank { "Без названия" },
                         style = MaterialTheme.typography.titleMedium,
                         // Этап 35: активная задача — заголовок цветом задачи.
                         color = if (note.isTask && !note.isCompleted) accent
@@ -780,10 +793,11 @@ private fun NoteCard(
                 }
                 if (note.tablesData.isNotEmpty()) Text("Таблица", style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (photo != null) NotePhotoPreview(photo, 120)
                 if (note.content.isNotBlank()) {
                     Text(
                         // HF-1: в карточках списка тоже отрисованный текст, без ** и [ ].
-                        text = remember(note.content, note.textFormat) { MarkdownLite.parse(note.content, formatting = note.textFormat) },
+                        text = remember(note.content, note.textFormat) { MarkdownLite.parse(notePreviewText(note.content), formatting = note.textFormat) },
                         style = MaterialTheme.typography.bodyMedium,
                         color = LocalContentColor.current.copy(alpha = 0.75f),
                         maxLines = 2,
@@ -854,3 +868,46 @@ private fun filterTitle(filter: NoteFilter): String = when (filter) {
     is NoteFilter.Tag -> "#" + filter.name
 }
 
+
+
+/** One lazy state for both layouts preserves the same anchor across a lane-count change. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>, layout: NotesLayout,
+    photos: Map<Long, AttachmentEntity>, showPriority: Boolean,
+    state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+    onOpen: (NoteEntity) -> Unit, onUnlock: (NoteEntity) -> Unit, onDelete: (NoteEntity) -> Unit,
+    onToggleCompleted: (NoteEntity) -> Unit, onToggleTimer: (NoteEntity) -> Unit
+) {
+    val grid = layout == NotesLayout.GRID
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val columns = if (grid && maxWidth >= 280.dp) 2 else 1
+        var previousColumns by rememberSaveable { mutableIntStateOf(columns) }
+        var previousLayout by rememberSaveable { mutableStateOf(layout) }
+        var anchor by rememberSaveable { mutableIntStateOf(state.firstVisibleItemIndex) }
+        LaunchedEffect(layout, columns, state) {
+            if (previousLayout != layout || previousColumns != columns) {
+                state.scrollToItem(anchor.coerceIn(0, (notes.size + locked.size - 1).coerceAtLeast(0)), 0)
+                previousLayout = layout
+                previousColumns = columns
+            }
+            snapshotFlow { state.firstVisibleItemIndex }.distinctUntilChanged().collect { anchor = it }
+        }
+        LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(columns), state = state,
+            modifier = Modifier.fillMaxSize().testTag("notes-cards"),
+            contentPadding = PaddingValues(start = if (grid) 16.dp else 0.dp, end = if (grid) 16.dp else 0.dp,
+                top = if (grid) 6.dp else 0.dp, bottom = 160.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalItemSpacing = if (grid) 12.dp else 0.dp
+        ) {
+            items(locked, key = { "locked-${it.id}" }, span = { StaggeredGridItemSpan.FullLine }) { task ->
+                LockedTaskCard({ onUnlock(task) }, horizontalPadding = if (grid) 0.dp else 16.dp)
+            }
+            items(notes, key = { "note-${it.id}" }, contentType = { if (grid) "grid" else "list" }) { note ->
+                if (grid) NoteGridCard(note, photos[note.id], showPriority,
+                    { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) })
+                else NoteCard(note, showPriority, photos[note.id], { onOpen(note) }, { onDelete(note) },
+                    { onToggleCompleted(note) }, { onToggleTimer(note) })
+            }
+        }
+    }
+}

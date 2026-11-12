@@ -16,6 +16,10 @@ interface AttachmentDao {
     @Query("SELECT * FROM attachments WHERE noteId = :noteId")
     fun observeByNoteId(noteId: Long): Flow<List<AttachmentEntity>>
 
+    // Metadata only; the notes query controls visibility. Watching notes would rerun this on every text autosave.
+    @Query("SELECT * FROM attachments WHERE id IN (SELECT MIN(id) FROM attachments WHERE mimeType LIKE 'image/%' GROUP BY noteId)")
+    fun observeFirstPhotos(): Flow<List<AttachmentEntity>>
+
     @Query("SELECT COUNT(*) FROM attachments WHERE noteId = :noteId")
     suspend fun countByNoteId(noteId: Long): Int
 

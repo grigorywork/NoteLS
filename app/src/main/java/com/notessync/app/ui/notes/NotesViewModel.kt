@@ -19,6 +19,8 @@ import com.notessync.app.ui.tasks.TaskTimer
 import com.notessync.app.widget.CalendarWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -88,6 +90,12 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // One metadata query for first photos, not one query per visible card or all image bytes.
+    val firstPhotos = db.attachmentDao().observeFirstPhotos()
+        .map { photos -> photos.associateBy { it.noteId } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(0), emptyMap())
 
     val lockedTasks: StateFlow<List<NoteEntity>> = ProtectionSession.state
         .flatMapLatest { protection ->

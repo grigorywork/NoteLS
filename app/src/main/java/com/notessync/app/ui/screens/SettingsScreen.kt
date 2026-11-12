@@ -331,6 +331,19 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     trailingContent = { Icon(Icons.Default.ChevronRight, null) },
                     modifier = Modifier.clickable { showDrawerQuote = true })
             }
+            SettingsCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Вид заметок", style = MaterialTheme.typography.titleSmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp).selectableGroup()) {
+                        com.notessync.app.settings.NotesLayout.entries.forEach { layout ->
+                            SettingsChoice(state.notesLayout == layout, { settings.setNotesLayout(layout) }) {
+                                Text(if (layout == com.notessync.app.settings.NotesLayout.LIST) "Список" else "Две колонки")
+                            }
+                        }
+                    }
+                }
+            }
             SectionTitle("Редактор")
             SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {

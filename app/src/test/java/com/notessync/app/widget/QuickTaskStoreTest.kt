@@ -2,7 +2,9 @@ package com.notessync.app.widget
 
 import android.app.AlarmManager
 import android.app.Application
+import android.app.NotificationChannel
 import android.app.NotificationManager
+import com.notessync.app.reminders.ReminderReceiver
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
 import kotlinx.coroutines.*
@@ -41,6 +43,10 @@ class QuickTaskStoreTest {
         val note = db.noteDao().getById(ids[0])!!
         assertEquals("Updated", note.content); assertTrue(note.isTask); assertEquals(25_000L, note.dayKey)
         assertEquals(1, db.attachmentDao().getByNoteId(ids[0]).size)
+        val unicode = "a".repeat(59) + "😀 tail"
+        store.save(d.copy(text = unicode))
+        val safe = db.noteDao().getById(ids[0])!!
+        assertEquals("a".repeat(59), safe.title); assertEquals(unicode, safe.content)
     }
 
     @Test fun `blank input never creates a row and clearing an existing draft leaves a tombstone`() = runBlocking {
@@ -76,6 +82,17 @@ class QuickTaskStoreTest {
             assertEquals(QuickTaskWarning.NOTIFICATIONS, denied.warning)
             assertNull(db.noteDao().getById(denied.id)!!.reminderAt)
         } finally { notifications.setNotificationsEnabled(true) }
+    }
+
+    @Test fun `a disabled reminder channel retains text and reports notifications blocked`() = runBlocking {
+        val manager = app.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(NotificationChannel(ReminderReceiver.CHANNEL_ID, "Reminders", NotificationManager.IMPORTANCE_NONE))
+        try {
+            val result = store.save(draft("Blocked channel", System.currentTimeMillis() + 60_000))
+            assertEquals(QuickTaskWarning.NOTIFICATIONS, result.warning)
+            val note = db.noteDao().getById(result.id)!!
+            assertEquals("Blocked channel", note.content); assertNull(note.reminderAt)
+        } finally { manager.deleteNotificationChannel(ReminderReceiver.CHANNEL_ID) }
     }
 
     @Test fun `deleted draft cannot be resurrected by a delayed save`() = runBlocking {

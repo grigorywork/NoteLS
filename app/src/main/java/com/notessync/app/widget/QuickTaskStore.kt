@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.notes.text.notePreviewText
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -41,7 +42,7 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
                 else -> null
             }
             val base = old ?: NoteEntity(syncId = draft.syncId)
-            val candidate = base.copy(title = text.lineSequence().first().take(60), content = text,
+            val candidate = base.copy(title = notePreviewText(text.lineSequence().first(), 60), content = text,
                 dayKey = draft.dayKey, isTask = true, reminderAt = requested.takeIf { warning == null })
             if (old != null && candidate == old) return@withTransaction old
             changed = true

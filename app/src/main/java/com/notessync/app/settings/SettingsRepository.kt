@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
+enum class NotesLayout { LIST, GRID }
 
 // Этап 27: как выглядит выполненный пункт чек-листа.
 enum class CompletedStyle { STRIKE, HIDE }
@@ -88,6 +89,7 @@ enum class WidgetCompletedStyle(val label: String) {
 }
 
 data class SettingsState(
+    val notesLayout: NotesLayout = NotesLayout.LIST,
     val editorHistory: Boolean = true,
     val showTables: Boolean = true,
     val photoResize: Boolean = true,
@@ -142,6 +144,7 @@ class SettingsRepository private constructor(context: Context) {
         }.getOrDefault(default)
 
     private fun read() = SettingsState(
+        notesLayout = enumPref("notes_layout", NotesLayout.LIST),
         editorHistory = prefs.getBoolean("editor_history", true),
         showTables = prefs.getBoolean("show_tables", true),
         photoResize = prefs.getBoolean("photo_resize", true),
@@ -201,6 +204,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setWidgetColoredTasks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WIDGET_COLORED_TASKS, enabled).apply()
     }
+
+    fun setNotesLayout(value: NotesLayout) { prefs.edit().putString("notes_layout", value.name).apply(); _state.value = read() }
 
     fun setQuickTaskTime(value: Boolean) { prefs.edit().putBoolean("quick_task_time", value).apply(); _state.value = read() }
 

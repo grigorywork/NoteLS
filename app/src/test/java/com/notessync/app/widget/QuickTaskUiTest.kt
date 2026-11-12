@@ -27,6 +27,8 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.time.LocalDate
+import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "w320dp-h640dp")
@@ -35,18 +37,28 @@ class QuickTaskUiTest {
     @get:Rule val compose = createComposeRule()
     private val models = ViewModelStore()
     private lateinit var app: Application
+    private var active: QuickTaskViewModel? = null
     @Before fun before() {
         app = RuntimeEnvironment.getApplication()
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db")
         SettingsRepository.get(app).setBackupFrequency(BackupFrequency.MANUAL)
     }
-    @After fun after() { models.clear(); AppDatabase.closeInstance(); SettingsRepository.get(app).setQuickTaskTime(true) }
+    @After fun after() {
+        models.clear()
+        active?.let { vm ->
+            val drained = AtomicBoolean(false)
+            compose.runOnIdle { CoroutineScope(Dispatchers.Main.immediate).launch { vm.persist(); drained.set(true) } }
+            compose.waitUntil(5_000) { compose.waitForIdle(); drained.get() }
+        }
+        AppDatabase.closeInstance()
+        SettingsRepository.get(app).setQuickTaskTime(true)
+    }
 
     @Test fun `plus clears only after saving and the small editor has no save button`() {
         SettingsRepository.get(app).setQuickTaskTime(false)
         lateinit var vm: QuickTaskViewModel
         compose.setContent {
-            vm = remember { QuickTaskViewModel(app, SavedStateHandle()).also { models.put("quick", it) } }
+            vm = remember { QuickTaskViewModel(app, SavedStateHandle()).also { models.put("quick", it); active = it } }
             MaterialTheme { Box(Modifier.requiredSize(320.dp, 440.dp)) { QuickNoteContent(vm, false, {}) } }
         }
         compose.onNodeWithText("Сохранить", useUnmergedTree = true).assertDoesNotExist()
@@ -63,7 +75,7 @@ class QuickTaskUiTest {
         SettingsRepository.get(app).setQuickTaskTime(true)
         lateinit var vm: QuickTaskViewModel
         compose.setContent {
-            vm = remember { QuickTaskViewModel(app, SavedStateHandle()).also { models.put("quick", it) } }
+            vm = remember { QuickTaskViewModel(app, SavedStateHandle()).also { models.put("quick", it); active = it } }
             MaterialTheme { QuickNoteContent(vm, true, {}) }
         }
         compose.onNodeWithText("Время напоминания").assertIsDisplayed()

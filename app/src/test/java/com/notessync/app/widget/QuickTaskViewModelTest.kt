@@ -33,7 +33,13 @@ class QuickTaskViewModelTest {
         state = SavedStateHandle(mapOf("dayKey" to LocalDate.now().plusDays(5).toEpochDay()))
         vm = QuickTaskViewModel(app, state); models.put("quick", vm); dispatcher.scheduler.runCurrent()
     }
-    @After fun after() { models.clear(); dispatcher.scheduler.runCurrent(); AppDatabase.closeInstance(); Dispatchers.resetMain() }
+    @After fun after() = runTest(dispatcher) {
+        models.clear()
+        // NonCancellable commits must finish before their test dispatcher and database disappear.
+        vm.persist()
+        AppDatabase.closeInstance()
+        Dispatchers.resetMain()
+    }
     private fun count(): Int = AppDatabase.get(app).openHelper.readableDatabase.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use { it.moveToFirst(); it.getInt(0) }
 
     @Test fun `plus flushes exactly one task and close saves the next with the chosen date`() = runTest(dispatcher) {

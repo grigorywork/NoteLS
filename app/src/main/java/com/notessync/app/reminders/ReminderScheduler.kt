@@ -1,6 +1,7 @@
 package com.notessync.app.reminders
 
 import android.Manifest
+import android.app.NotificationManager
 import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
@@ -17,8 +18,11 @@ object ReminderScheduler {
         val runtimePermissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
+        val channel = context.getSystemService(NotificationManager::class.java)
+            .getNotificationChannel(ReminderReceiver.CHANNEL_ID)
         return runtimePermissionGranted &&
-            NotificationManagerCompat.from(context).areNotificationsEnabled()
+            NotificationManagerCompat.from(context).areNotificationsEnabled() &&
+            channel?.importance != NotificationManager.IMPORTANCE_NONE
     }
 
     fun schedule(context: Context, noteId: Long, noteTitle: String, at: Long): Boolean {
