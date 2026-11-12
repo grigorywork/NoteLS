@@ -23,3 +23,7 @@
 Финальный локальный прогон: **359 тестов,0 failures/errors/skipped**, lint0 ошибок/14 прежних GradleDependency warnings/2 прежние информации; assembleDebug успешно, **BUILD SUCCESSFUL in2m26s**. JDK17/SDK35/Gradle8.9, git diff --check.12 новых проверок: полнота ключей и placeholders, один проход с пользовательским текстом, live enum labels, формат размера/Locale, реальный переключатель настроек/ресурсы без замены Activity, черновик/undo/redo, английская главная с русским именем и отсутствием записи в БД, prefs/default/corruption и виджет с прежним выбранным днём. Для prefs-тестов singleton сбрасывается между отдельными Application Robolectric; рабочая логика приложения не ослаблена.
 
 Это облачные JVM/Compose/Robolectric/SQLite проверки. Физический телефон, эмулятор и замеры PSS/CPU/батареи не запускались. Постоянный ключ подписи не менялся. Cloud debug APK не является обновлением установленного приложения с постоянной подписью. CI/APK проверяются после публикации.
+
+## GitHub
+
+[CI43284739434](https://github.com/grigorywork/NoteLS/actions/runs/43284739434) success на6104763725842123da8e60af232b9bd0f68748b4:359 тестов,0 failures/ignored, lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за7m. Сверены журнал131415016385 и HTML/XML отчётов13974931796; SHA256 ZIP7c81091b51f592e4bd84f2408a56798729ecfe7be1b81917ef26ce0bb9f3a0df совпала с GitHub. [APK1.10.21/code44 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43284739434/artifacts/13975685173), Android Debug/NOT-UPDATE; постоянная подпись не менялась.
