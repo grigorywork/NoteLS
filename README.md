@@ -47,3 +47,5 @@ Linux/macOS:
 ## Проверочные APK в облаке
 
 После успешного GitHub Actions доступен артефакт `NoteLS-<версия>-code<код>-cloud-debug-NOT-UPDATE` с APK, SHA256SUMS и пояснением подписи. Это Android Debug, **не обновление** установленного приложения с постоянным ключом. Артефакты хранятся14 дней. Постоянный ключ в облако не передаётся; подписанный выпуск остаётсяv1.10.1.
+
+Текущий проверочный [APK1.10.14/code37 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43209483407/artifacts/13940544109), этап53; [проверки](https://github.com/grigorywork/NoteLS/actions/runs/43209483407) пройдены.
