@@ -1,6 +1,6 @@
 # Продолжение NoteLS в Codex
 
-Актуальная передача: [CODEX-HANDOFF.md](CODEX-HANDOFF.md). Исходники1.10.17/code40, Room14;54б — обводка настроек локально проверена:314 тестов, lint без ошибок, сборка3m45s. [Отчёт54б](settings-outlines-1.10.17.md), CI проверяется после публикации. Далее55 — сетка; [план](user-improvements-plan.md). Постоянная подпись не менялась, debug NOT-UPDATE не является обновлением.
+Актуальная передача: [CODEX-HANDOFF.md](CODEX-HANDOFF.md). Исходники1.10.17/code40, Room14;54б — обводка настроек локально проверена:314 тестов, lint без ошибок, сборка3m45s. [Отчёт54б](settings-outlines-1.10.17.md), [CI43219882970](https://github.com/grigorywork/NoteLS/actions/runs/43219882970) success,314 тестов, lint и сборка6m9s; [APK54б (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43219882970/artifacts/13945258205). Далее55 — сетка; [план](user-improvements-plan.md). Постоянная подпись не менялась, debug NOT-UPDATE не является обновлением.
 
 Работать только с приватным https://github.com/grigorywork/NoteLS, веткаmain. Перед изменениями получить свежий HEAD и прочитать AGENTS.md, ПЕРЕДАЧА-ПРОЕКТА.md, конецagent.md, новый отчёт и передачу. Не восстанавливать проект из старых архивов. Облачная среда теряла локальные изменения; публикация в GitHub и новый CI — источник состояния.
 
