@@ -778,6 +778,8 @@ private fun NoteCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                if (note.tablesData.isNotEmpty()) Text("Таблица", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (note.content.isNotBlank()) {
                     Text(
                         // HF-1: в карточках списка тоже отрисованный текст, без ** и [ ].

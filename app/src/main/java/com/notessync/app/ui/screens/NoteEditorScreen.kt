@@ -107,6 +107,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import com.notessync.app.notes.history.EditorField
 import com.notessync.app.ui.notes.text.EditorHistoryActions
 import com.notessync.app.ui.notes.text.HistoryInput
+import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.material3.OutlinedButton
+import com.notessync.app.ui.notes.tables.AddTableDialog
+import com.notessync.app.ui.notes.tables.TableEditorDialog
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -161,10 +165,12 @@ fun NoteEditorScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showAddTable by remember { mutableStateOf(false) }
+    var openTable by remember { mutableStateOf<String?>(null) }
     val titleFocus = remember { FocusRequester() }
     val contentFocus = remember { FocusRequester() }
-    LaunchedEffect(viewModel.historyRestoreVersion, viewModel.previewMode) {
-        if (viewModel.historyRestoreVersion > 0 && !viewModel.previewMode) {
+    LaunchedEffect(viewModel.historyRestoreVersion, viewModel.previewMode, openTable) {
+        if (viewModel.historyRestoreVersion > 0 && !viewModel.previewMode && openTable == null && viewModel.editorField != EditorField.TABLE) {
             if (viewModel.editorField == EditorField.TITLE) titleFocus.requestFocus() else contentFocus.requestFocus()
         }
     }
@@ -291,6 +297,7 @@ fun NoteEditorScreen(
     LaunchedEffect(viewModel.message) {
         val current = viewModel.message ?: return@LaunchedEffect
         val text = when (current) {
+            EditorMessage.TABLE_LIMIT -> "Достигнут предел таблиц или текста ячейки."
             EditorMessage.SAVE_FAILED -> "Не удалось сохранить заметку. Повторите попытку."
             EditorMessage.HISTORY_LIMIT -> "Изменение слишком велико для истории. Текст сохранён в редакторе."
             EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
@@ -743,6 +750,23 @@ fun NoteEditorScreen(
                 )
             }
 
+            if (settingsState.showTables) {
+                if (viewModel.tables == null) {
+                    Text("Таблица недоступна для редактирования. Данные сохранены.", Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { showAddTable = true }, enabled = viewModel.isReady && !viewModel.isClosing) {
+                        Icon(Icons.Default.TableChart, null); Text("Таблица")
+                    }
+                    viewModel.tables?.blocks.orEmpty().forEachIndexed { index, table ->
+                        OutlinedButton(onClick = { openTable = table.id }, modifier = Modifier.padding(start = 4.dp)) {
+                            Text("${index + 1}: ${table.rowCount} × ${table.columnCount}")
+                        }
+                    }
+                }
+            }
+
             if (viewModel.previewMode) {
                 PreviewBlock(
                     text = viewModel.contentField.text,
@@ -870,6 +894,15 @@ fun NoteEditorScreen(
 
         }
     }
+
+    if (showAddTable) AddTableDialog(onDismiss = { showAddTable = false },
+        remainingCells = com.notessync.app.notes.tables.NoteTables.MAX_CELLS - (viewModel.tables?.cellCount ?: 0),
+        remainingTables = com.notessync.app.notes.tables.NoteTables.MAX_TABLES - (viewModel.tables?.blocks?.size ?: 0)) { rows, columns ->
+        viewModel.addTable(rows, columns)?.let { openTable = it; showAddTable = false }
+    }
+    val visibleTable = openTable
+    if (visibleTable != null && settingsState.showTables) TableEditorDialog(visibleTable, viewModel,
+        snackbarHostState = snackbarHostState, onDismiss = { openTable = null })
 
     if (showTimerResetDialog) {
         AlertDialog(

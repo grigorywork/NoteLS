@@ -45,6 +45,8 @@ data class NoteDto(
     val taskColor: String = "violet",
     val taskPriority: Int = 0,
     val textFormat: String = "",
+    // Null: legacy peer without tables support. Empty string: explicit table removal.
+    val tablesData: String? = null,
     val taskElapsedMillis: Long = 0L,
     val taskTimerStartedAt: Long? = null,
     // Аудит 2026-11-11: обратный отсчёт и дата выполнения тоже синхронизируются.

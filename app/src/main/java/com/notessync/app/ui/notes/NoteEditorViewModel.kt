@@ -1,6 +1,7 @@
 package com.notessync.app.ui.notes
 
 import com.notessync.app.notes.text.*
+import com.notessync.app.notes.tables.*
 import com.notessync.app.notes.history.*
 import com.notessync.app.settings.SettingsRepository
 import androidx.compose.runtime.snapshots.Snapshot
@@ -61,6 +62,7 @@ import java.util.UUID
 enum class EditorMessage {
     FORMATTING_LIMIT,
     HISTORY_LIMIT,
+    TABLE_LIMIT,
     SAVE_FAILED,
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
@@ -97,6 +99,12 @@ class NoteEditorViewModel(
 
     var formatting by mutableStateOf(TextFormatting())
         private set
+    var tables by mutableStateOf<NoteTables?>(NoteTables())
+        private set
+    private var unsupportedTables = ""
+    private var tableCell: TableCellRef? = null
+    private var tableSelection: EditorSelection? = null
+    val hasTables: Boolean get() = tables?.blocks?.isNotEmpty() == true || unsupportedTables.isNotEmpty()
     private var pendingFormatting by mutableStateOf<Map<FormatKind, String?>>(emptyMap())
     var taskPriority by androidx.compose.runtime.mutableIntStateOf(0)
         private set
@@ -179,6 +187,8 @@ class NoteEditorViewModel(
                     titleField = TextFieldValue(note.title, TextRange(note.title.length))
                     contentField = TextFieldValue(note.content, TextRange(note.content.length))
                     formatting = withContext(Dispatchers.Default) { TextFormatting.decode(note.textFormat, note.content.length) }
+                    tables = withContext(Dispatchers.Default) { NoteTables.decode(note.tablesData) }
+                    unsupportedTables = if (tables == null) note.tablesData else ""
                     taskPriority = note.taskPriority
                     isFavorite = note.isFavorite
                     isTask = note.isTask
@@ -210,7 +220,7 @@ class NoteEditorViewModel(
         viewModelScope.launch {
             snapshotFlow {
                 AutosaveKey(
-                    title, contentField.text, formatting, taskPriority, isFavorite, reminderAt,
+                    title, contentField.text, formatting, tables, taskPriority, isFavorite, reminderAt,
                     isTask, isCompleted, taskColor, taskElapsedMillis, taskTimerStartedAt,
                     taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, isProtected
                 )
@@ -231,6 +241,7 @@ class NoteEditorViewModel(
         val title: String,
         val content: String,
         val formatting: TextFormatting,
+        val tables: NoteTables?,
         val taskPriority: Int,
         val favorite: Boolean,
         val reminderAt: Long?,
@@ -253,10 +264,12 @@ class NoteEditorViewModel(
 
     private suspend fun persistNow(force: Boolean) {
         if (deleted) return
-        if (!force && !exists && title.isBlank() && contentField.text.isBlank()) return
+        if (!force && !exists && title.isBlank() && contentField.text.isBlank() && !hasTables) return
 
         val now = System.currentTimeMillis()
-        val note = NoteEntity(
+        val tablesSnapshot = tables
+        val unknownSnapshot = unsupportedTables
+        val baseNote = NoteEntity(
             id = if (exists) currentNoteId else 0,
             syncId = syncId,
             title = title.trim(),
@@ -283,6 +296,8 @@ class NoteEditorViewModel(
             updatedAt = now,
             dirty = true
         )
+        val encodedTables = withContext(Dispatchers.Default) { tablesSnapshot?.encode() ?: unknownSnapshot }
+        val note = baseNote.copy(tablesData = encodedTables)
         // Opening/closing an unchanged note must not write the DB or produce another ZIP.
         val previous = lastSavedNote
         if (previous != null && note.copy(updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return
@@ -309,7 +324,7 @@ class NoteEditorViewModel(
         isClosing = true
         return try {
             // Freeze edits while the final write is pending, so exit cannot drop a late edit.
-            if (exists || title.isNotBlank() || contentField.text.isNotBlank()) saveNow(force = true)
+            if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables) saveNow(force = true)
             discardIfEmptyOnExit()
             BackupManager.requestAutoBackup(app, afterNote = true)
             true
@@ -325,7 +340,7 @@ class NoteEditorViewModel(
 
     private fun snapshot() = EditorSnapshot(title, contentField.text, formatting, EditorCursor(
         EditorSelection(titleField.selection.start, titleField.selection.end),
-        EditorSelection(contentField.selection.start, contentField.selection.end), editorField, pendingFormatting))
+        EditorSelection(contentField.selection.start, contentField.selection.end), editorField, pendingFormatting, tableCell, tableSelection), tables ?: NoteTables())
 
     private fun publishHistory() { canUndo = history.canUndo; canRedo = history.canRedo }
 
@@ -395,6 +410,8 @@ class NoteEditorViewModel(
                 titleField = TextFieldValue(it.title, TextRange(it.cursor.title.start, it.cursor.title.end))
                 contentField = TextFieldValue(it.content, TextRange(it.cursor.content.start, it.cursor.content.end))
                 formatting = it.formatting; pendingFormatting = it.cursor.pending; editorField = it.cursor.field
+                if (tables != null) tables = it.tables
+                tableCell = it.cursor.cell; tableSelection = it.cursor.cellSelection
                 historyRestoreVersion++
             }
         }
@@ -473,6 +490,59 @@ class NoteEditorViewModel(
             edit { updateContent(TextFieldValue(it, contentField.selection)) }
         }
     }
+
+    // ---------- Табличные блоки ----------
+
+    fun addTable(rows: Int, columns: Int): String? {
+        val current = tables ?: return null
+        val id = UUID.randomUUID().toString()
+        try {
+            val next = current.add(id, rows, columns)
+            edit { tables = next }
+            return id.takeIf { tables == next }
+        } catch (_: TableLimitReached) { message = EditorMessage.TABLE_LIMIT }
+        return null
+    }
+    fun removeTable(id: String) { tables?.let { value -> edit { tables = value.remove(id) } } }
+    fun focusTableCell(ref: TableCellRef) {
+        onEditorFocus(EditorField.TABLE)
+        if (tableCell != ref) history.breakGroup()
+        tableCell = ref
+    }
+    fun editTableCell(ref: TableCellRef, value: String) {
+        val old = tables?.find(ref.tableId)?.takeIf { it.contains(ref.row, ref.column) }?.cells?.get(ref.row)?.get(ref.column) ?: return
+        val range = tableSelection?.takeIf { tableCell == ref }?.let { TextRange(it.start, it.end) } ?: TextRange(old.length)
+        onTableCellChange(ref, TextFieldValue(old, range), TextFieldValue(value, TextRange(value.length)))
+    }
+    fun onTableCellChange(ref: TableCellRef, before: TextFieldValue, next: TextFieldValue) {
+        val current = tables ?: return
+        val table = current.find(ref.tableId) ?: return
+        if (!table.contains(ref.row, ref.column)) return
+        focusTableCell(ref)
+        tableSelection = EditorSelection(before.selection.start, before.selection.end)
+        if (table.cells[ref.row][ref.column] == next.text) {
+            if (before.selection != next.selection || before.composition != next.composition) history.breakGroup()
+            tableSelection = EditorSelection(next.selection.start, next.selection.end)
+            return
+        }
+        val composing = before.composition != null || next.composition != null
+        val kind = if (!atomicInput && (composing || (before.selection.collapsed &&
+            kotlin.math.abs(next.text.length - before.text.length) == 1))) EditKind.TABLE_INPUT else EditKind.ATOMIC
+        atomicInput = false
+        try {
+            val changed = current.editCell(ref, next.text)
+            edit(kind) { tables = changed; tableSelection = EditorSelection(next.selection.start, next.selection.end) }
+        } catch (_: TableLimitReached) { message = EditorMessage.TABLE_LIMIT }
+        if (before.composition != null && next.composition == null) history.breakGroup()
+    }
+    fun resizeTableColumn(id: String, column: Int, width: Int) {
+        tables?.let { value -> edit { tables = value.resizeColumn(id, column, width) } }
+    }
+    fun resizeTableRow(id: String, row: Int, height: Int) {
+        tables?.let { value -> edit { tables = value.resizeRow(id, row, height) } }
+    }
+    val focusedTableCell: TableCellRef? get() = tableCell
+    val focusedTableSelection: EditorSelection? get() = tableSelection
 
     // ---------- Голосовой ввод (Этап 32) ----------
 
@@ -750,9 +820,7 @@ class NoteEditorViewModel(
                     )
                 )
                 BackupManager.noteChanged()
-                noteDao.getById(currentNoteId)?.let { note ->
-                    noteDao.update(note.copy(dirty = true, updatedAt = System.currentTimeMillis()))
-                }
+                noteDao.markContentChanged(currentNoteId)
             } catch (_: PhotoTooLargeException) {
                 message = EditorMessage.PHOTO_TOO_LARGE
             } catch (error: Exception) {
@@ -766,10 +834,8 @@ class NoteEditorViewModel(
         viewModelScope.launch {
             attachmentDao.deleteById(attachment.id)
             BackupManager.noteChanged()
-            File(attachment.filePath).delete()
-            noteDao.getById(attachment.noteId)?.let { note ->
-                noteDao.update(note.copy(dirty = true, updatedAt = System.currentTimeMillis()))
-            }
+            withContext(Dispatchers.IO) { File(attachment.filePath).delete() }
+            noteDao.markContentChanged(attachment.noteId)
         }
     }
 
@@ -818,7 +884,7 @@ class NoteEditorViewModel(
 
     suspend fun discardIfEmptyOnExit() = saveMutex.withLock {
         val hasAttachments = exists && attachmentDao.countByNoteId(currentNoteId) > 0
-        if (loaded && createdHere && title.isBlank() && contentField.text.isBlank() &&
+        if (loaded && createdHere && title.isBlank() && contentField.text.isBlank() && !hasTables &&
             reminderAt == null && !hasAttachments && exists
         ) {
             withContext(NonCancellable) { noteDao.softDelete(currentNoteId); deleted = true }

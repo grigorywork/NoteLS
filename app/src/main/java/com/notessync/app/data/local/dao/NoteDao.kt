@@ -33,6 +33,10 @@ interface NoteDao {
     @Update
     suspend fun update(note: NoteEntity)
 
+    // Attachment changes affect sync metadata only; never rewrite a stale document snapshot.
+    @Query("UPDATE notes SET dirty = 1, updatedAt = :timestamp WHERE id = :id")
+    suspend fun markContentChanged(id: Long, timestamp: Long = System.currentTimeMillis())
+
     // Мягкое удаление: запись помечается, чтобы удаление могло синхронизироваться (Этап 5).
     @Query("UPDATE notes SET isDeleted = 1, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
     suspend fun softDelete(id: Long, timestamp: Long = System.currentTimeMillis())

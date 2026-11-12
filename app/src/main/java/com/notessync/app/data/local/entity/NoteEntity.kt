@@ -26,6 +26,7 @@ data class NoteEntity(
     val title: String = "",
     val content: String = "",
     @ColumnInfo(defaultValue = "''") val textFormat: String = "",
+    @ColumnInfo(defaultValue = "''") val tablesData: String = "",
     val notebookId: Long? = null,
     val isFavorite: Boolean = false,
     val isDeleted: Boolean = false,

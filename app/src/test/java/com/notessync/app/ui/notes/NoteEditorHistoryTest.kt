@@ -8,6 +8,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.notes.text.*
+import com.notessync.app.notes.tables.*
+import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.settings.*
 import com.notessync.app.ui.notes.md.MarkdownEdit
 import kotlinx.coroutines.*
@@ -49,6 +51,47 @@ class NoteEditorHistoryTest {
     }
     private fun text(value: String, start: Int = value.length, end: Int = start) {
         vm.onContentChange(TextFieldValue(value, TextRange(start, end)))
+    }
+
+    @Test fun `table-only note saves and undo redo includes cells dimensions and deletion`() = runTest(dispatcher) {
+        val id = vm.addTable(2, 2)!!
+        val ref = TableCellRef(id, 0, 1)
+        vm.editTableCell(ref, "a"); vm.editTableCell(ref, "ab")
+        vm.undo(); assertEquals("", vm.tables!!.find(id)!!.cells[0][1])
+        vm.redo(); assertEquals("ab", vm.tables!!.find(id)!!.cells[0][1])
+        vm.resizeTableColumn(id, 1, 300); vm.undo(); assertEquals(160, vm.tables!!.find(id)!!.columnWidths[1])
+        vm.redo(); vm.resizeTableRow(id, 0, 144)
+        vm.removeTable(id); assertFalse(vm.hasTables); vm.undo(); assertTrue(vm.hasTables)
+        val expected = vm.tables!!.encode()
+        assertTrue(vm.flushOnExit())
+        val note = AppDatabase.get(app).noteDao().getById(vm.currentNoteId)!!
+        assertFalse(note.isDeleted); assertEquals("", note.content); assertEquals(expected, note.tablesData)
+    }
+    @Test fun `table caret moves split input groups and IME undo clears composition`() = runTest(dispatcher) {
+        val id = vm.addTable(1, 1)!!; val ref = TableCellRef(id, 0, 0)
+        vm.editTableCell(ref, "ab")
+        vm.onTableCellChange(ref, TextFieldValue("ab", TextRange(2)), TextFieldValue("abc", TextRange(3)))
+        vm.onTableCellChange(ref, TextFieldValue("abc", TextRange(3)), TextFieldValue("abc", TextRange(0)))
+        vm.onTableCellChange(ref, TextFieldValue("abc", TextRange(0)), TextFieldValue("xabc", TextRange(1)))
+        vm.undo(); assertEquals("abc", vm.tables!!.find(id)!!.cells[0][0])
+        assertEquals(com.notessync.app.notes.history.EditorSelection(0), vm.focusedTableSelection)
+        vm.undo(); assertEquals("ab", vm.tables!!.find(id)!!.cells[0][0])
+        vm.onTableCellChange(ref, TextFieldValue("ab", TextRange(2)), TextFieldValue("abni", TextRange(4), TextRange(2, 4)))
+        vm.onTableCellChange(ref, TextFieldValue("abni", TextRange(4), TextRange(2, 4)), TextFieldValue("ab你", TextRange(3)))
+        vm.undo(); assertEquals("ab", vm.tables!!.find(id)!!.cells[0][0])
+    }
+
+    @Test fun `unsupported table bytes survive text edits and undo without data loss`() = runTest(dispatcher) {
+        val raw = "{\"version\":99,\"blocks\":[\"future\"]}"
+        val id = AppDatabase.get(app).noteDao().upsert(NoteEntity(title = "future", tablesData = raw))
+        val other = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to id)))
+        store.put("other", other)
+        withContext(Dispatchers.Default) { withTimeout(5_000) { while (!other.isReady) delay(10) } }
+        assertNull(other.tables); assertTrue(other.hasTables); assertNull(other.addTable(1, 1))
+        other.onContentChange(TextFieldValue("changed")); other.undo(); other.redo()
+        assertTrue(other.flushOnExit())
+        val note = AppDatabase.get(app).noteDao().getById(id)!!
+        assertEquals(raw, note.tablesData); assertEquals("changed", note.content)
     }
 
     @Test fun `formatting and title undo roundtrip save and reopen`() = runTest(dispatcher) {

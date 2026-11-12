@@ -1,10 +1,12 @@
 package com.notessync.app.notes.history
 
+import com.notessync.app.notes.tables.NoteTables
+import com.notessync.app.notes.tables.TableCellRef
 import com.notessync.app.notes.text.FormatKind
 import com.notessync.app.notes.text.TextFormatting
 
 /** Session-only history. No platform, persistence, clock polling, or retained full-text snapshots. */
-enum class EditorField { TITLE, CONTENT }
+enum class EditorField { TITLE, CONTENT, TABLE }
 data class EditorSelection(val start: Int = 0, val end: Int = start) {
     fun bounded(length: Int) = EditorSelection(start.coerceIn(0, length), end.coerceIn(0, length))
 }
@@ -12,12 +14,15 @@ data class EditorCursor(
     val title: EditorSelection = EditorSelection(),
     val content: EditorSelection = EditorSelection(),
     val field: EditorField = EditorField.CONTENT,
-    val pending: Map<FormatKind, String?> = emptyMap()
+    val pending: Map<FormatKind, String?> = emptyMap(),
+    val cell: TableCellRef? = null,
+    val cellSelection: EditorSelection? = null
 )
 data class EditorSnapshot(
-    val title: String, val content: String, val formatting: TextFormatting, val cursor: EditorCursor
+    val title: String, val content: String, val formatting: TextFormatting, val cursor: EditorCursor,
+    val tables: NoteTables = NoteTables()
 )
-enum class EditKind { INPUT, COMPOSITION, ATOMIC }
+enum class EditKind { INPUT, COMPOSITION, TABLE_INPUT, ATOMIC }
 enum class HistoryResult { UNCHANGED, RECORDED, TOO_LARGE }
 
 class EditorHistory(
@@ -41,9 +46,10 @@ class EditorHistory(
         val title = Patch.between(before.title, after.title, before.cursor.title, after.cursor.title)
         val content = Patch.between(before.content, after.content, before.cursor.content, after.cursor.content)
         if (title == null && content == null && before.formatting == after.formatting &&
-            before.cursor.pending == after.cursor.pending) return HistoryResult.UNCHANGED
+            before.cursor.pending == after.cursor.pending && before.tables == after.tables) return HistoryResult.UNCHANGED
         val entry = Entry(title, content, before.formatting, after.formatting,
-            before.cursor, after.cursor, kind, clockMillis())
+            before.cursor, after.cursor, kind, clockMillis(),
+            if (before.tables == after.tables) null else TableChange(before.tables, after.tables))
         redo.forEach { estimatedBytes -= it.bytes }; redo.clear()
         if (entry.bytes > maxBytes) { clear(); return HistoryResult.TOO_LARGE }
         val previous = undo.lastOrNull()
@@ -117,11 +123,14 @@ class EditorHistory(
         }
     }
 
+    private data class TableChange(val before: NoteTables, val after: NoteTables)
+
     private data class Entry(
         val title: Patch?, val content: Patch?,
         val beforeFormat: TextFormatting, val afterFormat: TextFormatting,
         val beforeCursor: EditorCursor, val afterCursor: EditorCursor,
-        val kind: EditKind, val time: Long
+        val kind: EditKind, val time: Long,
+        val tables: TableChange? = null, val tableEvents: Int = 1
     ) {
         // Conservative accounting budget, not a measurement of ART/PSS. Shared marks are charged twice.
         val bytes: Long = 256L + listOfNotNull(title, content).sumOf {
@@ -130,21 +139,31 @@ class EditorHistory(
             128L + 2L * (it.kind.length + it.value.length)
         } } + listOf(beforeCursor, afterCursor).sumOf { cursor -> cursor.pending.entries.sumOf {
             96L + 2L * (it.value?.length ?: 0)
-        } }
+        } } + (tables?.let { it.before.estimatedBytes + it.after.estimatedBytes } ?: 0L)
 
         val isNoOp: Boolean get() = listOfNotNull(title, content).all { it.removed == it.inserted } &&
-            beforeFormat == afterFormat && beforeCursor.pending == afterCursor.pending
+            beforeFormat == afterFormat && beforeCursor.pending == afterCursor.pending && (tables == null || tables.before == tables.after)
 
         fun apply(current: EditorSnapshot, backwards: Boolean): EditorSnapshot {
             val newTitle = title?.apply(current.title, backwards) ?: current.title
             val newContent = content?.apply(current.content, backwards) ?: current.content
             val cursor = if (backwards) beforeCursor else afterCursor
             return EditorSnapshot(newTitle, newContent, if (backwards) beforeFormat else afterFormat,
-                cursor.copy(title = cursor.title.bounded(newTitle.length), content = cursor.content.bounded(newContent.length)))
+                cursor.copy(title = cursor.title.bounded(newTitle.length), content = cursor.content.bounded(newContent.length)),
+                tables?.let { if (backwards) it.before else it.after } ?: current.tables)
         }
         fun merge(next: Entry): Entry? {
             if (kind == EditKind.ATOMIC || kind != next.kind || next.time - time !in 0..1_000 ||
                 afterCursor != next.beforeCursor || beforeCursor.pending != next.afterCursor.pending) return null
+            if (kind == EditKind.TABLE_INPUT && tables != null && next.tables != null &&
+                title == null && content == null && next.title == null && next.content == null &&
+                beforeFormat == afterFormat && next.beforeFormat == next.afterFormat &&
+                afterCursor.cell != null && afterCursor.cell == next.beforeCursor.cell &&
+                tableEvents + next.tableEvents <= 256) {
+                return copy(tables = TableChange(tables.before, next.tables.after),
+                    afterCursor = next.afterCursor, time = next.time, tableEvents = tableEvents + next.tableEvents)
+            }
+            if (tables != null || next.tables != null) return null
             val titleEdit = title != null && content == null && next.title != null && next.content == null
             val contentEdit = content != null && title == null && next.content != null && next.title == null
             val combined = when {
