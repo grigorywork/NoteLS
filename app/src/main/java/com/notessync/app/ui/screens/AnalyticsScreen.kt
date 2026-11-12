@@ -42,7 +42,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.AnalyticsEntry
+import com.notessync.app.ui.analytics.AnalyticsSummary
+import com.notessync.app.ui.analytics.AnalyticsScopePicker
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.testTag
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.LinearProgressIndicator
 import com.notessync.app.ui.analytics.AnalyticsState
 import com.notessync.app.ui.analytics.AnalyticsViewModel
 import com.notessync.app.ui.tasks.TaskTimer
@@ -50,7 +56,7 @@ import com.notessync.app.ui.tasks.taskColorOption
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-/** Этап 31: отдельный крупный раздел — выполненные задачи, графики и рекорды. */
+/** Общие показатели записей и статистика задач с фильтром по блокнотам. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
@@ -58,11 +64,16 @@ fun AnalyticsScreen(
     onOpenNote: (Long) -> Unit,
     viewModel: AnalyticsViewModel = viewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val computed by viewModel.state.collectAsStateWithLifecycle()
+    val scope by viewModel.scope.collectAsStateWithLifecycle()
+    val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
+    val state = remember(computed, scope, notebooks) { AnalyticsSummary.visible(computed, scope, notebooks) }
+    val choices = remember(notebooks) { notebooks.orEmpty().filter { !it.isDeleted && !it.isProtected } }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(uiText("Аналитика")) },
+                actions = { IconButton(onClick = viewModel::refresh, enabled = !state.loading) { Icon(Icons.Default.Refresh, uiText("Обновить статистику")) } },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
@@ -71,21 +82,6 @@ fun AnalyticsScreen(
             )
         }
     ) { padding ->
-        if (!state.loading && state.totalCompleted == 0) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    uiText("Выполненных задач пока нет.\nОтметьте задачу выполненной — и здесь появится статистика."),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(32.dp)
-                )
-            }
-            return@Scaffold
-        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,7 +89,21 @@ fun AnalyticsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            AnalyticsScopePicker(scope, choices, notebooks != null, viewModel::selectScope)
+            Text(uiText("Статистика записей без пароля"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+            if (state.loading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text(uiText("Загрузка…"), modifier = Modifier.padding(vertical = 8.dp))
+                return@Column
+            }
             SummarySection(state)
+            if (state.totalCompleted == 0) {
+                Text(if (state.totalEntries == 0) uiText("В этом разделе пока нет записей.")
+                    else uiText("Выполненных задач пока нет.\nОтметьте задачу выполненной — и здесь появится статистика."),
+                    modifier = Modifier.padding(vertical = 24.dp), style = MaterialTheme.typography.bodyLarge)
+                return@Column
+            }
             StreakSection(state)
             SectionCard(title = uiText("Выполнения по дням (2 недели)")) {
                 SimpleBarChart(
@@ -142,13 +152,18 @@ fun AnalyticsScreen(
 private fun SummarySection(state: AnalyticsState) {
     SectionCard(title = uiText("Сводка")) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatTile(uiText("Выполнено всего"), state.totalCompleted.toString(), Modifier.weight(1f))
-            StatTile(uiText("Активных задач"), state.activeTasks.toString(), Modifier.weight(1f))
+            StatTile(uiText("Всего записей"), state.totalEntries.toString(), Modifier.weight(1f).testTag("stats-entries"))
+            StatTile(uiText("Обычных заметок"), state.noteCount.toString(), Modifier.weight(1f).testTag("stats-notes"))
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatTile(uiText("За 7 дней"), state.completedLast7Days.toString(), Modifier.weight(1f))
-            StatTile(uiText("За 30 дней"), state.completedLast30Days.toString(), Modifier.weight(1f))
+            StatTile(uiText("Всего задач"), state.taskCount.toString(), Modifier.weight(1f).testTag("stats-tasks"))
+            StatTile(uiText("Выполнено всего"), state.totalCompleted.toString(), Modifier.weight(1f).testTag("stats-completed"))
         }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            StatTile(uiText("Активных задач"), state.activeTasks.toString(), Modifier.weight(1f).testTag("stats-active"))
+            StatTile(uiText("За 7 дней"), state.completedLast7Days.toString(), Modifier.weight(1f))
+        }
+        StatTile(uiText("За 30 дней"), state.completedLast30Days.toString())
     }
 }
 
@@ -187,7 +202,7 @@ private fun StreakSection(state: AnalyticsState) {
 
 @Composable
 private fun TimeSection(state: AnalyticsState) {
-    SectionCard(title = uiText("Зафиксированное время")) {
+    SectionCard(title = uiText("Время выполненных задач")) {
         Text(
             uiText("Всего: %1\$s", (TaskTimer.format(state.totalElapsedMillis))),
             style = MaterialTheme.typography.titleMedium
@@ -221,7 +236,7 @@ private fun TimeSection(state: AnalyticsState) {
 }
 
 @Composable
-private fun CompletedRow(note: NoteEntity, onClick: () -> Unit) {
+private fun CompletedRow(note: AnalyticsEntry, onClick: () -> Unit) {
     androidx.compose.material3.TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Icon(
             Icons.Default.CheckCircle,

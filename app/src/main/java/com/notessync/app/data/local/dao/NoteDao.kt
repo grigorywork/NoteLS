@@ -95,6 +95,10 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND reminderAt IS NOT NULL AND reminderAt > :now")
     suspend fun getWithFutureReminders(now: Long): List<NoteEntity>
 
+    // Lightweight statistics, including ordinary notes. No bodies, tables, formatting or attachment paths.
+    @Query("SELECT id, CASE WHEN isTask = 1 THEN SUBSTR(title, 1, 256) ELSE '' END AS title, notebookId, isTask, isCompleted, updatedAt, taskCompletedAt, taskElapsedMillis, taskColor, isDeleted, isPurged, isProtected FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1))")
+    fun observeForAnalytics(): Flow<List<com.notessync.app.data.local.model.AnalyticsEntry>>
+
     // Аналитика (Этап 31): все задачи без защищённых — статистика не раскрывает секреты.
     @Query(
         "SELECT * FROM notes WHERE isDeleted = 0 AND isTask = 1 AND isProtected = 0 " +

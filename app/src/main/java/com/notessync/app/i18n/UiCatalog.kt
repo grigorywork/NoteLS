@@ -544,7 +544,17 @@ object UiCatalog {
             "Стиль применяется в окне дня и в ячейках календаря" to "Applies to day view and calendar cells",
             "history|Повторить" to "Redo",
             "Язык интерфейса" to "Interface language",
-            "Настройки виджета" to "Widget settings"
+            "Настройки виджета" to "Widget settings",
+            "Обновить статистику" to "Refresh statistics",
+            "Статистика записей без пароля" to "Statistics for entries without passwords",
+            "Все блокноты" to "All notebooks",
+            "Блокнот для аналитики" to "Analytics notebook",
+            "Загрузка…" to "Loading…",
+            "В этом разделе пока нет записей." to "No entries in this section yet.",
+            "Всего записей" to "Total entries",
+            "Обычных заметок" to "Notes",
+            "Всего задач" to "Total tasks",
+            "Время выполненных задач" to "Time on completed tasks"
         )
     }
 

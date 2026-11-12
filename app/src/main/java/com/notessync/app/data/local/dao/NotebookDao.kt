@@ -14,6 +14,9 @@ interface NotebookDao {
     @Query("SELECT * FROM notebooks WHERE isDeleted = 0 ORDER BY name ASC")
     fun observeAll(): Flow<List<NotebookEntity>>
 
+    @Query("SELECT id, SUBSTR(name, 1, 256) AS name, isProtected, isDeleted FROM notebooks ORDER BY name COLLATE NOCASE, id")
+    fun observeForAnalytics(): Flow<List<com.notessync.app.data.local.model.AnalyticsNotebook>>
+
     @Query("SELECT * FROM notebooks WHERE syncId = :syncId")
     suspend fun getBySyncId(syncId: String): NotebookEntity?
 
