@@ -1,8 +1,31 @@
 package com.notessync.app.widget
 
 import android.os.Bundle
+import android.content.Context
+import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.viewModels
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.saveable.rememberSaveable
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
@@ -49,13 +72,26 @@ import java.util.Locale
 /** Быстрая заметка к конкретному дню (Этап 8).
  *  Открывается тапом по дате в виджете; показывает список заметок этого дня. */
 class QuickNoteActivity : ComponentActivity() {
+    private val quick: QuickTaskViewModel by viewModels()
+
+    companion object {
+        const val EXTRA_QUICK_ADD = "quickAdd"
+        fun intent(context: Context, dayKey: Long, startWithTime: Boolean = true) =
+            Intent(context, QuickNoteActivity::class.java)
+                .putExtra(CalendarWidgetProvider.EXTRA_DAY_KEY, dayKey)
+                .putExtra(EXTRA_QUICK_ADD, startWithTime)
+    }
+
+    override fun onStop() {
+        quick.onStopped()
+        val widgetId = intent.getIntExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID, android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID)
+        if (widgetId != android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID) CalendarWidgetProvider.selectDay(this, widgetId, quick.dayKey)
+        super.onStop()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val dayKey = intent.getLongExtra(
-            CalendarWidgetProvider.EXTRA_DAY_KEY,
-            LocalDate.now().toEpochDay()
-        )
+        setFinishOnTouchOutside(false)
         setContent {
             val accent by com.notessync.app.settings.SettingsRepository.get(this)
                 .state.collectAsStateWithLifecycle()
@@ -71,30 +107,60 @@ class QuickNoteActivity : ComponentActivity() {
                 interfaceStyle = accent.interfaceStyle,
                 glassBackdrop = false
             ) {
-                QuickNoteContent(
-                    dayKey = dayKey,
-                    onClose = { finish() },
-                    onSaved = {
-                        // Обновляем маркеры на виджете после сохранения.
-                        CalendarWidgetProvider.refreshAll(applicationContext)
-                        finish()
-                    }
-                )
+                QuickNoteContent(viewModel = quick, startWithTime = intent.getBooleanExtra(EXTRA_QUICK_ADD, false),
+                    onClose = { quick.close { finish() } })
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuickNoteContent(
-    dayKey: Long,
-    onClose: () -> Unit,
-    onSaved: () -> Unit
+internal fun QuickNoteContent(
+    viewModel: QuickTaskViewModel,
+    startWithTime: Boolean,
+    onClose: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val dao = remember { AppDatabase.get(context).noteDao() }
+    val dayKey = viewModel.dayKey
     val date = remember(dayKey) { LocalDate.ofEpochDay(dayKey) }
-    var text by remember { mutableStateOf("") }
+    val settings by com.notessync.app.settings.SettingsRepository.get(context).state.collectAsStateWithLifecycle()
+    var showTime by rememberSaveable { mutableStateOf(startWithTime && settings.quickTaskTime) }
+    var showDate by rememberSaveable { mutableStateOf(false) }
+    var permissionTime by rememberSaveable { mutableStateOf<Long?>(null) }
+    BackHandler { onClose() }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val at = permissionTime; permissionTime = null
+        if (granted && at != null) viewModel.setReminder(at) else viewModel.notificationDenied()
+    }
+    if (showTime) {
+        val initial = viewModel.reminderAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
+        val now = java.time.LocalDateTime.now()
+        val suggested = if (date == now.toLocalDate()) now.plusMinutes(30).let {
+            if (it.toLocalDate() == date) it.toLocalTime() else java.time.LocalTime.of(23, 59)
+        } else java.time.LocalTime.of(9, 0)
+        val time = rememberTimePickerState(initialHour = initial?.hour ?: suggested.hour, initialMinute = initial?.minute ?: suggested.minute, is24Hour = true)
+        AlertDialog(onDismissRequest = { showTime = false }, title = { Text("Время напоминания") },
+            text = { TimeInput(time) }, confirmButton = {
+                TextButton(onClick = {
+                    val at = date.atTime(time.hour, time.minute).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    showTime = false
+                    if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        permissionTime = at; notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else viewModel.setReminder(at)
+                }) { Text("Готово") }
+            }, dismissButton = { TextButton(onClick = { viewModel.setReminder(null); showTime = false }) { Text("Без напоминания") } })
+    }
+    if (showDate) {
+        val picker = rememberDatePickerState(initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+        DatePickerDialog(onDismissRequest = { showDate = false }, confirmButton = {
+            TextButton(onClick = {
+                picker.selectedDateMillis?.let { viewModel.changeDay(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay()) }
+                showDate = false
+            }) { Text("Готово") }
+        }, dismissButton = { TextButton(onClick = { showDate = false }) { Text("Отмена") } }) { DatePicker(picker) }
+    }
     val scope = rememberCoroutineScope()
     val dayNotes by remember(dao, dayKey) {
         dao.observeByDay(dayKey)
@@ -129,43 +195,38 @@ private fun QuickNoteContent(
             .imePadding()
             .glassBorder()
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            val weekday = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("ru"))
-            Text(
-                text = "$weekday, ${date.dayOfMonth} ${date.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))}",
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
+        Column {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Text(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
+                    style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f), maxLines = 2)
+                IconButton(onClick = { viewModel.next { showTime = settings.quickTaskTime } }, enabled = !viewModel.busy) {
+                    Icon(Icons.Default.Add, "Сохранить и новая задача")
+                }
+                IconButton(onClick = onClose, enabled = !viewModel.busy) { Icon(Icons.Default.Close, "Закрыть") }
+            }
+            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp)) {
             OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+                value = viewModel.text,
+                onValueChange = viewModel::changeText,
+                enabled = !viewModel.busy,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Быстрая заметка") },
-                minLines = 3
+                placeholder = { Text("Быстрая задача") },
+                minLines = 2, maxLines = 5
             )
             Spacer(modifier = Modifier.height(12.dp))
 
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                AssistChip(onClick = { showDate = true }, enabled = !viewModel.busy, label = { Text("Дата") })
+                AssistChip(onClick = { showTime = true }, enabled = !viewModel.busy,
+                    label = { Text(viewModel.reminderAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: "Время") },
+                    leadingIcon = { Icon(Icons.Default.Alarm, null) })
+            }
+            if (viewModel.reminderAt != null) TextButton(onClick = { viewModel.setReminder(null) }, enabled = !viewModel.busy) { Text("Без напоминания") }
+            Text(viewModel.error ?: if (viewModel.text.isBlank()) "Пустые задачи не сохраняются" else if (viewModel.isSaved) "Сохранено" else "Сохраняется…",
+                color = if (viewModel.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = {
-                        val content = text.trim()
-                        if (content.isEmpty()) return@Button
-                        scope.launch {
-                            dao.upsert(
-                                NoteEntity(
-                                    title = content.lineSequence().first().take(60),
-                                    content = content,
-                                    dayKey = dayKey
-                                )
-                            )
-                            BackupManager.noteChanged()
-                            BackupManager.requestAutoBackup(context, afterNote = true)
-                            onSaved()
-                        }
-                    }
-                ) { Text("Сохранить") }
-                OutlinedButton(onClick = onClose) { Text("Закрыть") }
+                if (viewModel.error != null) TextButton(onClick = { scope.launch { viewModel.persist() } }, enabled = !viewModel.busy) { Text("Повторить") }
             }
 
             if (dayNotes.isNotEmpty()) {
@@ -176,8 +237,6 @@ private fun QuickNoteContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 // Этап 36: стиль выполненных задач настраивается в меню ⋮ виджета.
-                val settings by com.notessync.app.settings.SettingsRepository.get(context)
-                    .state.collectAsStateWithLifecycle()
                 taskError?.let {
                     Text(it, color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall)
@@ -233,6 +292,7 @@ private fun QuickNoteContent(
                         }
                     }
                 }
+            }
             }
         }
     }

@@ -82,7 +82,6 @@ fun CalendarScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(context) }
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
-    var addMenuOpen by remember { mutableStateOf(false) }
     val weeks = remember(state.cells) { state.cells.chunked(7) }
 
     Scaffold(
@@ -95,36 +94,19 @@ fun CalendarScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { onAddEntry(state.selectedDate.toEpochDay(), false) }) {
+                        Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = "Новая заметка в полном редакторе")
+                    }
                     TextButton(onClick = viewModel::showToday) { Text("Сегодня") }
                 }
             )
         },
         floatingActionButton = {
-            Box {
-                FloatingActionButton(onClick = { addMenuOpen = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Добавить запись на выбранный день")
-                }
-                DropdownMenu(
-                    expanded = addMenuOpen,
-                    onDismissRequest = { addMenuOpen = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Новая заметка") },
-                        onClick = {
-                            addMenuOpen = false
-                            onAddEntry(state.selectedDate.toEpochDay(), false)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Новая задача") },
-                        onClick = {
-                            addMenuOpen = false
-                            onAddEntry(state.selectedDate.toEpochDay(), true)
-                        }
-                    )
-                }
-            }
+            FloatingActionButton(onClick = {
+                context.startActivity(com.notessync.app.widget.QuickNoteActivity.intent(context, state.selectedDate.toEpochDay()))
+            }) { Icon(Icons.Default.Add, contentDescription = "Быстрая задача на выбранный день") }
         }
+
     ) { padding ->
         Column(
             modifier = Modifier

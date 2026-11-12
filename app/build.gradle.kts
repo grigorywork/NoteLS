@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 38
-        versionName = "1.10.15"
+        versionCode = 39
+        versionName = "1.10.16"
     }
 
     signingConfigs {

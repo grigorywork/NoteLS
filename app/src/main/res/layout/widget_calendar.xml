@@ -18,6 +18,17 @@
         android:orientation="vertical"
         android:padding="12dp">
 
+        <TextView
+            android:id="@+id/widget_month_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,15 +45,7 @@
                 android:textColor="#FFFFFF"
                 android:contentDescription="@string/widget_previous_month" />
 
-            <TextView
-                android:id="@+id/widget_month_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF" />
+            <TextView android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:importantForAccessibility="no" />
 
             <TextView
                 android:id="@+id/widget_next"
@@ -53,6 +56,16 @@
                 android:textSize="24sp"
                 android:textColor="#FFFFFF"
                 android:contentDescription="@string/widget_next_month" />
+
+            <TextView
+                android:id="@+id/widget_add"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="@string/widget_add_symbol"
+                android:textSize="26sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="@string/widget_add_task" />
 
             <!-- Этап 28: прозрачность и настройки убраны в меню «⋮». -->
             <TextView

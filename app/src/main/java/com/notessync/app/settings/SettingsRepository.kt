@@ -92,6 +92,7 @@ data class SettingsState(
     val showTables: Boolean = true,
     val photoResize: Boolean = true,
     val cameraCapture: Boolean = true,
+    val quickTaskTime: Boolean = true,
     val advancedFormatting: Boolean = true,
     val showTaskPriorities: Boolean = true,
     val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
@@ -145,6 +146,7 @@ class SettingsRepository private constructor(context: Context) {
         showTables = prefs.getBoolean("show_tables", true),
         photoResize = prefs.getBoolean("photo_resize", true),
         cameraCapture = prefs.getBoolean("camera_capture", true),
+        quickTaskTime = prefs.getBoolean("quick_task_time", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
         drawerQuote = runCatching { DrawerQuoteAppearance(
@@ -199,6 +201,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setWidgetColoredTasks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WIDGET_COLORED_TASKS, enabled).apply()
     }
+
+    fun setQuickTaskTime(value: Boolean) { prefs.edit().putBoolean("quick_task_time", value).apply(); _state.value = read() }
 
     fun setCameraCapture(value: Boolean) { prefs.edit().putBoolean("camera_capture", value).apply(); _state.value = read() }
 

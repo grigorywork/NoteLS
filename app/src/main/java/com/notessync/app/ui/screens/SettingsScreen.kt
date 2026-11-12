@@ -320,6 +320,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             SectionTitle("Редактор")
             Card(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("Сразу выбирать время быстрой задачи", Modifier.weight(1f))
+                    androidx.compose.material3.Switch(state.quickTaskTime, settings::setQuickTaskTime)
+                }
+            }
+            Card(Modifier.fillMaxWidth()) {
+                androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Камера в редакторе", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.cameraCapture, settings::setCameraCapture)
                 }
