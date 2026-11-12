@@ -49,4 +49,4 @@ Linux/macOS:
 После успешного GitHub Actions доступен артефакт `NoteLS-<версия>-code<код>-cloud-debug-NOT-UPDATE` с APK, SHA256SUMS и пояснением подписи. Это Android Debug, **не обновление** установленного приложения с постоянным ключом. Артефакты хранятся14 дней. Постоянный ключ в облако не передаётся; подписанный выпуск остаётсяv1.10.1.
 
 
-Последний проверенный [APK1.10.23/code46 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43292238220/artifacts/13978266562), диктовка58; [CI](https://github.com/grigorywork/NoteLS/actions/runs/43292238220) пройден.
+[Артефакт APK1.10.24/code47 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43299893753/artifacts/13982045893), аудиовложения59; [CI](https://github.com/grigorywork/NoteLS/actions/runs/43299893753) пройден. В60 исправляется обнаруженный при сквозной проверке сбой контекста навигации при запуске MainActivity; прежние проверки запуск Activity не покрывали.
