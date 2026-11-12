@@ -67,10 +67,16 @@ private val AccentPalettes = mapOf(
     )
 )
 
-private fun accentScheme(accent: AccentColor, dark: Boolean) = AccentPalettes[accent]?.let { p ->
+internal fun accentScheme(accent: AccentColor, dark: Boolean) = AccentPalettes[accent]?.let { p ->
     if (dark) {
         DarkColors.copy(
             primary = p.darkPrimary,
+            onPrimary = p.lightOnContainer,
+            secondary = p.darkPrimary,
+            onSecondary = p.lightOnContainer,
+            secondaryContainer = p.darkContainer,
+            onSecondaryContainer = p.darkOnContainer,
+            onTertiary = p.lightOnContainer,
             primaryContainer = p.darkContainer,
             onPrimaryContainer = p.darkOnContainer,
             tertiary = p.darkPrimary,
@@ -80,6 +86,12 @@ private fun accentScheme(accent: AccentColor, dark: Boolean) = AccentPalettes[ac
     } else {
         LightColors.copy(
             primary = p.lightPrimary,
+            onPrimary = Color.White,
+            secondary = p.lightPrimary,
+            onSecondary = Color.White,
+            secondaryContainer = p.lightContainer,
+            onSecondaryContainer = p.lightOnContainer,
+            onTertiary = Color.White,
             primaryContainer = p.lightContainer,
             onPrimaryContainer = p.lightOnContainer,
             tertiary = p.lightPrimary,

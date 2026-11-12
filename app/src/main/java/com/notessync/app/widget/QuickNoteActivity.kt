@@ -60,6 +60,12 @@ class QuickNoteActivity : ComponentActivity() {
             val accent by com.notessync.app.settings.SettingsRepository.get(this)
                 .state.collectAsStateWithLifecycle()
             NoteSyncTheme(
+                darkTheme = when (accent.themeMode) {
+                    com.notessync.app.settings.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+                    com.notessync.app.settings.ThemeMode.LIGHT -> false
+                    com.notessync.app.settings.ThemeMode.DARK -> true
+                },
+                fontScale = accent.fontScale,
                 accentColor = accent.accentColor,
                 appFont = accent.appFont,
                 interfaceStyle = accent.interfaceStyle,

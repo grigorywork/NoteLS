@@ -92,7 +92,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
 
             val adapterIntent = Intent(context, CalendarWidgetService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-                data = android.net.Uri.parse("notessync://widget/$id/${System.currentTimeMillis()}")
+                data = android.net.Uri.parse("notessync://widget/$id")
             }
             views.setRemoteAdapter(R.id.calendar_grid, adapterIntent)
 

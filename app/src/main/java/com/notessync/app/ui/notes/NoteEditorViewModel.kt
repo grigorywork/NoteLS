@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.notes.text.*
+import com.notessync.app.ui.notes.md.ParagraphEdit
 import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -49,6 +51,7 @@ import java.io.File
 import java.util.UUID
 
 enum class EditorMessage {
+    FORMATTING_LIMIT,
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
     REMINDER_IN_PAST,
@@ -78,6 +81,11 @@ class NoteEditorViewModel(
     private var loaded = false
     private var lastSavedNote: NoteEntity? = null
 
+    var formatting by mutableStateOf(TextFormatting())
+        private set
+    private var pendingFormatting by mutableStateOf<Map<FormatKind, String?>>(emptyMap())
+    var taskPriority by androidx.compose.runtime.mutableIntStateOf(0)
+        private set
     var title by mutableStateOf("")
     var contentField by mutableStateOf(TextFieldValue(""))
     var isFavorite by mutableStateOf(false)
@@ -134,6 +142,8 @@ class NoteEditorViewModel(
                     }
                     title = note.title
                     contentField = TextFieldValue(note.content, TextRange(note.content.length))
+                    formatting = withContext(Dispatchers.Default) { TextFormatting.decode(note.textFormat, note.content.length) }
+                    taskPriority = note.taskPriority
                     isFavorite = note.isFavorite
                     isTask = note.isTask
                     isCompleted = note.isCompleted
@@ -164,7 +174,7 @@ class NoteEditorViewModel(
         viewModelScope.launch {
             snapshotFlow {
                 AutosaveKey(
-                    title, contentField.text, isFavorite, reminderAt,
+                    title, contentField.text, formatting, taskPriority, isFavorite, reminderAt,
                     isTask, isCompleted, taskColor, taskElapsedMillis, taskTimerStartedAt,
                     taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, isProtected
                 )
@@ -178,6 +188,8 @@ class NoteEditorViewModel(
     private data class AutosaveKey(
         val title: String,
         val content: String,
+        val formatting: TextFormatting,
+        val taskPriority: Int,
         val favorite: Boolean,
         val reminderAt: Long?,
         val isTask: Boolean,
@@ -201,6 +213,8 @@ class NoteEditorViewModel(
             syncId = syncId,
             title = title.trim(),
             content = contentField.text,
+            textFormat = formatting.encode(),
+            taskPriority = taskPriority,
             notebookId = notebookId,
             isFavorite = isFavorite,
             isDeleted = false,
@@ -256,20 +270,77 @@ class NoteEditorViewModel(
 
     /** Ввод в поле текста: перехватывает Enter для автопродолжения списков. */
     fun onContentChange(newValue: TextFieldValue) {
-        contentField = MarkdownEdit.handleEnter(contentField, newValue)
+        updateContent(MarkdownEdit.handleEnter(contentField, newValue))
     }
 
-    fun toggleBold() { contentField = MarkdownEdit.toggleWrap(contentField, "**") }
-    fun toggleItalic() { contentField = MarkdownEdit.toggleWrap(contentField, "*") }
-    fun toggleHeading() { contentField = MarkdownEdit.toggleLinePrefix(contentField, "# ") }
-    fun toggleList() { contentField = MarkdownEdit.toggleListKind(contentField, MarkdownEdit.ListKind.BULLET) }
-    fun toggleChecklist() { contentField = MarkdownEdit.toggleListKind(contentField, MarkdownEdit.ListKind.CHECKLIST) }
+    private fun updateContent(next: TextFieldValue) {
+        val before = contentField
+        if (before.text == next.text) {
+            if (before.selection != next.selection) pendingFormatting = emptyMap()
+        } else {
+            formatting = try { formatting.edited(before.text, next.text, before.selection.start, before.selection.end, pendingFormatting) }
+            catch (_: FormattingLimitReached) {
+                pendingFormatting = emptyMap(); message = EditorMessage.FORMATTING_LIMIT
+                formatting.edited(before.text, next.text, before.selection.start, before.selection.end)
+            }
+        }
+        contentField = next
+    }
+    val activeFormatting: Map<FormatKind, String?>
+        get() = formatting.at(contentField.selection.min, preferLeft = contentField.selection.collapsed) + pendingFormatting
+
+    fun formatSelection(kind: FormatKind, value: String?) {
+        if (value != null && !kind.valid(value)) return
+        val selection = contentField.selection
+        if (selection.collapsed) pendingFormatting = pendingFormatting + (kind to value)
+        else try { formatting = formatting.apply(selection.min, selection.max, kind, value) }
+        catch (_: FormattingLimitReached) { message = EditorMessage.FORMATTING_LIMIT }
+    }
+    fun selectAllContent() {
+        pendingFormatting = emptyMap()
+        contentField = contentField.copy(selection = TextRange(0, contentField.text.length))
+    }
+    fun toggleBold() = toggleTextStyle(FormatKind.BOLD)
+    fun toggleItalic() = toggleTextStyle(FormatKind.ITALIC)
+    fun toggleTextStyle(kind: FormatKind) {
+        val legacy = when (kind) {
+            FormatKind.BOLD -> MarkdownEdit.isInsideWrap(contentField.text, contentField.selection.min, "**")
+            FormatKind.ITALIC -> MarkdownEdit.isInsideWrap(contentField.text, contentField.selection.min, "*")
+            else -> false
+        }
+        val active = activeFormatting[kind]?.let { it == "1" } ?: legacy
+        formatSelection(kind, if (active) "0" else "1")
+    }
+    private fun updateLines(next: TextFieldValue) {
+        formatting = formatting.editedLines(contentField.text, next.text)
+        pendingFormatting = emptyMap(); contentField = next
+    }
+    fun toggleHeading(level: Int = 1) { updateLines(MarkdownEdit.toggleLinePrefix(contentField, "#".repeat(level.coerceIn(1, 3)) + " ")) }
+    fun toggleList(kind: MarkdownEdit.ListKind = MarkdownEdit.ListKind.BULLET) { updateLines(MarkdownEdit.toggleListKind(contentField, kind)) }
+    fun toggleChecklist() { updateLines(MarkdownEdit.toggleListKind(contentField, MarkdownEdit.ListKind.CHECKLIST)) }
+    fun formatParagraph(kind: FormatKind, value: String) {
+        if (kind != FormatKind.ALIGN && kind != FormatKind.INDENT) return
+        val range = ParagraphEdit.bounds(contentField)
+        if (range.isEmpty()) formatSelection(kind, value)
+        else try { formatting = formatting.apply(range.first, range.last + 1, kind, value) }
+        catch (_: FormattingLimitReached) { message = EditorMessage.FORMATTING_LIMIT }
+    }
+    fun changeIndent(delta: Int) {
+        val level = activeFormatting[FormatKind.INDENT]?.toIntOrNull() ?: 0
+        formatParagraph(FormatKind.INDENT, (level + delta).coerceIn(0, 4).toString())
+    }
+    fun choosePriority(value: Int) {
+        if (!isTask) return
+        val next = com.notessync.app.ui.tasks.TaskPriority.from(value).value
+        if (next == taskPriority) return
+        taskPriority = next; viewModelScope.launch { saveNow(force = true) }
+    }
 
     /** Тап по строке предпросмотра: переключить чек-бокс, если он там есть. */
     fun toggleCheckboxAtLine(lineIndex: Int) {
         MarkdownLite.toggleCheckbox(contentField.text, lineIndex)?.let {
             // Длина текста не меняется (префиксы равной длины) — курсор остаётся на месте.
-            contentField = TextFieldValue(it, contentField.selection)
+            updateContent(TextFieldValue(it, contentField.selection))
         }
     }
 
@@ -305,10 +376,10 @@ class NoteEditorViewModel(
             else -> ""
         }
         val inserted = prefix + processed + suffix
-        contentField = TextFieldValue(
+        updateContent(TextFieldValue(
             before + inserted + after,
             TextRange((before + inserted).length)
-        )
+        ))
     }
 
     // ---------- Организация (Этап 2) ----------
@@ -318,6 +389,7 @@ class NoteEditorViewModel(
     fun toggleTask() {
         isTask = !isTask
         if (!isTask) {
+            taskPriority = 0
             isCompleted = false
             taskCompletedAt = null
             taskElapsedMillis = 0L

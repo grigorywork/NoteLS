@@ -43,6 +43,8 @@ data class NoteDto(
     val isTask: Boolean = false,
     val isCompleted: Boolean = false,
     val taskColor: String = "violet",
+    val taskPriority: Int = 0,
+    val textFormat: String = "",
     val taskElapsedMillis: Long = 0L,
     val taskTimerStartedAt: Long? = null,
     // Аудит 2026-11-11: обратный отсчёт и дата выполнения тоже синхронизируются.

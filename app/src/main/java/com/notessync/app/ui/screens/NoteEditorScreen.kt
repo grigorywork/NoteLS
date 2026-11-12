@@ -271,6 +271,7 @@ fun NoteEditorScreen(
     LaunchedEffect(viewModel.message) {
         val current = viewModel.message ?: return@LaunchedEffect
         val text = when (current) {
+            EditorMessage.FORMATTING_LIMIT -> "Достигнут предел оформления. Текст сохранён; используйте более крупные выделения."
             EditorMessage.PHOTO_TOO_LARGE -> "Фото больше 10 МБ. Выберите изображение меньшего размера."
             EditorMessage.PHOTO_IMPORT_FAILED -> "Не удалось прикрепить фото. Попробуйте другое изображение."
             EditorMessage.REMINDER_IN_PAST -> "Выберите время напоминания в будущем."
@@ -651,6 +652,11 @@ fun NoteEditorScreen(
                     }
                 }
             }
+            if (viewModel.isTask && settingsState.showTaskPriorities) {
+                Box(Modifier.padding(horizontal = 16.dp)) {
+                    com.notessync.app.ui.tasks.TaskPriorityPicker(viewModel.taskPriority, viewModel::choosePriority)
+                }
+            }
             if (viewModel.isTask) {
                 Row(
                     modifier = Modifier
@@ -702,6 +708,7 @@ fun NoteEditorScreen(
             if (viewModel.previewMode) {
                 PreviewBlock(
                     text = viewModel.contentField.text,
+                    formatting = viewModel.formatting,
                     hideCompleted = settingsState.completedStyle == CompletedStyle.HIDE,
                     onToggleCheckbox = viewModel::toggleCheckboxAtLine,
                     modifier = Modifier
@@ -710,47 +717,13 @@ fun NoteEditorScreen(
                 )
             } else {
                 if (showFormattingPanel) {
-                    // Этап 27: кнопки-режимы. Подсветка показывает, что курсор
-                    // уже внутри стиля — повторное нажатие выходит из режима.
-                    val selMin = viewModel.contentField.selection.min
-                    val boldActive = MarkdownEdit.isInsideWrap(
-                        viewModel.contentField.text, selMin, "**"
-                    )
-                    val italicActive = !boldActive && MarkdownEdit.isInsideWrap(
-                        viewModel.contentField.text, selMin, "*"
-                    )
-                    Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 8.dp)
-                ) {
-                    IconButton(onClick = viewModel::toggleBold) {
-                        Icon(
-                            Icons.Default.FormatBold,
-                            contentDescription = "Жирный",
-                            tint = if (boldActive) MaterialTheme.colorScheme.primary
-                            else LocalContentColor.current
-                        )
-                    }
-                    IconButton(onClick = viewModel::toggleItalic) {
-                        Icon(
-                            Icons.Default.FormatItalic,
-                            contentDescription = "Курсив",
-                            tint = if (italicActive) MaterialTheme.colorScheme.primary
-                            else LocalContentColor.current
-                        )
-                    }
-                    IconButton(onClick = viewModel::toggleHeading) {
-                        Icon(Icons.Default.Title, contentDescription = "Заголовок")
-                    }
-                    IconButton(onClick = viewModel::toggleList) {
-                        Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = "Список")
-                    }
-                    IconButton(onClick = viewModel::toggleChecklist) {
-                        Icon(Icons.Default.CheckBox, contentDescription = "Чек-лист")
-                    }
-                    }
+                    com.notessync.app.ui.notes.text.FormattingToolbar(
+                        active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
+                        onToggle = viewModel::toggleTextStyle, onFormat = viewModel::formatSelection,
+                        onHeading = viewModel::toggleHeading, onList = viewModel::toggleList,
+                        onAlign = { viewModel.formatParagraph(com.notessync.app.notes.text.FormatKind.ALIGN, it) },
+                        onIndent = viewModel::changeIndent,
+                        onChecklist = viewModel::toggleChecklist, onSelectAll = viewModel::selectAllContent)
                 }
                 TextField(
                     value = viewModel.title,
@@ -772,7 +745,9 @@ fun NoteEditorScreen(
                     colors = borderlessColors(),
                     modifier = Modifier.fillMaxWidth()
                 )
-                val visualTransformation = editorTransformation()
+                val visualTransformation = remember(viewModel.formatting) {
+                    com.notessync.app.ui.notes.text.FormattedTextTransformation(viewModel.formatting)
+                }
                 var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
                 val density = LocalDensity.current
                 // Отступ текста задан явно в contentPadding DecorationBox ниже.
@@ -1080,11 +1055,12 @@ private fun editorTransformation(): MarkdownVisualTransformation =
 @Composable
 private fun PreviewBlock(
     text: String,
+    formatting: com.notessync.app.notes.text.TextFormatting,
     hideCompleted: Boolean,
     onToggleCheckbox: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val parsed = remember(text, hideCompleted) { MarkdownLite.parse(text, hideCompleted) }
+    val parsed = remember(text, formatting, hideCompleted) { com.notessync.app.ui.notes.text.formattedPreview(text, formatting, hideCompleted) }
     // Соответствие видимых строк строкам исходника (при скрытии выполненных).
     val sourceLines = remember(text, hideCompleted) {
         MarkdownLite.visibleSourceLines(text, hideCompleted)
@@ -1098,7 +1074,9 @@ private fun PreviewBlock(
         onClick = { offset ->
             layout?.let { result ->
                 val visibleLine = result.getLineForOffset(offset)
-                val sourceLine = sourceLines.getOrElse(visibleLine) { visibleLine }
+                val logicalLine = parsed.text.substring(0, result.getLineStart(visibleLine)).count { it == '\n' }
+                val sourceLine = parsed.getStringAnnotations(com.notessync.app.ui.notes.text.SOURCE_LINE_ANNOTATION, offset, offset)
+                    .lastOrNull()?.item?.toIntOrNull() ?: sourceLines.getOrElse(logicalLine) { logicalLine }
                 onToggleCheckbox(sourceLine)
             }
         },

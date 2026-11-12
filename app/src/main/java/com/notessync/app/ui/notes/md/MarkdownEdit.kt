@@ -8,6 +8,7 @@ import androidx.compose.ui.text.input.TextFieldValue
  * Все функции — чистые: принимают значение поля, возвращают новое.
  */
 object MarkdownEdit {
+    private val headingPrefix = Regex("^#{1,3} ")
 
     /** Оборачивает выделение маркером (** или *); повторный вызов снимает обёртку. */
     fun toggleWrap(value: TextFieldValue, marker: String): TextFieldValue {
@@ -76,34 +77,21 @@ object MarkdownEdit {
 
     /** Ставит/снимает префикс у всех строк выделения («# », «- », «- [ ] »). */
     fun toggleLinePrefix(value: TextFieldValue, prefix: String): TextFieldValue {
-        val text = value.text
-        val start = value.selection.min.coerceIn(0, text.length)
-        val end = value.selection.max.coerceIn(0, text.length)
-
-        val lineStart = text.lastIndexOf('\n', (start - 1).coerceAtLeast(0)).let { if (it < 0) 0 else it + 1 }
-        val lineEnd = text.indexOf('\n', end).let { if (it < 0) text.length else it }
-        val block = text.substring(lineStart, lineEnd)
-        val lines = block.split('\n')
-
-        val allHave = lines.all { it.startsWith(prefix) }
-        val newBlock = lines.joinToString("\n") { line ->
-            when {
+        return ParagraphEdit.transform(value) { lines ->
+            val allHave = lines.all { it.startsWith(prefix) || (it.isBlank() && lines.size > 1) }
+            lines.map { line -> when {
                 allHave -> line.removePrefix(prefix)
-                // Пустые строки пропускаем только внутри многострочного блока;
-                // одиночная пустая строка получает префикс (новый пункт).
                 line.isBlank() && lines.size > 1 -> line
+                prefix.startsWith("#") -> prefix + line.replaceFirst(headingPrefix, "")
                 else -> prefix + line
-            }
+            } }
         }
-        val newText = text.substring(0, lineStart) + newBlock + text.substring(lineEnd)
-        val cursor = (lineStart + newBlock.length).coerceAtMost(newText.length)
-        return value.copy(text = newText, selection = TextRange(cursor))
     }
 
     /** Вид списка для кнопок панели. */
     enum class ListKind(val prefix: String) {
         BULLET("- "),
-        CHECKLIST("- [ ] ")
+        CHECKLIST("- [ ] "), NUMBER("1. "), LETTER("a) ")
     }
 
     /**
@@ -114,36 +102,20 @@ object MarkdownEdit {
      * («- - [ ] текст» исключено).
      */
     fun toggleListKind(value: TextFieldValue, kind: ListKind): TextFieldValue {
-        val text = value.text
-        val start = value.selection.min.coerceIn(0, text.length)
-        val end = value.selection.max.coerceIn(0, text.length)
-
-        val lineStart = text.lastIndexOf('\n', (start - 1).coerceAtLeast(0)).let { if (it < 0) 0 else it + 1 }
-        val lineEnd = text.indexOf('\n', end).let { if (it < 0) text.length else it }
-        val block = text.substring(lineStart, lineEnd)
-        val lines = block.split('\n')
-
-        // Вид и длина маркера строки; null — строка не пункт списка.
-        fun markerOf(line: String): Pair<ListKind, Int>? = when {
-            line.startsWith("- [ ] ") || line.startsWith("- [x] ") ||
-                line.startsWith("- [X] ") -> ListKind.CHECKLIST to 6
-            line.startsWith("- ") -> ListKind.BULLET to 2
-            else -> null
-        }
-
-        val allTarget = lines.any { markerOf(it)?.first == kind } &&
-            lines.all { markerOf(it)?.first == kind || (it.isBlank() && lines.size > 1) }
-        val newBlock = lines.joinToString("\n") { line ->
-            val marker = markerOf(line)
-            when {
-                allTarget -> if (marker != null) line.substring(marker.second) else line
-                line.isBlank() && lines.size > 1 -> line
-                else -> kind.prefix + (marker?.let { line.substring(it.second) } ?: line)
+        return ParagraphEdit.transform(value) { lines ->
+            val allTarget = lines.any { ListMarkers.parse(it)?.kind == kind } &&
+                lines.all { ListMarkers.parse(it)?.kind == kind || (it.isBlank() && lines.size > 1) }
+            var ordinal = 1
+            lines.map { line ->
+                val marker = ListMarkers.parse(line)
+                when {
+                    allTarget -> if (marker != null) line.substring(marker.length) else line
+                    line.isBlank() && lines.size > 1 -> line
+                    kind == ListKind.CHECKLIST && marker?.kind == kind -> line
+                    else -> ListMarkers.prefix(kind, ordinal++) + (marker?.let { line.substring(it.length) } ?: line)
+                }
             }
         }
-        val newText = text.substring(0, lineStart) + newBlock + text.substring(lineEnd)
-        val cursor = (lineStart + newBlock.length).coerceAtMost(newText.length)
-        return value.copy(text = newText, selection = TextRange(cursor))
     }
 
     /**
@@ -163,14 +135,11 @@ object MarkdownEdit {
 
         val lineStart = prev.text.lastIndexOf('\n', cursor - 1).let { if (it < 0) 0 else it + 1 }
         val line = prev.text.substring(lineStart, cursor)
-        val prefix: String
-        val markerLength: Int
-        when {
-            line.startsWith("- [ ] ") -> { prefix = "- [ ] "; markerLength = 6 }
-            line.startsWith("- [x] ") || line.startsWith("- [X] ") -> { prefix = "- [ ] "; markerLength = 6 }
-            line.startsWith("- ") -> { prefix = "- "; markerLength = 2 }
-            else -> return next
-        }
+        val marker = ListMarkers.parse(line) ?: return next
+        if ((marker.kind == ListKind.NUMBER && marker.ordinal >= 999999) ||
+            (marker.kind == ListKind.LETTER && marker.ordinal >= 475254)) return next
+        val prefix = ListMarkers.prefix(marker.kind, marker.ordinal + 1, marker.uppercase)
+        val markerLength = marker.length
         val content = line.substring(markerLength)
         if (content.isBlank()) {
             // Пустой пункт: снять маркер, остаться на этой строке.

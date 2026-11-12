@@ -88,6 +88,9 @@ enum class WidgetCompletedStyle(val label: String) {
 }
 
 data class SettingsState(
+    val advancedFormatting: Boolean = true,
+    val showTaskPriorities: Boolean = true,
+    val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val fontScale: Float = 1.0f,
     // Прозрачность виджета-календаря (Этап 8): 0.0 — невидимый фон, 1.0 — непрозрачный.
@@ -134,6 +137,13 @@ class SettingsRepository private constructor(context: Context) {
         }.getOrDefault(default)
 
     private fun read() = SettingsState(
+        advancedFormatting = prefs.getBoolean("advanced_formatting", true),
+        showTaskPriorities = prefs.getBoolean("show_priorities", true),
+        drawerQuote = runCatching { DrawerQuoteAppearance(
+            prefs.getBoolean("drawer_quote_enabled", true), prefs.getString("drawer_quote_text", "").orEmpty(),
+            enumPref("drawer_quote_font", AppFont.SYSTEM), prefs.getFloat("drawer_quote_size", 16f),
+            prefs.getLong("drawer_quote_text_color", 0L), prefs.getLong("drawer_quote_background", 0L)
+        ).safe() }.getOrDefault(DrawerQuoteAppearance()),
         themeMode = enumPref(KEY_THEME, ThemeMode.SYSTEM),
         fontScale = prefs.getFloat(KEY_FONT_SCALE, 1.0f),
         widgetAlpha = prefs.getFloat(KEY_WIDGET_ALPHA, 0.85f),
@@ -180,6 +190,16 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setWidgetColoredTasks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WIDGET_COLORED_TASKS, enabled).apply()
+    }
+
+    fun setAdvancedFormatting(value: Boolean) { prefs.edit().putBoolean("advanced_formatting", value).apply(); _state.value = read() }
+    fun setShowTaskPriorities(value: Boolean) { prefs.edit().putBoolean("show_priorities", value).apply(); _state.value = read() }
+    fun setDrawerQuoteAppearance(value: DrawerQuoteAppearance) {
+        val v = value.safe()
+        prefs.edit().putBoolean("drawer_quote_enabled", v.enabled).putString("drawer_quote_text", v.customText)
+            .putString("drawer_quote_font", v.font.name).putFloat("drawer_quote_size", v.size)
+            .putLong("drawer_quote_text_color", v.textColor).putLong("drawer_quote_background", v.backgroundColor).apply()
+        _state.value = read()
     }
 
     fun setAppFont(font: AppFont) {

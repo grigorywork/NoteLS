@@ -8,7 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -49,14 +50,12 @@ fun PhotoAttachmentGrid(
     onRemove: (AttachmentEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    FlowRow(
+    LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 232.dp)
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        attachments.forEach { attachment ->
+        items(attachments, key = { it.id }) { attachment ->
             PhotoThumbnail(
                 attachment = attachment,
                 onOpen = { onOpen(attachment) },

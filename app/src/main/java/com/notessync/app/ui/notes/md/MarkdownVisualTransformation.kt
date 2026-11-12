@@ -140,6 +140,10 @@
                     lineStart <= activeLine.last && lineEnd >= activeLine.first
                 when {
                     isActive -> raw(lineStart, lineEnd)
+                    line.startsWith("### ") -> {
+                        skipMarker(lineStart, 4)
+                        builder.withStyle(SpanStyle(fontSize = 1.15f.em, fontWeight = FontWeight.Bold)) { inline(lineStart + 4, lineEnd) }
+                    }
                     line.startsWith("## ") -> {
                         skipMarker(lineStart, 3)
                         builder.withStyle(SpanStyle(fontSize = 1.35f.em, fontWeight = FontWeight.Bold)) {

@@ -383,7 +383,7 @@ private fun CalendarNoteRow(
             )
             if (note.content.isNotBlank()) {
                 Text(
-                    text = remember(note.content) { MarkdownLite.parse(note.content) },
+                    text = remember(note.content, note.textFormat) { MarkdownLite.parse(note.content, formatting = note.textFormat) },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

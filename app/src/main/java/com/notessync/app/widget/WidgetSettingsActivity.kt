@@ -45,6 +45,12 @@ class WidgetSettingsActivity : ComponentActivity() {
             val settings = remember { SettingsRepository.get(this) }
             val state by settings.state.collectAsStateWithLifecycle()
             NoteSyncTheme(
+                darkTheme = when (state.themeMode) {
+                    com.notessync.app.settings.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+                    com.notessync.app.settings.ThemeMode.LIGHT -> false
+                    com.notessync.app.settings.ThemeMode.DARK -> true
+                },
+                fontScale = state.fontScale,
                 accentColor = state.accentColor,
                 appFont = state.appFont,
                 interfaceStyle = state.interfaceStyle,

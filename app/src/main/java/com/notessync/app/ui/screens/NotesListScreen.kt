@@ -3,6 +3,7 @@ package com.notessync.app.ui.screens
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -117,7 +119,14 @@ fun NotesListScreen(
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
 
+    val settingsContext = androidx.compose.ui.platform.LocalContext.current
+    val displaySettings by remember { com.notessync.app.settings.SettingsRepository.get(settingsContext).state }.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+    var drawerQuoteIndex by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
+    androidx.compose.runtime.LaunchedEffect(drawerState.isOpen, displaySettings.drawerQuote.enabled) {
+        if (drawerState.isOpen && displaySettings.drawerQuote.enabled && displaySettings.drawerQuote.customText.isBlank())
+            drawerQuoteIndex = kotlin.random.Random.nextInt(com.notessync.app.ui.quotes.QuotesData.quotes.size)
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -157,6 +166,7 @@ fun NotesListScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                Column(Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState())) {
                 Text(
                     "Заметки",
                     style = MaterialTheme.typography.titleLarge,
@@ -334,6 +344,10 @@ fun NotesListScreen(
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
+                if (displaySettings.drawerQuote.enabled && drawerState.isOpen) {
+                    com.notessync.app.ui.quotes.DrawerQuoteCard(displaySettings.drawerQuote, drawerQuoteIndex)
+                }
+                }
             }
         }
     ) {
@@ -453,6 +467,7 @@ fun NotesListScreen(
                         items(notes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
+                                showPriority = displaySettings.showTaskPriorities,
                                 onClick = {
                                     if (ProtectionSession.isUnlocked(note)) {
                                         onOpenEditor(note.id, note.isTask)
@@ -682,6 +697,7 @@ private fun LockedTaskCard(onClick: () -> Unit) {
 @Composable
 private fun NoteCard(
     note: NoteEntity,
+    showPriority: Boolean = true,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onToggleCompleted: () -> Unit,
@@ -732,6 +748,11 @@ private fun NoteCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (note.isTask && showPriority && note.taskPriority != 0) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Flag,
+                            contentDescription = com.notessync.app.ui.tasks.TaskPriority.from(note.taskPriority).label,
+                            tint = com.notessync.app.ui.tasks.priorityColor(note.taskPriority), modifier = Modifier.padding(end = 4.dp))
+                    }
                     if (note.isProtected) {
                         Icon(
                             Icons.Default.Lock,
@@ -760,7 +781,7 @@ private fun NoteCard(
                 if (note.content.isNotBlank()) {
                     Text(
                         // HF-1: в карточках списка тоже отрисованный текст, без ** и [ ].
-                        text = remember(note.content) { MarkdownLite.parse(note.content) },
+                        text = remember(note.content, note.textFormat) { MarkdownLite.parse(note.content, formatting = note.textFormat) },
                         style = MaterialTheme.typography.bodyMedium,
                         color = LocalContentColor.current.copy(alpha = 0.75f),
                         maxLines = 2,

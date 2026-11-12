@@ -1,5 +1,6 @@
 package com.notessync.app.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -24,6 +25,7 @@ data class NoteEntity(
     val syncId: String = UUID.randomUUID().toString(),
     val title: String = "",
     val content: String = "",
+    @ColumnInfo(defaultValue = "''") val textFormat: String = "",
     val notebookId: Long? = null,
     val isFavorite: Boolean = false,
     val isDeleted: Boolean = false,
@@ -33,6 +35,7 @@ data class NoteEntity(
     val isTask: Boolean = false,
     val isCompleted: Boolean = false,
     val taskColor: String = "violet",
+    @ColumnInfo(defaultValue = "0") val taskPriority: Int = 0,
     val taskElapsedMillis: Long = 0L,
     val taskTimerStartedAt: Long? = null,
     // Таймер обратного отсчёта (Этап 30): остаток на паузе и дедлайн при работе.

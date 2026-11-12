@@ -89,8 +89,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
     var localCopies by remember { mutableStateOf<List<BackupManager.LocalBackup>>(emptyList()) }
     var showLocalCopies by remember { mutableStateOf(false) }
     var exportCopy by remember { mutableStateOf<java.io.File?>(null) }
+    var showDrawerQuote by remember { mutableStateOf(false) }
     var showFontLicenses by remember { mutableStateOf(false) }
     BackHandler(enabled = busy) { /* Finish the database operation before navigating away. */ }
+    if (showDrawerQuote) com.notessync.app.ui.quotes.DrawerQuoteDialog(state.drawerQuote,
+        onSave = { settings.setDrawerQuoteAppearance(it); showDrawerQuote = false }, onDismiss = { showDrawerQuote = false })
     if (showFontLicenses) FontLicensesDialog(onDismiss = { showFontLicenses = false })
 
     LaunchedEffect(state.lastAutoBackupAt, showLocalCopies) {
@@ -307,7 +310,20 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
+            Card(Modifier.fillMaxWidth()) {
+                androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("Флажки приоритета", Modifier.weight(1f))
+                    androidx.compose.material3.Switch(state.showTaskPriorities, settings::setShowTaskPriorities)
+                }
+            }
+            androidx.compose.material3.OutlinedButton(onClick = { showDrawerQuote = true }, modifier = Modifier.fillMaxWidth()) { Text("Цитата в боковом меню") }
             SectionTitle("Редактор")
+            Card(Modifier.fillMaxWidth()) {
+                androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("Расширенное оформление", Modifier.weight(1f))
+                    androidx.compose.material3.Switch(state.advancedFormatting, settings::setAdvancedFormatting)
+                }
+            }
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Выполненные пункты", style = MaterialTheme.typography.titleSmall)

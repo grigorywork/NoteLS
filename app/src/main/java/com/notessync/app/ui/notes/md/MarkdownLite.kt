@@ -26,7 +26,9 @@ object MarkdownLite {
     val CompletedColor = Color(0xFF4CAF50)
 
     /** Разбирает текст в AnnotatedString; [hideCompleted] прячет выполненные чекбоксы. */
-    fun parse(text: String, hideCompleted: Boolean = false): AnnotatedString {
+    fun parse(text: String, hideCompleted: Boolean = false, formatting: String = ""): AnnotatedString {
+        if (formatting.isNotBlank()) return com.notessync.app.ui.notes.text.formattedPreview(
+            text, com.notessync.app.notes.text.TextFormatting.decode(formatting, text.length), hideCompleted)
         val lines = text.split('\n')
         return buildAnnotatedString {
             var first = true
@@ -47,6 +49,7 @@ object MarkdownLite {
                     raw.startsWith(CHECKBOX_TODO) -> {
                         appendStyledLine("☐ " + raw.removePrefix(CHECKBOX_TODO), isCheckbox = true)
                     }
+                    raw.startsWith("### ") -> appendStyledLine(raw.removePrefix("### "), sizeEm = 1.15f, weight = FontWeight.Bold)
                     raw.startsWith("## ") -> appendStyledLine(raw.removePrefix("## "), sizeEm = 1.35f, weight = FontWeight.Bold)
                     raw.startsWith("# ") -> appendStyledLine(raw.removePrefix("# "), sizeEm = 1.6f, weight = FontWeight.Bold)
                     raw.startsWith("- ") -> appendInline("• " + raw.removePrefix("- "))
