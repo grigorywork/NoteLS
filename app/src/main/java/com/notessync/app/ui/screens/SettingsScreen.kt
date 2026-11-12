@@ -3,6 +3,18 @@ package com.notessync.app.ui.screens
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,17 +31,12 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -183,15 +190,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 .padding(horizontal = 16.dp)
         ) {
             SectionTitle("Внешний вид")
-            Card(modifier = Modifier.fillMaxWidth()) {
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Тема", style = MaterialTheme.typography.titleSmall)
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                        ThemeMode.entries.forEachIndexed { index, mode ->
-                            SegmentedButton(
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
+                        ThemeMode.entries.forEach { mode ->
+                            SettingsChoice(
                                 selected = state.themeMode == mode,
-                                onClick = { settings.setThemeMode(mode) },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = ThemeMode.entries.size)
+                                onClick = { settings.setThemeMode(mode) }
                             ) {
                                 Text(
                                     when (mode) {
@@ -204,28 +211,28 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         }
                     }
                     Text("Размер шрифта", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         val scales = listOf(
                             SettingsRepository.FONT_COMPACT to "Компактный",
                             SettingsRepository.FONT_NORMAL to "Обычный",
                             SettingsRepository.FONT_LARGE to "Крупный"
                         )
-                        scales.forEachIndexed { index, (scale, label) ->
-                            SegmentedButton(
+                        scales.forEach { (scale, label) ->
+                            SettingsChoice(
                                 selected = state.fontScale == scale,
-                                onClick = { settings.setFontScale(scale) },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = scales.size)
+                                onClick = { settings.setFontScale(scale) }
                             ) { Text(label) }
                         }
                     }
                     // Этап 37: «Матовое стекло» — стиль Kimi на iPhone.
                     Text("Стиль интерфейса", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                        InterfaceStyle.entries.forEachIndexed { index, style ->
-                            SegmentedButton(
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
+                        InterfaceStyle.entries.forEach { style ->
+                            SettingsChoice(
                                 selected = state.interfaceStyle == style,
-                                onClick = { settings.setInterfaceStyle(style) },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = InterfaceStyle.entries.size)
+                                onClick = { settings.setInterfaceStyle(style) }
                             ) { Text(style.label) }
                         }
                     }
@@ -239,10 +246,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     Text("Цвет и обводка", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
                     ) {
                         AccentColor.entries.forEach { accent ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.accentColor == accent,
                                 onClick = { settings.setAccentColor(accent) },
                                 label = { Text(accent.label) },
@@ -268,10 +276,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 4.dp)
                     ) {
                         AppFont.entries.filter { it.isBundled }.forEach { font ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.appFont == font,
                                 onClick = { settings.setAppFont(font) },
                                 label = {
@@ -288,10 +297,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 4.dp)
                     ) {
                         AppFont.entries.filter { !it.isBundled }.forEach { font ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.appFont == font,
                                 onClick = { settings.setAppFont(font) },
                                 label = {
@@ -310,63 +320,67 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                 }
             }
 
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Флажки приоритета", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.showTaskPriorities, settings::setShowTaskPriorities)
                 }
             }
-            androidx.compose.material3.OutlinedButton(onClick = { showDrawerQuote = true }, modifier = Modifier.fillMaxWidth()) { Text("Цитата в боковом меню") }
+            SettingsCard(Modifier.fillMaxWidth()) {
+                SettingsItem(headlineContent = { Text("Цитата в боковом меню") },
+                    trailingContent = { Icon(Icons.Default.ChevronRight, null) },
+                    modifier = Modifier.clickable { showDrawerQuote = true })
+            }
             SectionTitle("Редактор")
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Сразу выбирать время быстрой задачи", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.quickTaskTime, settings::setQuickTaskTime)
                 }
             }
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Камера в редакторе", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.cameraCapture, settings::setCameraCapture)
                 }
             }
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Размеры фото", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.photoResize, settings::setPhotoResize)
                 }
             }
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Показывать таблицы", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.showTables, settings::setShowTables)
                 }
             }
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("История изменений", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.editorHistory, settings::setEditorHistory)
                 }
             }
-            Card(Modifier.fillMaxWidth()) {
+            SettingsCard(Modifier.fillMaxWidth()) {
                 androidx.compose.foundation.layout.Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Расширенное оформление", Modifier.weight(1f))
                     androidx.compose.material3.Switch(state.advancedFormatting, settings::setAdvancedFormatting)
                 }
             }
-            Card(modifier = Modifier.fillMaxWidth()) {
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Выполненные пункты", style = MaterialTheme.typography.titleSmall)
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
                         val styles = listOf(
                             CompletedStyle.STRIKE to "Зачёркнутые",
                             CompletedStyle.HIDE to "Скрывать"
                         )
-                        styles.forEachIndexed { index, (style, label) ->
-                            SegmentedButton(
+                        styles.forEach { (style, label) ->
+                            SettingsChoice(
                                 selected = state.completedStyle == style,
-                                onClick = { settings.setCompletedStyle(style) },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = styles.size)
+                                onClick = { settings.setCompletedStyle(style) }
                             ) { Text(label) }
                         }
                     }
@@ -380,15 +394,16 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
 
             SectionTitle("Голосовой ввод")
-            Card(modifier = Modifier.fillMaxWidth()) {
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Распознавание речи", style = MaterialTheme.typography.titleSmall)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
                     ) {
                         VoiceEngine.entries.forEach { engine ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.voiceEngine == engine,
                                 onClick = { settings.setVoiceEngine(engine) },
                                 label = {
@@ -406,10 +421,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     Text("Структуризация текста", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
                     ) {
                         VoiceStructure.entries.forEach { structure ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.voiceStructure == structure,
                                 onClick = { settings.setVoiceStructure(structure) },
                                 label = { Text(structure.label) }
@@ -427,8 +443,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
 
             SectionTitle("Синхронизация")
-            Card(modifier = Modifier.fillMaxWidth()) {
-                ListItem(
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
+                SettingsItem(
                     headlineContent = { Text("Синхронизация по Wi-Fi") },
                     supportingContent = { Text("Связать устройства и обменяться заметками") },
                     leadingContent = { Icon(Icons.Default.Sync, contentDescription = null) },
@@ -442,9 +458,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             // и отдельная настройка частоты автобэкапа.
             SectionTitle("Резервное копирование")
             if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            Card(modifier = Modifier.fillMaxWidth()) {
-                ListItem(
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
+                SettingsItem(
                     headlineContent = { Text("Сохранить резервную копию") },
+                    divider = true,
                     supportingContent = { Text("ZIP-архив: заметки, задачи, блокноты и фото") },
                     leadingContent = {
                         Icon(
@@ -457,8 +474,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         .fillMaxWidth()
                         .clickable(enabled = !busy) { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
                 )
-                ListItem(
+                SettingsItem(
                     headlineContent = { Text("Восстановить из файла") },
+                    divider = true,
                     supportingContent = { Text("Заменить текущие данные содержимым архива") },
                     leadingContent = {
                         Icon(
@@ -475,8 +493,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                             )
                         }
                 )
-                ListItem(
+                SettingsItem(
                     headlineContent = { Text("Копии на этом устройстве") },
+                    divider = true,
                     supportingContent = { Text("Доступно: ${localCopies.size}. Восстановить или сохранить в папку") },
                     leadingContent = { Icon(Icons.Default.History, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { showLocalCopies = true }
@@ -485,10 +504,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                     Text("Автоматические копии", style = MaterialTheme.typography.titleSmall)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
                     ) {
                         BackupFrequency.entries.forEach { frequency ->
-                            FilterChip(
+                            SettingsChoice(
                                 selected = state.backupFrequency == frequency,
                                 onClick = { settings.setBackupFrequency(frequency) },
                                 enabled = !busy,
@@ -518,13 +538,14 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
 
             SectionTitle("О программе")
-            Card(modifier = Modifier.fillMaxWidth()) {
-                ListItem(
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
+                SettingsItem(
                     headlineContent = { Text("Версия") },
+                    divider = true,
                     supportingContent = { Text(BuildConfig.VERSION_NAME) },
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
                 )
-                ListItem(
+                SettingsItem(
                     headlineContent = { Text("Разработчик") },
                     supportingContent = { Text("MSS9LN") },
                     leadingContent = { Icon(Icons.Default.Code, contentDescription = null) }
@@ -620,6 +641,38 @@ private fun SectionTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
     )
+}
+
+
+/** One visible contour per group, with space between neighbouring groups in either interface style. */
+@Composable
+private fun SettingsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    OutlinedCard(modifier = modifier.padding(bottom = 12.dp), shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        content = content)
+}
+
+@Composable
+private fun SettingsChoice(selected: Boolean, onClick: () -> Unit, enabled: Boolean = true,
+    leadingIcon: @Composable (() -> Unit)? = null, label: @Composable () -> Unit
+) {
+    FilterChip(selected = selected, onClick = onClick, enabled = enabled, label = label, leadingIcon = leadingIcon,
+        modifier = Modifier.semantics { role = Role.RadioButton },
+        border = FilterChipDefaults.filterChipBorder(enabled = enabled, selected = selected,
+            borderColor = MaterialTheme.colorScheme.outline, selectedBorderColor = MaterialTheme.colorScheme.primary,
+            borderWidth = 1.dp, selectedBorderWidth = 2.dp))
+}
+
+@Composable
+private fun SettingsItem(headlineContent: @Composable () -> Unit, modifier: Modifier = Modifier,
+    supportingContent: @Composable (() -> Unit)? = null, leadingContent: @Composable (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null, divider: Boolean = false
+) {
+    androidx.compose.material3.ListItem(headlineContent = headlineContent, modifier = modifier,
+        supportingContent = supportingContent, leadingContent = leadingContent, trailingContent = trailingContent,
+        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = Color.Transparent))
+    if (divider) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
 }
