@@ -48,6 +48,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FormatBold
 import androidx.compose.material.icons.filled.FormatItalic
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -473,15 +475,15 @@ fun NoteEditorScreen(
                     }
                 }
                 DropdownMenu(expanded = showPhotoMenu, onDismissRequest = { showPhotoMenu = false }) {
-                    if (settingsState.audioRecording) DropdownMenuItem(text = { Text(uiText("Записать аудио")) }, onClick = {
+                    if (settingsState.audioRecording) DropdownMenuItem(text = { Text(uiText("Записать аудио")) }, leadingIcon = { Icon(Icons.Default.Mic, null) }, onClick = {
                         showPhotoMenu = false
                         startAudioRecording()
                     })
-                    DropdownMenuItem(text = { Text(uiText("Из галереи")) }, onClick = {
+                    DropdownMenuItem(text = { Text(uiText("Из галереи")) }, leadingIcon = { Icon(Icons.Default.PhotoLibrary, null) }, onClick = {
                         showPhotoMenu = false
                         photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     })
-                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text(uiText("Снять фото")) }, onClick = {
+                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text(uiText("Снять фото")) }, leadingIcon = { Icon(Icons.Default.CameraAlt, null) }, onClick = {
                         showPhotoMenu = false
                         if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                         else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)

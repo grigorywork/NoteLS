@@ -37,6 +37,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -805,17 +808,20 @@ private fun SortMenu(current: NoteSort, onSelect: (NoteSort) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = uiText("Сортировка"))
+            Icon(Icons.Default.Sort, contentDescription = uiText("Сортировка"))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(
                 text = { Text(uiText("По дате") + if (current == NoteSort.BY_DATE) " ✓" else "") },
+                leadingIcon = { Icon(Icons.Default.Update, null) },
                 onClick = { onSelect(NoteSort.BY_DATE); open = false }
             )
             DropdownMenuItem(text = { Text(uiText("По сроку") + if (current == NoteSort.BY_DUE) " ✓" else "") },
+                leadingIcon = { Icon(Icons.Default.EventBusy, null) },
                 onClick = { onSelect(NoteSort.BY_DUE); open = false })
             DropdownMenuItem(
                 text = { Text(uiText("По имени") + if (current == NoteSort.BY_NAME) " ✓" else "") },
+                leadingIcon = { Icon(Icons.Default.SortByAlpha, null) },
                 onClick = { onSelect(NoteSort.BY_NAME); open = false }
             )
         }
