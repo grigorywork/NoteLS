@@ -12,7 +12,7 @@ Room17/JSONdata2/security3 без изменений; постоянная по�
 
 Первый профильный прогон6 тестов выявил один дефект: кнопка заголовка и текст ListItem имели отдельные semantics boundaries. Нажатие/heading/stateDescription перенесены на сам ListItem, подпись стала именем кнопки. Assertion не ослаблялся; финальный полный набор прошёл.
 
-Локально526 тестов,0 failures/errors/skipped; lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за5m 27s. CI/APK проверяются после публикации.
+Локально526 тестов,0 failures/errors/skipped; lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за5m 27s. [CI43470397590](https://github.com/grigorywork/NoteLS/actions/runs/43470397590) success на986a360bbd7198ab3ec477e4992d8a394ec67426:526 тестов,0 failures/ignored, lint0 ошибок/16 предупреждений/2 информации, assembleDebug за9m31s. Сверены журнал132040455174 и HTML/XML отчётов14060533012; SHA256 ZIPb32d25032d5521aaa6a5bbe881e120932a3a0449bd6d35cb3ff031065230c5ca совпала с GitHub. [APK1.10.31/code54 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43470397590/artifacts/14061472446), Android Debug/NOT-UPDATE. ZIP APK498f6d6cd101702907914d979bfbfc43fa4a57e9d09d0b1eec2d3e8cce53806d сверен с GitHub; APK/SHA256SUMSfb5214c6e89d5531fb69b1cd82b51da510a67f41df59e3c8c3fb16077d508bd6 совпали. Проверены sourceSHA/package/versionName1.10.31/versionCode54/Android Debug certificate; постоянная подпись не менялась.
 
 Облачные JVM/Room/Robolectric/Native Compose проверки, не физический телефон. Визуальная читаемость на реальном экране, TalkBack устройства и показатели CPU/PSS/батареи не измерялись. Android Debug APK — NOT-UPDATE. После67 остановка, новые этапы/68 не начинать.
 
