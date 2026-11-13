@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 55
-        versionName = "1.10.32"
+        versionCode = 56
+        versionName = "1.10.33"
         resourceConfigurations += listOf("ru", "en")
     }
 
@@ -75,6 +75,11 @@ kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
+}
+
+// Native Robolectric/Compose share process clocks; isolate classes without skipping assertions.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    forkEvery = 1L
 }
 
 // Экспорт схемы Room в app/schemas — позволяет отслеживать миграции БД в git.

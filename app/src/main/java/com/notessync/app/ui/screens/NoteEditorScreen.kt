@@ -1,12 +1,11 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.ui.editor.*
 import com.notessync.app.i18n.uiText
 import com.notessync.app.audio.*
 import com.notessync.app.ui.notes.audio.*
-import androidx.compose.material.icons.filled.AttachFile
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
-
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,83 +16,32 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.automirrored.filled.Label
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FormatBold
-import androidx.compose.material.icons.filled.FormatItalic
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -109,15 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import com.notessync.app.notes.history.EditorField
-import com.notessync.app.ui.notes.text.EditorHistoryActions
-import com.notessync.app.ui.notes.text.HistoryInput
-import androidx.compose.material.icons.filled.TableChart
-import androidx.compose.material3.OutlinedButton
-import com.notessync.app.ui.notes.tables.AddTableDialog
-import com.notessync.app.ui.notes.tables.TableEditorDialog
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -125,45 +65,17 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.reminders.ReminderScheduler
-import com.notessync.app.reminders.ReminderTime
-import com.notessync.app.settings.CompletedStyle
 import com.notessync.app.settings.SettingsRepository
-import com.notessync.app.ui.common.SetPasswordDialog
-import com.notessync.app.ui.common.UnlockPasswordDialog
-import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.notes.EditorMessage
 import com.notessync.app.ui.notes.EditorScaffold
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.notes.PhotoAttachmentGrid
-import com.notessync.app.ui.notes.photos.PhotoPreviewDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.notessync.app.ui.notes.md.MarkdownEdit
-import com.notessync.app.ui.notes.md.MarkdownLite
-import com.notessync.app.ui.notes.md.MarkdownVisualTransformation
-import com.notessync.app.ui.tasks.TaskTimerIndicator
-import com.notessync.app.ui.tasks.CountdownIndicator
-import com.notessync.app.ui.tasks.taskColorOption
-import com.notessync.app.ui.tasks.taskColorOptions
 import kotlinx.coroutines.launch
-import java.io.File
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -173,16 +85,13 @@ fun NoteEditorScreen(
     viewModel: NoteEditorViewModel = viewModel()
 ) {
     val scope = rememberCoroutineScope()
+    val ui = remember { EditorUiState() }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var showPhotoMenu by remember { mutableStateOf(false) }
-    var showAddTable by remember { mutableStateOf(false) }
-    var openPhoto by remember { mutableStateOf<Long?>(null) }
-    var openTable by remember { mutableStateOf<String?>(null) }
     val titleFocus = remember { FocusRequester() }
     val contentFocus = remember { FocusRequester() }
-    LaunchedEffect(viewModel.historyRestoreVersion, viewModel.previewMode, openTable) {
-        if (viewModel.historyRestoreVersion > 0 && !viewModel.previewMode && openTable == null && viewModel.editorField != EditorField.TABLE) {
+    LaunchedEffect(viewModel.historyRestoreVersion, viewModel.previewMode, ui.openTable) {
+        if (viewModel.historyRestoreVersion > 0 && !viewModel.previewMode && ui.openTable == null && viewModel.editorField != EditorField.TABLE) {
             if (viewModel.editorField == EditorField.TITLE) titleFocus.requestFocus() else contentFocus.requestFocus()
         }
     }
@@ -197,23 +106,6 @@ fun NoteEditorScreen(
 
     val settingsState by remember { SettingsRepository.get(context).state }.collectAsStateWithLifecycle()
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showNotebookMenu by remember { mutableStateOf(false) }
-    var showTagDialog by remember { mutableStateOf(false) }
-    var showColorDialog by remember { mutableStateOf(false) }
-    var showTimerResetDialog by remember { mutableStateOf(false) }
-    var showCountdownMenu by remember { mutableStateOf(false) }
-    var showCountdownUntil by remember { mutableStateOf(false) }
-    var showCountdownCustomDialog by remember { mutableStateOf(false) }
-    var showTaskPasswordDialog by remember { mutableStateOf(false) }
-    var showTaskProtectionMenu by remember { mutableStateOf(false) }
-    var showRemoveTaskProtection by remember { mutableStateOf(false) }
-    var taskProtectionError by remember { mutableStateOf(false) }
-    var showReminderMenu by remember { mutableStateOf(false) }
-    var showFormattingPanel by remember { mutableStateOf(false) }
-    var showTransform by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePickerFor by remember { mutableStateOf<Long?>(null) }
     // Этап 32: голосовой ввод.
     var voiceState by remember { mutableStateOf(com.notessync.app.voice.VoiceState.IDLE) }
     var voiceClosing by remember { mutableStateOf(false) }
@@ -318,7 +210,7 @@ fun NoteEditorScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted && ReminderScheduler.canNotify(context)) {
-            showReminderMenu = true
+            ui.showReminderMenu = true
         } else {
             viewModel.reportReminderNotificationsDisabled()
         }
@@ -326,7 +218,7 @@ fun NoteEditorScreen(
 
     fun openReminderMenu() {
         when {
-            ReminderScheduler.canNotify(context) -> showReminderMenu = true
+            ReminderScheduler.canNotify(context) -> ui.showReminderMenu = true
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED -> {
@@ -381,6 +273,20 @@ fun NoteEditorScreen(
             if (viewModel.flushOnExit()) onBack() else voiceClosing = false
         }
     }
+    fun deleteNote() {
+        ui.showDeleteDialog = false
+        voiceClosing = true
+        voiceManager.cancel()
+        val discardedAudio = viewModel.audioCapture.cancel()
+        viewModel.audioPlayback.stop()
+        scope.launch {
+            try {
+                discardedAudio.await()
+                val id = viewModel.deleteNow()
+                onDeleted(id)
+            } finally { voiceClosing = false }
+        }
+    }
     BackHandler { exit() }
     val historyKeys = Modifier.onPreviewKeyEvent {
         if (!viewModel.historyEnabled || !it.isCtrlPressed || it.type != KeyEventType.KeyDown) false
@@ -393,8 +299,8 @@ fun NoteEditorScreen(
     }
 
 
-    if (showTransform && settingsState.aiEnabled && !viewModel.accessDenied) {
-        com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context)) { showTransform = false }
+    if (ui.showTransform && settingsState.aiEnabled && !viewModel.accessDenied) {
+        com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context)) { ui.showTransform = false }
     }
     EditorScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -426,7 +332,7 @@ fun NoteEditorScreen(
                         )
                     }
                     if (viewModel.exists) {
-                        IconButton(onClick = { showDeleteDialog = true }, enabled = !viewModel.isPhotoBusy) {
+                        IconButton(onClick = { ui.showDeleteDialog = true }, enabled = !viewModel.isPhotoBusy) {
                             Icon(Icons.Default.Delete, contentDescription = uiText("Удалить"))
                         }
                     }
@@ -434,120 +340,11 @@ fun NoteEditorScreen(
             )
         },
         bottomBar = {
-            Box {
-                Column {
-                    if (viewModel.historyEnabled) EditorHistoryActions(
-                        canUndo = viewModel.canUndo && !viewModel.isClosing,
-                        canRedo = viewModel.canRedo && !viewModel.isClosing,
-                        onUndo = viewModel::undo, onRedo = viewModel::redo)
-                    NavigationBar {
-                        NavigationBarItem(
-                            selected = showFormattingPanel,
-                            onClick = { showFormattingPanel = !showFormattingPanel },
-                            icon = { Icon(Icons.Default.FormatBold, contentDescription = null) },
-                            label = { Text(uiText("Текст")) }
-                        )
-                        NavigationBarItem(
-                            selected = false,
-                            enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady && !captureState.busy && !voiceClosing,
-                            onClick = { showPhotoMenu = true },
-                            icon = { Icon(Icons.Default.AttachFile, contentDescription = null) },
-                            label = { Text(uiText("Файлы")) }
-                        )
-                        NavigationBarItem(
-                            selected = viewModel.reminderAt != null,
-                            onClick = { openReminderMenu() },
-                            icon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-                            label = { Text(uiText("Сигнал")) }
-                        )
-                        NavigationBarItem(
-                            selected = viewModel.notebookName != null,
-                            onClick = { showNotebookMenu = true },
-                            icon = { Icon(Icons.Default.Folder, contentDescription = null) },
-                            label = { Text(uiText("Блокнот")) }
-                        )
-                        NavigationBarItem(
-                            selected = viewModel.noteTags.isNotEmpty(),
-                            onClick = { showTagDialog = true },
-                            icon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                            label = { Text(uiText("Теги")) }
-                        )
-                    }
-                }
-                DropdownMenu(expanded = showPhotoMenu, onDismissRequest = { showPhotoMenu = false }) {
-                    if (settingsState.audioRecording) DropdownMenuItem(text = { Text(uiText("Записать аудио")) }, leadingIcon = { Icon(Icons.Default.Mic, null) }, onClick = {
-                        showPhotoMenu = false
-                        startAudioRecording()
-                    })
-                    DropdownMenuItem(text = { Text(uiText("Из галереи")) }, leadingIcon = { Icon(Icons.Default.PhotoLibrary, null) }, onClick = {
-                        showPhotoMenu = false
-                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    })
-                    if (settingsState.cameraCapture) DropdownMenuItem(text = { Text(uiText("Снять фото")) }, leadingIcon = { Icon(Icons.Default.CameraAlt, null) }, onClick = {
-                        showPhotoMenu = false
-                        if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
-                        else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                    })
-                }
-                DropdownMenu(
-                    expanded = showReminderMenu,
-                    onDismissRequest = { showReminderMenu = false }
-                ) {
-                    // Этап 26: шаблоны сокращены вдвое — только ходовые варианты.
-                    listOf(
-                        uiText("Через 1 час") to 1,
-                        uiText("Через 2 часа") to 2,
-                        uiText("Через 6 часов") to 6
-                    ).forEach { (label, hours) ->
-                        DropdownMenuItem(
-                            text = { Text(uiText(label)) },
-                            onClick = {
-                                showReminderMenu = false
-                                viewModel.setReminder(ReminderTime.afterHours(hours))
-                            }
-                        )
-                    }
-                    DropdownMenuItem(
-                        text = { Text(uiText("Завтра, 09:00")) },
-                        onClick = {
-                            showReminderMenu = false
-                            viewModel.setReminder(ReminderTime.tomorrowMorning())
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(uiText("Выбрать дату и время")) },
-                        onClick = {
-                            showReminderMenu = false
-                            showDatePicker = true
-                        }
-                    )
-                }
-                DropdownMenu(
-                    expanded = showNotebookMenu,
-                    onDismissRequest = { showNotebookMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(uiText("Без блокнота") + if (viewModel.notebookName == null) " ✓" else "") },
-                        onClick = {
-                            viewModel.assignNotebook(null)
-                            showNotebookMenu = false
-                        }
-                    )
-                    notebooks.forEach { notebook ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    notebook.name + if (viewModel.notebookName == notebook.name) " ✓" else ""
-                                )
-                            },
-                            onClick = {
-                                viewModel.assignNotebook(notebook)
-                                showNotebookMenu = false
-                            }
-                        )
-                    }
-                }
-            }
+            EditorBottomBar(viewModel, ui, settingsState, notebooks, captureState.busy, voiceClosing,
+                onRecordAudio = { startAudioRecording() },
+                onGallery = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                onCamera = { if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
+                    else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() })
         }
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -587,680 +384,19 @@ fun NoteEditorScreen(
             if (photos.isNotEmpty()) {
                 PhotoAttachmentGrid(
                     attachments = photos,
-                    onOpen = { openPhoto = it.id },
+                    onOpen = { ui.openPhoto = it.id },
                     onRemove = viewModel::removeAttachment
                 )
             }
-            if (viewModel.noteTags.isNotEmpty()) {
-                FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                viewModel.noteTags.forEach { tag ->
-                    InputChip(
-                        selected = false,
-                        onClick = { viewModel.removeTag(tag) },
-                        label = { Text(tag) },
-                        trailingIcon = { Icon(Icons.Default.Close, contentDescription = uiText("Убрать тег")) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                }
-                }
-            }
-            FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                FilterChip(
-                    selected = viewModel.isTask,
-                    onClick = viewModel::toggleTask,
-                    label = { Text(uiText("Задача")) },
-                    leadingIcon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                    AssistChip(
-                        onClick = { showColorDialog = true },
-                        label = { Text(if (!viewModel.isTask && viewModel.noteColor.isEmpty()) uiText("Цвет") else taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).label) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Palette,
-                                contentDescription = null,
-                                // Этап 35: насыщенный акцент вместо бледной пастели.
-                                tint = taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).accent
-                            )
-                        },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                if (viewModel.isTask) {
-                    FilterChip(
-                        selected = viewModel.isCompleted,
-                        onClick = viewModel::toggleCompleted,
-                        label = { Text(if (viewModel.isCompleted) uiText("Выполнено") else uiText("Выполнить")) },
-                        leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    AssistChip(
-                        onClick = viewModel::toggleTaskTimer,
-                        enabled = !viewModel.isCompleted || viewModel.taskTimerStartedAt != null,
-                        label = {
-                            Text(
-                                when {
-                                    viewModel.taskTimerStartedAt != null -> uiText("Пауза")
-                                    viewModel.taskElapsedMillis > 0L -> uiText("Продолжить")
-                                    else -> uiText("Запустить")
-                                }
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                if (viewModel.taskTimerStartedAt != null) Icons.Default.Pause
-                                else Icons.Default.PlayArrow,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    // Этап 30: обратный отсчёт с шаблонами и своим временем.
-                    Box {
-                        val countdownActive = viewModel.taskCountdownMillis > 0L ||
-                            viewModel.taskCountdownEndAt != null
-                        AssistChip(
-                            onClick = { showCountdownMenu = true },
-                            enabled = !viewModel.isCompleted || countdownActive,
-                            label = { Text(uiText("Таймер")) },
-                            leadingIcon = {
-                                Icon(Icons.Default.Timer, contentDescription = null)
-                            }
-                        )
-                        DropdownMenu(
-                            expanded = showCountdownMenu,
-                            onDismissRequest = { showCountdownMenu = false }
-                        ) {
-                            countdownPresets.forEach { (label, millis) ->
-                                DropdownMenuItem(
-                                    text = { Text(uiText(label)) },
-                                    onClick = {
-                                        showCountdownMenu = false
-                                        viewModel.startCountdown(millis)
-                                    }
-                                )
-                            }
-                            DropdownMenuItem(
-                                text = { Text(uiText("Своё время…")) },
-                                onClick = {
-                                    showCountdownMenu = false
-                                    showCountdownCustomDialog = true
-                                }
-                            )
-                            DropdownMenuItem(text = { Text(uiText("До времени…")) }, onClick = { showCountdownMenu = false; showCountdownUntil = true })
-                            if (countdownActive) {
-                                if (viewModel.taskCountdownEndAt != null) {
-                                    DropdownMenuItem(
-                                        text = { Text(uiText("Пауза")) },
-                                        onClick = {
-                                            showCountdownMenu = false
-                                            viewModel.pauseCountdown()
-                                        }
-                                    )
-                                } else {
-                                    DropdownMenuItem(
-                                        text = { Text(uiText("Продолжить")) },
-                                        onClick = {
-                                            showCountdownMenu = false
-                                            viewModel.resumeCountdown()
-                                        }
-                                    )
-                                }
-                                DropdownMenuItem(
-                                    text = { Text(uiText("Снять таймер")) },
-                                    onClick = {
-                                        showCountdownMenu = false
-                                        viewModel.cancelCountdown()
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    Box {
-                        AssistChip(
-                            onClick = {
-                                if (viewModel.isProtected) showTaskProtectionMenu = true
-                                else showTaskPasswordDialog = true
-                            },
-                            label = { Text(if (viewModel.isProtected) uiText("Защищено") else uiText("Пароль")) },
-                            leadingIcon = {
-                                Icon(
-                                    if (viewModel.isProtected) Icons.Default.Lock else Icons.Default.LockOpen,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                        DropdownMenu(
-                            expanded = showTaskProtectionMenu,
-                            onDismissRequest = { showTaskProtectionMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(uiText("Заблокировать и закрыть")) },
-                                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                                onClick = {
-                                    showTaskProtectionMenu = false
-                                    viewModel.lockTask()
-                                    exit()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(uiText("Снять защиту")) },
-                                leadingIcon = { Icon(Icons.Default.LockOpen, contentDescription = null) },
-                                onClick = {
-                                    showTaskProtectionMenu = false
-                                    taskProtectionError = false
-                                    showRemoveTaskProtection = true
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-            if (viewModel.isTask) Box(Modifier.padding(horizontal = 16.dp)) {
-                com.notessync.app.ui.tasks.TaskDeadlinePicker(viewModel.taskDueAt, viewModel.isReady && !viewModel.isClosing, viewModel::chooseTaskDeadline)
-            }
-            if (viewModel.isTask && settingsState.showTaskPriorities) {
-                Box(Modifier.padding(horizontal = 16.dp)) {
-                    com.notessync.app.ui.tasks.TaskPriorityPicker(viewModel.taskPriority, viewModel::choosePriority)
-                }
-            }
-            if (viewModel.isTask) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TaskTimerIndicator(
-                        elapsedMillis = viewModel.taskElapsedMillis,
-                        startedAt = viewModel.taskTimerStartedAt,
-                        contentColor = taskColorOption(viewModel.taskColor).accent,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(
-                        onClick = { showTimerResetDialog = true },
-                        enabled = viewModel.taskElapsedMillis > 0L || viewModel.taskTimerStartedAt != null
-                    ) {
-                        Icon(Icons.Default.RestartAlt, contentDescription = null)
-                        Text(uiText("Сбросить"))
-                    }
-                }
-                // Этап 30: строка обратного отсчёта (когда таймер задан).
-                if (viewModel.taskCountdownMillis > 0L || viewModel.taskCountdownEndAt != null) {
-                    CountdownIndicator(
-                        countdownMillis = viewModel.taskCountdownMillis,
-                        endAt = viewModel.taskCountdownEndAt,
-                        contentColor = taskColorOption(viewModel.taskColor).accent,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
-                }
-            }
-            viewModel.reminderAt?.let { at ->
-                InputChip(
-                    selected = true,
-                    onClick = { showDatePicker = true },
-                    label = { Text(uiText("Напомнить: ") + formatDateTime(at)) },
-                    leadingIcon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = viewModel::clearReminder) {
-                            Icon(Icons.Default.Close, contentDescription = uiText("Убрать напоминание"))
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+            EditorTaskControls(viewModel, ui, settingsState, onExit = { exit() })
 
-            if (settingsState.showTables) {
-                if (viewModel.tables == null) {
-                    Text(uiText("Таблица недоступна для редактирования. Данные сохранены."), Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { showAddTable = true }, enabled = viewModel.isReady && !viewModel.isClosing) {
-                        Icon(Icons.Default.TableChart, null); Text(uiText("Таблица"))
-                    }
-                    viewModel.tables?.blocks.orEmpty().forEachIndexed { index, table ->
-                        OutlinedButton(onClick = { openTable = table.id }, modifier = Modifier.padding(start = 4.dp)) {
-                            Text("${index + 1}: ${table.rowCount} × ${table.columnCount}")
-                        }
-                    }
-                }
-            }
-
-            if (viewModel.previewMode) {
-                PreviewBlock(
-                    text = viewModel.contentField.text,
-                    formatting = viewModel.formatting,
-                    hideCompleted = settingsState.completedStyle == CompletedStyle.HIDE,
-                    onToggleCheckbox = viewModel::toggleCheckboxAtLine,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                )
-            } else {
-                if (showFormattingPanel) {
-                    if (settingsState.aiEnabled) OutlinedButton(onClick = { showTransform = true },
-                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !viewModel.isPhotoBusy && !captureState.busy &&
-                            voiceState == com.notessync.app.voice.VoiceState.IDLE && !voiceClosing && viewModel.contentField.text.isNotBlank(),
-                        modifier = Modifier.padding(horizontal = 8.dp)) { Text(uiText("Преобразовать текст")) }
-
-                    com.notessync.app.ui.notes.text.FormattingToolbar(
-                        active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
-                        onToggle = viewModel::toggleTextStyle, onFormat = viewModel::formatSelection,
-                        onHeading = viewModel::toggleHeading, onList = viewModel::toggleList,
-                        onAlign = { viewModel.formatParagraph(com.notessync.app.notes.text.FormatKind.ALIGN, it) },
-                        onIndent = viewModel::changeIndent,
-                        onChecklist = viewModel::toggleChecklist, onSelectAll = viewModel::selectAllContent)
-                }
-                HistoryInput(viewModel::prepareClipboardEdit) {
-                    TextField(
-                        enabled = viewModel.isReady && !viewModel.isClosing,
-                        value = viewModel.titleField,
-                        onValueChange = viewModel::onTitleChange,
-                        placeholder = {
-                            Text(
-                                if (viewModel.isTask) uiText("Название задачи") else uiText("Заголовок"),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.titleLarge.copy(
-                            // Этап 35: название задачи — цветом задачи.
-                            color = if (viewModel.isTask) {
-                                taskColorOption(viewModel.taskColor).accent
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            }
-                        ),
-                        colors = borderlessColors(),
-                        modifier = Modifier.then(historyKeys).focusRequester(titleFocus)
-                            .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.TITLE) }
-                            .fillMaxWidth()
-                    )
-                }
-                val visualTransformation = remember(viewModel.formatting) {
-                    com.notessync.app.ui.notes.text.FormattedTextTransformation(viewModel.formatting)
-                }
-                var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-                val density = LocalDensity.current
-                // Отступ текста задан явно в contentPadding DecorationBox ниже.
-                val padStartPx = with(density) { 16.dp.toPx() }
-                val padTopPx = with(density) { 16.dp.toPx() }
-                val glyphZonePx = with(density) { 56.dp.toPx() }
-                val editorInteractionSource = remember { MutableInteractionSource() }
-                HistoryInput(viewModel::prepareClipboardEdit) {
-                    BasicTextField(
-                        enabled = viewModel.isReady && !viewModel.isClosing,
-                        value = viewModel.contentField,
-                        onValueChange = viewModel::onContentChange,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        // Этап 27: маркеры скрыты всегда; стили вводятся кнопками-режимами.
-                        visualTransformation = visualTransformation,
-                        onTextLayout = { editorLayout = it },
-                        interactionSource = editorInteractionSource,
-                        modifier = Modifier.then(historyKeys).focusRequester(contentFocus)
-                            .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.CONTENT) }
-                            .fillMaxWidth()
-                            .weight(1f)
-                            // Тап по квадратику чекбокса переключает его, не двигая курсор.
-                            .pointerInput(visualTransformation) {
-                                awaitEachGesture {
-                                    val down = awaitFirstDown(
-                                        requireUnconsumed = false,
-                                        pass = PointerEventPass.Initial
-                                    )
-                                    val layout = editorLayout ?: return@awaitEachGesture
-                                    val source = viewModel.contentField.text
-                                    val position = Offset(
-                                        down.position.x - padStartPx,
-                                        down.position.y - padTopPx
-                                    )
-                                    val transformedOffset = layout.getOffsetForPosition(position)
-                                    val original = visualTransformation
-                                        .filter(AnnotatedString(source))
-                                        .offsetMapping.transformedToOriginal(transformedOffset)
-                                    val lineStart = source.lastIndexOf('\n', original - 1)
-                                        .let { if (it < 0) 0 else it + 1 }
-                                    val lineEnd = source.indexOf('\n', original)
-                                        .let { if (it < 0) source.length else it }
-                                    val line = source.substring(lineStart, lineEnd)
-                                    val isCheckbox = line.startsWith("- [ ] ") ||
-                                        line.startsWith("- [x] ") || line.startsWith("- [X] ")
-                                    val onMarker = original in lineStart until lineStart + 6
-                                    if (isCheckbox && (onMarker || position.x <= glyphZonePx)) {
-                                        down.consume()
-                                        waitForUpOrCancellation(PointerEventPass.Initial)?.consume()
-                                        val lineIndex =
-                                            source.substring(0, lineStart).count { it == '\n' }
-                                        viewModel.toggleCheckboxAtLine(lineIndex)
-                                    }
-                                }
-                            },
-                        decorationBox = { innerTextField ->
-                            TextFieldDefaults.DecorationBox(
-                                value = viewModel.contentField.text,
-                                innerTextField = innerTextField,
-                                enabled = true,
-                                singleLine = false,
-                                visualTransformation = visualTransformation,
-                                interactionSource = editorInteractionSource,
-                                placeholder = {
-                                    Text(if (viewModel.isTask) uiText("Описание задачи") else uiText("Текст заметки"))
-                                },
-                                colors = borderlessColors(),
-                                contentPadding = PaddingValues(16.dp)
-                            )
-                        }
-                    )
-                }
-            }
+            EditorTextFields(viewModel, ui, settingsState, historyKeys, titleFocus, contentFocus, captureState.busy, voiceState, voiceClosing)
 
         }
     }
 
-    val visiblePhoto = attachments.firstOrNull { it.id == openPhoto }
-    if (visiblePhoto != null) PhotoPreviewDialog(visiblePhoto, settingsState.photoResize, snackbarHostState,
-        onSave = { viewModel.savePhotoSize(visiblePhoto, it) },
-        onOriginal = { scope.launch { openAttachment(context, visiblePhoto.filePath, visiblePhoto.mimeType) } },
-        onDismiss = { openPhoto = null })
-
-    if (showAddTable) AddTableDialog(onDismiss = { showAddTable = false },
-        remainingCells = com.notessync.app.notes.tables.NoteTables.MAX_CELLS - (viewModel.tables?.cellCount ?: 0),
-        remainingTables = com.notessync.app.notes.tables.NoteTables.MAX_TABLES - (viewModel.tables?.blocks?.size ?: 0)) { rows, columns ->
-        viewModel.addTable(rows, columns)?.let { openTable = it; showAddTable = false }
-    }
-    val visibleTable = openTable
-    if (visibleTable != null && settingsState.showTables) TableEditorDialog(visibleTable, viewModel,
-        snackbarHostState = snackbarHostState, onDismiss = { openTable = null })
-
-    if (showTimerResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showTimerResetDialog = false },
-            title = { Text(uiText("Сбросить таймер?")) },
-            text = { Text(uiText("Зафиксированное время будет удалено.")) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.resetTaskTimer()
-                    showTimerResetDialog = false
-                }) { Text(uiText("Сбросить")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTimerResetDialog = false }) { Text(uiText("Отмена")) }
-            }
-        )
-    }
-
-    if (showCountdownUntil) com.notessync.app.ui.tasks.CountdownUntilDialog(
-        onDismiss = { showCountdownUntil = false },
-        onStart = { target -> viewModel.startCountdownUntil(target) }
-    )
-
-    if (showCountdownCustomDialog) {
-        var hoursText by remember { mutableStateOf("") }
-        var minutesText by remember { mutableStateOf("") }
-        val hours = hoursText.toLongOrNull() ?: 0L
-        val minutes = minutesText.toLongOrNull() ?: 0L
-        val totalMillis = (hours * 60L + minutes) * 60_000L
-        AlertDialog(
-            onDismissRequest = { showCountdownCustomDialog = false },
-            title = { Text(uiText("Своё время")) },
-            text = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = hoursText,
-                        onValueChange = { input -> hoursText = input.filter(Char::isDigit).take(2) },
-                        label = { Text(uiText("Часы")) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(Modifier.padding(horizontal = 6.dp))
-                    OutlinedTextField(
-                        value = minutesText,
-                        onValueChange = { input -> minutesText = input.filter(Char::isDigit).take(2) },
-                        label = { Text(uiText("Минуты")) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.startCountdown(totalMillis)
-                        showCountdownCustomDialog = false
-                    },
-                    enabled = totalMillis > 0L
-                ) { Text(uiText("Запустить")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCountdownCustomDialog = false }) { Text(uiText("Отмена")) }
-            }
-        )
-    }
-
-    if (showColorDialog) {
-        AlertDialog(
-            onDismissRequest = { showColorDialog = false },
-            title = { Text(if (viewModel.isTask) uiText("Цвет задачи") else uiText("Цвет заметки")) },
-            text = {
-                FlowRow {
-                    if (!viewModel.isTask) FilterChip(selected = viewModel.noteColor.isEmpty(), onClick = {
-                        viewModel.chooseTaskColor(""); showColorDialog = false
-                    }, label = { Text(uiText("По теме")) }, modifier = Modifier.padding(end = 8.dp, bottom = 8.dp))
-                    taskColorOptions.forEach { option ->
-                        FilterChip(
-                            selected = (if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor) == option.key,
-                            onClick = {
-                                viewModel.chooseTaskColor(option.key)
-                                showColorDialog = false
-                            },
-                            label = { Text(option.label) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Palette,
-                                    contentDescription = null,
-                                    tint = option.accent
-                                )
-                            },
-                            modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showColorDialog = false }) { Text(uiText("Закрыть")) }
-            }
-        )
-    }
-
-    if (showTaskPasswordDialog) {
-        SetPasswordDialog(
-            title = uiText("Пароль задачи"),
-            onDismiss = { showTaskPasswordDialog = false },
-            onConfirm = { password ->
-                viewModel.protectTask(password)
-                showTaskPasswordDialog = false
-            }
-        )
-    }
-
-    if (showRemoveTaskProtection) {
-        UnlockPasswordDialog(
-            title = uiText("Снять защиту задачи"),
-            showError = taskProtectionError,
-            onDismiss = { showRemoveTaskProtection = false },
-            onConfirm = { password ->
-                viewModel.removeTaskProtection(password) { verified ->
-                    if (verified) showRemoveTaskProtection = false else taskProtectionError = true
-                }
-            }
-        )
-    }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(uiText("Удалить заметку?")) },
-            text = {
-                Text(
-                    viewModel.title.ifBlank { uiText("Без названия") },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    voiceClosing = true
-                    voiceManager.cancel()
-                    val discardedAudio = viewModel.audioCapture.cancel()
-                    viewModel.audioPlayback.stop()
-                    scope.launch {
-                        try {
-                            discardedAudio.await()
-                            val id = viewModel.deleteNow()
-                            onDeleted(id)
-                        } finally { voiceClosing = false }
-                    }
-                }) { Text(uiText("Удалить")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(uiText("Отмена")) }
-            }
-        )
-    }
-
-    if (showTagDialog) {
-        var tagName by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showTagDialog = false },
-            title = { Text(uiText("Новый тег")) },
-            text = {
-                OutlinedTextField(
-                    value = tagName,
-                    onValueChange = { tagName = it },
-                    label = { Text(uiText("Название")) },
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { viewModel.addTag(tagName); showTagDialog = false },
-                    enabled = tagName.isNotBlank()
-                ) { Text(uiText("Добавить")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTagDialog = false }) { Text(uiText("Отмена")) }
-            }
-        )
-    }
-
-    if (showDatePicker) {
-        val dateState = rememberDatePickerState(
-            initialSelectedDateMillis = viewModel.reminderAt ?: System.currentTimeMillis() + 3_600_000L
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                    dateState.selectedDateMillis?.let { showTimePickerFor = it }
-                }) { Text(uiText("Далее")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(uiText("Отмена")) }
-            }
-        ) {
-            DatePicker(state = dateState)
-        }
-    }
-
-    showTimePickerFor?.let { dateMillis ->
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = viewModel.reminderAt ?: System.currentTimeMillis() + 3_600_000L
-        }
-        val timeState = rememberTimePickerState(
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        )
-        AlertDialog(
-            onDismissRequest = { showTimePickerFor = null },
-            title = { Text(uiText("Время")) },
-            text = { TimePicker(state = timeState) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setReminder(
-                        ReminderTime.combineDateAndTime(dateMillis, timeState.hour, timeState.minute)
-                    )
-                    showTimePickerFor = null
-                }) { Text(uiText("Готово")) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTimePickerFor = null }) { Text(uiText("Отмена")) }
-            }
-        )
-    }
+    EditorDialogs(viewModel, ui, settingsState, attachments, snackbarHostState, scope, onDelete = { deleteNote() })
 }
-
-/**
- * Трансформация редактора: маркеры скрыты всегда (этап 27).
- * Стили вводятся кнопками-режимами, никаких звёздочек и скобок на экране.
- */
-@Composable
-private fun editorTransformation(): MarkdownVisualTransformation =
-    remember { MarkdownVisualTransformation() }
-
-/** Предпросмотр: markdown отрисован стилями; тап по чек-боксу переключает его. */
-@Composable
-private fun PreviewBlock(
-    text: String,
-    formatting: com.notessync.app.notes.text.TextFormatting,
-    hideCompleted: Boolean,
-    onToggleCheckbox: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val parsed = remember(text, formatting, hideCompleted) { com.notessync.app.ui.notes.text.formattedPreview(text, formatting, hideCompleted) }
-    // Соответствие видимых строк строкам исходника (при скрытии выполненных).
-    val sourceLines = remember(text, hideCompleted) {
-        MarkdownLite.visibleSourceLines(text, hideCompleted)
-    }
-    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-    ClickableText(
-        text = parsed,
-        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        onTextLayout = { layout = it },
-        onClick = { offset ->
-            layout?.let { result ->
-                val visibleLine = result.getLineForOffset(offset)
-                val logicalLine = parsed.text.substring(0, result.getLineStart(visibleLine)).count { it == '\n' }
-                val sourceLine = parsed.getStringAnnotations(com.notessync.app.ui.notes.text.SOURCE_LINE_ANNOTATION, offset, offset)
-                    .lastOrNull()?.item?.toIntOrNull() ?: sourceLines.getOrElse(logicalLine) { logicalLine }
-                onToggleCheckbox(sourceLine)
-            }
-        },
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    )
-}
-
-/** Шаблоны обратного отсчёта (Этап 30). */
-private val countdownPresets: List<Pair<String, Long>> = listOf(
-    "10 минут" to 10 * 60_000L,
-    "15 минут" to 15 * 60_000L,
-    "30 минут" to 30 * 60_000L,
-    "1 час" to 60 * 60_000L,
-    "2 часа" to 2 * 60 * 60_000L
-)
 
 private fun openNotificationSettings(context: android.content.Context) {
     val notificationSettings = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
@@ -1274,24 +410,3 @@ private fun openNotificationSettings(context: android.content.Context) {
         runCatching { context.startActivity(appSettings) }
     }
 }
-
-private suspend fun openAttachment(context: android.content.Context, path: String, mime: String) {
-    runCatching {
-        val uri = withContext(Dispatchers.IO) { FileProvider.getUriForFile(context, "com.notessync.app.fileprovider", File(path)) }
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, mime)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-        )
-    }
-}
-
-@Composable
-private fun borderlessColors() = TextFieldDefaults.colors(
-    focusedContainerColor = Color.Transparent,
-    unfocusedContainerColor = Color.Transparent,
-    focusedIndicatorColor = Color.Transparent,
-    unfocusedIndicatorColor = Color.Transparent
-)
-

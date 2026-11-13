@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.entity.AttachmentEntity
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.settings.NotesLayout
-import com.notessync.app.ui.screens.NotesCardsLayout
+import com.notessync.app.ui.home.NotesCardsLayout
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith

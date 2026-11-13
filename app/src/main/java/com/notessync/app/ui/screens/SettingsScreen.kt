@@ -1,37 +1,18 @@
 package com.notessync.app.ui.screens
 
+import com.notessync.app.ui.settings.*
 import com.notessync.app.i18n.uiText
-
 import com.notessync.app.i18n.UiLanguage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.AutoFixHigh
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,12 +25,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,33 +45,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FilterChip
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.notessync.app.BuildConfig
 import com.notessync.app.data.backup.BackupManager
-import com.notessync.app.settings.AccentColor
-import com.notessync.app.settings.AppFont
-import com.notessync.app.settings.BackupFrequency
-import com.notessync.app.settings.CompletedStyle
-import com.notessync.app.settings.InterfaceStyle
 import com.notessync.app.settings.SettingsRepository
-import com.notessync.app.settings.ThemeMode
-import com.notessync.app.settings.VoiceControl
-import com.notessync.app.settings.VoiceEngine
-import com.notessync.app.settings.VoiceStructure
 import com.notessync.app.ui.common.formatDateTime
-import com.notessync.app.ui.theme.accentPreviewColor
-import com.notessync.app.ui.theme.appFontFamily
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -222,276 +184,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
             SettingsGroup("appearance", uiText("Внешний вид"), Icons.Default.Palette, expandedGroup == "appearance", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "appearance") null else "appearance" }) {
-                SettingsCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(uiText("Тема"), style = MaterialTheme.typography.titleSmall)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
-                            ThemeMode.entries.forEach { mode ->
-                                SettingsChoice(
-                                    selected = state.themeMode == mode,
-                                    onClick = { settings.setThemeMode(mode) }
-                                ) {
-                                    Text(
-                                        when (mode) {
-                                            ThemeMode.SYSTEM -> uiText("Системная")
-                                            ThemeMode.LIGHT -> uiText("Светлая")
-                                            ThemeMode.DARK -> uiText("Тёмная")
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        Text(uiText("Размер шрифта"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
-                            val scales = listOf(
-                                SettingsRepository.FONT_COMPACT to uiText("Компактный"),
-                                SettingsRepository.FONT_NORMAL to uiText("Обычный"),
-                                SettingsRepository.FONT_LARGE to uiText("Крупный")
-                            )
-                            scales.forEach { (scale, label) ->
-                                SettingsChoice(
-                                    selected = state.fontScale == scale,
-                                    onClick = { settings.setFontScale(scale) }
-                                ) { Text(label) }
-                            }
-                        }
-                        // Этап 37: «Матовое стекло» — стиль Kimi на iPhone.
-                        Text(uiText("Стиль интерфейса"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
-                            InterfaceStyle.entries.forEach { style ->
-                                SettingsChoice(
-                                    selected = state.interfaceStyle == style,
-                                    onClick = { settings.setInterfaceStyle(style) }
-                                ) { Text(style.label) }
-                            }
-                        }
-                        Text(
-                            uiText("Матовое стекло — полупрозрачные панели с тонкой кромкой ") +
-                                uiText("поверх мягкого градиента, как в Kimi на iPhone."),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        Text(uiText("Цвет и обводка"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
-                        ) {
-                            AccentColor.entries.forEach { accent ->
-                                SettingsChoice(
-                                    selected = state.accentColor == accent,
-                                    onClick = { settings.setAccentColor(accent) },
-                                    label = { Text(accent.label) },
-                                    leadingIcon = {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(12.dp)
-                                                .clip(CircleShape)
-                                                .background(accentPreviewColor(accent))
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                        // Этап 38: популярные шрифты (встроены в приложение, все с кириллицей),
-                        // One preview loads only the selected font, not all ten families.
-                        Text(uiText("Шрифт"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        Text(
-                            uiText("Популярные шрифты"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 4.dp)
-                        ) {
-                            AppFont.entries.filter { it.isBundled }.forEach { font ->
-                                SettingsChoice(
-                                    selected = state.appFont == font,
-                                    onClick = { settings.setAppFont(font) },
-                                    label = {
-                                        Text(font.label)
-                                    }
-                                )
-                            }
-                        }
-                        Text(
-                            uiText("Системные семейства"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 12.dp)
-                        )
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 4.dp)
-                        ) {
-                            AppFont.entries.filter { !it.isBundled }.forEach { font ->
-                                SettingsChoice(
-                                    selected = state.appFont == font,
-                                    onClick = { settings.setAppFont(font) },
-                                    label = {
-                                        Text(font.label)
-                                    }
-                                )
-                            }
-                        }
-                        Text(
-                            uiText("Съешь ещё этих мягких французских булок, да выпей чаю.\nЗаметки, задачи и идеи — 0123456789"),
-                            fontFamily = appFontFamily(state.appFont),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(top = 12.dp)
-                        )
-                        TextButton(onClick = { showFontLicenses = true }) { Text(uiText("Лицензии шрифтов")) }
-                    }
-                }
-
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Флажки приоритета"), state.showTaskPriorities, settings::setShowTaskPriorities)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsItem(headlineContent = { Text(uiText("Цитата в боковом меню")) },
-                        trailingContent = { Icon(Icons.Default.ChevronRight, null) },
-                        modifier = Modifier.clickable { showDrawerQuote = true })
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(uiText("Вид заметок"), style = MaterialTheme.typography.titleSmall)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(top = 8.dp).selectableGroup()) {
-                            com.notessync.app.settings.NotesLayout.entries.forEach { layout ->
-                                SettingsChoice(state.notesLayout == layout, { settings.setNotesLayout(layout) }) {
-                                    Text(if (layout == com.notessync.app.settings.NotesLayout.LIST) uiText("Список") else uiText("Две колонки"))
-                                }
-                            }
-                        }
-                    }
-                }
+                AppearanceSettings(state, settings, { showDrawerQuote = true }, { showFontLicenses = true })
             }
             SettingsGroup("editor", uiText("Редактор"), Icons.Default.Edit, expandedGroup == "editor", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "editor") null else "editor" }) {
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Сразу выбирать время быстрой задачи"), state.quickTaskTime, settings::setQuickTaskTime)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Камера в редакторе"), state.cameraCapture, settings::setCameraCapture)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Размеры фото"), state.photoResize, settings::setPhotoResize)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Показывать таблицы"), state.showTables, settings::setShowTables)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("История изменений"), state.editorHistory, settings::setEditorHistory)
-                }
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    SettingsToggle(uiText("Расширенное оформление"), state.advancedFormatting, settings::setAdvancedFormatting)
-                }
-                SettingsCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(uiText("Выполненные пункты"), style = MaterialTheme.typography.titleSmall)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).selectableGroup()) {
-                            val styles = listOf(
-                                CompletedStyle.STRIKE to uiText("Зачёркнутые"),
-                                CompletedStyle.HIDE to uiText("Скрывать")
-                            )
-                            styles.forEach { (style, label) ->
-                                SettingsChoice(
-                                    selected = state.completedStyle == style,
-                                    onClick = { settings.setCompletedStyle(style) }
-                                ) { Text(label) }
-                            }
-                        }
-                        Text(
-                            uiText("В режиме правки выполненные всегда остаются видимыми — зелёными и зачёркнутыми."),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-
+                EditorSettings(state, settings)
             }
             SettingsGroup("voice", uiText("Голос и аудио"), Icons.Default.Mic, expandedGroup == "voice", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "voice") null else "voice" }) {
-                SectionTitle(uiText("Голосовой ввод"))
-                SettingsCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(uiText("Распознавание речи"), style = MaterialTheme.typography.titleSmall)
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
-                        ) {
-                            VoiceEngine.entries.forEach { engine ->
-                                SettingsChoice(
-                                    selected = state.voiceEngine == engine,
-                                    onClick = { settings.setVoiceEngine(engine) },
-                                    label = {
-                                        Text(if (engine == VoiceEngine.ONLINE) uiText("Онлайн") else uiText("На устройстве"))
-                                    }
-                                )
-                            }
-                        }
-                        Text(
-                            state.voiceEngine.label,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        Text(uiText("Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет."),
-                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp))
-                        Text(uiText("Управление микрофоном"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)) {
-                            VoiceControl.entries.forEach { control ->
-                                SettingsChoice(selected = state.voiceControl == control, onClick = { settings.setVoiceControl(control) },
-                                    label = { Text(control.label) })
-                            }
-                        }
-                        Text(uiText("Структуризация текста"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
-                        ) {
-                            VoiceStructure.entries.forEach { structure ->
-                                SettingsChoice(
-                                    selected = state.voiceStructure == structure,
-                                    onClick = { settings.setVoiceStructure(structure) },
-                                    label = { Text(structure.label) }
-                                )
-                            }
-                        }
-                        Text(
-                            uiText("Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса."),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-
-                SectionTitle(uiText("Аудиовложения"))
-                SettingsCard(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        SettingsToggle(uiText("Запись аудио в заметку"), state.audioRecording, settings::setAudioRecording,
-                            modifier = Modifier.padding(bottom = 4.dp), padded = false)
-                        Text(uiText("До 20 минут и 10 МиБ на файл. Выключение скрывает запись; готовые аудиовложения остаются доступны."),
-                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp))
-                    }
-                }
-
+                VoiceSettings(state, settings)
             }
             SettingsGroup("transform", uiText("Преобразователь текста"), Icons.Default.AutoFixHigh, expandedGroup == "transform", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "transform") null else "transform" }) {
@@ -515,88 +216,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
             SettingsGroup("backup", uiText("Резервное копирование"), Icons.Default.Backup, expandedGroup == "backup", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "backup") null else "backup" }) {
-                // Этап 39: резервное копирование — ручной бэкап/восстановление
-                // и отдельная настройка частоты автобэкапа.
-                if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                SettingsCard(modifier = Modifier.fillMaxWidth()) {
-                    SettingsItem(
-                        headlineContent = { Text(uiText("Сохранить резервную копию")) },
-                        divider = true,
-                        supportingContent = { Text(uiText("ZIP-архив: заметки, задачи, блокноты и фото")) },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Backup,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = !busy) { createBackupLauncher.launch(BackupManager.suggestedFileName()) }
-                    )
-                    SettingsItem(
-                        headlineContent = { Text(uiText("Восстановить из файла")) },
-                        divider = true,
-                        supportingContent = { Text(uiText("Заменить текущие данные содержимым архива")) },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Restore,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = !busy) {
-                                openBackupLauncher.launch(
-                                    arrayOf("application/zip", "application/octet-stream")
-                                )
-                            }
-                    )
-                    SettingsItem(
-                        headlineContent = { Text(uiText("Копии на этом устройстве")) },
-                        divider = true,
-                        supportingContent = { Text(uiText("Доступно: %1\$s. Восстановить или сохранить в папку", (localCopies.size))) },
-                        leadingContent = { Icon(Icons.Default.History, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { showLocalCopies = true }
-                    )
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(uiText("Автоматические копии"), style = MaterialTheme.typography.titleSmall)
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
-                        ) {
-                            BackupFrequency.entries.forEach { frequency ->
-                                SettingsChoice(
-                                    selected = state.backupFrequency == frequency,
-                                    onClick = { settings.setBackupFrequency(frequency) },
-                                    enabled = !busy,
-                                    label = { Text(frequency.label) }
-                                )
-                            }
-                        }
-                        Text(
-                            if (state.lastBackupAt > 0) {
-                                uiText("Последний бэкап: %1\$s", (formatDateTime(state.lastBackupAt)))
-                            } else {
-                                uiText("Бэкап ещё не создавался")
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 12.dp)
-                        )
-                        Text(
-                            uiText("Хранятся 5 последних копий на устройстве. Проверка — при открытии и закрытии приложения, ") +
-                                uiText("без постоянно работающей службы. «После каждой заметки» — при выходе из редактора. ") +
-                                uiText("При удалении приложения локальные копии тоже удаляются: важную копию сохраните в выбранную папку."),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
-
+                BackupSettings(state, settings, busy, localCopies.size, { createBackupLauncher.launch(it) }, { openBackupLauncher.launch(it) }, { showLocalCopies = true })
             }
             SettingsGroup("about", uiText("О программе"), Icons.Default.Info, expandedGroup == "about", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "about") null else "about" }) {
@@ -697,74 +317,4 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
         )
     }
 
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-    )
-}
-
-
-/** One visible contour per group, with space between neighbouring groups in either interface style. */
-@Composable
-private fun SettingsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    OutlinedCard(modifier = modifier.padding(bottom = 12.dp), shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        content = content)
-}
-
-@Composable
-private fun SettingsChoice(selected: Boolean, onClick: () -> Unit, enabled: Boolean = true,
-    leadingIcon: @Composable (() -> Unit)? = null, label: @Composable () -> Unit
-) {
-    FilterChip(selected = selected, onClick = onClick, enabled = enabled, label = label, leadingIcon = leadingIcon,
-        modifier = Modifier.semantics { role = Role.RadioButton },
-        border = FilterChipDefaults.filterChipBorder(enabled = enabled, selected = selected,
-            borderColor = MaterialTheme.colorScheme.outline, selectedBorderColor = MaterialTheme.colorScheme.primary,
-            borderWidth = 1.dp, selectedBorderWidth = 2.dp))
-}
-
-@Composable
-private fun SettingsItem(headlineContent: @Composable () -> Unit, modifier: Modifier = Modifier,
-    supportingContent: @Composable (() -> Unit)? = null, leadingContent: @Composable (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null, divider: Boolean = false
-) {
-    androidx.compose.material3.ListItem(headlineContent = headlineContent, modifier = modifier,
-        supportingContent = supportingContent, leadingContent = leadingContent, trailingContent = trailingContent,
-        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = Color.Transparent))
-    if (divider) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
-}
-
-
-/** Compose only the open group; expensive credential controls are disposed when it closes. */
-@Composable
-private fun SettingsGroup(id: String, title: String, icon: ImageVector, expanded: Boolean, enabled: Boolean,
-    onToggle: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val description = uiText(if (expanded) "Развёрнуто" else "Свёрнуто")
-    SettingsCard(Modifier.fillMaxWidth()) {
-        SettingsItem(headlineContent = { Text(title, style = MaterialTheme.typography.titleMedium) },
-            leadingContent = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null) },
-            modifier = Modifier.fillMaxWidth().testTag("settings-group-$id")
-                .semantics { heading(); stateDescription = description }
-                .clickable(enabled = enabled, role = Role.Button, onClick = onToggle))
-    }
-    if (expanded) Column(Modifier.fillMaxWidth().testTag("settings-content-$id"), content = content)
-}
-
-@Composable
-private fun SettingsToggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier, padded: Boolean = true) {
-    Row(modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
-        .toggleable(checked, role = Role.Switch, onValueChange = onChange)
-        .padding(if (padded) 16.dp else 0.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f).padding(end = 12.dp))
-        androidx.compose.material3.Switch(checked, onCheckedChange = null)
-    }
 }

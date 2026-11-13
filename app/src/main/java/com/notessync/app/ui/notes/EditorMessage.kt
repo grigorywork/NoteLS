@@ -1,0 +1,17 @@
+package com.notessync.app.ui.notes
+
+
+
+enum class EditorMessage {
+    FORMATTING_LIMIT,
+    HISTORY_LIMIT,
+    TABLE_LIMIT,
+    SAVE_FAILED,
+    PHOTO_TOO_LARGE,
+    PHOTO_IMPORT_FAILED,
+    PHOTO_SIZE_FAILED,
+    CAMERA_FAILED,
+    REMINDER_IN_PAST,
+    REMINDER_NOTIFICATIONS_DISABLED,
+    REMINDER_SCHEDULE_FAILED
+}
