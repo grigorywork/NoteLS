@@ -110,9 +110,18 @@ class QuickTaskUiTest {
         compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithContentDescription("Week checkbox").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Private week").assertDoesNotExist()
         compose.onNodeWithContentDescription("Week checkbox").assertIsOff().performClick()
-        compose.waitUntil(10_000) { compose.waitForIdle(); runBlocking { db.noteDao().getById(existing)!!.isCompleted } }
+        // Room commits before its Flow reaches Compose; await both, rather than racing the UI.
+        compose.waitUntil(10_000) {
+            compose.waitForIdle()
+            runBlocking { db.noteDao().getById(existing)!!.isCompleted } &&
+                compose.onAllNodesWithContentDescription("Week checkbox").filter(isOn()).fetchSemanticsNodes().size == 1
+        }
         compose.onNodeWithContentDescription("Week checkbox").assertIsOn().performClick()
-        compose.waitUntil(10_000) { compose.waitForIdle(); runBlocking { !db.noteDao().getById(existing)!!.isCompleted } }
+        compose.waitUntil(10_000) {
+            compose.waitForIdle()
+            runBlocking { !db.noteDao().getById(existing)!!.isCompleted } &&
+                compose.onAllNodesWithContentDescription("Week checkbox").filter(isOff()).fetchSemanticsNodes().size == 1
+        }
         compose.onNode(hasSetTextAction()).performTextInput("From weekly widget")
         compose.onNodeWithContentDescription("Сохранить и новая задача").performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); vm.text.isEmpty() && !vm.busy }
