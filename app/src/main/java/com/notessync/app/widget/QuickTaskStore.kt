@@ -28,12 +28,12 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
         val note = db.withTransaction {
             previous = dao.getBySyncId(draft.syncId)
             val old = previous
+            check(old?.isProtected != true && old?.notebookId?.let { db.notebookDao().getById(it)?.isProtected } != true) { "This draft is protected" }
             if (text.isEmpty()) {
-                if (old != null && !old.isDeleted) { dao.softDelete(old.id); changed = true }
+                if (old != null && !old.isDeleted && !old.isPurged) { dao.softDelete(old.id); changed = true }
                 return@withTransaction null
             }
-            check(old?.isDeleted != true) { "This draft was deleted" }
-            check(old?.isProtected != true && old?.notebookId?.let { db.notebookDao().getById(it)?.isProtected } != true) { "This draft is protected" }
+            check(old?.isDeleted != true && old?.isPurged != true) { "This draft was deleted" }
             val requested = draft.reminderAt
             warning = when {
                 requested == null -> null

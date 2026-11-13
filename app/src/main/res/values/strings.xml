@@ -20,4 +20,5 @@
     <string name="widget_compact_description">NoteLS — 3 записи</string>
     <string name="widget_compact_add">Быстрая задача</string>
     <string name="widget_compact_empty">Пока нет записей</string>
+    <string name="widget_week_description">NoteLS — неделя</string>
 </resources>

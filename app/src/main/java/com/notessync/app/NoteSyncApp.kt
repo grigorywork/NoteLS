@@ -12,6 +12,7 @@ class NoteSyncApp : Application() {
         com.notessync.app.settings.SettingsRepository.get(this)
         createReminderChannel()
         com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this)
+        com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this)
         // Widget/notification broadcasts must not start a backup. Check only on
         // real activity sessions; leaving the app groups all editing into one copy.
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
@@ -20,6 +21,7 @@ class NoteSyncApp : Application() {
                 if (started++ == 0) {
                     BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = false)
                     com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this@NoteSyncApp)
+                    com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this@NoteSyncApp)
                 }
             }
             override fun onActivityStopped(activity: Activity) {

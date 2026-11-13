@@ -14,14 +14,15 @@ internal object DayTaskActions {
         noteId: Long,
         dayKey: Long,
         completed: Boolean,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
+        expectedSyncId: String? = null
     ): Boolean {
         val app = context.applicationContext
         val db = AppDatabase.get(app)
         val changed = db.withTransaction {
             val current = db.noteDao().getById(noteId) ?: return@withTransaction false
             // Recheck the current record: it may have changed since the list was drawn.
-            if (current.isDeleted || current.dayKey != dayKey || current.isProtected) {
+            if (current.isDeleted || current.isPurged || (expectedSyncId != null && current.syncId != expectedSyncId) || current.dayKey != dayKey || current.isProtected) {
                 return@withTransaction false
             }
             if (current.notebookId?.let { db.notebookDao().getById(it)?.isProtected } == true) {

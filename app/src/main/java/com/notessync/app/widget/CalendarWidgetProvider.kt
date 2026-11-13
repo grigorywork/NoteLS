@@ -153,6 +153,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
          * а явные действия (удаление, галочка задачи) — сразу, force = true.
          */
         fun refreshAll(context: Context, force: Boolean = true) {
+            if (force) WeeklyWidgetUpdates.request(context)
             if (!force) {
                 val now = System.currentTimeMillis()
                 val previous = lastRefreshAt.get()

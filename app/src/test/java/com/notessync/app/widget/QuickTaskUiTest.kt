@@ -41,6 +41,7 @@ class QuickTaskUiTest {
     @Before fun before() {
         app = RuntimeEnvironment.getApplication()
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db")
+        SettingsRepository.get(app).setUiLanguage(com.notessync.app.i18n.UiLanguage.RUSSIAN)
         SettingsRepository.get(app).setBackupFrequency(BackupFrequency.MANUAL)
     }
     @After fun after() {
@@ -95,4 +96,28 @@ class QuickTaskUiTest {
         assertEquals("notels://widget/$id/quick-add", intent.dataString)
         assertEquals(id, intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1))
     }
+    @Test fun `shared week day content toggles a checkbox and saves another quick task without a save button`() {
+        SettingsRepository.get(app).setQuickTaskTime(false)
+        val day = LocalDate.now().toEpochDay()
+        val db = AppDatabase.get(app)
+        val existing = runBlocking { db.noteDao().upsert(com.notessync.app.data.local.entity.NoteEntity(title = "Week checkbox", dayKey = day, isTask = true)) }
+        runBlocking { db.noteDao().upsert(com.notessync.app.data.local.entity.NoteEntity(title = "Private week", dayKey = day, isProtected = true)) }
+        lateinit var vm: QuickTaskViewModel
+        compose.setContent {
+            vm = remember { QuickTaskViewModel(app, SavedStateHandle(mapOf("dayKey" to day))).also { models.put("week", it); active = it } }
+            MaterialTheme { Box(Modifier.requiredSize(320.dp, 540.dp)) { QuickNoteContent(vm, false, {}) } }
+        }
+        compose.waitUntil(10_000) { compose.waitForIdle(); compose.onAllNodesWithContentDescription("Week checkbox").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Private week").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Week checkbox").assertIsOff().performClick()
+        compose.waitUntil(10_000) { compose.waitForIdle(); runBlocking { db.noteDao().getById(existing)!!.isCompleted } }
+        compose.onNodeWithContentDescription("Week checkbox").assertIsOn().performClick()
+        compose.waitUntil(10_000) { compose.waitForIdle(); runBlocking { !db.noteDao().getById(existing)!!.isCompleted } }
+        compose.onNode(hasSetTextAction()).performTextInput("From weekly widget")
+        compose.onNodeWithContentDescription("Сохранить и новая задача").performClick()
+        compose.waitUntil(10_000) { compose.waitForIdle(); vm.text.isEmpty() && !vm.busy }
+        val saved = runBlocking { db.noteDao().getForDayRange(day, day).first { it.content == "From weekly widget" } }
+        assertEquals(day, saved.dayKey); assertTrue(saved.isTask); assertFalse(saved.isCompleted)
+    }
+
 }

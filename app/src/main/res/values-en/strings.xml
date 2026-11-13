@@ -15,4 +15,5 @@
     <string name="widget_compact_description">NoteLS — 3 entries</string>
     <string name="widget_compact_add">Quick task</string>
     <string name="widget_compact_empty">No entries yet</string>
+    <string name="widget_week_description">NoteLS — week</string>
 </resources>

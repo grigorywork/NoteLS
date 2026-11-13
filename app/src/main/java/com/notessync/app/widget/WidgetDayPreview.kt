@@ -1,6 +1,8 @@
 package com.notessync.app.widget
 
-import com.notessync.app.i18n.uiText
+import com.notessync.app.i18n.UiCatalog
+import com.notessync.app.i18n.UiLanguage
+import com.notessync.app.i18n.UiStrings
 
 data class WidgetDayEntry(
     val title: String,
@@ -23,7 +25,7 @@ object WidgetDayPreview {
      * Этап 33: строки с цветовой разметкой. Задача получает свой taskColor,
      * чтобы задачи разных цветов не сливались; заметки остаются нейтральными.
      */
-    fun lines(entries: List<WidgetDayEntry>): List<WidgetPreviewLine> {
+    fun lines(entries: List<WidgetDayEntry>, total: Long = entries.size.toLong(), language: UiLanguage = UiStrings.language): List<WidgetPreviewLine> {
         if (entries.isEmpty()) return emptyList()
         val visible = entries.take(MAX_ENTRIES).map { entry ->
             val prefix = when {
@@ -31,7 +33,7 @@ object WidgetDayPreview {
                 entry.isTask -> "□ "
                 else -> ""
             }
-            val fallback = if (entry.isTask) uiText("Задача") else uiText("Заметка")
+            val fallback = if (entry.isTask) UiCatalog.translate(language, "Задача") else UiCatalog.translate(language, "Заметка")
             val title = entry.title.ifBlank { fallback }
                 .lineSequence()
                 .first()
@@ -43,7 +45,7 @@ object WidgetDayPreview {
                 isCompleted = entry.isTask && entry.isCompleted
             )
         }
-        val remaining = entries.size - visible.size
+        val remaining = (total - visible.size).coerceAtLeast(0)
         return visible + listOfNotNull(
             if (remaining > 0) WidgetPreviewLine("+$remaining", null) else null
         )

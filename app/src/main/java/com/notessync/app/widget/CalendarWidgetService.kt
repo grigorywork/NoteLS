@@ -36,7 +36,7 @@ class CalendarFactory(
     private data class Cell(val date: LocalDate, val inMonth: Boolean)
 
     private var cells: List<Cell> = emptyList()
-    private var dayEntries: Map<Long, List<WidgetDayEntry>> = emptyMap()
+    private var dayEntries: Map<Long, WidgetDaySnapshot> = emptyMap()
 
     override fun onCreate() {}
 
@@ -51,22 +51,19 @@ class CalendarFactory(
         }
         dayEntries = try {
             runBlocking {
-                AppDatabase.get(context).noteDao()
-                    .getForDayRange(gridStart.toEpochDay(), gridStart.plusDays(41).toEpochDay())
-                    .groupBy { it.dayKey!! }
-                    .mapValues { (_, notes) ->
-                        notes.map { WidgetDayEntry(it.title, it.isTask, it.isCompleted, it.taskColor) }
-                    }
+                loadWidgetDays(AppDatabase.get(context), gridStart.toEpochDay(), gridStart.plusDays(41).toEpochDay())
             }
         } catch (e: Exception) {
             emptyMap()
         }
         // Настройки читаем при каждом обновлении данных виджета.
         val settings = SettingsRepository.get(context).state.value
+        language = settings.uiLanguage
         coloredTasks = settings.widgetColoredTasks
         completedStyle = settings.widgetCompletedStyle
     }
 
+    private var language = com.notessync.app.i18n.UiLanguage.RUSSIAN
     private var coloredTasks: Boolean = false
     private var completedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH
 
@@ -85,7 +82,7 @@ class CalendarFactory(
         }
         views.setTextColor(R.id.day_number, color)
         views.setTextColor(R.id.day_entries, color)
-        val entries = dayEntries[cell.date.toEpochDay()].orEmpty()
+        val entries = dayEntries[cell.date.toEpochDay()] ?: WidgetDaySnapshot(emptyList(), 0)
         views.setTextViewText(R.id.day_entries, styledPreview(entries))
 
         // Тап по любой дате (даже соседнего месяца) — быстрая заметка этого дня.
@@ -103,9 +100,9 @@ class CalendarFactory(
     override fun onDestroy() {}
 
     /** Цвет задач и выбранный стиль выполнения применяются независимо друг от друга. */
-    private fun styledPreview(entries: List<WidgetDayEntry>): CharSequence {
+    private fun styledPreview(entries: WidgetDaySnapshot): CharSequence {
         val builder = SpannableStringBuilder()
-        WidgetDayPreview.lines(entries).forEachIndexed { index, line ->
+        WidgetDayPreview.lines(entries.previews(), entries.total, language).forEachIndexed { index, line ->
             if (index > 0) builder.append("\n")
             val start = builder.length
             builder.append(line.text)

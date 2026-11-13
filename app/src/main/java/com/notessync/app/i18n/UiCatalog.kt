@@ -596,7 +596,10 @@ object UiCatalog {
             "Не найдено вложение: %1\$s" to "Attachment not found: %1\$s",
             "Открыть NoteLS" to "Open NoteLS",
             "Не удалось обновить записи. Откройте NoteLS." to "Could not update entries. Open NoteLS.",
-            "Пока нет записей" to "No entries yet"
+            "Пока нет записей" to "No entries yet",
+            "Предыдущая неделя" to "Previous week",
+            "Следующая неделя" to "Next week",
+            "Текущая неделя" to "Current week"
         )
     }
 

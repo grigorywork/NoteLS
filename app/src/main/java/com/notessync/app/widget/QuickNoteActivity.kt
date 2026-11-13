@@ -88,6 +88,8 @@ class QuickNoteActivity : ComponentActivity() {
         quick.onStopped()
         val widgetId = intent.getIntExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID, android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID)
         if (widgetId != android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID) CalendarWidgetProvider.selectDay(this, widgetId, quick.dayKey)
+        val weekId = intent.getIntExtra(WeeklyWidgetProvider.EXTRA_WEEK_WIDGET_ID, android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID)
+        if (weekId != android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID) WeeklyWidgetProvider.selectDay(this, weekId, quick.dayKey)
         super.onStop()
     }
 
@@ -177,7 +179,7 @@ internal fun QuickNoteContent(
         taskError = null
         scope.launch {
             try {
-                DayTaskActions.setCompleted(context, note.id, dayKey, completed)
+                DayTaskActions.setCompleted(context, note.id, dayKey, completed, expectedSyncId = note.syncId)
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (_: Exception) {

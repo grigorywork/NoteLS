@@ -2,7 +2,7 @@
 
 Android-приложение заметок автора **MSS9LN**. Заметки, задачи, виджеты, напоминания, цитаты, шрифты и резервное копирование. Прямая синхронизация устройств по Wi-Fi с сопряжением через QR-код.
 
-Актуальные исходники: **1.10.25**, `versionCode 48`, этап60. Подписанный выпуск для установки: **1.10.1**.
+Актуальные исходники: **1.10.26**, `versionCode 49`, этап61. Подписанный выпуск для установки: **1.10.1**.
 
 Основной репозиторий: https://github.com/grigorywork/NoteLS (приватный). Все последующие изменения ведутся здесь; локальная папка — рабочая копия этого репозитория.
 
@@ -49,4 +49,4 @@ Linux/macOS:
 После успешного GitHub Actions доступен артефакт `NoteLS-<версия>-code<код>-cloud-debug-NOT-UPDATE` с APK, SHA256SUMS и пояснением подписи. Это Android Debug, **не обновление** установленного приложения с постоянным ключом. Артефакты хранятся14 дней. Постоянный ключ в облако не передаётся; подписанный выпуск остаётсяv1.10.1.
 
 
-Компактный виджет60 и исправление запуска MainActivity: 1.10.25/code48, Room16. Локально432 теста,0 failures/errors/skipped; lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно, BUILD SUCCESSFUL in3m56s. [CI43375094242](https://github.com/grigorywork/NoteLS/actions/runs/43375094242) success наc2e8d08bdc674da02c895001294714a09d88b833:432 теста,0 failures/ignored, lint0 ошибок/16 предупреждений/2 информации, assembleDebug успешно за7m41s. Сверены журнал131719605765 и HTML/XML отчётов14014371482; SHA256 ZIP69a81fb193413b8a6645c2514ae3db312701668c2c404086fc4bf82d17b6a4ae совпала с GitHub. [APK1.10.25/code48 (ZIP)](https://github.com/grigorywork/NoteLS/actions/runs/43375094242/artifacts/14014685738), Android Debug/NOT-UPDATE. ZIP APK8b6b9eb601832849789514103e123bc6325bfb7856744f3145ced90f47c4e1ea сверен с GitHub; извлечённый APK/SHA256SUMS c13b4886abf896760867eaac0b739c02542a48708208affc14a33cd762d3e6e1 совпали. Проверены package/versionCode48/versionName1.10.25 и Android Debug certificate; постоянная подпись не менялась. [Аудит60](docs/compact-widget-1.10.25.md).
+Недельный виджет61/общий экран дня/ограниченные превью календарей:1.10.26/code49, Room16. Локально444 теста,0 failures/errors/skipped; lint0 ошибок/15 предупреждений/2 информации, assembleDebug успешно за4m 15s. CI/APK проверяются после публикации. [Аудит61](docs/weekly-widget-1.10.26.md).

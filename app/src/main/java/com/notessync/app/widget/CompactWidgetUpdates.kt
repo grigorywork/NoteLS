@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /** Event-driven only while this widget is installed. No periodic alarm, worker or service. */
 object CompactWidgetUpdates {
     private var owner: Owner? = null
+    private val render = Mutex()
     fun startIfPresent(context: Context) { bind(context) }
     fun request(context: Context, onComplete: () -> Unit = {}) {
         val current = bind(context)
@@ -52,7 +53,6 @@ object CompactWidgetUpdates {
         val revision = MutableStateFlow(0L)
         val ack = MutableStateFlow(-1L)
         val failed = AtomicBoolean(false)
-        private val render = Mutex()
         private val cache = mutableMapOf<Int, Key>()
         private var previousVisibility: List<Pair<Long, String>>? = null
         private var previousSettings: CompactWidgetPreferences? = null
@@ -84,14 +84,17 @@ object CompactWidgetUpdates {
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (_: Exception) {
-                val preferences = CompactWidgetPreferences.from(SettingsRepository.get(app).state.value)
-                val manager = AppWidgetManager.getInstance(app)
-                ids.value.forEach { id ->
+                render.withLock {
                     currentCoroutineContext().ensureActive()
-                    runCatching { manager.updateAppWidget(id, CompactWidgetViews.build(app, id, emptyList(), preferences, failed = true)) }
+                    val preferences = CompactWidgetPreferences.from(SettingsRepository.get(app).state.value)
+                    val manager = AppWidgetManager.getInstance(app)
+                    ids.value.forEach { id ->
+                        currentCoroutineContext().ensureActive()
+                        runCatching { manager.updateAppWidget(id, CompactWidgetViews.build(app, id, emptyList(), preferences, failed = true)) }
+                    }
+                    failed.set(true)
+                    ack.value = revision.value
                 }
-                failed.set(true)
-                ack.value = revision.value
             }
         } }
     }
