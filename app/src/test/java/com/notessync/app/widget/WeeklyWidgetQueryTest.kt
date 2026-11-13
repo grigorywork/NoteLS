@@ -48,7 +48,7 @@ class WeeklyWidgetQueryTest {
             buildList { while (rows.moveToNext()) add(rows.getString(3)) }
         }
         assertTrue(plan.toString(), plan.any { it.contains("index_notes_dayKey") })
-        assertEquals(16, db.openHelper.readableDatabase.version)
+        assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version)
     }
     @Test fun `bounded month snapshots retain aggregate overflow and reject an unbounded range`() = runBlocking {
         val db = AppDatabase.get(app)

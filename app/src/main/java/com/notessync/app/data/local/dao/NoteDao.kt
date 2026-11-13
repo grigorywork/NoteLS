@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 // Choose three identities using the covering metadata index before reading bounded title/body previews.
 internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS syncId, SUBSTR(title, 1, 256) AS title, SUBSTR(content, 1, 256) AS content, isTask, isCompleted, isPinned, SUBSTR(taskColor, 1, 16) AS taskColor, SUBSTR(noteColor, 1, 16) AS noteColor FROM notes WHERE id IN (SELECT id FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isPinned DESC, updatedAt DESC, id DESC LIMIT 3) ORDER BY isPinned DESC, updatedAt DESC, id DESC"
 
-internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
+internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes INDEXED BY index_notes_dayKey WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
 
 @Dao
 interface NoteDao {
@@ -23,8 +23,11 @@ interface NoteDao {
     fun observeAll(): Flow<List<NoteEntity>>
 
     // Фильтры (блокнот/избранное/тег) + сортировка собираются в один запрос (Этап 2).
-    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class])
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
     fun rawQuery(query: SupportSQLiteQuery): Flow<List<NoteEntity>>
+
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
+    fun observeNextTaskDue(query: SupportSQLiteQuery): Flow<Long?>
 
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: Long): NoteEntity?
@@ -109,7 +112,7 @@ interface NoteDao {
     @Query(COMPACT_WIDGET_SQL)
     fun observeCompactWidget(): Flow<List<com.notessync.app.data.local.model.CompactWidgetEntry>>
 
-    @Query("SELECT dayKey, COUNT(*) AS total FROM notes WHERE dayKey BETWEEN :fromDay AND :toDay AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) GROUP BY dayKey")
+    @Query("SELECT dayKey, COUNT(*) AS total FROM notes INDEXED BY index_notes_dayKey WHERE dayKey BETWEEN :fromDay AND :toDay AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) GROUP BY dayKey")
     suspend fun getWidgetDayCounts(fromDay: Long, toDay: Long): List<com.notessync.app.data.local.model.WidgetDayCount>
 
     @Query(WIDGET_DAY_SNIPPETS_SQL)

@@ -46,7 +46,7 @@ class CompactWidgetQueryTest {
         db.notebookDao().update(db.notebookDao().getById(book)!!.copy(isDeleted = true))
         assertEquals(listOf(pin, third, second), db.noteDao().observeCompactWidget().first().map { it.id })
     }
-    @Test fun `schema fifteen upgrades by replacing only the ordering index and the real query uses covering metadata`() = runBlocking {
+    @Test fun `schema fifteen upgrades preserving data and the ordering index and the real query uses covering metadata`() = runBlocking {
         val relative = "schemas/com.notessync.app.data.local.AppDatabase/15.json"
         val schema = JSONObject(listOf(File(relative), File("app/$relative")).first { it.isFile }.readText()).getJSONObject("database")
         val path = app.getDatabasePath("notessync.db"); path.parentFile!!.mkdirs()
@@ -72,7 +72,7 @@ class CompactWidgetQueryTest {
             values.put("isPinned", 1); old.insertOrThrow("notes", null, values); old.version = 15
         }
         val db = AppDatabase.get(app); val note = db.noteDao().getById(1)!!
-        assertEquals(16, db.openHelper.readableDatabase.version); assertEquals("Текст 😀", note.content); assertTrue(note.isPinned)
+        assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version); assertEquals("Текст 😀", note.content); assertTrue(note.isPinned)
         val indexes = db.openHelper.readableDatabase.query("PRAGMA index_list(notes)").use { rows ->
             buildList { while (rows.moveToNext()) add(rows.getString(1)) }
         }

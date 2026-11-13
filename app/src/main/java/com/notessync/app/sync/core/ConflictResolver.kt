@@ -37,7 +37,7 @@ object ConflictResolver {
     }
 
     private fun contentDiffers(a: NoteDto, b: NoteDto): Boolean =
-        a.title != b.title || a.content != b.content || a.textFormat != b.textFormat || (b.tablesData != null && a.tablesData.orEmpty() != b.tablesData) || a.taskPriority != b.taskPriority || a.favorite != b.favorite ||
+        (b.taskDeadline != null && a.taskDeadline?.at != b.taskDeadline.at) || a.title != b.title || a.content != b.content || a.textFormat != b.textFormat || (b.tablesData != null && a.tablesData.orEmpty() != b.tablesData) || a.taskPriority != b.taskPriority || a.favorite != b.favorite ||
             a.deleted != b.deleted || (b.pinned != null && a.pinned != b.pinned) ||
             (b.noteColor != null && a.noteColor.orEmpty() != b.noteColor) || a.reminderAt != b.reminderAt ||
             a.dayKey != b.dayKey || a.isTask != b.isTask || a.isCompleted != b.isCompleted ||

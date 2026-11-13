@@ -28,6 +28,10 @@ data class AttachmentDto(
     val displayHeightDp: Int? = null
 )
 
+/** Absent wrapper: legacy peer. Present wrapper with null at: explicit deadline removal. */
+@Serializable
+data class TaskDeadlineDto(val at: Long? = null)
+
 @Serializable
 data class NoteDto(
     val syncId: String,
@@ -62,7 +66,8 @@ data class NoteDto(
     val passwordSalt: String? = null,
     val pinned: Boolean? = null,
     val purged: Boolean? = null,
-    val noteColor: String? = null
+    val noteColor: String? = null,
+    val taskDeadline: TaskDeadlineDto? = null
 )
 
 // Пакет изменений: блокноты + заметки (теги едут внутри заметок по именам).

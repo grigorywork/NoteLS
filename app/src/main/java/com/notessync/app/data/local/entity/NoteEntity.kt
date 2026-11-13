@@ -17,7 +17,7 @@ import java.util.UUID
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("notebookId"), Index("updatedAt"), Index("syncId"), Index("dayKey"), Index(name = "index_notes_visible_order", value = ["isDeleted", "isPurged", "isPinned", "updatedAt", "id", "isProtected", "notebookId"])]
+    indices = [Index("notebookId"), Index("updatedAt"), Index("syncId"), Index("dayKey"), Index(name = "index_notes_task_due", value = ["isDeleted", "isPurged", "isTask", "isCompleted", "taskDueAt", "isProtected", "notebookId"]), Index(name = "index_notes_visible_order", value = ["isDeleted", "isPurged", "isPinned", "updatedAt", "id", "isProtected", "notebookId"])]
 )
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -35,6 +35,7 @@ data class NoteEntity(
     @ColumnInfo(defaultValue = "''") val noteColor: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val reminderAt: Long? = null,
+    @ColumnInfo(defaultValue = "NULL") val taskDueAt: Long? = null,
     val dayKey: Long? = null,
     val isTask: Boolean = false,
     val isCompleted: Boolean = false,

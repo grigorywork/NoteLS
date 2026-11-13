@@ -749,6 +749,9 @@ fun NoteEditorScreen(
                     }
                 }
             }
+            if (viewModel.isTask) Box(Modifier.padding(horizontal = 16.dp)) {
+                com.notessync.app.ui.tasks.TaskDeadlinePicker(viewModel.taskDueAt, viewModel.isReady && !viewModel.isClosing, viewModel::chooseTaskDeadline)
+            }
             if (viewModel.isTask && settingsState.showTaskPriorities) {
                 Box(Modifier.padding(horizontal = 16.dp)) {
                     com.notessync.app.ui.tasks.TaskPriorityPicker(viewModel.taskPriority, viewModel::choosePriority)

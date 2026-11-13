@@ -123,6 +123,10 @@ import com.notessync.app.security.visibleNotes
 import com.notessync.app.ui.common.SetPasswordDialog
 import com.notessync.app.ui.common.UnlockPasswordDialog
 import com.notessync.app.ui.common.formatDateTime
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.EventBusy
+import com.notessync.app.ui.notes.isUnfinished
+import com.notessync.app.ui.tasks.*
 import com.notessync.app.ui.notes.NoteFilter
 import com.notessync.app.ui.notes.NoteSort
 import com.notessync.app.ui.notes.NotesViewModel
@@ -150,7 +154,11 @@ fun NotesListScreen(
     onDeletedEventHandled: () -> Unit = {},
     viewModel: NotesViewModel = viewModel()
 ) {
-    val notes by viewModel.notes.collectAsStateWithLifecycle()
+    val result by viewModel.results.collectAsStateWithLifecycle()
+    val notes = result?.notes.orEmpty()
+    val taskFilters by viewModel.taskFilters.collectAsStateWithLifecycle()
+    val taskTime by viewModel.taskClock.collectAsStateWithLifecycle()
+    val listSession = viewModel.listSessionValue
     val photos by viewModel.firstPhotos.collectAsStateWithLifecycle()
     val cardsState = rememberLazyStaggeredGridState()
     val biometricRequest by viewModel.biometrics.request.collectAsStateWithLifecycle()
@@ -170,7 +178,18 @@ fun NotesListScreen(
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
 
-    val shownNotes = remember(notes, notebooks, protectionState, filter) { visibleNotes(notes, notebooks, protectionState, filter == NoteFilter.Trash) }
+    val sessionPending = result == null || result?.key?.session != listSession
+    val taskPending = sessionPending || (filter.isUnfinished() && (result?.key?.let {
+        it.filter != filter || it.tasks != taskFilters || it.search != query || it.sort != sort
+    } != false))
+    val shownNotes = remember(notes, notebooks, protectionState, filter, taskPending, taskTime, taskFilters) {
+        if (taskPending) emptyList() else {
+            val visible = visibleNotes(notes, notebooks, protectionState, filter == NoteFilter.Trash)
+            if (filter.isUnfinished() && result?.key?.clock != taskTime) filterCachedDeadlines(visible,
+                if (filter == NoteFilter.Overdue) TaskDueFilter.OVERDUE else taskFilters.due, taskTime, java.time.ZoneId.systemDefault()) else visible
+        }
+    }
+    TaskDeadlineClock(viewModel, filter, notes)
 
     val settingsContext = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(settingsContext) }
@@ -274,6 +293,10 @@ fun NotesListScreen(
                     },
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
+                NavigationDrawerItem(label = { Text(uiText("Невыполненные")) }, icon = { Icon(Icons.Default.CheckBoxOutlineBlank, null) },
+                    selected = filter == NoteFilter.Unfinished, onClick = { viewModel.selectFilter(NoteFilter.Unfinished); scope.launch { drawerState.close() } }, modifier = Modifier.padding(horizontal = 12.dp))
+                NavigationDrawerItem(label = { Text(uiText("Просроченные")) }, icon = { Icon(Icons.Default.EventBusy, null) },
+                    selected = filter == NoteFilter.Overdue, onClick = { viewModel.selectFilter(NoteFilter.Overdue); scope.launch { drawerState.close() } }, modifier = Modifier.padding(horizontal = 12.dp))
                 NavigationDrawerItem(
                     label = { Text(uiText("Избранное")) },
                     icon = { Icon(Icons.Default.Star, contentDescription = null) },
@@ -568,6 +591,10 @@ fun NotesListScreen(
                     }
                 }
 
+                if (filter.isUnfinished()) TaskFiltersBar(if (filter == NoteFilter.Overdue) taskFilters.copy(due = TaskDueFilter.OVERDUE) else taskFilters, filter == NoteFilter.Overdue, notebooks, tags) {
+                    viewModel.chooseTaskFilters(it)
+                    if (filter != NoteFilter.Overdue || it.due != TaskDueFilter.OVERDUE) viewModel.selectFilter(NoteFilter.Unfinished)
+                }
                 if (shownNotes.isEmpty() && visibleLockedTasks.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -575,8 +602,10 @@ fun NotesListScreen(
                     ) {
                         Text(
                             text = when {
+                                sessionPending -> uiText("Загрузка…")
                                 query.isNotBlank() -> uiText("Ничего не найдено")
                                 filter == NoteFilter.Trash -> uiText("Корзина пуста")
+                                filter.isUnfinished() -> uiText(if (taskPending) "Загрузка…" else "Нет подходящих задач")
                                 filter == NoteFilter.Tasks -> uiText("Пока нет задач")
                                 else -> uiText("Пока нет заметок")
                             },
@@ -595,7 +624,7 @@ fun NotesListScreen(
                         }, onUnlock = { task -> taskUnlockError = false; taskToUnlock = task },
                         onDelete = { if (filter == NoteFilter.Trash) { purgeIds = setOf(it.id); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
                         onToggleTimer = viewModel::toggleTaskTimer, selected = selected, onSelect = ::select,
-                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE) })
+                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE) }, deadlineNow = taskTime)
 
                 }
             }
@@ -783,6 +812,8 @@ private fun SortMenu(current: NoteSort, onSelect: (NoteSort) -> Unit) {
                 text = { Text(uiText("По дате") + if (current == NoteSort.BY_DATE) " ✓" else "") },
                 onClick = { onSelect(NoteSort.BY_DATE); open = false }
             )
+            DropdownMenuItem(text = { Text(uiText("По сроку") + if (current == NoteSort.BY_DUE) " ✓" else "") },
+                onClick = { onSelect(NoteSort.BY_DUE); open = false })
             DropdownMenuItem(
                 text = { Text(uiText("По имени") + if (current == NoteSort.BY_NAME) " ✓" else "") },
                 onClick = { onSelect(NoteSort.BY_NAME); open = false }
@@ -870,7 +901,7 @@ private fun NoteCard(
     onToggleCompleted: () -> Unit,
     onToggleTimer: () -> Unit,
     onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
-    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis()
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val glass = LocalGlassTheme.current
@@ -976,6 +1007,7 @@ private fun NoteCard(
                         )
                     }
                 }
+                if (note.isTask) TaskDeadlineLabel(note.taskDueAt, deadlineNow, note.isCompleted, accent)
                 Text(
                     text = formatDateTime(note.updatedAt),
                     style = MaterialTheme.typography.bodySmall,
@@ -1007,6 +1039,8 @@ private fun filterTitle(filter: NoteFilter): String = when (filter) {
     NoteFilter.Trash -> uiText("Корзина")
     NoteFilter.All -> uiText("Заметки")
     NoteFilter.Tasks -> uiText("Задачи")
+    NoteFilter.Unfinished -> uiText("Невыполненные")
+    NoteFilter.Overdue -> uiText("Просроченные")
     NoteFilter.Favorites -> uiText("Избранное")
     is NoteFilter.Notebook -> filter.name
     is NoteFilter.Tag -> "#" + filter.name
@@ -1023,7 +1057,7 @@ internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>,
     onOpen: (NoteEntity) -> Unit, onUnlock: (NoteEntity) -> Unit, onDelete: (NoteEntity) -> Unit,
     onToggleCompleted: (NoteEntity) -> Unit, onToggleTimer: (NoteEntity) -> Unit,
     selected: Set<Long> = emptySet(), onSelect: (NoteEntity) -> Unit = {},
-    onPin: (NoteEntity) -> Unit = {}, onRestore: (NoteEntity) -> Unit = {}
+    onPin: (NoteEntity) -> Unit = {}, onRestore: (NoteEntity) -> Unit = {}, deadlineNow: Long = System.currentTimeMillis()
 ) {
     val grid = layout == NotesLayout.GRID
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -1052,10 +1086,10 @@ internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>,
                 val active by remember(state, note.id) { derivedStateOf { state.layoutInfo.visibleItemsInfo.any { it.key == "note-${note.id}" } } }
                 if (grid) NoteGridCard(note, photos[note.id], showPriority,
                     { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) },
-                    { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active)
+                    { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow)
                 else NoteCard(note, showPriority, photos[note.id], { onOpen(note) }, { onDelete(note) },
                     { onToggleCompleted(note) }, { onToggleTimer(note) }, { onSelect(note) }, { onPin(note) },
-                    { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active)
+                    { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow)
             }
         }
     }

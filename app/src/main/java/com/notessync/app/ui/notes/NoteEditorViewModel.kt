@@ -164,6 +164,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
     var taskCountdownEndAt by mutableStateOf<Long?>(null)
     var taskCompletedAt by mutableStateOf<Long?>(null)
     var isProtected by mutableStateOf(false)
+    var taskDueAt by mutableStateOf<Long?>(null)
+        private set
     var reminderAt by mutableStateOf<Long?>(null)
     var message by mutableStateOf<EditorMessage?>(null)
         private set
@@ -242,6 +244,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     isProtected = note.isProtected
                     passwordHash = note.passwordHash
                     passwordSalt = note.passwordSalt
+                    taskDueAt = note.taskDueAt
                     reminderAt = note.reminderAt
                     notebookId = note.notebookId
                     dayKey = note.dayKey
@@ -260,7 +263,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             snapshotFlow {
                 AutosaveKey(
-                    title, contentField.text, formatting, tables, taskPriority, isFavorite, reminderAt,
+                    title, contentField.text, formatting, tables, taskPriority, isFavorite, reminderAt, taskDueAt,
                     isTask, isCompleted, taskColor, noteColor, taskElapsedMillis, taskTimerStartedAt,
                     taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, isProtected
                 )
@@ -285,6 +288,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val taskPriority: Int,
         val favorite: Boolean,
         val reminderAt: Long?,
+        val taskDueAt: Long?,
         val isTask: Boolean,
         val isCompleted: Boolean,
         val taskColor: String,
@@ -322,6 +326,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             isDeleted = false,
             createdAt = if (createdAt > 0) createdAt else now,
             reminderAt = reminderAt,
+            taskDueAt = taskDueAt,
             dayKey = dayKey,
             isTask = isTask,
             isCompleted = isCompleted,
@@ -525,6 +530,18 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val level = activeFormatting[FormatKind.INDENT]?.toIntOrNull() ?: 0
         formatParagraph(FormatKind.INDENT, (level + delta).coerceIn(0, 4).toString())
     }
+    fun chooseTaskDeadline(at: Long?) {
+        if (!isReady || isClosing || accessDenied || !isTask || !com.notessync.app.ui.tasks.TaskDeadlines.valid(at) || taskDueAt == at) return
+        taskDueAt = at
+        viewModelScope.launch {
+            try { saveNow(force = true) }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                message = EditorMessage.SAVE_FAILED
+            }
+        }
+    }
+
     fun choosePriority(value: Int) {
         if (!isTask) return
         val next = com.notessync.app.ui.tasks.TaskPriority.from(value).value
@@ -639,6 +656,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         isTask = !isTask
         if (!isTask) {
             taskPriority = 0
+            taskDueAt = null
             isCompleted = false
             taskCompletedAt = null
             taskElapsedMillis = 0L
@@ -1099,11 +1117,11 @@ class NoteEditorViewModel @JvmOverloads constructor(
     // ---------- Удаление / выход ----------
 
     suspend fun discardIfEmptyOnExit() = saveMutex.withLock {
-        if (loaded && createdHere && !deleted && !accessDenied && title.isBlank() && contentField.text.isBlank() && !hasTables && reminderAt == null && exists) {
+        if (loaded && createdHere && !deleted && !accessDenied && title.isBlank() && contentField.text.isBlank() && !hasTables && reminderAt == null && taskDueAt == null && exists) {
             withContext(NonCancellable) {
                 db.withTransaction {
                     val fresh = accessibleParent() ?: return@withTransaction
-                    if (fresh.title.isBlank() && fresh.content.isBlank() && fresh.tablesData.isBlank() && fresh.reminderAt == null &&
+                    if (fresh.title.isBlank() && fresh.content.isBlank() && fresh.tablesData.isBlank() && fresh.reminderAt == null && fresh.taskDueAt == null &&
                         attachmentDao.countByNoteId(currentNoteId) == 0) {
                         noteDao.softDelete(currentNoteId); deleted = true
                     }

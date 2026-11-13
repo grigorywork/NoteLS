@@ -599,7 +599,25 @@ object UiCatalog {
             "Пока нет записей" to "No entries yet",
             "Предыдущая неделя" to "Previous week",
             "Следующая неделя" to "Next week",
-            "Текущая неделя" to "Current week"
+            "Текущая неделя" to "Current week",
+            "Любой срок" to "Any deadline",
+            "Срок сегодня" to "Due today",
+            "Предстоящие" to "Upcoming",
+            "Без срока" to "No deadline",
+            "Просроченные" to "Overdue",
+            "Невыполненные" to "Unfinished",
+            "Срок задачи" to "Task deadline",
+            "Срок: %1\$s" to "Due: %1\$s",
+            "Просрочено: %1\$s" to "Overdue: %1\$s",
+            "Убрать срок" to "Remove deadline",
+            "Время срока" to "Deadline time",
+            "Срок не включает напоминание или таймер." to "A deadline does not enable a reminder or timer.",
+            "Все приоритеты" to "All priorities",
+            "Все теги" to "All tags",
+            "Сбросить фильтры" to "Reset filters",
+            "По сроку" to "By deadline",
+            "Нет подходящих задач" to "No matching tasks",
+            "Приоритет" to "Priority"
         )
     }
 

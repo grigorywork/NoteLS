@@ -39,7 +39,7 @@ import com.notessync.app.ui.theme.*
 internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriority: Boolean,
     onClick: () -> Unit, onDelete: () -> Unit, onToggleCompleted: () -> Unit, onToggleTimer: () -> Unit,
     onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
-    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis()
 ) {
     val accent = noteAccent(note)
     val glass = LocalGlassTheme.current
@@ -86,6 +86,7 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
                 if (note.taskCountdownMillis > 0 || note.taskCountdownEndAt != null)
                     CountdownIndicator(note.taskCountdownMillis, note.taskCountdownEndAt, animateIcon = true, contentColor = accent, active = active)
             }
+            if (note.isTask) TaskDeadlineLabel(note.taskDueAt, deadlineNow, note.isCompleted, accent)
             Text(formatDateTime(note.updatedAt), style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp))
         }
