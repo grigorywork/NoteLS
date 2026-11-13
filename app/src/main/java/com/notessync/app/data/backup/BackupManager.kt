@@ -1,5 +1,8 @@
 package com.notessync.app.data.backup
 
+import com.notessync.app.data.backup.crypto.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import com.notessync.app.i18n.uiText
 
 import android.content.Context
@@ -31,7 +34,7 @@ import java.util.zip.ZipOutputStream
 
 /** Finite, event-driven work only: no service, repeating job, wake lock or polling timer. */
 object BackupManager {
-    data class BackupInfo(val createdAt: Long, val noteCount: Long, val dbVersion: Int)
+    data class BackupInfo(val createdAt: Long, val noteCount: Long, val dbVersion: Int, val encrypted: Boolean = false)
     data class LocalBackup(val file: File, val info: BackupInfo)
     private val operation = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -47,7 +50,11 @@ object BackupManager {
     }
 
     suspend fun createBackup(context: Context, out: OutputStream): BackupInfo = withContext(Dispatchers.IO) {
-        operation.withLock { createUnlocked(context, out) }
+        operation.withLock {
+            val identity = BackupProtection(context).current() ?: error(uiText("Сначала задайте пароль резервных копий"))
+            val job = currentCoroutineContext()
+            BackupEncryptedIO.write(out, identity, checkCancelled = { job.ensureActive() }) { createUnlocked(context, it) }.copy(encrypted = true)
+        }
     }
 
     private fun createUnlocked(context: Context, out: OutputStream): BackupInfo {
@@ -79,12 +86,16 @@ object BackupManager {
                             uiText("Не найдено вложение: %1\$s", (photo.name))
                         }
                         photos[photo.relativeTo(root).invariantSeparatorsPath] = photo
+                        require(photos.size <= BackupArchive.MAX_ENTRIES - 2) { uiText("Слишком много файлов в копии") }
                     }
                 }
             }
+            val manifest = BackupArchive.manifest(info.archiveInfo()).toByteArray(Charsets.UTF_8)
+            val totalBytes = snapshot.length() + manifest.size + photos.values.sumOf { it.length() }
+            require(totalBytes <= BackupArchive.MAX_BYTES) { uiText("Слишком большой объём резервной копии") }
             ZipOutputStream(out.buffered()).use { zip ->
                 zip.putNextEntry(ZipEntry(BackupArchive.MANIFEST))
-                zip.write(BackupArchive.manifest(info.archiveInfo()).toByteArray(Charsets.UTF_8))
+                zip.write(manifest)
                 zip.closeEntry()
                 zip.addFile(BackupArchive.DATABASE, snapshot)
                 photos.forEach { (path, file) -> zip.addFile(BackupArchive.ATTACHMENTS + path, file) }
@@ -96,7 +107,11 @@ object BackupManager {
     suspend fun inspect(context: Context, uri: Uri): BackupInfo? = withContext(Dispatchers.IO) {
         try {
             context.contentResolver.openInputStream(uri)?.use {
-                BackupArchive.inspect(it).also { info -> check(info.dbVersion <= AppDatabase.VERSION) }.publicInfo()
+                val input = it.buffered()
+                if (BackupEncryptedIO.encrypted(input)) {
+                    val header = BackupEnvelopeCodec.read(input).header
+                    BackupInfo(header.createdAt, -1, 0, encrypted = true)
+                } else BackupArchive.inspect(input).also { info -> check(info.dbVersion <= AppDatabase.VERSION) }.publicInfo()
             }
         } catch (cancel: CancellationException) { throw cancel }
         catch (_: Exception) { null }
@@ -104,30 +119,33 @@ object BackupManager {
 
     suspend fun localBackups(context: Context): List<LocalBackup> = withContext(Dispatchers.IO) {
         autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }
-            .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension == "zip" }
+            .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension in setOf("zip", "nlsbackup") }
             .sortedByDescending { it.lastModified() }
             .mapNotNull { file -> inspect(context, Uri.fromFile(file))?.let { LocalBackup(file, it) } }
             .take(5)
     }
 
-    suspend fun restore(context: Context, uri: Uri): Result<BackupInfo> = withContext(Dispatchers.IO) {
+    suspend fun restore(context: Context, uri: Uri, access: BackupAccess? = null): Result<BackupInfo> = withContext(Dispatchers.IO) {
         val pause = com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(context)?.pauseManual()
             ?: com.notessync.app.sync.core.SyncWorkGate.pauseAutomatic()
         try {
-            val result = com.notessync.app.sync.core.SyncWorkGate.transfer(automatic = false) { restoreData(context, uri) }
+            val result = com.notessync.app.sync.core.SyncWorkGate.transfer(automatic = false) { restoreData(context, uri, access) }
             if (result.isSuccess) SettingsRepository.get(context).setAutoSyncEnabled(false)
             result
         } finally { pause.close() }
     }
 
-    private suspend fun restoreData(context: Context, uri: Uri): Result<BackupInfo> = withContext(Dispatchers.IO) {
+    private suspend fun restoreData(context: Context, uri: Uri, access: BackupAccess?): Result<BackupInfo> = withContext(Dispatchers.IO) {
         operation.withLock {
             val temp = File(context.cacheDir, "restore-${UUID.randomUUID()}")
             val incoming = File(context.filesDir, "attachments/restored-${UUID.randomUUID()}")
             var committed = false
             try {
                 check(temp.mkdirs()) { uiText("Не удалось подготовить восстановление") }
-                val info = context.contentResolver.openInputStream(uri)?.use { BackupArchive.extract(it, temp) }
+                val job = currentCoroutineContext()
+                val info = context.contentResolver.openInputStream(uri)?.use { input ->
+                    BackupEncryptedIO.read(input, access, { job.ensureActive() }) { BackupArchive.extract(it, temp) }
+                }
                     ?: error(uiText("Не удалось открыть файл"))
                 check(info.dbVersion <= AppDatabase.VERSION) { uiText("Обновите NoteLS для восстановления этой копии") }
                 val snapshot = File(temp, BackupArchive.DATABASE)
@@ -169,6 +187,7 @@ object BackupManager {
                     val oldAlarms = live.openHelper.readableDatabase.query(
                         "SELECT id FROM notes WHERE reminderAt IS NOT NULL OR taskCountdownEndAt IS NOT NULL"
                     ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.getLong(0)) } }
+                    currentCoroutineContext().ensureActive()
                     live.runInTransaction {
                         val target = live.openHelper.writableDatabase
                         tables.asReversed().forEach { target.execSQL("DELETE FROM `$it`") }
@@ -242,21 +261,77 @@ object BackupManager {
             val current = revision.get()
             if (!BackupPolicy.isDue(state.backupFrequency, afterNote && current != backedUpRevision,
                     state.lastAutoBackupAt, System.currentTimeMillis())) return@withContext
+            val identity = BackupProtection(context).current() ?: return@withContext
+            val job = currentCoroutineContext()
             val directory = autoDirectories(context).first().apply { check(isDirectory || mkdirs()) }
-            val file = File(directory, "notels-auto-${System.currentTimeMillis()}-${UUID.randomUUID()}.zip")
+            val file = File(directory, "notels-auto-${System.currentTimeMillis()}-${UUID.randomUUID()}.nlsbackup")
             val pending = File(directory, file.name + ".pending")
             try {
-                pending.outputStream().use { createUnlocked(context, it) }
+                pending.outputStream().use { output ->
+                    BackupEncryptedIO.write(output, identity, checkCancelled = { job.ensureActive() }) { createUnlocked(context, it) }
+                    output.fd.sync()
+                }
                 check(pending.renameTo(file)) { uiText("Не удалось сохранить копию") }
                 settings.setLastAutoBackupAt(System.currentTimeMillis())
                 backedUpRevision = current
                 autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }
-                    .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension == "zip" }
+                    .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension in setOf("zip", "nlsbackup") }
                     .sortedByDescending { it.lastModified() }.drop(5).forEach { it.delete() }
             } finally { pending.delete() }
         } catch (cancel: CancellationException) { throw cancel }
         catch (_: Exception) { /* A failed copy must not interrupt saving a note. */ }
         finally { operation.unlock() }
+    }
+
+    suspend fun unlock(context: Context, uri: Uri, password: CharArray): BackupAccess = withContext(Dispatchers.IO) {
+        val identity = identity(context, uri) ?: error(uiText("Это не зашифрованная копия NoteLS"))
+        identity.unlock(password)
+    }
+    internal suspend fun identity(context: Context, uri: Uri? = null): BackupIdentity? = withContext(Dispatchers.IO) {
+        if (uri == null) BackupProtection(context).current()
+        else context.contentResolver.openInputStream(uri)?.use { source ->
+            val input = source.buffered()
+            if (BackupEncryptedIO.encrypted(input)) BackupEnvelopeCodec.read(input).header.identity else null
+        }
+    }
+    suspend fun configureProtection(context: Context, oldPassword: CharArray?, password: CharArray): Unit = operation.withLock {
+        BackupProtection(context).configure(oldPassword, password)
+        Unit
+    }
+    suspend fun exportCopy(context: Context, file: File, output: OutputStream) = withContext(Dispatchers.IO) {
+        operation.withLock {
+            val identity = BackupProtection(context).current() ?: error(uiText("Сначала задайте пароль резервных копий"))
+            val job = currentCoroutineContext()
+            file.inputStream().buffered().use { input ->
+                if (BackupEncryptedIO.encrypted(input)) BackupEncryptedIO.copy(input, output) { job.ensureActive() }
+                else BackupEncryptedIO.write(output, identity, createdAt = file.lastModified().coerceAtLeast(1),
+                    checkCancelled = { job.ensureActive() }) { BackupEncryptedIO.copy(input, it) { job.ensureActive() } }
+            }
+        }
+    }
+    suspend fun protectLocalCopies(context: Context): Int = withContext(Dispatchers.IO) {
+        operation.withLock {
+            val identity = BackupProtection(context).current() ?: error(uiText("Сначала задайте пароль резервных копий"))
+            val job = currentCoroutineContext(); var count = 0
+            for (file in autoDirectories(context).flatMap { it.listFiles().orEmpty().toList() }
+                .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension in setOf("zip", "nlsbackup") }) {
+                job.ensureActive()
+                file.inputStream().buffered().use { input ->
+                    if (BackupEncryptedIO.encrypted(input)) return@use
+                    val modified = file.lastModified(); val pending = File(file.parentFile, file.name + ".protecting")
+                    try {
+                        pending.outputStream().use { output ->
+                            BackupEncryptedIO.write(output, identity, modified.coerceAtLeast(1), { job.ensureActive() }) {
+                                BackupEncryptedIO.copy(input, it) { job.ensureActive() }
+                            }
+                            output.fd.sync()
+                        }
+                        check(pending.renameTo(file)); file.setLastModified(modified); count++
+                    } finally { pending.delete() }
+                }
+            }
+            count
+        }
     }
 
     // Preserve access to v1.10.0 copies previously stored in external app storage.
@@ -266,7 +341,7 @@ object BackupManager {
     }
     private fun temporaryDirectory(context: Context, prefix: String): File =
         File(context.cacheDir, prefix + UUID.randomUUID()).apply { check(mkdirs()) }
-    fun suggestedFileName(): String = "NoteLS-backup-${SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())}.zip"
+    fun suggestedFileName(): String = "NoteLS-backup-${SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())}.nlsbackup"
     private fun BackupInfo.archiveInfo() = BackupArchive.Info(createdAt, noteCount, dbVersion)
     private fun BackupArchive.Info.publicInfo() = BackupInfo(createdAt, noteCount, dbVersion)
     private fun ZipOutputStream.addFile(name: String, file: File) {

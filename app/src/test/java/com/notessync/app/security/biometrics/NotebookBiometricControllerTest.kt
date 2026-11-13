@@ -143,11 +143,11 @@ class NotebookBiometricControllerTest {
         val app = RuntimeEnvironment.getApplication()
         val noteId = db.noteDao().upsert(com.notessync.app.data.local.entity.NoteEntity(title = "Private body", notebookId = book.id))
         val archive = java.io.ByteArrayOutputStream()
-        com.notessync.app.data.backup.BackupManager.createBackup(app, archive)
+        com.notessync.app.data.backup.EncryptedBackupFixture.createBackup(app, archive)
         val file = java.io.File(app.cacheDir, "biometric-binding-backup.zip").apply { writeBytes(archive.toByteArray()) }
         db.notebookDao().update(book.copy(syncId = "different-notebook"))
         ProtectionSession.unlockNotebook(book.id); ProtectionSession.unlockTask("old-task")
-        assertTrue(com.notessync.app.data.backup.BackupManager.restore(app, android.net.Uri.fromFile(file)).isSuccess)
+        assertTrue(com.notessync.app.data.backup.EncryptedBackupFixture.restore(app, android.net.Uri.fromFile(file)).isSuccess)
         assertTrue(ProtectionSession.state.value.notebookIds.isEmpty()); assertTrue(ProtectionSession.state.value.taskSyncIds.isEmpty())
         assertTrue(visibleNotes(listOf(db.noteDao().getById(noteId)!!), listOf(db.notebookDao().getById(book.id)!!), ProtectionSession.state.value).isEmpty())
     }

@@ -1,5 +1,6 @@
 package com.notessync.app.notes.actions
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
@@ -118,10 +119,10 @@ class NoteActionsTest {
         assertEquals(1, actions.apply(setOf(first), NoteActions.Action.PIN)); source.markSynced(sent)
         assertTrue(db.noteDao().getById(first)!!.dirty)
         for (sort in NoteSort.entries) assertEquals(first, db.noteDao().rawQuery(NotesViewModel.buildQuery("", NoteFilter.All, sort)).first().first().id)
-        val bytes = ByteArrayOutputStream(); BackupManager.createBackup(app, bytes)
+        val bytes = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(app, bytes)
         val archive = File(app.cacheDir, "pinned.zip").apply { writeBytes(bytes.toByteArray()) }
         actions.apply(setOf(first), NoteActions.Action.UNPIN)
-        assertTrue(BackupManager.restore(app, Uri.fromFile(archive)).isSuccess)
+        assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(archive)).isSuccess)
         assertTrue(db.noteDao().getById(first)!!.isPinned); assertEquals("orange", db.noteDao().getById(first)!!.noteColor)
         val dto = source.getChangesSince(0).notes.first { it.title == "Z" }
         val decoded = SyncMessage.decode(SyncMessage.encode(SyncMessage.Changes(ChangeSet(notes = listOf(dto.copy(syncId = "copy")))))) as SyncMessage.Changes

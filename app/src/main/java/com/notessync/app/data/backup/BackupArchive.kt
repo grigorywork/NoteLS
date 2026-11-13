@@ -19,8 +19,8 @@ internal object BackupArchive {
     const val MANIFEST = "backup.json"
     const val ATTACHMENTS = "attachments/"
     private const val MAX_MANIFEST_BYTES = 64 * 1024
-    private const val MAX_ENTRIES = 100_000
-    private const val MAX_BYTES = 2L * 1024 * 1024 * 1024
+    const val MAX_ENTRIES = 100_000
+    const val MAX_BYTES = 2L * 1024 * 1024 * 1024
     private val sqliteHeader = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
 
     data class Info(val createdAt: Long, val noteCount: Long, val dbVersion: Int)

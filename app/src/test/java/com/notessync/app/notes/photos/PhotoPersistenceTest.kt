@@ -1,5 +1,6 @@
 package com.notessync.app.notes.photos
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContextWrapper
 import androidx.room.Room
@@ -76,10 +77,10 @@ class PhotoPersistenceTest {
         val noteId = db.noteDao().upsert(NoteEntity(title = "Photo"))
         db.attachmentDao().upsert(AttachmentEntity(syncId = photoId, noteId = noteId, filePath = file.path,
             mimeType = "image/jpeg", sizeBytes = bytes.size.toLong(), displayWidthDp = 432, displayHeightDp = 288))
-        val archive = ByteArrayOutputStream(); BackupManager.createBackup(app, archive)
+        val archive = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(app, archive)
         val packed = File(app.cacheDir, "photo-size.zip").apply { writeBytes(archive.toByteArray()) }
         db.attachmentDao().updateDisplaySize(db.attachmentDao().getBySyncId(photoId)!!.id, noteId, 144, 144)
-        assertTrue(BackupManager.restore(app, Uri.fromFile(packed)).isSuccess)
+        assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(packed)).isSuccess)
         val restored = db.attachmentDao().getBySyncId(photoId)!!
         assertEquals(432, restored.displayWidthDp); assertEquals(288, restored.displayHeightDp)
         assertArrayEquals(bytes, File(restored.filePath).readBytes())

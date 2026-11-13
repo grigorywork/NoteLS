@@ -28,7 +28,7 @@ import com.notessync.app.settings.SettingsState
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun BackupSettings(state: SettingsState, settings: SettingsRepository, busy: Boolean, localCopiesCount: Int, onCreate: (String) -> Unit, onRestore: (Array<String>) -> Unit, onCopies: () -> Unit) {
+internal fun BackupSettings(state: SettingsState, settings: SettingsRepository, busy: Boolean, localCopiesCount: Int, onCreate: (String) -> Unit, onRestore: (Array<String>) -> Unit, onCopies: () -> Unit, configured: Boolean) {
     // Этап 39: резервное копирование — ручной бэкап/восстановление
     // и отдельная настройка частоты автобэкапа.
     if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -36,7 +36,7 @@ internal fun BackupSettings(state: SettingsState, settings: SettingsRepository, 
         SettingsItem(
             headlineContent = { Text(uiText("Сохранить резервную копию")) },
             divider = true,
-            supportingContent = { Text(uiText("ZIP-архив: заметки, задачи, блокноты и фото")) },
+            supportingContent = { Text(uiText("Зашифрованный файл: заметки, задачи, блокноты и фото")) },
             leadingContent = {
                 Icon(
                     Icons.Default.Backup,
@@ -46,7 +46,7 @@ internal fun BackupSettings(state: SettingsState, settings: SettingsRepository, 
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = !busy) { onCreate(BackupManager.suggestedFileName()) }
+                .clickable(enabled = !busy && configured) { onCreate(BackupManager.suggestedFileName()) }
         )
         SettingsItem(
             headlineContent = { Text(uiText("Восстановить из файла")) },

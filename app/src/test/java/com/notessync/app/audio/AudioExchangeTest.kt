@@ -1,5 +1,6 @@
 package com.notessync.app.audio
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContextWrapper
 import android.net.Uri
@@ -39,9 +40,9 @@ class AudioExchangeTest {
         val note = NoteEntity(title = "Аудиозапись", content = "Мой текст").let { it.copy(id = db.noteDao().upsert(it)) }
         db.attachmentDao().upsert(AttachmentEntity(syncId = attachmentId, noteId = note.id, filePath = original.path,
             mimeType = "audio/mp4", sizeBytes = bytes.size.toLong()))
-        val archive = ByteArrayOutputStream(); BackupManager.createBackup(app, archive)
+        val archive = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(app, archive)
         val packed = File(app.cacheDir, "audio.zip").apply { writeBytes(archive.toByteArray()) }
-        original.delete(); assertTrue(BackupManager.restore(app, Uri.fromFile(packed)).isSuccess)
+        original.delete(); assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(packed)).isSuccess)
         val restored = db.attachmentDao().getBySyncId(attachmentId)!!
         assertEquals("audio/mp4", restored.mimeType); assertArrayEquals(bytes, File(restored.filePath).readBytes())
         assertEquals(note, db.noteDao().getById(note.id)); assertTrue(db.attachmentDao().observeFirstPhotos().first().isEmpty())

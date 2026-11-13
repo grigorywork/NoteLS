@@ -1,5 +1,6 @@
 package com.notessync.app.tasks
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
@@ -65,10 +66,10 @@ class TaskDeadlinePersistenceTest {
         val db = AppDatabase.get(app)
         val original = NoteEntity(title = "Deadline", isTask = true, taskDueAt = 1_234_567L, reminderAt = 2_345_678L, updatedAt = 1_000L)
             .let { it.copy(id = db.noteDao().upsert(it)) }
-        val output = ByteArrayOutputStream(); BackupManager.createBackup(app, output)
+        val output = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(app, output)
         val zip = File(app.cacheDir, "deadline.zip").apply { writeBytes(output.toByteArray()) }
         db.noteDao().update(original.copy(taskDueAt = null, reminderAt = null))
-        assertTrue(BackupManager.restore(app, Uri.fromFile(zip)).isSuccess); assertEquals(original, db.noteDao().getById(original.id))
+        assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(zip)).isSuccess); assertEquals(original, db.noteDao().getById(original.id))
         val source = RoomSyncDataSource(app, db)
         val message = SyncMessage.decode(SyncMessage.encode(SyncMessage.Changes(source.getChangesSince(0)))) as SyncMessage.Changes
         val dto = message.set.notes.single(); assertEquals(original.taskDueAt, dto.taskDeadline!!.at)

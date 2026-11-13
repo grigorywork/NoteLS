@@ -1,5 +1,6 @@
 package com.notessync.app.notes.tables
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
@@ -71,10 +72,10 @@ class TablesPersistenceTest {
         db.noteDao().markContentChanged(id, edited.updatedAt + 1)
         val marked = db.noteDao().getById(id)!!
         assertEquals(edited.content, marked.content); assertEquals(raw, marked.tablesData); assertTrue(marked.dirty)
-        val bytes = ByteArrayOutputStream(); BackupManager.createBackup(app, bytes)
+        val bytes = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(app, bytes)
         val packed = File(app.cacheDir, "tables-backup.zip").apply { writeBytes(bytes.toByteArray()) }
         db.noteDao().update(db.noteDao().getById(id)!!.copy(tablesData = ""))
-        assertTrue(BackupManager.restore(app, Uri.fromFile(packed)).isSuccess)
+        assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(packed)).isSuccess)
         assertEquals(raw, db.noteDao().getById(id)!!.tablesData)
         val peer = RoomSyncDataSource(app, db); val dto = peer.getChangesSince(0).notes.single()
         assertEquals(raw, dto.tablesData)

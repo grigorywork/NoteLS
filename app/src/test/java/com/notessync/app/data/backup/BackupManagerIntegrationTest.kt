@@ -38,7 +38,7 @@ class BackupManagerIntegrationTest {
 
     private suspend fun archive(): File {
         val output = ByteArrayOutputStream()
-        BackupManager.createBackup(context, output)
+        EncryptedBackupFixture.createBackup(context, output)
         return File(context.cacheDir, "sample.zip").apply { writeBytes(output.toByteArray()) }
     }
 
@@ -53,7 +53,7 @@ class BackupManagerIntegrationTest {
         database.noteDao().update(database.noteDao().getById(id)!!.copy(title = "После копии"))
         photo.delete()
 
-        val result = BackupManager.restore(context, Uri.fromFile(file))
+        val result = EncryptedBackupFixture.restore(context, Uri.fromFile(file))
         assertTrue(result.exceptionOrNull()?.stackTraceToString(), result.isSuccess)
         assertEquals("До копии", database.noteDao().getById(id)!!.title)
         database.openHelper.readableDatabase.query("SELECT filePath FROM attachments").use {
@@ -64,7 +64,7 @@ class BackupManagerIntegrationTest {
         }
         // A second cycle must also work with rewritten attachment paths.
         val second = archive()
-        assertTrue(BackupManager.restore(context, Uri.fromFile(second)).isSuccess)
+        assertTrue(EncryptedBackupFixture.restore(context, Uri.fromFile(second)).isSuccess)
     }
 
     @Test fun `failed insertion rolls back old notes and keeps original photograph`() = runBlocking {
@@ -80,7 +80,7 @@ class BackupManagerIntegrationTest {
             "CREATE TRIGGER simulate_restore_failure BEFORE INSERT ON notes BEGIN SELECT RAISE(ABORT, 'simulated write failure'); END"
         )
 
-        assertTrue(BackupManager.restore(context, Uri.fromFile(file)).isFailure)
+        assertTrue(EncryptedBackupFixture.restore(context, Uri.fromFile(file)).isFailure)
         assertEquals("Текущая заметка", database.noteDao().getById(id)!!.title)
         assertArrayEquals(byteArrayOf(1, 2, 3), photo.readBytes())
         database.openHelper.readableDatabase.query("SELECT COUNT(*) FROM attachments").use {
@@ -91,7 +91,7 @@ class BackupManagerIntegrationTest {
     @Test fun `a corrupt archive leaves all current data untouched`() = runBlocking {
         val id = database.noteDao().upsert(NoteEntity(title = "Не удалять"))
         val bad = File(context.cacheDir, "bad.zip").apply { writeText("not a zip") }
-        assertTrue(BackupManager.restore(context, Uri.fromFile(bad)).isFailure)
+        assertTrue(EncryptedBackupFixture.restore(context, Uri.fromFile(bad)).isFailure)
         assertEquals("Не удалять", database.noteDao().getById(id)!!.title)
     }
 }

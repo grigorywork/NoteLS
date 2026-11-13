@@ -1,5 +1,6 @@
 package com.notessync.app.notes
 
+import com.notessync.app.data.backup.EncryptedBackupFixture
 import android.app.Application
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
@@ -66,10 +67,10 @@ class FormattingPersistenceTest {
         val fmt = TextFormatting().apply(0, 6, FormatKind.SIZE, "24").apply(0, 6, FormatKind.FONT, "MONO")
             .apply(0, 6, FormatKind.ALIGN, "CENTER").apply(0, 6, FormatKind.INDENT, "1").apply(2, 6, FormatKind.HIGHLIGHT, "FFFFD54F").encode()
         val id = db.noteDao().upsert(NoteEntity(title = "Style", content = "Привет", isTask = true, taskPriority = 3, textFormat = fmt))
-        val packed = ByteArrayOutputStream(); BackupManager.createBackup(context, packed)
+        val packed = ByteArrayOutputStream(); EncryptedBackupFixture.createBackup(context, packed)
         val file = File(context.cacheDir, "format-test.zip").apply { writeBytes(packed.toByteArray()) }
         db.noteDao().update(db.noteDao().getById(id)!!.copy(content = "Changed", taskPriority = 0, textFormat = ""))
-        assertTrue(BackupManager.restore(context, Uri.fromFile(file)).isSuccess)
+        assertTrue(EncryptedBackupFixture.restore(context, Uri.fromFile(file)).isSuccess)
         val restored = db.noteDao().getById(id)!!
         assertEquals("Привет", restored.content); assertEquals(3, restored.taskPriority); assertEquals(fmt, restored.textFormat)
         val sync = RoomSyncDataSource(context, db); val dto = sync.getChangesSince(0).notes.single()

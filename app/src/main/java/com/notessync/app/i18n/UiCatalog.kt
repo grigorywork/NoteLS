@@ -3,12 +3,13 @@ package com.notessync.app.i18n
 /** Fixed UI messages only. English data is allocated on first use; Russian is the original key. */
 object UiCatalog {
     internal val english: Map<String, String> by lazy {
-        buildMap(690) {
+        buildMap(730) {
             addInfrastructureEnglish()
             addEditorEnglish()
             addNavigationEnglish()
             addSettingsEnglish()
             addFeaturesEnglish()
+            addBackupSecurityEnglish()
         }
     }
 
