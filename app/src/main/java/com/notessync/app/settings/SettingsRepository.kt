@@ -114,6 +114,9 @@ data class SettingsState(
     val photoResize: Boolean = true,
     val cameraCapture: Boolean = true,
     val audioRecording: Boolean = true,
+    val aiEnabled: Boolean = false,
+    val aiProvider: com.notessync.app.ai.AiProvider = com.notessync.app.ai.AiProvider.LOCAL_RULES,
+    val aiModel: String = "",
     val quickTaskTime: Boolean = true,
     val advancedFormatting: Boolean = true,
     val showTaskPriorities: Boolean = true,
@@ -176,6 +179,9 @@ class SettingsRepository private constructor(context: Context) {
         photoResize = prefs.getBoolean("photo_resize", true),
         cameraCapture = prefs.getBoolean("camera_capture", true),
         audioRecording = prefs.getBoolean("audio_recording", true),
+        aiEnabled = runCatching { prefs.getBoolean("ai_enabled", false) }.getOrDefault(false),
+        aiProvider = enumPref("ai_provider", com.notessync.app.ai.AiProvider.LOCAL_RULES),
+        aiModel = runCatching { prefs.getString("ai_model", "").orEmpty().take(160) }.getOrDefault(""),
         quickTaskTime = prefs.getBoolean("quick_task_time", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
@@ -249,6 +255,9 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setQuickTaskTime(value: Boolean) { prefs.edit().putBoolean("quick_task_time", value).apply(); _state.value = read() }
 
+    fun setAiEnabled(value: Boolean) { prefs.edit().putBoolean("ai_enabled", value).apply(); _state.value = read() }
+    fun setAiProvider(value: com.notessync.app.ai.AiProvider) { prefs.edit().putString("ai_provider", value.name).apply(); _state.value = read() }
+    fun setAiModel(value: String) { prefs.edit().putString("ai_model", value.trim().take(160)).apply(); _state.value = read() }
     fun setAudioRecording(value: Boolean) { prefs.edit().putBoolean("audio_recording", value).apply(); _state.value = read() }
 
     fun setCameraCapture(value: Boolean) { prefs.edit().putBoolean("camera_capture", value).apply(); _state.value = read() }

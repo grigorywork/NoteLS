@@ -494,6 +494,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
             }
 
             SectionTitle(uiText("Синхронизация"))
+            SettingsCard(Modifier.fillMaxWidth()) {
+                com.notessync.app.ai.TransformSettingsSection(state, settings)
+            }
             SettingsCard(modifier = Modifier.fillMaxWidth()) {
                 SettingsItem(
                     headlineContent = { Text(uiText("Синхронизация по Wi-Fi")) },

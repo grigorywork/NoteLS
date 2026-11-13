@@ -209,6 +209,7 @@ fun NoteEditorScreen(
     var taskProtectionError by remember { mutableStateOf(false) }
     var showReminderMenu by remember { mutableStateOf(false) }
     var showFormattingPanel by remember { mutableStateOf(false) }
+    var showTransform by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePickerFor by remember { mutableStateOf<Long?>(null) }
     // Этап 32: голосовой ввод.
@@ -390,6 +391,9 @@ fun NoteEditorScreen(
     }
 
 
+    if (showTransform && settingsState.aiEnabled && !viewModel.accessDenied) {
+        com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context)) { showTransform = false }
+    }
     EditorScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -834,6 +838,11 @@ fun NoteEditorScreen(
                 )
             } else {
                 if (showFormattingPanel) {
+                    if (settingsState.aiEnabled) OutlinedButton(onClick = { showTransform = true },
+                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !viewModel.isPhotoBusy && !captureState.busy &&
+                            voiceState == com.notessync.app.voice.VoiceState.IDLE && !voiceClosing && viewModel.contentField.text.isNotBlank(),
+                        modifier = Modifier.padding(horizontal = 8.dp)) { Text(uiText("Преобразовать текст")) }
+
                     com.notessync.app.ui.notes.text.FormattingToolbar(
                         active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
                         onToggle = viewModel::toggleTextStyle, onFormat = viewModel::formatSelection,

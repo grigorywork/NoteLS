@@ -530,6 +530,57 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val level = activeFormatting[FormatKind.INDENT]?.toIntOrNull() ?: 0
         formatParagraph(FormatKind.INDENT, (level + delta).coerceIn(0, 4).toString())
     }
+    suspend fun captureTransformSource(): com.notessync.app.ai.EditorTransformSource {
+        if (!loaded || isClosing || accessDenied || deleted) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+        val preview = contentField.text
+        val selection = contentField.selection
+        val length = if (selection.collapsed) preview.length else selection.max - selection.min
+        if (length > com.notessync.app.ai.TransformLimits.INPUT) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.TOO_LARGE)
+        com.notessync.app.ai.TransformLimits.input(if (selection.collapsed) preview else preview.substring(selection.min, selection.max))
+        val settings = SettingsRepository.get(app).state.value
+        if (!settings.aiEnabled) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.DISABLED)
+        if (exists) {
+            val access = noteDao.getTransformAccess(currentNoteId)
+            if (access == null || access.syncId != syncId || !access.allowed(ProtectionSession.state.value)) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+            if (lastSavedNote?.updatedAt != access.updatedAt) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.STALE)
+        }
+        saveNow(force = true)
+        return saveMutex.withLock {
+            val access = noteDao.getTransformAccess(currentNoteId)
+                ?: throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+            if (!access.allowed(ProtectionSession.state.value) || access.syncId != syncId) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+            if (lastSavedNote?.updatedAt != access.updatedAt || lastSavedNote?.content != contentField.text) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.STALE)
+            val body = contentField.text
+            var start = if (contentField.selection.collapsed) 0 else contentField.selection.min.coerceIn(0, body.length)
+            var end = if (contentField.selection.collapsed) body.length else contentField.selection.max.coerceIn(start, body.length)
+            if (start > 0 && start < body.length && body[start].isLowSurrogate() && body[start - 1].isHighSurrogate()) start--
+            if (end > 0 && end < body.length && body[end - 1].isHighSurrogate() && body[end].isLowSurrogate()) end++
+            com.notessync.app.ai.TransformLimits.input(body.substring(start, end))
+            com.notessync.app.ai.EditorTransformSource(access, body, formatting, start, end)
+        }
+    }
+    suspend fun transformSourceCurrent(source: com.notessync.app.ai.EditorTransformSource): Boolean {
+        if (!loaded || isClosing || accessDenied || deleted || !SettingsRepository.get(app).state.value.aiEnabled ||
+            currentNoteId != source.access.id || syncId != source.access.syncId || contentField.text !== source.body || formatting != source.formatting) return false
+        val current = noteDao.getTransformAccess(currentNoteId) ?: return false
+        return current == source.access && current.allowed(ProtectionSession.state.value)
+    }
+    fun observeTransformAccess(id: Long) = noteDao.observeTransformAccess(id)
+    suspend fun applyTransform(source: com.notessync.app.ai.EditorTransformSource, result: String): Boolean {
+        com.notessync.app.ai.TransformLimits.output(result)
+        if (!transformSourceCurrent(source)) return false
+        // One atomic text/formatting history entry. Metadata and attachments stay outside this edit.
+        onEditorFocus(EditorField.CONTENT)
+        edit {
+            val next = source.body.replaceRange(source.start, source.end, result)
+            contentField = contentField.copy(selection = TextRange(source.start, source.end), composition = null)
+            updateContent(TextFieldValue(next, TextRange(source.start + result.length)))
+        }
+        try { saveNow(force = true) }
+        catch (error: Exception) { if (error is CancellationException) throw error; message = EditorMessage.SAVE_FAILED }
+        return !accessDenied && !deleted
+    }
+
     fun chooseTaskDeadline(at: Long?) {
         if (!isReady || isClosing || accessDenied || !isTask || !com.notessync.app.ui.tasks.TaskDeadlines.valid(at) || taskDueAt == at) return
         taskDueAt = at

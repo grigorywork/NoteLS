@@ -103,6 +103,12 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND reminderAt IS NOT NULL AND reminderAt > :now")
     suspend fun getWithFutureReminders(now: Long): List<NoteEntity>
 
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    suspend fun getTransformAccess(id: Long): com.notessync.app.data.local.model.TransformAccess?
+
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    fun observeTransformAccess(id: Long): Flow<com.notessync.app.data.local.model.TransformAccess?>
+
     @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     suspend fun getAccess(id: Long): com.notessync.app.data.local.model.NoteAccess?
 
