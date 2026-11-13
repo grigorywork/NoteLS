@@ -14,6 +14,10 @@ interface TagDao {
     @Query("SELECT * FROM tags WHERE isDeleted = 0 ORDER BY name ASC")
     fun observeAll(): Flow<List<TagEntity>>
 
+    @Query("SELECT note_tag_cross_ref.noteId, tags.name FROM tags INNER JOIN note_tag_cross_ref " +
+        "ON tags.id = note_tag_cross_ref.tagId WHERE note_tag_cross_ref.noteId IN (:noteIds)")
+    suspend fun getForSyncNotes(noteIds: List<Long>): List<SyncTagRow>
+
     // Теги сопоставляются между устройствами по имени — человеку важно имя, а не id.
     @Query("SELECT * FROM tags WHERE name = :name COLLATE NOCASE LIMIT 1")
     suspend fun getByName(name: String): TagEntity?

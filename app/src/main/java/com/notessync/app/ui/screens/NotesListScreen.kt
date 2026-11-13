@@ -38,7 +38,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -808,7 +808,7 @@ private fun SortMenu(current: NoteSort, onSelect: (NoteSort) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) {
-            Icon(Icons.Default.Sort, contentDescription = uiText("Сортировка"))
+            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = uiText("Сортировка"))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(

@@ -7,12 +7,11 @@ import com.notessync.app.sync.protocol.FrameTransport
 import com.notessync.app.sync.protocol.FrameTransport.Companion.CHUNK_BYTES
 import com.notessync.app.sync.protocol.FrameTransport.Frame
 import com.notessync.app.sync.protocol.SyncMessage
-import java.io.ByteArrayOutputStream
+import java.io.EOFException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 class SyncException(message: String) : Exception(message)
-
-/** Потолок стартового буфера вложения: реальный размер проверяется по SHA-256. */
-private const val MAX_INITIAL_BUFFER_BYTES = 64L * 1024
 
 enum class SyncPhase {
     HANDSHAKE,            // рукопожатие
@@ -132,7 +131,7 @@ class SyncSession(
         onProgress(SyncProgress(SyncPhase.EXCHANGING_CHANGES))
         val changes = dataSource.getChangesSince(lastSyncAt())
         SyncLimits.changes(changes)
-        offeredAttachments.addAll(changes.notes.flatMap { it.attachments }.map { it.syncId })
+        for (note in changes.notes) for (attachment in note.attachments) offeredAttachments.add(attachment.syncId)
         transport.sendMessage(SyncMessage.Changes(changes))
         transport.sendMessage(SyncMessage.ChangesDone)
         pendingAcknowledgements = SyncAcknowledgements(changes.notes.map { SyncVersion(it.syncId, it.updatedAt) },
@@ -173,35 +172,27 @@ class SyncSession(
                 )
             )
             transport.sendMessage(SyncMessage.AttachmentRequest(meta.syncId))
-            // Аудит 2026-11-11: sizeBytes заявлен пиром — доверять ему при выделении
-            // буфера нельзя (заявленные гигабайты давали бы OOM). Буфер растёт сам.
-            val buffer = ByteArrayOutputStream(
-                meta.sizeBytes.coerceIn(0L, MAX_INITIAL_BUFFER_BYTES).toInt()
-            )
-            while (true) {
-                when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто при приёме вложения"))) {
-                    is Frame.Chunk -> {
-                        if (frame.attachmentSyncId != meta.syncId) {
-                            throw SyncException(uiText("Пришёл кусок чужого вложения"))
+            var fileBytes = 0L
+            dataSource.receiveTransferAttachment(meta).use { sink ->
+                while (true) {
+                    currentCoroutineContext().ensureActive()
+                    when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто при приёме вложения"))) {
+                        is Frame.Chunk -> {
+                            if (frame.attachmentSyncId != meta.syncId) throw SyncException(uiText("Пришёл кусок чужого вложения"))
+                            require(frame.data.size.toLong() <= meta.sizeBytes - fileBytes) { "Attachment exceeds declared size" }
+                            sink.output.write(frame.data)
+                            fileBytes += frame.data.size; receivedBytes += frame.data.size
+                            if (frame.last) break
                         }
-                        require(frame.data.size.toLong() <= meta.sizeBytes - buffer.size()) { "Attachment exceeds declared size" }
-                        buffer.write(frame.data)
-                        receivedBytes += frame.data.size
-                        if (frame.last) break
-                    }
-                    is Frame.Message -> {
-                        if (frame.message is SyncMessage.Error) {
-                            throw SyncException(uiText("Другая сторона: %1\$s", (frame.message.message)))
+                        is Frame.Message -> {
+                            if (frame.message is SyncMessage.Error) throw SyncException(uiText("Другая сторона: %1\$s", frame.message.message))
+                            throw SyncException(uiText("Неожиданное сообщение при приёме вложения"))
                         }
-                        throw SyncException(uiText("Неожиданное сообщение при приёме вложения"))
                     }
                 }
+                currentCoroutineContext().ensureActive()
+                sink.commit() // The sink checks exact size/SHA before its atomic publication.
             }
-            val data = buffer.toByteArray()
-            if (data.size.toLong() != meta.sizeBytes || Hashing.sha256Hex(data) != meta.sha256) {
-                throw SyncException(uiText("Вложение %1\$s пришло с ошибкой (контрольная сумма)", (meta.syncId)))
-            }
-            dataSource.writeAttachmentBytes(meta, data)
             done++
         }
         onProgress(
@@ -225,11 +216,11 @@ class SyncSession(
                     is SyncMessage.AttachmentRequest -> {
                         require(offeredAttachments.remove(msg.syncId)) { "Attachment was not offered or was already requested" }
                         onProgress(SyncProgress(SyncPhase.SENDING_FILES, attachmentsDone = sent))
-                        val bytes = dataSource.readAttachmentBytes(msg.syncId)
-                        if (bytes == null) {
+                        val source = dataSource.openTransferAttachment(msg.syncId)
+                        if (source == null) {
                             transport.sendMessage(SyncMessage.Error(uiText("Нет файла вложения %1\$s", (msg.syncId))))
                         } else {
-                            streamAttachment(msg.syncId, bytes)
+                            source.use { streamAttachment(msg.syncId, it) }
                             sent++
                         }
                     }
@@ -243,15 +234,33 @@ class SyncSession(
         }
     }
 
-    private fun streamAttachment(syncId: String, bytes: ByteArray) {
-        require(bytes.size.toLong() <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
-        var offset = 0
-        while (offset < bytes.size) {
-            val end = (offset + CHUNK_BYTES).coerceAtMost(bytes.size)
-            transport.sendChunk(syncId, bytes.copyOfRange(offset, end), last = end == bytes.size)
-            offset = end
+    private suspend fun streamAttachment(syncId: String, source: SyncAttachmentSource) {
+        require(source.sizeBytes in 0..SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
+        if (source.sizeBytes == 0L) {
+            require(source.input.read() == -1) { "Attachment size changed" }
+            transport.sendChunk(syncId, ByteArray(0), last = true)
+            return
         }
-        if (bytes.isEmpty()) transport.sendChunk(syncId, ByteArray(0), last = true)
+        val buffer = ByteArray(minOf(CHUNK_BYTES.toLong(), source.sizeBytes).toInt())
+        var remaining = source.sizeBytes
+        while (remaining > 0) {
+            currentCoroutineContext().ensureActive()
+            val wanted = minOf(buffer.size.toLong(), remaining).toInt()
+            var offset = 0
+            while (offset < wanted) {
+                currentCoroutineContext().ensureActive()
+                val count = source.input.read(buffer, offset, wanted - offset)
+                if (count < 0) throw EOFException("Attachment was truncated")
+                if (count == 0) {
+                    val one = source.input.read()
+                    if (one < 0) throw EOFException("Attachment was truncated")
+                    buffer[offset++] = one.toByte()
+                } else offset += count
+            }
+            remaining -= wanted
+            if (remaining == 0L) require(source.input.read() == -1) { "Attachment size changed" }
+            transport.sendChunk(syncId, if (wanted == buffer.size) buffer else buffer.copyOf(wanted), last = remaining == 0L)
+        }
     }
 
     /** Маркер «мои запросы закончились» — используем ChangesDone как разделитель. */

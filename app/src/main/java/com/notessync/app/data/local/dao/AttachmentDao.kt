@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AttachmentDao {
 
+    @Query("SELECT * FROM attachments WHERE noteId IN (:noteIds)")
+    suspend fun getForSyncNotes(noteIds: List<Long>): List<AttachmentEntity>
+
     @Query("SELECT * FROM attachments WHERE noteId = :noteId")
     suspend fun getByNoteId(noteId: Long): List<AttachmentEntity>
 

@@ -1,4 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content><exclude domain="sharedpref" path="ai_secrets.xml" />
-        <exclude domain="sharedpref" path="sync_trust.xml" />
-        <exclude domain="sharedpref" path="sync_prefs.xml" /></full-backup-content>
+<?xml version='1.0' encoding='utf-8'?>
+<full-backup-content>
+    <exclude domain="sharedpref" path="ai_secrets.xml" />
+    <exclude domain="file" path="attachments/.sync-incoming" />
+    <exclude domain="sharedpref" path="sync_trust.xml" />
+    <exclude domain="sharedpref" path="sync_prefs.xml" />
+</full-backup-content>

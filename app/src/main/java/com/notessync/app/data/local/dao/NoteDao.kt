@@ -85,6 +85,10 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE dirty = 1 OR updatedAt > :since")
     suspend fun getChangedSince(since: Long): List<NoteEntity>
 
+    @Query("SELECT notes.*, notebooks.syncId AS linkedNotebookSyncId FROM notes " +
+        "LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.dirty = 1 OR notes.updatedAt > :since")
+    suspend fun getSyncSnapshotSince(since: Long): List<SyncNoteRow>
+
     @Query("UPDATE notes SET dirty = 0 WHERE syncId IN (:syncIds)")
     suspend fun markSyncedBySyncId(syncIds: List<String>)
 

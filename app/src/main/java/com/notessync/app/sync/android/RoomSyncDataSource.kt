@@ -10,7 +10,6 @@ import com.notessync.app.notes.photos.PhotoDisplaySize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import com.notessync.app.data.attachments.PhotoFileWriter
-import com.notessync.app.sync.protocol.FrameTransport
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -30,16 +29,29 @@ import com.notessync.app.sync.protocol.AttachmentDto
 import com.notessync.app.sync.protocol.ChangeSet
 import com.notessync.app.sync.protocol.NoteDto
 import com.notessync.app.sync.protocol.NotebookDto
+import com.notessync.app.sync.core.StreamingSyncDataSource
+import com.notessync.app.sync.core.SyncAttachmentSource
+import com.notessync.app.sync.core.SyncAttachmentSink
+import com.notessync.app.sync.core.VerifiedAttachmentSink
+import java.io.BufferedOutputStream
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.File
 import java.util.UUID
 
 /** Реализация [SyncDataSource] поверх Room и файлового хранилища вложений. */
 class RoomSyncDataSource(
     private val context: Context,
-    private val db: AppDatabase
-) : SyncDataSource {
+    private val db: AppDatabase,
+    private val attachmentDigest: suspend (File) -> String = { file ->
+        val work = currentCoroutineContext()
+        file.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) { work.ensureActive() } }
+    }
+) : StreamingSyncDataSource {
 
     private val attachmentsDir = File(context.filesDir, "attachments")
+    private val incomingDir = File(attachmentsDir, ".sync-incoming")
+    private val sweptIncoming = java.util.concurrent.atomic.AtomicBoolean(false)
 
     override suspend fun ensureSyncIds() {
         // UPDATE preserves dependent rows; INSERT OR REPLACE would cascade-delete attachments/tags.
@@ -67,15 +79,28 @@ class RoomSyncDataSource(
         }
     }
 
-    override suspend fun getChangesSince(since: Long): ChangeSet = db.withTransaction {
-        val notebooks = db.notebookDao().getChangedSince(since).map { it.toDto() }
-        val notes = db.noteDao().getChangedSince(since).map { note ->
-            // notebookId локальный — в обмен уходит глобальный syncId блокнота.
-            val notebookSyncId = note.notebookId?.let { db.notebookDao().getById(it)?.syncId }
-            val attachments = db.attachmentDao().getByNoteId(note.id).mapNotNull { it.toDto(note.syncId) }
-            note.toDto(notebookSyncId, db.tagDao().getTagNamesForNote(note.id), attachments)
+    override suspend fun getChangesSince(since: Long): ChangeSet = withContext(Dispatchers.IO) {
+        data class Captured(val note: NoteEntity, val notebook: String?, val tags: List<String>, val files: List<AttachmentEntity>)
+        // One consistent SQL snapshot; no file open/hash is performed while holding this transaction.
+        val snapshot = db.withTransaction {
+            val notebooks = db.notebookDao().getChangedSince(since).map { it.toDto() }
+            val rows = db.noteDao().getSyncSnapshotSince(since)
+            val notes = ArrayList<Captured>(rows.size)
+            for (group in rows.chunked(200)) {
+                val ids = group.map { it.note.id }
+                val files = db.attachmentDao().getForSyncNotes(ids).groupBy { it.noteId }
+                val tags = db.tagDao().getForSyncNotes(ids).groupBy { it.noteId }
+                for (row in group) notes.add(Captured(row.note, row.linkedNotebookSyncId,
+                    tags[row.note.id].orEmpty().map { it.name }, files[row.note.id].orEmpty()))
+            }
+            notebooks to notes
         }
-        ChangeSet(notebooks = notebooks, notes = notes)
+        val notes = ArrayList<NoteDto>(snapshot.second.size)
+        for (row in snapshot.second) {
+            currentCoroutineContext().ensureActive()
+            notes.add(row.note.toDto(row.notebook, row.tags, row.files.mapNotNull { it.toDto(row.note.syncId) }))
+        }
+        ChangeSet(notebooks = snapshot.first, notes = notes)
     }
 
     override suspend fun applyChanges(changes: ChangeSet): ApplyStats = withContext(Dispatchers.IO) {
@@ -255,7 +280,7 @@ class RoomSyncDataSource(
         val row = db.attachmentDao().getBySyncId(meta.syncId) ?: return@withContext false
         val file = File(row.filePath)
         file.isFile && file.length() == meta.sizeBytes &&
-            file.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) } == meta.sha256
+            attachmentDigest(file) == meta.sha256
     }
 
     override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? = withContext(Dispatchers.IO) {
@@ -277,32 +302,66 @@ class RoomSyncDataSource(
         }
     }
 
+    override suspend fun openAttachment(attachmentSyncId: String): SyncAttachmentSource? = withContext(Dispatchers.IO) {
+        if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext null
+        val file = db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) } ?: attachmentFile(attachmentSyncId)
+        if (!file.isFile) return@withContext null
+        val input = FileInputStream(file)
+        try {
+            val size = input.channel.size()
+            require(size <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
+            SyncAttachmentSource(size, input)
+        } catch (error: Throwable) { input.close(); throw error }
+    }
+
+    override suspend fun receiveAttachment(meta: AttachmentDto): SyncAttachmentSink = withContext(Dispatchers.IO) {
+        currentCoroutineContext().ensureActive()
+        SyncLimits.attachment(meta)
+        check(incomingDir.isDirectory || incomingDir.mkdirs()) { "Cannot prepare sync file" }
+        if (sweptIncoming.compareAndSet(false, true)) {
+            val cutoff = System.currentTimeMillis() - 30L * 60 * 1000
+            incomingDir.listFiles()?.forEach { if (it.name.startsWith("receive-") && it.name.endsWith(".tmp") && it.lastModified() < cutoff) it.delete() }
+        }
+        val pending = File.createTempFile("receive-", ".tmp", incomingDir)
+        val raw = try { FileOutputStream(pending) } catch (error: Throwable) { pending.delete(); throw error }
+        val output = BufferedOutputStream(raw, 64 * 1024)
+        VerifiedAttachmentSink(meta, output, publish = {
+            currentCoroutineContext().ensureActive()
+            withContext(Dispatchers.IO + NonCancellable) {
+                raw.fd.sync(); output.close()
+                db.withTransaction {
+                    val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withTransaction
+                    if (parent.isPurged) return@withTransaction
+                    val row = db.attachmentDao().getBySyncId(meta.syncId)
+                    if (row != null && row.noteId != parent.id) return@withTransaction
+                    val file = row?.let { File(it.filePath) } ?: attachmentFile(meta.syncId)
+                    check(pending.renameTo(file)) { "Cannot publish sync file" }
+                    db.attachmentDao().updateFile(meta.syncId, file.absolutePath, meta.sizeBytes)
+                }
+            }
+        }, cleanup = { pending.delete() })
+    }
+
     override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {
         SyncLimits.attachment(meta)
-        // Late bytes for a purged/removed parent are an idempotent no-op, even if corrupt.
-        // Recheck in the final transaction too, after hashing outside the write lock.
-        val currentParent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withContext
-        if (currentParent.isPurged) return@withContext
-        require(data.size.toLong() == meta.sizeBytes && Hashing.sha256Hex(data) == meta.sha256) { "Invalid attachment data" }
-        db.withTransaction {
-            val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withTransaction
-            if (parent.isPurged) return@withTransaction
-            val row = db.attachmentDao().getBySyncId(meta.syncId)
-            if (row != null && row.noteId != parent.id) return@withTransaction
-            val file = row?.let { File(it.filePath) } ?: attachmentFile(meta.syncId)
-            PhotoFileWriter(FrameTransport.MAX_FRAME_BYTES.toLong()).write(data.inputStream(), file)
-            db.attachmentDao().updateFile(meta.syncId, file.absolutePath, data.size.toLong())
-        }
+        val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withContext
+        if (parent.isPurged) return@withContext
+        receiveAttachment(meta).use { sink -> sink.output.write(data); sink.commit() }
     }
 
-    override suspend fun markSynced(changeSet: ChangeSet) {
-        changeSet.notes.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) }
-        changeSet.notebooks.forEach { db.notebookDao().markVersionSynced(it.syncId, it.updatedAt) }
-    }
+    override suspend fun markSynced(changeSet: ChangeSet) = markAcknowledged(com.notessync.app.sync.core.SyncAcknowledgements(
+        changeSet.notes.map { com.notessync.app.sync.core.SyncVersion(it.syncId, it.updatedAt) },
+        changeSet.notebooks.map { com.notessync.app.sync.core.SyncVersion(it.syncId, it.updatedAt) }))
 
     override suspend fun markAcknowledged(versions: com.notessync.app.sync.core.SyncAcknowledgements) {
-        versions.notes.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) }
-        versions.notebooks.forEach { db.notebookDao().markVersionSynced(it.syncId, it.updatedAt) }
+        for (group in versions.notes.chunked(128)) {
+            currentCoroutineContext().ensureActive()
+            db.withTransaction { group.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) } }
+        }
+        for (group in versions.notebooks.chunked(128)) {
+            currentCoroutineContext().ensureActive()
+            db.withTransaction { group.forEach { db.notebookDao().markVersionSynced(it.syncId, it.updatedAt) } }
+        }
     }
 
     private fun attachmentFile(syncId: String): File {
@@ -366,7 +425,7 @@ class RoomSyncDataSource(
             noteSyncId = noteSyncId,
             mimeType = mimeType,
             sizeBytes = file.length(),
-            sha256 = file.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) },
+            sha256 = attachmentDigest(file),
             displayWidthDp = displayWidthDp, displayHeightDp = displayHeightDp
         )
     }
