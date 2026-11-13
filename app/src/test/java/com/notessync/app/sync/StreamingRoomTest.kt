@@ -26,8 +26,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
-import org.robolectric.shadows.ShadowSystemClock
-import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class)
@@ -51,7 +49,6 @@ class StreamingRoomTest {
     private fun incoming() = File(files, "attachments/.sync-incoming")
 
     @Test fun `disk receiver stages bytes privately and atomically publishes only verified content`() = runBlocking {
-        ShadowSystemClock.advanceBy(Duration.ofDays(1))
         val note = parent(); val block = ByteArray(64 * 1024) { (it % 251).toByte() }; val blocks = 65
         val digest = MessageDigest.getInstance("SHA-256"); repeat(blocks) { digest.update(block) }
         val sha = digest.digest().joinToString("") { "%02x".format(it) }
@@ -143,4 +140,23 @@ class StreamingRoomTest {
         val selects = queries.filter { it.trimStart().startsWith("SELECT", true) && !it.contains("room_", true) }
         assertTrue("Per-note SQL queries: ${selects.size}", selects.size <= 12)
     }
+    @Test fun `older metadata never requests replacement bytes for a newer local attachment`() = runBlocking {
+        val note = NoteEntity(title = "Newer", updatedAt = 200, dirty = false).let { it.copy(id = db.noteDao().upsert(it)) }
+        val current = byteArrayOf(9, 9, 9); val stale = byteArrayOf(1)
+        val meta = meta(note, current)
+        val target = File(files, "attachments/${meta.syncId}").apply { parentFile!!.mkdirs(); writeBytes(current) }
+        db.attachmentDao().upsert(AttachmentEntity(noteId = note.id, syncId = meta.syncId, filePath = target.path,
+            mimeType = meta.mimeType, sizeBytes = current.size.toLong()))
+        val source = RoomSyncDataSource(context, db)
+        val latest = source.getChangesSince(Long.MIN_VALUE).notes.single()
+        val incoming = latest.copy(title = "Older", updatedAt = 100,
+            attachments = listOf(meta.copy(sizeBytes = stale.size.toLong(), sha256 = Hashing.sha256Hex(stale))))
+        val result = source.applyChanges(com.notessync.app.sync.protocol.ChangeSet(notes = listOf(incoming)))
+        for (missing in result.missingAttachments) source.receiveAttachment(missing).use { sink -> sink.output.write(stale); sink.commit() }
+        assertEquals("Newer", db.noteDao().getById(note.id)!!.title)
+        assertArrayEquals("Transfer must preserve the newer bytes", current, target.readBytes())
+        assertTrue("Ignored older note must not schedule overwriting its newer file", result.missingAttachments.isEmpty())
+        assertArrayEquals(current, target.readBytes())
+    }
+
 }

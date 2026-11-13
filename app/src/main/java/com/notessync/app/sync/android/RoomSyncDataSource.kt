@@ -161,7 +161,9 @@ class RoomSyncDataSource(
             withContext(NonCancellable) { runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } } }
         }
         val missing = changes.notes
-            .filter { db.noteDao().getBySyncId(it.syncId)?.isPurged == false }
+            .filter { dto -> db.noteDao().getBySyncId(dto.syncId)?.let { current ->
+                !current.isPurged && current.updatedAt == dto.updatedAt
+            } == true }
             .flatMap { it.attachments }
             .filter { db.attachmentDao().getBySyncId(it.syncId)?.let { row -> db.noteDao().getById(row.noteId)?.syncId == it.noteSyncId } == true }
             .filter { !hasExpectedAttachment(it) }
