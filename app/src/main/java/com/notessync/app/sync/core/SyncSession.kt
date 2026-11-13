@@ -47,12 +47,20 @@ class SyncSession(
     private val deviceId: String,
     private val deviceName: String,
     private val lastSyncAt: () -> Long,
-    private val onProgress: (SyncProgress) -> Unit = {}
+    private val onProgress: (SyncProgress) -> Unit = {},
+    private val expectedPeerId: String? = null,
+    private val trustedPairing: Boolean = false,
+    private val onPeerValidated: suspend (SyncMessage.Hello) -> Unit = {}
 ) {
     var peerName: String = ""
         private set
+    var peerId: String = ""
+        private set
+    var peerSupportsTrust: Boolean = false
+        private set
 
     private val offeredAttachments = mutableSetOf<String>()
+    private var pendingAcknowledgements = SyncAcknowledgements()
 
     // ---------- Сервер (устройство, которое ждёт подключения) ----------
 
@@ -100,16 +108,20 @@ class SyncSession(
 
     // ---------- Фазы ----------
 
-    private fun handshake() {
+    private suspend fun handshake() {
         onProgress(SyncProgress(SyncPhase.HANDSHAKE))
-        transport.sendMessage(SyncMessage.Hello(deviceId = deviceId, deviceName = deviceName))
+        transport.sendMessage(SyncMessage.Hello(deviceId = deviceId, deviceName = deviceName, trustedPairing = trustedPairing))
         when (val msg = readMessage()) {
             is SyncMessage.Hello -> {
                 if (msg.protocol != SyncMessage.PROTOCOL_VERSION) {
                     throw SyncException(uiText("Обновите NoteLS на обоих устройствах (протокол %1\$s)", (msg.protocol)))
                 }
                 require(msg.deviceId.isNotBlank() && msg.deviceId.length <= 128 && msg.deviceName.length <= 128) { "Invalid peer identity" }
+                require(msg.deviceId != deviceId && (expectedPeerId == null || expectedPeerId == msg.deviceId)) { "Unexpected peer identity" }
+                onPeerValidated(msg)
                 peerName = msg.deviceName
+                peerId = msg.deviceId
+                peerSupportsTrust = msg.trustedPairing
             }
             is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
             else -> throw SyncException(uiText("Ожидалось приветствие"))
@@ -123,7 +135,8 @@ class SyncSession(
         offeredAttachments.addAll(changes.notes.flatMap { it.attachments }.map { it.syncId })
         transport.sendMessage(SyncMessage.Changes(changes))
         transport.sendMessage(SyncMessage.ChangesDone)
-        dataSource.markSynced(changes)
+        pendingAcknowledgements = SyncAcknowledgements(changes.notes.map { SyncVersion(it.syncId, it.updatedAt) },
+            changes.notebooks.map { SyncVersion(it.syncId, it.updatedAt) })
         return changes.notes.size
     }
 
@@ -246,7 +259,7 @@ class SyncSession(
         transport.sendMessage(SyncMessage.ChangesDone)
     }
 
-    private fun finish(sentNotes: Int, applied: ApplyStats, sentFiles: Int, gotFiles: Int): SyncResult {
+    private suspend fun finish(sentNotes: Int, applied: ApplyStats, sentFiles: Int, gotFiles: Int): SyncResult {
         onProgress(SyncProgress(SyncPhase.FINISHING))
         transport.sendMessage(
             SyncMessage.Done(
@@ -261,6 +274,7 @@ class SyncSession(
             is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
             else -> throw SyncException(uiText("Ожидалось финальное подтверждение"))
         }
+        dataSource.markAcknowledged(pendingAcknowledgements)
         onProgress(SyncProgress(SyncPhase.COMPLETED))
         return SyncResult(
             sentNotes = sentNotes,

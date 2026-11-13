@@ -61,7 +61,7 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 1 AND isPurged = 0")
     suspend fun getTrash(): List<NoteEntity>
 
-    @Query("UPDATE notes SET dirty = 0 WHERE syncId = :syncId AND updatedAt = :timestamp")
+    @Query("UPDATE notes SET dirty = 0 WHERE syncId = :syncId AND updatedAt = :timestamp AND dirty = 1")
     suspend fun markVersionSynced(syncId: String, timestamp: Long)
 
     // Отмена удаления (Snackbar «Отменить», Этап 1).

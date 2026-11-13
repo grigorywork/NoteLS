@@ -33,7 +33,16 @@ interface SyncDataSource {
 
     /** Снимает флаг dirty с успешно переданных записей. */
     suspend fun markSynced(changeSet: ChangeSet)
+
+    /** Small acknowledgement snapshot; do not retain all note bodies for the whole connection. */
+    suspend fun markAcknowledged(versions: SyncAcknowledgements) = markSynced(ChangeSet(
+        notebooks = versions.notebooks.map { com.notessync.app.sync.protocol.NotebookDto(it.syncId, "", false, it.updatedAt) },
+        notes = versions.notes.map { com.notessync.app.sync.protocol.NoteDto(it.syncId, "", "", false, false, 0, it.updatedAt) }
+    ))
 }
+
+data class SyncVersion(val syncId: String, val updatedAt: Long)
+data class SyncAcknowledgements(val notes: List<SyncVersion> = emptyList(), val notebooks: List<SyncVersion> = emptyList())
 
 data class ApplyStats(
     val appliedNotes: Int = 0,

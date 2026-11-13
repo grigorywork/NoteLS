@@ -92,7 +92,8 @@ sealed interface SyncMessage {
     data class Hello(
         val deviceId: String,
         val deviceName: String,
-        val protocol: Int = PROTOCOL_VERSION
+        val protocol: Int = PROTOCOL_VERSION,
+        val trustedPairing: Boolean = false
     ) : SyncMessage
 
     @Serializable

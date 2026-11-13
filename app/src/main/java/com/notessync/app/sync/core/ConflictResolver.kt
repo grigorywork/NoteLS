@@ -37,22 +37,24 @@ object ConflictResolver {
     }
 
     private fun contentDiffers(a: NoteDto, b: NoteDto): Boolean =
-        (b.taskDeadline != null && a.taskDeadline?.at != b.taskDeadline.at) || a.title != b.title || a.content != b.content || a.textFormat != b.textFormat || (b.tablesData != null && a.tablesData.orEmpty() != b.tablesData) || a.taskPriority != b.taskPriority || a.favorite != b.favorite ||
+        (b.taskDeadline != null && a.taskDeadline?.at != b.taskDeadline.at) || a.notebookSyncId != b.notebookSyncId || a.attachments.sortedBy { it.syncId } != b.attachments.sortedBy { it.syncId } || a.title != b.title || a.content != b.content || a.textFormat != b.textFormat || (b.tablesData != null && a.tablesData.orEmpty() != b.tablesData) || a.taskPriority != b.taskPriority || a.favorite != b.favorite ||
             a.deleted != b.deleted || (b.pinned != null && a.pinned != b.pinned) ||
             (b.noteColor != null && a.noteColor.orEmpty() != b.noteColor) || a.reminderAt != b.reminderAt ||
             a.dayKey != b.dayKey || a.isTask != b.isTask || a.isCompleted != b.isCompleted ||
             a.taskColor != b.taskColor || a.taskElapsedMillis != b.taskElapsedMillis ||
-            a.taskTimerStartedAt != b.taskTimerStartedAt || a.isProtected != b.isProtected ||
+            a.taskTimerStartedAt != b.taskTimerStartedAt || a.taskCountdownMillis != b.taskCountdownMillis || a.taskCountdownEndAt != b.taskCountdownEndAt || a.taskCompletedAt != b.taskCompletedAt || a.isProtected != b.isProtected ||
             a.passwordHash != b.passwordHash || a.passwordSalt != b.passwordSalt ||
             a.tagNames.sorted() != b.tagNames.sorted()
 
-    private fun conflictCopyOf(local: NoteDto): NoteDto = local.copy(
-        syncId = UUID.randomUUID().toString(),
-        title = local.title.ifBlank { uiText("Без названия") } + uiText(CONFLICT_SUFFIX),
-        // Копия — новая независимая заметка: она сама уедет на другое устройство
-        // при следующей синхронизации.
-        updatedAt = System.currentTimeMillis()
-    )
+    private fun conflictCopyOf(local: NoteDto): NoteDto {
+        val copyId = UUID.randomUUID().toString()
+        return local.copy(
+            syncId = copyId,
+            title = local.title.ifBlank { uiText("Без названия") } + uiText(CONFLICT_SUFFIX),
+            attachments = local.attachments.map { it.copy(syncId = UUID.randomUUID().toString(), noteSyncId = copyId) },
+            updatedAt = System.currentTimeMillis()
+        )
+    }
 
     const val CONFLICT_SUFFIX = " (конфликт)"
 }

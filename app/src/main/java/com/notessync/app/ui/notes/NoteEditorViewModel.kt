@@ -93,6 +93,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
 ) : AndroidViewModel(application) {
 
     private val app = application
+    private val automaticPause = com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(app)?.pauseManual()
     private val db = AppDatabase.get(application)
     private val noteDao = db.noteDao()
     private val tagDao = db.tagDao()
@@ -213,6 +214,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             }
         }
         viewModelScope.launch {
+            com.notessync.app.sync.core.SyncWorkGate.transfer(automatic = false) load@{
             if (currentNoteId != -1L) {
                 noteDao.getById(currentNoteId)?.let { note ->
                     lastSavedNote = note
@@ -223,7 +225,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     val noteLocked = note.isProtected && !ProtectionSession.isUnlocked(note)
                     if (note.isDeleted || notebookLocked || noteLocked) {
                         accessDenied = true
-                        return@launch
+                        return@load
                     }
                     titleField = TextFieldValue(note.title, TextRange(note.title.length))
                     contentField = TextFieldValue(note.content, TextRange(note.content.length))
@@ -256,6 +258,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             }
             isReady = true
             startAutosave()
+            }
         }
     }
 
@@ -1197,6 +1200,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
     }
 
     override fun onCleared() {
+        com.notessync.app.sync.core.SyncWorkGate.releaseAfter(automaticPause) { saveMutex.withLock { } }
         audioPlayback.close()
         audioCapture.close()
         history.clear()

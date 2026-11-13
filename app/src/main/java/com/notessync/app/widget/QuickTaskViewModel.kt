@@ -17,6 +17,7 @@ import java.util.UUID
 
 @OptIn(FlowPreview::class)
 class QuickTaskViewModel(app: Application, private val saved: SavedStateHandle) : AndroidViewModel(app) {
+    private val automaticPause = com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(app)?.pauseManual()
     private val store = QuickTaskStore(app)
     private val gate = Mutex()
     var text by mutableStateOf(saved.get<String>("quickText").orEmpty())
@@ -42,6 +43,11 @@ class QuickTaskViewModel(app: Application, private val saved: SavedStateHandle) 
                 if (it.text.isNotBlank()) persist()
             }
         }
+    }
+
+    override fun onCleared() {
+        com.notessync.app.sync.core.SyncWorkGate.releaseAfter(automaticPause) { gate.withLock { } }
+        super.onCleared()
     }
 
     private fun draft() = QuickTaskDraft(identity, text, dayKey, reminderAt)

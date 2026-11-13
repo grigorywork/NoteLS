@@ -96,6 +96,10 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
                 SyncMode.DONE -> DoneBlock(state, onDone = viewModel::dismissResult)
                 SyncMode.ERROR -> ErrorBlock(state, onRetry = viewModel::dismissResult)
             }
+            if (state.mode in setOf(SyncMode.IDLE, SyncMode.DONE, SyncMode.ERROR)) viewModel.automatic?.let {
+                Spacer(Modifier.height(16.dp))
+                com.notessync.app.sync.auto.AutoSyncControls(it, allowReset = state.mode == SyncMode.ERROR)
+            }
             Spacer(Modifier.height(24.dp))
             storage?.let { StorageCard(it) }
             Spacer(Modifier.height(16.dp))
@@ -177,6 +181,7 @@ private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
     Text(uiText("Код действует 5 минут и даёт доступ к обмену всеми заметками, включая защищённые. Показывайте его только своему устройству."),
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(16.dp))
+    Text(uiText("При поддержке обоими устройствами связь сохранится для последующего автообмена."), style = MaterialTheme.typography.bodySmall)
     CircularProgressIndicator()
     Spacer(Modifier.height(8.dp))
     Text(
@@ -281,6 +286,7 @@ private fun DoneBlock(state: SyncUiState, onDone: () -> Unit) {
             textAlign = TextAlign.Center
         )
     }
+    state.trustNotice?.let { Text(it, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center) }
     if (result != null) {
         Spacer(Modifier.height(8.dp))
         Text(

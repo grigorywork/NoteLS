@@ -111,6 +111,16 @@ object BackupManager {
     }
 
     suspend fun restore(context: Context, uri: Uri): Result<BackupInfo> = withContext(Dispatchers.IO) {
+        val pause = com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(context)?.pauseManual()
+            ?: com.notessync.app.sync.core.SyncWorkGate.pauseAutomatic()
+        try {
+            val result = com.notessync.app.sync.core.SyncWorkGate.transfer(automatic = false) { restoreData(context, uri) }
+            if (result.isSuccess) SettingsRepository.get(context).setAutoSyncEnabled(false)
+            result
+        } finally { pause.close() }
+    }
+
+    private suspend fun restoreData(context: Context, uri: Uri): Result<BackupInfo> = withContext(Dispatchers.IO) {
         operation.withLock {
             val temp = File(context.cacheDir, "restore-${UUID.randomUUID()}")
             val incoming = File(context.filesDir, "attachments/restored-${UUID.randomUUID()}")

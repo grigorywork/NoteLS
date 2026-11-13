@@ -10,10 +10,14 @@ class SessionCrypto private constructor(
     private val sendKey: SecretKeySpec,
     private val receiveKey: SecretKeySpec,
     private val sendPrefix: ByteArray,
-    private val receivePrefix: ByteArray
+    private val receivePrefix: ByteArray,
+    private val resumptionKey: ByteArray
 ) {
     private var sent = 0L
     private var received = 0L
+
+    /** Separate purpose key; never a traffic key or the QR invitation. Same on both sides. */
+    internal fun resumptionSecret(): String = resumptionKey.joinToString("") { "%02x".format(it) }
 
     @Synchronized fun encrypt(plain: ByteArray, header: ByteArray): ByteArray {
         check(sent < Long.MAX_VALUE) { "Session exhausted" }
@@ -49,7 +53,8 @@ class SessionCrypto private constructor(
                     SecretKeySpec(if (client) c2s else s2c, "AES"),
                     SecretKeySpec(if (client) s2c else c2s, "AES"),
                     key(if (client) "client-iv" else "server-iv", 4),
-                    key(if (client) "server-iv" else "client-iv", 4)
+                    key(if (client) "server-iv" else "client-iv", 4),
+                    key("resumption", 32)
                 )
             } finally { c2s.fill(0); s2c.fill(0) }
         }

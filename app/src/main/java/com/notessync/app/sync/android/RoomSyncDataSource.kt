@@ -109,7 +109,13 @@ class RoomSyncDataSource(
 
             for (dto in changes.notes) syncTransaction {
                 val local = db.noteDao().getBySyncId(dto.syncId)
-                val resolution = ConflictResolver.resolve(local?.toDto(null, emptyList(), emptyList()), dto, local?.dirty ?: false)
+                val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
+                val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
+                val localSnapshot = local?.toDto(
+                    if (mayConflict) local.notebookId?.let { db.notebookDao().getById(it)?.syncId } else null,
+                    if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
+                    if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList())
+                val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
                 when (resolution) {
                     is ConflictResolver.Resolution.ApplyRemote -> {
                         applyNote(dto, local, discardedFiles)
@@ -117,7 +123,8 @@ class RoomSyncDataSource(
                     }
                     is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
                         applyNote(dto, local, discardedFiles)
-                        applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles)
+                        applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true)
+                        preserveConflictFiles(localSnapshot!!, resolution.conflictCopy, localFiles, discardedFiles)
                         appliedNotes++
                         conflicts++
                     }
@@ -132,7 +139,7 @@ class RoomSyncDataSource(
             .filter { db.noteDao().getBySyncId(it.syncId)?.isPurged == false }
             .flatMap { it.attachments }
             .filter { db.attachmentDao().getBySyncId(it.syncId)?.let { row -> db.noteDao().getById(row.noteId)?.syncId == it.noteSyncId } == true }
-            .filter { !hasAttachmentBytes(it.syncId) }
+            .filter { !hasExpectedAttachment(it) }
         ApplyStats(appliedNotes, appliedNotebooks, conflicts, missing)
     }
 
@@ -142,7 +149,7 @@ class RoomSyncDataSource(
         withContext(NonCancellable) { db.withTransaction { block() } }
     }
 
-    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>) {
+    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>, localConflict: Boolean = false) {
         val rawEntity = NoteEntity(
             id = existing?.id ?: 0,
             syncId = dto.syncId,
@@ -173,7 +180,7 @@ class RoomSyncDataSource(
             passwordHash = dto.passwordHash,
             passwordSalt = dto.passwordSalt,
             updatedAt = dto.updatedAt,
-            dirty = false
+            dirty = localConflict
         )
         val entity = when {
             dto.purged == true -> NoteActions.tombstone(rawEntity, dto.updatedAt).copy(dirty = false)
@@ -190,7 +197,8 @@ class RoomSyncDataSource(
 
         val previousAttachments = db.attachmentDao().getByNoteId(localId).associateBy { it.syncId }
         db.attachmentDao().deleteByNoteId(localId)
-        if (entity.isPurged) discardedFiles.addAll(previousAttachments.values.map { it.filePath })
+        val retained = if (entity.isPurged) emptySet() else dto.attachments.map { it.syncId }.toSet()
+        discardedFiles.addAll(previousAttachments.filterKeys { it !in retained }.values.map { it.filePath })
         for (meta in if (entity.isPurged) emptyList() else dto.attachments) {
             // Вложения с небезопасным идентификатором пропускаем (см. attachmentFile).
             if (!SAFE_ATTACHMENT_ID.matches(meta.syncId)) continue
@@ -224,10 +232,30 @@ class RoomSyncDataSource(
         }
     }
 
+    private suspend fun preserveConflictFiles(original: NoteDto, copy: NoteDto, files: List<AttachmentEntity>, discarded: MutableList<String>) {
+        val sources = files.associateBy { it.syncId }
+        for ((old, fresh) in original.attachments.zip(copy.attachments)) {
+            val file = File(sources.getValue(old.syncId).filePath)
+            val target = attachmentFile(fresh.syncId)
+            discarded.add(target.absolutePath) // On rollback remove new files; committed references keep them.
+            val size = file.inputStream().use { PhotoFileWriter(SyncLimits.ATTACHMENT_BYTES).write(it, target) }
+            require(size == fresh.sizeBytes && target.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) } == fresh.sha256) { "Conflict attachment changed" }
+            db.attachmentDao().updateFile(fresh.syncId, target.absolutePath, size)
+        }
+    }
+
     override suspend fun hasAttachmentBytes(attachmentSyncId: String): Boolean = withContext(Dispatchers.IO) {
         if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext true
         val file = db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) } ?: attachmentFile(attachmentSyncId)
         file.isFile && file.length() > 0
+    }
+
+    /** Existing bytes with the same ID can be stale; compare the incoming size and digest. */
+    private suspend fun hasExpectedAttachment(meta: AttachmentDto): Boolean = withContext(Dispatchers.IO) {
+        val row = db.attachmentDao().getBySyncId(meta.syncId) ?: return@withContext false
+        val file = File(row.filePath)
+        file.isFile && file.length() == meta.sizeBytes &&
+            file.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) } == meta.sha256
     }
 
     override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? = withContext(Dispatchers.IO) {
@@ -269,7 +297,12 @@ class RoomSyncDataSource(
 
     override suspend fun markSynced(changeSet: ChangeSet) {
         changeSet.notes.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) }
-        db.notebookDao().markSyncedBySyncId(changeSet.notebooks.map { it.syncId })
+        changeSet.notebooks.forEach { db.notebookDao().markVersionSynced(it.syncId, it.updatedAt) }
+    }
+
+    override suspend fun markAcknowledged(versions: com.notessync.app.sync.core.SyncAcknowledgements) {
+        versions.notes.forEach { db.noteDao().markVersionSynced(it.syncId, it.updatedAt) }
+        versions.notebooks.forEach { db.notebookDao().markVersionSynced(it.syncId, it.updatedAt) }
     }
 
     private fun attachmentFile(syncId: String): File {

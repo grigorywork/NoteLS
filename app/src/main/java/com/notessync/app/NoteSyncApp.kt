@@ -10,6 +10,7 @@ class NoteSyncApp : Application() {
     override fun onCreate() {
         super.onCreate()
         com.notessync.app.settings.SettingsRepository.get(this)
+        com.notessync.app.sync.auto.AutomaticSyncRuntime.get(this)
         createReminderChannel()
         com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this)
         com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this)
@@ -19,6 +20,7 @@ class NoteSyncApp : Application() {
             private var started = 0
             override fun onActivityStarted(activity: Activity) {
                 if (started++ == 0) {
+                    com.notessync.app.sync.auto.AutomaticSyncRuntime.get(this@NoteSyncApp).foreground(true)
                     BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = false)
                     com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this@NoteSyncApp)
                     com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this@NoteSyncApp)
@@ -26,6 +28,7 @@ class NoteSyncApp : Application() {
             }
             override fun onActivityStopped(activity: Activity) {
                 started = (started - 1).coerceAtLeast(0)
+                if (started == 0) com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(this@NoteSyncApp)?.foreground(false)
                 if (started == 0 && !activity.isChangingConfigurations) {
                     BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = true)
                 }

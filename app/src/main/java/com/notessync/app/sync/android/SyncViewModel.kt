@@ -24,7 +24,6 @@ import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
@@ -64,16 +63,18 @@ data class SyncUiState(
     val progress: SyncProgress = SyncProgress(SyncPhase.HANDSHAKE),
     val result: SyncResult? = null,
     val error: String? = null,
+    val trustNotice: String? = null,
     internal val generation: Long = 0
 )
 
 class SyncViewModel internal constructor(
     application: Application,
     private val dataSource: SyncDataSource,
-    private val connections: SyncConnections
+    private val connections: SyncConnections,
+    internal val automatic: com.notessync.app.sync.auto.AutomaticSyncRuntime? = null
 ) : AndroidViewModel(application), DefaultLifecycleObserver {
     constructor(application: Application) : this(application,
-        RoomSyncDataSource(application, AppDatabase.get(application)), LanConnections())
+        RoomSyncDataSource(application, AppDatabase.get(application)), LanConnections(), com.notessync.app.sync.auto.AutomaticSyncRuntime.get(application))
 
     private val prefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val _uiState = MutableStateFlow(SyncUiState())
@@ -82,10 +83,9 @@ class SyncViewModel internal constructor(
     private val resources = AtomicReference<SyncResources?>()
     private val sessionMutex = Mutex()
     private var sessionJob: Job? = null
+    private val manualPause = AtomicReference<java.io.Closeable?>()
 
-    val deviceId: String
-        get() = prefs.getString(KEY_DEVICE_ID, null)
-            ?: UUID.randomUUID().toString().also { prefs.edit().putString(KEY_DEVICE_ID, it).apply() }
+    val deviceId: String get() = com.notessync.app.sync.auto.SyncIdentity.id(getApplication<Application>())
     val lastSyncAt: Long get() = prefs.getLong(KEY_LAST_SYNC, 0L)
 
     fun startWaiting() {
@@ -144,6 +144,8 @@ class SyncViewModel internal constructor(
 
     private fun launchSession(token: Long, invitation: Boolean, block: suspend (SyncResources) -> Unit) {
         val owned = SyncResources()
+        val lease = automatic?.pauseManual()
+        manualPause.set(lease)
         resources.set(owned)
         val worker = viewModelScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
             try {
@@ -171,7 +173,7 @@ class SyncViewModel internal constructor(
                 update(token) { it.copy(mode = SyncMode.ERROR, sessionCode = "", qrPayload = "", error = uiText("Код просрочен — сгенерируйте новый")) }
             }
         } else null
-        worker.invokeOnCompletion { deadline.cancel(); expiry?.cancel() }
+        worker.invokeOnCompletion { deadline.cancel(); expiry?.cancel(); lease?.close(); manualPause.compareAndSet(lease, null) }
         worker.start()
     }
 
@@ -179,22 +181,31 @@ class SyncViewModel internal constructor(
         currentCoroutineContext().ensureActive()
         update(token) { it.copy(mode = SyncMode.SYNCING, sessionCode = "", qrPayload = "") }
         socket.soTimeout = IO_TIMEOUT_MS
-        socket.use {
+        socket.use { SyncWorkGate.transfer(automatic = false) {
+            val started = System.currentTimeMillis()
             val transport = FrameTransport(socket.getInputStream(), socket.getOutputStream(), crypto)
             val sessionContext = currentCoroutineContext()
             val sessionRef = AtomicReference<SyncSession>()
-            val session = SyncSession(transport, dataSource, deviceId, android.os.Build.MODEL.take(128), { lastSyncAt },
+            val session = SyncSession(transport, dataSource, deviceId, android.os.Build.MODEL.take(128), { Long.MIN_VALUE },
                 onProgress = { progress ->
                     sessionContext.ensureActive()
                     val peer = sessionRef.get()?.peerName.orEmpty()
                     update(token) { s -> s.copy(progress = progress, peerName = peer.ifBlank { s.peerName }) }
-                })
+                }, trustedPairing = automatic != null)
             sessionRef.set(session)
             val result = if (client) session.runAsClient() else session.runAsServer()
             currentCoroutineContext().ensureActive()
             prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
-            update(token) { it.copy(mode = SyncMode.DONE, result = result, peerName = session.peerName) }
-        }
+            val notice = if (automatic == null) null else if (!session.peerSupportsTrust) {
+                uiText("Для автосинхронизации обновите NoteLS на обоих устройствах")
+            } else try {
+                automatic.remember(session.peerId, session.peerName, crypto.resumptionSecret(), socket.inetAddress.hostAddress.orEmpty(), started)
+                uiText("Связь сохранена. Автообмен работает при включённой настройке и открытом NoteLS на обоих устройствах.")
+            } catch (cancel: CancellationException) { throw cancel }
+            catch (_: Exception) { uiText("Обмен завершён, но сохранить доверие не удалось. Повторите сопряжение.") }
+            currentCoroutineContext().ensureActive()
+            update(token) { it.copy(mode = SyncMode.DONE, result = result, peerName = session.peerName, trustNotice = notice) }
+        } }
     }
 
     private fun update(token: Long, transform: (SyncUiState) -> SyncUiState) {
@@ -215,6 +226,7 @@ class SyncViewModel internal constructor(
         _uiState.value = SyncUiState(generation = generations.incrementAndGet())
         sessionJob?.cancel(); sessionJob = null
         resources.getAndSet(null)?.close()
+        manualPause.getAndSet(null)?.close()
     }
     fun dismissResult() = cancel()
 
@@ -237,7 +249,6 @@ class SyncViewModel internal constructor(
         private const val MAX_SESSION_MS = 10 * 60 * 1000L
         private const val MAX_FAILED_ATTEMPTS = 16
         private const val PREFS_NAME = "sync_prefs"
-        private const val KEY_DEVICE_ID = "device_id"
         private const val KEY_LAST_SYNC = "last_sync_at"
     }
 }

@@ -81,7 +81,8 @@ class FakeSyncDataSource : SyncDataSource {
                 is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
                     notes[dto.syncId] = dto
                     // Конфликтная копия — новая локальная заметка, уедет при след. синхронизации.
-                    putLocal(r.conflictCopy)
+                    val cloned = local!!.attachments.zip(r.conflictCopy.attachments).mapNotNull { (old, fresh) -> files[old.syncId]?.copyOf()?.let { fresh.syncId to it } }.toMap()
+                    putLocal(r.conflictCopy, cloned)
                     appliedNotes++
                     conflicts++
                 }
@@ -103,8 +104,8 @@ class FakeSyncDataSource : SyncDataSource {
     }
 
     override suspend fun markSynced(changeSet: ChangeSet) {
-        dirty.removeAll(changeSet.notes.map { it.syncId }.toSet())
-        dirty.removeAll(changeSet.notebooks.map { it.syncId }.toSet())
+        dirty.removeAll(changeSet.notes.filter { notes[it.syncId]?.updatedAt == it.updatedAt }.map { it.syncId }.toSet())
+        dirty.removeAll(changeSet.notebooks.filter { notebooks[it.syncId]?.updatedAt == it.updatedAt }.map { it.syncId }.toSet())
     }
 }
 

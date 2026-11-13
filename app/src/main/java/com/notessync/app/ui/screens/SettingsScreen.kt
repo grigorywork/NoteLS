@@ -669,7 +669,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
                         val result = BackupManager.restore(context, restoreUri)
                         busy = false
                         if (result.isSuccess) {
-                            snackbarHostState.showSnackbar(uiText("Данные восстановлены"))
+                            snackbarHostState.showSnackbar(uiText("Данные восстановлены. Автообмен приостановлен."))
                         } else {
                             snackbarHostState.showSnackbar(
                                 uiText("Не удалось восстановить: %1\$s", (result.exceptionOrNull()?.message ?: uiText("ошибка")))
