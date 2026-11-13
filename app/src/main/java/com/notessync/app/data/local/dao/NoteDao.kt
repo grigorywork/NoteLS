@@ -92,8 +92,11 @@ interface NoteDao {
     suspend fun markSynced(ids: List<Long>)
 
     // Записи без syncId (например, после миграции со старой версии) получают UUID.
-    @Query("SELECT * FROM notes WHERE syncId = ''")
-    suspend fun getWithoutSyncId(): List<NoteEntity>
+    @Query("SELECT id FROM notes WHERE syncId = '' LIMIT 128")
+    suspend fun idsWithoutSyncId(): List<Long>
+
+    @Query("UPDATE notes SET syncId = :syncId, dirty = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END WHERE id = :id AND syncId = ''")
+    suspend fun assignSyncId(id: Long, syncId: String, timestamp: Long): Int
 
     // При удалении блокнота его заметки переходят в «Все заметки» (Этап 2).
     @Query("UPDATE notes SET notebookId = NULL, updatedAt = :timestamp, dirty = 1 WHERE notebookId = :notebookId")

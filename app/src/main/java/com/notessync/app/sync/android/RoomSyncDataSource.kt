@@ -12,6 +12,8 @@ import kotlinx.coroutines.NonCancellable
 import com.notessync.app.data.attachments.PhotoFileWriter
 import com.notessync.app.sync.protocol.FrameTransport
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
 import com.notessync.app.data.local.entity.NoteEntity
@@ -23,6 +25,7 @@ import com.notessync.app.sync.core.ApplyStats
 import com.notessync.app.sync.core.ConflictResolver
 import com.notessync.app.sync.core.Hashing
 import com.notessync.app.sync.core.SyncDataSource
+import com.notessync.app.sync.core.SyncLimits
 import com.notessync.app.sync.protocol.AttachmentDto
 import com.notessync.app.sync.protocol.ChangeSet
 import com.notessync.app.sync.protocol.NoteDto
@@ -39,11 +42,28 @@ class RoomSyncDataSource(
     private val attachmentsDir = File(context.filesDir, "attachments")
 
     override suspend fun ensureSyncIds() {
-        db.noteDao().getWithoutSyncId().forEach {
-            db.noteDao().upsert(it.copy(syncId = UUID.randomUUID().toString()))
+        // UPDATE preserves dependent rows; INSERT OR REPLACE would cascade-delete attachments/tags.
+        assignMissingIds({ db.noteDao().idsWithoutSyncId() }) { id ->
+            db.noteDao().assignSyncId(id, UUID.randomUUID().toString(), System.currentTimeMillis())
         }
-        db.notebookDao().getWithoutSyncId().forEach {
-            db.notebookDao().upsert(it.copy(syncId = UUID.randomUUID().toString()))
+        assignMissingIds({ db.notebookDao().idsWithoutSyncId() }) { id ->
+            db.notebookDao().assignSyncId(id, UUID.randomUUID().toString(), System.currentTimeMillis())
+        }
+        assignMissingIds({ db.attachmentDao().idsWithoutSyncId() }) { id ->
+            db.withTransaction {
+                if (db.attachmentDao().assignSyncId(id, UUID.randomUUID().toString()) != 0) {
+                    db.attachmentDao().markParentIdentityChanged(id, System.currentTimeMillis())
+                }
+            }
+        }
+    }
+
+    private suspend fun assignMissingIds(load: suspend () -> List<Long>, assign: suspend (Long) -> Unit) {
+        while (true) {
+            currentCoroutineContext().ensureActive()
+            val ids = load()
+            if (ids.isEmpty()) return
+            for (id in ids) { currentCoroutineContext().ensureActive(); assign(id) }
         }
     }
 
@@ -58,58 +78,68 @@ class RoomSyncDataSource(
         ChangeSet(notebooks = notebooks, notes = notes)
     }
 
-    override suspend fun applyChanges(changes: ChangeSet): ApplyStats = withContext(NonCancellable) {
+    override suspend fun applyChanges(changes: ChangeSet): ApplyStats = withContext(Dispatchers.IO) {
+        SyncLimits.changes(changes)
         var appliedNotebooks = 0
         var appliedNotes = 0
         var conflicts = 0
 
-        for (dto in changes.notebooks) db.withTransaction {
-            val local = db.notebookDao().getBySyncId(dto.syncId)
-            if (local == null || dto.updatedAt > local.updatedAt) {
-                val entity = NotebookEntity(
-                    id = local?.id ?: 0,
-                    syncId = dto.syncId,
-                    name = dto.name,
-                    isDeleted = dto.deleted,
-                    isProtected = dto.isProtected,
-                    passwordHash = dto.passwordHash,
-                    passwordSalt = dto.passwordSalt,
-                    createdAt = local?.createdAt ?: System.currentTimeMillis(),
-                    updatedAt = dto.updatedAt,
-                    dirty = false
-                )
-                ProtectionSession.lockNotebook(local?.id ?: entity.id)
-                if (local == null) db.notebookDao().upsert(entity) else db.notebookDao().update(entity)
-                appliedNotebooks++
-            }
-        }
-
         val discardedFiles = mutableListOf<String>()
-        for (dto in changes.notes) db.withTransaction {
-            val local = db.noteDao().getBySyncId(dto.syncId)
-            val resolution = ConflictResolver.resolve(local?.toDto(null, emptyList(), emptyList()), dto, local?.dirty ?: false)
-            when (resolution) {
-                is ConflictResolver.Resolution.ApplyRemote -> {
-                    applyNote(dto, local, discardedFiles)
-                    appliedNotes++
+        try {
+            for (dto in changes.notebooks) syncTransaction {
+                val local = db.notebookDao().getBySyncId(dto.syncId)
+                if (local == null || dto.updatedAt > local.updatedAt) {
+                    val entity = NotebookEntity(
+                        id = local?.id ?: 0,
+                        syncId = dto.syncId,
+                        name = dto.name,
+                        isDeleted = dto.deleted,
+                        isProtected = dto.isProtected,
+                        passwordHash = dto.passwordHash,
+                        passwordSalt = dto.passwordSalt,
+                        createdAt = local?.createdAt ?: System.currentTimeMillis(),
+                        updatedAt = dto.updatedAt,
+                        dirty = false
+                    )
+                    ProtectionSession.lockNotebook(local?.id ?: entity.id)
+                    if (local == null) db.notebookDao().upsert(entity) else db.notebookDao().update(entity)
+                    appliedNotebooks++
                 }
-                is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
-                    applyNote(dto, local, discardedFiles)
-                    applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles)
-                    appliedNotes++
-                    conflicts++
-                }
-                ConflictResolver.Resolution.KeepLocal -> Unit
             }
-        }
 
-        withContext(NonCancellable) { runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } } }
+            for (dto in changes.notes) syncTransaction {
+                val local = db.noteDao().getBySyncId(dto.syncId)
+                val resolution = ConflictResolver.resolve(local?.toDto(null, emptyList(), emptyList()), dto, local?.dirty ?: false)
+                when (resolution) {
+                    is ConflictResolver.Resolution.ApplyRemote -> {
+                        applyNote(dto, local, discardedFiles)
+                        appliedNotes++
+                    }
+                    is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
+                        applyNote(dto, local, discardedFiles)
+                        applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles)
+                        appliedNotes++
+                        conflicts++
+                    }
+                    ConflictResolver.Resolution.KeepLocal -> Unit
+                }
+            }
+
+        } finally {
+            withContext(NonCancellable) { runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } } }
+        }
         val missing = changes.notes
             .filter { db.noteDao().getBySyncId(it.syncId)?.isPurged == false }
             .flatMap { it.attachments }
             .filter { db.attachmentDao().getBySyncId(it.syncId)?.let { row -> db.noteDao().getById(row.noteId)?.syncId == it.noteSyncId } == true }
             .filter { !hasAttachmentBytes(it.syncId) }
         ApplyStats(appliedNotes, appliedNotebooks, conflicts, missing)
+    }
+
+    /** Finish the current entity transaction; cancellation is checked before the next one. */
+    private suspend fun syncTransaction(block: suspend () -> Unit) {
+        currentCoroutineContext().ensureActive()
+        withContext(NonCancellable) { db.withTransaction { block() } }
     }
 
     private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>) {
@@ -203,11 +233,29 @@ class RoomSyncDataSource(
     override suspend fun readAttachmentBytes(attachmentSyncId: String): ByteArray? = withContext(Dispatchers.IO) {
         if (!SAFE_ATTACHMENT_ID.matches(attachmentSyncId)) return@withContext null
         val file = db.attachmentDao().getBySyncId(attachmentSyncId)?.let { File(it.filePath) } ?: attachmentFile(attachmentSyncId)
-        file.takeIf { it.isFile }?.readBytes()
+        if (!file.isFile) return@withContext null
+        require(file.length() <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
+        // A growing file is bounded too; length() alone is not an allocation limit.
+        file.inputStream().use { input ->
+            val bytes = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                require(bytes.size().toLong() + count <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
+                bytes.write(buffer, 0, count)
+            }
+            bytes.toByteArray()
+        }
     }
 
     override suspend fun writeAttachmentBytes(meta: AttachmentDto, data: ByteArray) = withContext(Dispatchers.IO + NonCancellable) {
-        require(SAFE_ATTACHMENT_ID.matches(meta.syncId)) { uiText("Некорректный syncId вложения") }
+        SyncLimits.attachment(meta)
+        // Late bytes for a purged/removed parent are an idempotent no-op, even if corrupt.
+        // Recheck in the final transaction too, after hashing outside the write lock.
+        val currentParent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withContext
+        if (currentParent.isPurged) return@withContext
+        require(data.size.toLong() == meta.sizeBytes && Hashing.sha256Hex(data) == meta.sha256) { "Invalid attachment data" }
         db.withTransaction {
             val parent = db.noteDao().getBySyncId(meta.noteSyncId) ?: return@withTransaction
             if (parent.isPurged) return@withTransaction
@@ -279,12 +327,13 @@ class RoomSyncDataSource(
     private suspend fun AttachmentEntity.toDto(noteSyncId: String): AttachmentDto? = withContext(Dispatchers.IO) {
         val file = File(filePath)
         if (!file.isFile) return@withContext null
+        require(file.length() <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
         AttachmentDto(
             syncId = syncId,
             noteSyncId = noteSyncId,
             mimeType = mimeType,
             sizeBytes = file.length(),
-            sha256 = file.inputStream().use { Hashing.sha256Hex(it) },
+            sha256 = file.inputStream().use { Hashing.sha256Hex(it, SyncLimits.ATTACHMENT_BYTES) },
             displayWidthDp = displayWidthDp, displayHeightDp = displayHeightDp
         )
     }

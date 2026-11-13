@@ -34,7 +34,7 @@ class FrameTransportTest {
 
     @Test
     fun `сообщение проходит туда-обратно с шифрованием`() {
-        val crypto = SessionCrypto("CODE1234")
+        val crypto = SessionCrypto.derive(ByteArray(32) { 1 }, true)
         val (sender, out) = transportPair(crypto)
         val note = com.notessync.app.sync.protocol.NoteDto(
             syncId = UUID.randomUUID().toString(), title = "Тест", content = "Содержимое",
@@ -43,7 +43,7 @@ class FrameTransportTest {
         val message = SyncMessage.Changes(com.notessync.app.sync.protocol.ChangeSet(notes = listOf(note)))
         sender.sendMessage(message)
 
-        val reader = FrameTransport(ByteArrayInputStream(out.toByteArray()), ByteArrayOutputStream(), crypto)
+        val reader = FrameTransport(ByteArrayInputStream(out.toByteArray()), ByteArrayOutputStream(), SessionCrypto.derive(ByteArray(32) { 1 }, false))
         assertEquals(Frame.Message(message), reader.readFrame())
     }
 
@@ -96,5 +96,23 @@ class FrameTransportTest {
         val reader = FrameTransport(ByteArrayInputStream(out.toByteArray()), ByteArrayOutputStream())
         reader.readFrame()
         assertEquals(sender.bytesSent.get(), reader.bytesReceived.get())
+    }
+    @Test fun `concurrent writers preserve authenticated counter order and all messages`() {
+        val root = ByteArray(32) { 7 }; val out = ByteArrayOutputStream()
+        val writer = FrameTransport(ByteArrayInputStream(ByteArray(0)), out, SessionCrypto.derive(root, true))
+        val executor = java.util.concurrent.Executors.newFixedThreadPool(4)
+        try {
+            val start = java.util.concurrent.CountDownLatch(1)
+            val futures = (0 until 4).map { worker -> executor.submit {
+                start.await()
+                repeat(25) { writer.sendMessage(SyncMessage.Hello("$worker-$it", "fixture")) }
+            } }
+            start.countDown(); futures.forEach { it.get(8, java.util.concurrent.TimeUnit.SECONDS) }
+            val reader = FrameTransport(ByteArrayInputStream(out.toByteArray()), ByteArrayOutputStream(), SessionCrypto.derive(root, false))
+            val identities = mutableSetOf<String>()
+            repeat(100) { identities.add(((reader.readFrame() as Frame.Message).message as SyncMessage.Hello).deviceId) }
+            assertEquals(100, identities.size); assertEquals(null, reader.readFrame())
+            assertEquals(writer.bytesSent.get(), reader.bytesReceived.get())
+        } finally { executor.shutdownNow() }
     }
 }

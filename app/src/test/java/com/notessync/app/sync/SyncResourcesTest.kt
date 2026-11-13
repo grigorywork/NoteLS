@@ -75,4 +75,10 @@ class SyncResourcesTest {
         next.close()
         assertTrue(socket.isClosed)
     }
+    @Test fun `released rejected socket is closed and removed before the next connection`() {
+        val owned = SyncResources(); var closed = 0
+        val rejected = owned.own(Closeable { closed++ })
+        owned.release(rejected); assertEquals(1, closed)
+        owned.close(); assertEquals(1, closed)
+    }
 }

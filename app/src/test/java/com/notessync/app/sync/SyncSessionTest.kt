@@ -6,7 +6,7 @@ import com.notessync.app.sync.core.Hashing
 import com.notessync.app.sync.core.SyncDataSource
 import com.notessync.app.sync.core.SyncResult
 import com.notessync.app.sync.core.SyncSession
-import com.notessync.app.sync.crypto.SessionCrypto
+import com.notessync.app.sync.crypto.PairingHandshake
 import com.notessync.app.sync.protocol.AttachmentDto
 import com.notessync.app.sync.protocol.ChangeSet
 import com.notessync.app.sync.protocol.FrameTransport
@@ -114,7 +114,7 @@ class FakeSyncDataSource : SyncDataSource {
  */
 class SyncSessionTest {
 
-    private val sessionCode = "TESTCODE1"
+    private val sessionCode = "a1".repeat(32)
 
     private fun note(id: String, title: String, updatedAt: Long, attachments: List<AttachmentDto> = emptyList()) =
         NoteDto(
@@ -150,7 +150,7 @@ class SyncSessionTest {
                 socket.soTimeout = 30_000
                 runBlocking {
                     serverResult = SyncSession(
-                        transport = FrameTransport(socket.getInputStream(), socket.getOutputStream(), SessionCrypto(sessionCode)),
+                        transport = FrameTransport(socket.getInputStream(), socket.getOutputStream(), PairingHandshake.establish(socket.getInputStream(), socket.getOutputStream(), sessionCode, client = false)),
                         dataSource = deviceA,
                         deviceId = "A", deviceName = "Устройство A",
                         lastSyncAt = { 0L }
@@ -166,7 +166,7 @@ class SyncSessionTest {
         clientSocket.soTimeout = 30_000
         val clientResult = runBlocking {
             SyncSession(
-                transport = FrameTransport(clientSocket.getInputStream(), clientSocket.getOutputStream(), SessionCrypto(sessionCode)),
+                transport = FrameTransport(clientSocket.getInputStream(), clientSocket.getOutputStream(), PairingHandshake.establish(clientSocket.getInputStream(), clientSocket.getOutputStream(), sessionCode, client = true)),
                 dataSource = deviceB,
                 deviceId = "B", deviceName = "Устройство B",
                 lastSyncAt = { 0L }
@@ -219,7 +219,7 @@ class SyncSessionTest {
                 socket.soTimeout = 15_000
                 runBlocking {
                     result = SyncSession(
-                        FrameTransport(socket.getInputStream(), socket.getOutputStream(), SessionCrypto(sessionCode)),
+                        FrameTransport(socket.getInputStream(), socket.getOutputStream(), PairingHandshake.establish(socket.getInputStream(), socket.getOutputStream(), sessionCode, client = false)),
                         deviceA, "A", "A", lastSyncAt = { 0L }
                     ).runAsServer()
                 }
@@ -229,7 +229,7 @@ class SyncSessionTest {
             client.soTimeout = 15_000
             val r = runBlocking {
                 SyncSession(
-                    FrameTransport(client.getInputStream(), client.getOutputStream(), SessionCrypto(sessionCode)),
+                    FrameTransport(client.getInputStream(), client.getOutputStream(), PairingHandshake.establish(client.getInputStream(), client.getOutputStream(), sessionCode, client = true)),
                     deviceB, "B", "B", lastSyncAt = { 0L }
                 ).runAsClient()
             }

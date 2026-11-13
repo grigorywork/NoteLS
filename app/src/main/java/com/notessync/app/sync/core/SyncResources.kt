@@ -18,6 +18,11 @@ internal class SyncResources : Closeable {
         resource
     }
 
+    fun release(resource: Closeable) {
+        synchronized(lock) { resources.remove(resource) }
+        runCatching { resource.close() }
+    }
+
     override fun close() {
         val pending = synchronized(lock) {
             if (closed) return

@@ -35,6 +35,16 @@ interface AttachmentDao {
     @Query("UPDATE attachments SET displayWidthDp = :width, displayHeightDp = :height WHERE id = :id AND noteId = :noteId")
     suspend fun updateDisplaySize(id: Long, noteId: Long, width: Int, height: Int): Int
 
+    // Older schema1 attachments received an empty ID during migration1→2.
+    @Query("SELECT id FROM attachments WHERE syncId = '' LIMIT 128")
+    suspend fun idsWithoutSyncId(): List<Long>
+
+    @Query("UPDATE attachments SET syncId = :syncId WHERE id = :id AND syncId = ''")
+    suspend fun assignSyncId(id: Long, syncId: String): Int
+
+    @Query("UPDATE notes SET dirty = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END WHERE id IN (SELECT noteId FROM attachments WHERE id = :attachmentId) AND isPurged = 0")
+    suspend fun markParentIdentityChanged(attachmentId: Long, timestamp: Long)
+
     @Query("SELECT filePath FROM attachments")
     suspend fun getFilePaths(): List<String>
 

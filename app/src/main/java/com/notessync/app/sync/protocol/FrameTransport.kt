@@ -35,7 +35,7 @@ class FrameTransport(
     /** Пустой [data] с last=true — маркер конца вложения. */
     fun sendChunk(attachmentSyncId: String, data: ByteArray, last: Boolean) {
         val idBytes = attachmentSyncId.toByteArray(Charsets.UTF_8)
-        require(idBytes.size == SYNC_ID_BYTES) { uiText("syncId должен быть UUID (%1\$s байт)", (SYNC_ID_BYTES)) }
+        require(SAFE_ID.matches(attachmentSyncId) && data.size <= CHUNK_BYTES && (last || data.isNotEmpty())) { "Invalid attachment chunk" }
         val payload = ByteArray(1 + SYNC_ID_BYTES + data.size)
         payload[0] = if (last) 1 else 0
         idBytes.copyInto(payload, 1)
@@ -44,16 +44,18 @@ class FrameTransport(
     }
 
     private fun writeFrame(kind: Byte, plainPayload: ByteArray) {
-        val payload = crypto?.encrypt(plainPayload) ?: plainPayload
-        require(payload.size <= MAX_FRAME_BYTES) { uiText("Кадр больше %1\$s байт", (MAX_FRAME_BYTES)) }
         synchronized(sendLock) {
+            val size = plainPayload.size + if (crypto == null) 0 else SessionCrypto.OVERHEAD
+            require(size in 1..maxFrameBytes(kind)) { uiText("Кадр больше %1\$s байт", (MAX_FRAME_BYTES)) }
             val header = byteArrayOf(
                 kind,
-                (payload.size ushr 24).toByte(),
-                (payload.size ushr 16).toByte(),
-                (payload.size ushr 8).toByte(),
-                payload.size.toByte()
+                (size ushr 24).toByte(),
+                (size ushr 16).toByte(),
+                (size ushr 8).toByte(),
+                size.toByte()
             )
+            // Counter assignment, encryption and write share one lock and one wire order.
+            val payload = crypto?.encrypt(plainPayload, header) ?: plainPayload
             output.write(header)
             output.write(payload)
             output.flush()
@@ -70,17 +72,20 @@ class FrameTransport(
             ((header[2].toInt() and 0xFF) shl 16) or
             ((header[3].toInt() and 0xFF) shl 8) or
             (header[4].toInt() and 0xFF)
-        require(length in 0..MAX_FRAME_BYTES) { uiText("Некорректная длина кадра: %1\$s", (length)) }
+        require(length in 1..maxFrameBytes(kind)) { uiText("Некорректная длина кадра: %1\$s", (length)) }
         val payload = ByteArray(length)
         if (!readFully(payload)) throw EOFException(uiText("Кадр оборвался посередине"))
         bytesReceived.addAndGet((HEADER_BYTES + length).toLong())
-        val plain = crypto?.decrypt(payload) ?: payload
+        val plain = crypto?.decrypt(payload, header) ?: payload
         return when (kind) {
             KIND_MESSAGE -> Frame.Message(SyncMessage.decode(plain))
             KIND_CHUNK -> {
                 require(plain.size >= 1 + SYNC_ID_BYTES) { uiText("Кусок вложения слишком короткий") }
+                val id = plain.copyOfRange(1, 1 + SYNC_ID_BYTES).toString(Charsets.US_ASCII)
+                require(SAFE_ID.matches(id) && plain[0].toInt() in 0..1 &&
+                    plain.size <= 1 + SYNC_ID_BYTES + CHUNK_BYTES && (plain[0].toInt() == 1 || plain.size > 1 + SYNC_ID_BYTES)) { "Invalid attachment chunk" }
                 Frame.Chunk(
-                    attachmentSyncId = plain.copyOfRange(1, 1 + SYNC_ID_BYTES).toString(Charsets.UTF_8),
+                    attachmentSyncId = id,
                     data = plain.copyOfRange(1 + SYNC_ID_BYTES, plain.size),
                     last = plain[0].toInt() == 1
                 )
@@ -97,9 +102,24 @@ class FrameTransport(
                 if (offset == 0) return false
                 throw EOFException(uiText("Соединение закрыто посреди кадра"))
             }
+            if (read == 0) {
+                val one = input.read()
+                if (one < 0) {
+                    if (offset == 0) return false
+                    throw EOFException(uiText("Соединение закрыто посреди кадра"))
+                }
+                buffer[offset++] = one.toByte()
+                continue
+            }
             offset += read
         }
         return true
+    }
+
+    private fun maxFrameBytes(kind: Byte): Int = when (kind) {
+        KIND_MESSAGE -> MAX_FRAME_BYTES
+        KIND_CHUNK -> 1 + SYNC_ID_BYTES + CHUNK_BYTES + if (crypto == null) 0 else SessionCrypto.OVERHEAD
+        else -> throw IllegalArgumentException("Invalid frame kind")
     }
 
     companion object {
@@ -109,5 +129,6 @@ class FrameTransport(
         const val SYNC_ID_BYTES = 36
         const val MAX_FRAME_BYTES = 32 * 1024 * 1024
         const val CHUNK_BYTES = 256 * 1024
+        internal val SAFE_ID = Regex("[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
     }
 }

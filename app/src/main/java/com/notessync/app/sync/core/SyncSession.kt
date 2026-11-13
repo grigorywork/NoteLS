@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream
 class SyncException(message: String) : Exception(message)
 
 /** Потолок стартового буфера вложения: реальный размер проверяется по SHA-256. */
-private const val MAX_INITIAL_BUFFER_BYTES = 8L * 1024 * 1024
+private const val MAX_INITIAL_BUFFER_BYTES = 64L * 1024
 
 enum class SyncPhase {
     HANDSHAKE,            // рукопожатие
@@ -52,11 +52,13 @@ class SyncSession(
     var peerName: String = ""
         private set
 
+    private val offeredAttachments = mutableSetOf<String>()
+
     // ---------- Сервер (устройство, которое ждёт подключения) ----------
 
     suspend fun runAsServer(): SyncResult {
-        dataSource.ensureSyncIds()
         handshake()
+        dataSource.ensureSyncIds()
         try {
             // Фаза 2: отдаём свои изменения.
             val sent = sendMyChanges()
@@ -77,8 +79,8 @@ class SyncSession(
     // ---------- Клиент (устройство, которое подключается) ----------
 
     suspend fun runAsClient(): SyncResult {
-        dataSource.ensureSyncIds()
         handshake()
+        dataSource.ensureSyncIds()
         try {
             // Фаза 2: принимаем изменения сервера.
             val applied = receiveChanges()
@@ -106,6 +108,7 @@ class SyncSession(
                 if (msg.protocol != SyncMessage.PROTOCOL_VERSION) {
                     throw SyncException(uiText("Обновите NoteLS на обоих устройствах (протокол %1\$s)", (msg.protocol)))
                 }
+                require(msg.deviceId.isNotBlank() && msg.deviceId.length <= 128 && msg.deviceName.length <= 128) { "Invalid peer identity" }
                 peerName = msg.deviceName
             }
             is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
@@ -116,6 +119,8 @@ class SyncSession(
     private suspend fun sendMyChanges(): Int {
         onProgress(SyncProgress(SyncPhase.EXCHANGING_CHANGES))
         val changes = dataSource.getChangesSince(lastSyncAt())
+        SyncLimits.changes(changes)
+        offeredAttachments.addAll(changes.notes.flatMap { it.attachments }.map { it.syncId })
         transport.sendMessage(SyncMessage.Changes(changes))
         transport.sendMessage(SyncMessage.ChangesDone)
         dataSource.markSynced(changes)
@@ -126,10 +131,10 @@ class SyncSession(
         onProgress(SyncProgress(SyncPhase.EXCHANGING_CHANGES))
         return when (val msg = readMessage()) {
             is SyncMessage.Changes -> {
-                val stats = dataSource.applyChanges(msg.set)
-                when (val done = readMessage()) {
-                    is SyncMessage.ChangesDone -> stats
-                    else -> throw SyncException(uiText("Ожидался конец пакета изменений, получено: %1\$s", (done)))
+                SyncLimits.changes(msg.set)
+                when (readMessage()) {
+                    is SyncMessage.ChangesDone -> dataSource.applyChanges(msg.set)
+                    else -> throw SyncException(uiText("Синхронизация прервана"))
                 }
             }
             is SyncMessage.Error -> throw SyncException(uiText("Другая сторона: %1\$s", (msg.message)))
@@ -140,6 +145,7 @@ class SyncSession(
     /** Запрашивает у peer перечисленные вложения и сохраняет их. */
     private suspend fun requestAttachments(missing: List<AttachmentDto>): Int {
         if (missing.isEmpty()) return 0
+        missing.forEach(SyncLimits::attachment)
         val totalBytes = missing.sumOf { it.sizeBytes }
         var receivedBytes = 0L
         var done = 0
@@ -165,6 +171,7 @@ class SyncSession(
                         if (frame.attachmentSyncId != meta.syncId) {
                             throw SyncException(uiText("Пришёл кусок чужого вложения"))
                         }
+                        require(frame.data.size.toLong() <= meta.sizeBytes - buffer.size()) { "Attachment exceeds declared size" }
                         buffer.write(frame.data)
                         receivedBytes += frame.data.size
                         if (frame.last) break
@@ -178,7 +185,7 @@ class SyncSession(
                 }
             }
             val data = buffer.toByteArray()
-            if (Hashing.sha256Hex(data) != meta.sha256) {
+            if (data.size.toLong() != meta.sizeBytes || Hashing.sha256Hex(data) != meta.sha256) {
                 throw SyncException(uiText("Вложение %1\$s пришло с ошибкой (контрольная сумма)", (meta.syncId)))
             }
             dataSource.writeAttachmentBytes(meta, data)
@@ -203,6 +210,7 @@ class SyncSession(
             when (val frame = transport.readFrame() ?: throw SyncException(uiText("Соединение закрыто"))) {
                 is Frame.Message -> when (val msg = frame.message) {
                     is SyncMessage.AttachmentRequest -> {
+                        require(offeredAttachments.remove(msg.syncId)) { "Attachment was not offered or was already requested" }
                         onProgress(SyncProgress(SyncPhase.SENDING_FILES, attachmentsDone = sent))
                         val bytes = dataSource.readAttachmentBytes(msg.syncId)
                         if (bytes == null) {
@@ -223,6 +231,7 @@ class SyncSession(
     }
 
     private fun streamAttachment(syncId: String, bytes: ByteArray) {
+        require(bytes.size.toLong() <= SyncLimits.ATTACHMENT_BYTES) { "Attachment too large" }
         var offset = 0
         while (offset < bytes.size) {
             val end = (offset + CHUNK_BYTES).coerceAtMost(bytes.size)
@@ -272,7 +281,7 @@ class SyncSession(
     }
 
     private fun fail(cause: Exception): Nothing {
-        runCatching { transport.sendMessage(SyncMessage.Error(cause.message ?: uiText("Ошибка"))) }
+        runCatching { transport.sendMessage(SyncMessage.Error(uiText("Синхронизация прервана"))) }
         throw cause
     }
 }

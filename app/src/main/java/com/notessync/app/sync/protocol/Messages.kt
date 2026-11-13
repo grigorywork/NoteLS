@@ -3,6 +3,8 @@ package com.notessync.app.sync.protocol
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 
 // ---------- Модели данных, которыми обмениваются устройства ----------
 
@@ -130,6 +132,8 @@ sealed interface SyncMessage {
             json.encodeToString(SyncMessage.serializer(), message).toByteArray(Charsets.UTF_8)
 
         fun decode(bytes: ByteArray): SyncMessage =
-            json.decodeFromString(SyncMessage.serializer(), bytes.toString(Charsets.UTF_8))
+            json.decodeFromString(SyncMessage.serializer(), Charsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes)).toString())
     }
 }

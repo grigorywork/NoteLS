@@ -39,6 +39,9 @@ interface NotebookDao {
     @Query("UPDATE notebooks SET dirty = 0 WHERE syncId IN (:syncIds)")
     suspend fun markSyncedBySyncId(syncIds: List<String>)
 
-    @Query("SELECT * FROM notebooks WHERE syncId = ''")
-    suspend fun getWithoutSyncId(): List<NotebookEntity>
+    @Query("SELECT id FROM notebooks WHERE syncId = '' LIMIT 128")
+    suspend fun idsWithoutSyncId(): List<Long>
+
+    @Query("UPDATE notebooks SET syncId = :syncId, dirty = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END WHERE id = :id AND syncId = ''")
+    suspend fun assignSyncId(id: Long, syncId: String, timestamp: Long): Int
 }

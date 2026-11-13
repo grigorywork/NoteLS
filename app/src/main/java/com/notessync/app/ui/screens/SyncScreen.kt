@@ -34,10 +34,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,6 +49,10 @@ import com.notessync.app.sync.android.SyncMode
 import com.notessync.app.sync.android.SyncUiState
 import com.notessync.app.sync.android.SyncViewModel
 import com.notessync.app.sync.core.SyncPhase
+import com.notessync.app.sync.crypto.PairingSecret
+import com.notessync.app.sync.qr.SyncQr
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.notessync.app.ui.common.formatBytes
 import com.notessync.app.ui.common.formatDateTime
 import java.util.Locale
@@ -55,7 +61,8 @@ import java.util.Locale
 @Composable
 fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val storage = remember(state.mode) { viewModel.storageInfo() }
+    var storage by remember(viewModel) { mutableStateOf<StorageInfo?>(null) }
+    LaunchedEffect(viewModel, state.mode) { storage = viewModel.storageInfo() }
 
     fun leave() { viewModel.cancel(); onBack() }
     fun scan() { viewModel.cancel(); onOpenScanner() }
@@ -90,7 +97,7 @@ fun SyncScreen(onBack: () -> Unit, onOpenScanner: () -> Unit, viewModel: SyncVie
                 SyncMode.ERROR -> ErrorBlock(state, onRetry = viewModel::dismissResult)
             }
             Spacer(Modifier.height(24.dp))
-            StorageCard(storage)
+            storage?.let { StorageCard(it) }
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -124,6 +131,7 @@ private fun IdleBlock(viewModel: SyncViewModel, onOpenScanner: () -> Unit) {
 
 @Composable
 private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
+    val context = LocalContext.current
     Spacer(Modifier.height(16.dp))
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -132,21 +140,31 @@ private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
         ) {
             // QR-код с адресом, портом и кодом сессии (Этап 4).
             if (state.qrPayload.isNotBlank()) {
-                val qrBitmap = remember(state.qrPayload) {
-                    com.notessync.app.sync.qr.QrGenerator.bitmap(state.qrPayload)
+                var qrBitmap by remember(state.qrPayload) { mutableStateOf<android.graphics.Bitmap?>(null) }
+                LaunchedEffect(state.qrPayload) {
+                    qrBitmap = withContext(Dispatchers.Default) { com.notessync.app.sync.qr.QrGenerator.bitmap(state.qrPayload) }
                 }
-                androidx.compose.foundation.Image(
-                    bitmap = qrBitmap.asImageBitmap(),
+                qrBitmap?.let { androidx.compose.foundation.Image(
+                    bitmap = it.asImageBitmap(),
                     contentDescription = uiText("QR-код для связи"),
-                    modifier = Modifier.fillMaxWidth(0.7f)
-                )
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) }
                 Spacer(Modifier.height(16.dp))
             }
             Text(
                 text = state.sessionCode,
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                 textAlign = TextAlign.Center
             )
+            androidx.compose.material3.TextButton(onClick = {
+                val clip = android.content.ClipData.newPlainText("NoteLS pairing", state.sessionCode)
+                clip.description.extras = android.os.PersistableBundle().apply {
+                    // Documented key also works with older SDKs; newer Android redacts the preview.
+                    putBoolean("android.content.extra.IS_SENSITIVE", true)
+                }
+                context.getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(clip)
+            }) { Text(uiText("Копировать ключ")) }
             Text(
                 text = state.localIp.ifBlank { "—" },
                 style = MaterialTheme.typography.bodyLarge,
@@ -155,6 +173,9 @@ private fun WaitingBlock(state: SyncUiState, onCancel: () -> Unit) {
             )
         }
     }
+    Spacer(Modifier.height(12.dp))
+    Text(uiText("Код действует 5 минут и даёт доступ к обмену всеми заметками, включая защищённые. Показывайте его только своему устройству."),
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(16.dp))
     CircularProgressIndicator()
     Spacer(Modifier.height(8.dp))
@@ -180,7 +201,7 @@ private fun ClientFormBlock(onConnect: (String, String) -> Unit, onOpenScanner: 
     Spacer(Modifier.height(16.dp))
     OutlinedTextField(
         value = ip,
-        onValueChange = { ip = it },
+        onValueChange = { ip = it.take(15) },
         label = { Text(uiText("IP-адрес")) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -189,15 +210,17 @@ private fun ClientFormBlock(onConnect: (String, String) -> Unit, onOpenScanner: 
     Spacer(Modifier.height(12.dp))
     OutlinedTextField(
         value = code,
-        onValueChange = { code = it.uppercase(Locale.ROOT).take(8) },
-        label = { Text(uiText("Код сессии")) },
+        onValueChange = { code = it.trim().uppercase(Locale.ROOT).take(64) },
+        label = { Text(uiText("Ключ сопряжения (64 символа)")) },
+        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
     Spacer(Modifier.height(24.dp))
     Button(
         onClick = { onConnect(ip, code) },
-        enabled = ip.isNotBlank() && code.length == 8,
+        enabled = SyncQr.localAddress(ip) && PairingSecret.valid(code),
         modifier = Modifier.fillMaxWidth()
     ) { Text(uiText("Начать синхронизацию")) }
 }
