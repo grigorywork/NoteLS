@@ -26,7 +26,7 @@ import com.notessync.app.data.backup.BackupManager
         NoteTagCrossRef::class,
         AttachmentEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun attachmentDao(): AttachmentDao
 
     companion object {
-        const val VERSION = 15
+        const val VERSION = 16
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -157,6 +157,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP INDEX IF EXISTS index_notes_isDeleted_isPurged_isPinned_updatedAt")
+                db.execSQL("CREATE INDEX index_notes_visible_order ON notes (isDeleted, isPurged, isPinned, updatedAt, id, isProtected, notebookId)")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: build(context, "notessync.db").also { database ->
@@ -179,7 +186,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ).addMigrations(
                         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15
+                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16
                     ).build()
 
         // Этап 39: закрыть и сбросить синглтон перед подменой файла БД

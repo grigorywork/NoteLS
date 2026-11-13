@@ -1,6 +1,17 @@
 package com.notessync.app.ui.navigation
 
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import com.notessync.app.widget.WidgetNoteLinks
+import com.notessync.app.widget.WidgetNoteRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -35,22 +46,43 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost() {
+fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long) -> Unit = {}) {
     val navController = rememberNavController()
     // Синхронизация — процессная сессия: ViewModel живёт в Activity,
     // чтобы сканер и экран синхронизации видели один и тот же экземпляр.
-    val activity = LocalContext.current as ComponentActivity
+    val context = LocalContext.current
+    val activity = remember(context) { requireNotNull(componentActivity(context)) { "Navigation requires a ComponentActivity" } }
+    fun navigate(route: String) { activity.runOnUiThread { if (!activity.isDestroyed) navController.navigate(route) } }
+    fun back() { activity.runOnUiThread { if (!activity.isDestroyed) navController.popBackStack() } }
+    LaunchedEffect(widgetRequest) {
+        if (widgetRequest != null) {
+            try {
+                if (withContext(Dispatchers.IO) { WidgetNoteLinks.canOpen(context, widgetRequest) }) {
+                    suspendCancellableCoroutine<Unit> { continuation ->
+                        activity.runOnUiThread {
+                            if (continuation.isActive) {
+                                try {
+                                    if (!activity.isDestroyed) navController.navigate(Routes.editor(widgetRequest.noteId)) { launchSingleTop = true }
+                                    continuation.resume(Unit)
+                                } catch (error: Exception) { continuation.resumeWithException(error) }
+                            }
+                        }
+                    }
+                }
+            } finally { onWidgetHandled(widgetRequest.sequence) }
+        }
+    }
 
     NavHost(navController = navController, startDestination = Routes.NOTES) {
         composable(Routes.NOTES) { backStackEntry ->
             NotesListScreen(
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                onOpenSync = { navController.navigate(Routes.SYNC) },
-                onOpenAnalytics = { navController.navigate(Routes.ANALYTICS) },
-                onOpenCalendar = { navController.navigate(Routes.CALENDAR) },
-                onOpenQuotes = { navController.navigate(Routes.QUOTES) },
+                onOpenSettings = { navigate(Routes.SETTINGS) },
+                onOpenSync = { navigate(Routes.SYNC) },
+                onOpenAnalytics = { navigate(Routes.ANALYTICS) },
+                onOpenCalendar = { navigate(Routes.CALENDAR) },
+                onOpenQuotes = { navigate(Routes.QUOTES) },
                 onOpenEditor = { noteId, isTask ->
-                    navController.navigate(Routes.editor(noteId, isTask))
+                    navigate(Routes.editor(noteId, isTask))
                 },
                 deletedNoteEvents = backStackEntry.savedStateHandle.getStateFlow("deleted_note_id", -1L),
                 onDeletedEventHandled = {
@@ -67,39 +99,39 @@ fun AppNavHost() {
             )
         ) {
             NoteEditorScreen(
-                onBack = { navController.popBackStack() },
-                onDeleted = { id ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("deleted_note_id", id)
-                    navController.popBackStack()
-                }
+                onBack = { back() },
+                onDeleted = { id -> activity.runOnUiThread {
+                    if (!activity.isDestroyed) {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("deleted_note_id", id)
+                        navController.popBackStack()
+                    }
+                } }
             )
         }
         composable(Routes.ANALYTICS) {
             AnalyticsScreen(
-                onBack = { navController.popBackStack() },
-                onOpenNote = { noteId -> navController.navigate(Routes.editor(noteId, true)) }
+                onBack = { back() },
+                onOpenNote = { noteId -> navigate(Routes.editor(noteId, true)) }
             )
         }
         composable(Routes.CALENDAR) {
             CalendarScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { back() },
                 onOpenNote = { noteId, isTask ->
-                    navController.navigate(Routes.editor(noteId, isTask))
+                    navigate(Routes.editor(noteId, isTask))
                 },
                 onAddEntry = { dayKey, isTask ->
-                    navController.navigate(Routes.editor(-1L, isTask, dayKey))
+                    navigate(Routes.editor(-1L, isTask, dayKey))
                 }
             )
         }
         composable(Routes.QUOTES) {
-            QuotesScreen(onBack = { navController.popBackStack() })
+            QuotesScreen(onBack = { back() })
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(
-                onBack = { navController.popBackStack() },
-                onOpenSync = { navController.navigate(Routes.SYNC) }
+                onBack = { back() },
+                onOpenSync = { navigate(Routes.SYNC) }
             )
         }
         composable(Routes.SYNC) {
@@ -109,8 +141,8 @@ fun AppNavHost() {
                 onDispose { activity.lifecycle.removeObserver(syncViewModel) }
             }
             SyncScreen(
-                onBack = { navController.popBackStack() },
-                onOpenScanner = { navController.navigate(Routes.SCANNER) },
+                onBack = { back() },
+                onOpenScanner = { navigate(Routes.SCANNER) },
                 viewModel = syncViewModel
             )
         }
@@ -119,11 +151,22 @@ fun AppNavHost() {
             ScannerScreen(
                 onResult = { payload ->
                     syncViewModel.connectFromQr(payload)
-                    navController.popBackStack()
+                    back()
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { back() }
             )
         }
     }
 }
 
+
+/** Scoped language/theme wrappers retain the Activity as a base context. */
+private fun componentActivity(context: Context): ComponentActivity? {
+    var current = context
+    repeat(16) {
+        val candidate = current
+        if (candidate is ComponentActivity) return candidate
+        current = (candidate as? ContextWrapper)?.baseContext ?: return null
+    }
+    return null
+}

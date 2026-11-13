@@ -17,4 +17,7 @@
     <string name="weekday_sunday_short">Вс</string>
     <string name="widget_add_symbol" translatable="false">+</string>
     <string name="widget_add_task">Быстрая задача</string>
+    <string name="widget_compact_description">NoteLS — 3 записи</string>
+    <string name="widget_compact_add">Быстрая задача</string>
+    <string name="widget_compact_empty">Пока нет записей</string>
 </resources>

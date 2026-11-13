@@ -593,7 +593,10 @@ object UiCatalog {
             "Аудиовложения" to "Audio attachments",
             "Запись аудио в заметку" to "Record audio in notes",
             "До 20 минут и 10 МиБ на файл. Выключение скрывает запись; готовые аудиовложения остаются доступны." to "Up to 20 minutes and 10 MiB per file. Turning this off hides recording; existing audio attachments remain available.",
-            "Не найдено вложение: %1\$s" to "Attachment not found: %1\$s"
+            "Не найдено вложение: %1\$s" to "Attachment not found: %1\$s",
+            "Открыть NoteLS" to "Open NoteLS",
+            "Не удалось обновить записи. Откройте NoteLS." to "Could not update entries. Open NoteLS.",
+            "Пока нет записей" to "No entries yet"
         )
     }
 

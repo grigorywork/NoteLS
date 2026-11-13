@@ -171,6 +171,6 @@ class NoteActionsTest {
         assertEquals("Body 😀", note.content); assertFalse(note.isPinned || note.isPurged); assertEquals("", note.noteColor)
         assertEquals(9000L, note.taskElapsedMillis); assertNull(note.taskTimerStartedAt)
         assertEquals(10_000L, note.taskCountdownMillis); assertNull(note.taskCountdownEndAt)
-        assertEquals(15, db.openHelper.readableDatabase.version)
+        assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version)
     }
 }

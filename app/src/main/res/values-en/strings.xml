@@ -12,4 +12,7 @@
     <string name="weekday_saturday_short">Sat</string>
     <string name="weekday_sunday_short">Sun</string>
     <string name="widget_add_task">Quick task</string>
+    <string name="widget_compact_description">NoteLS — 3 entries</string>
+    <string name="widget_compact_add">Quick task</string>
+    <string name="widget_compact_empty">No entries yet</string>
 </resources>

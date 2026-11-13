@@ -11,6 +11,9 @@ import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.data.local.entity.NotebookEntity
 import kotlinx.coroutines.flow.Flow
 
+// Choose three identities using the covering metadata index before reading bounded title/body previews.
+internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS syncId, SUBSTR(title, 1, 256) AS title, SUBSTR(content, 1, 256) AS content, isTask, isCompleted, isPinned, SUBSTR(taskColor, 1, 16) AS taskColor, SUBSTR(noteColor, 1, 16) AS noteColor FROM notes WHERE id IN (SELECT id FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isPinned DESC, updatedAt DESC, id DESC LIMIT 3) ORDER BY isPinned DESC, updatedAt DESC, id DESC"
+
 @Dao
 interface NoteDao {
 
@@ -100,6 +103,9 @@ interface NoteDao {
 
     @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     fun observeAccess(id: Long): Flow<com.notessync.app.data.local.model.NoteAccess?>
+
+    @Query(COMPACT_WIDGET_SQL)
+    fun observeCompactWidget(): Flow<List<com.notessync.app.data.local.model.CompactWidgetEntry>>
 
     // Lightweight statistics, including ordinary notes. No bodies, tables, formatting or attachment paths.
     @Query("SELECT id, CASE WHEN isTask = 1 THEN SUBSTR(title, 1, 256) ELSE '' END AS title, notebookId, isTask, isCompleted, updatedAt, taskCompletedAt, taskElapsedMillis, taskColor, isDeleted, isPurged, isProtected FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1))")
