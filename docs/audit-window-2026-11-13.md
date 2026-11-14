@@ -298,3 +298,12 @@ EditorTaskTiming принимает конечную команду только
 QuickTaskReminders осознанно стал suspend storage adapter, сам platform Scheduler остался sync. QuickTaskStore заканчивает принятую транзакцию/регистрацию вместе, clearFailedReminder сверяет global UUID и target; stale completion не очищает чужую восстановленную строку. NoteActions post-commit refresh читает только свежие затронутые projections, а не сохранённые title/target snapshots. Перед clock mutation сохраняется durable recovery отметка. Main VM680 строк.
 
 50 тестов/10 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL4m38s. ИсходныеF017/F018 сохраняют assertions и настоящие Room commits; gate перемещён на новый backend boundary, awaitIdle дожидается фактического завершения. ПрежниеF010 компонентные тесты используют явный deterministic port, storage binding проверяется отдельно реальным Room. В профиле также QuickTaskStore/ViewModel, история, сроки, корзина/действия и sync alarm commit safety. Журнал: /workspace/tools/fix-alarm-ownership.log. Полный итог/lint/APK ещё не объявлен.
+
+
+### F019 — устаревшая карточка воздействует на другую identity/state (высокий приоритет)
+
+One-off/delete/bulk UI передают local ID, но теряют исходный global UUID. NotesViewModel читает свежую строку, однако не сравнивает её с карточкой. После восстановления ID может означать другую заметку: старый delete удаляет её в корзину, старый checkbox меняет её состояние. Для прежней UUID старое label «выполнить» отменяет уже новую completion, а старое «старт» останавливает уже запущенный другим writer секундомер.
+
+[Probe](audit-probes/StaleCardActionsAuditProbe.kt):4 ожидаемых отказа Native Room/API28/настоящий VM. Использован кешированный реальный card SQL DTO. При смене UUID та же числовая строка неожиданно completed/deleted; при сохранении UUID поздние старые команды отменяют новые completion/running state. BUILD FAILED1m37s. Это контролируемая замена/обновление БД, а не физический restore gesture/замер телефона.
+
+План: identity bindings у пользовательских действий/selection/delete prompt/Undo event и свежая проверка внутри транзакции; cached state определяет желаемое действие, повтор/опережающий update не инвертирует его. Lazy keys должны различать новую UUID при прежнем ID. Не ослаблять текущую авторизацию защищённых записей.

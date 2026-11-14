@@ -1268,3 +1268,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T11:39:55Z: F018 подтверждён2 отрицательными Native Room probe: поздняя регистрация старого editor заменяет уже установленный новый UUID/deadline alarm.1m34s. Нужен fresh DB-bound backend, одного Receiver guard недостаточно. Общий фиксF017/F018 в работе.
 
 2026-11-14T11:48:16Z: F017/F018 исправлены: свежая transaction-bound регистрация/отмена, отдельный suspend storage port, конечное завершение принятой команды при закрытии scope, ожидание на exit; QuickTask/NoteActions пользуются свежими эффектами. 50 тестов/10 наборов прошли4m38s. VM680 строк; Phone/hardware не тестировались. Полный прогон/lint/APK впереди.
+
+2026-11-14T11:54:05Z: F019 подтверждён4 отрицательными Native Room VM probe: stale card delete/complete действует на другую UUID под тем же ID, старые start/complete инвертируют более новое состояние той же записи.1m37s. Проверяются identity-bound actions/selection/Undo.
