@@ -423,3 +423,11 @@ Protection callback также передаёт предыдущую верси�
 ### Native v2 failure — совпавший текст ошибочно считался изменённым
 
 13:49:20 UTC: v2 long остановился assertion на versions после10523 операций/1414129ms учтённого времени; это не4h success. Точный replay java.util.Random seed202611143 воспроизвёл тот же вектор11 счётчиков и case8/variant0 наiteration10523. И старый, и новый text fixture содержат334 повтора с одинаковым iteration prefix — они равны. Настоящий editor правильно пропустил no-op save и оставил future version; driver ошибочно требовал её увеличения. Generator исправляется на гарантированно изменённый префикс, version assertion не ослабляется. Pure replay source/proof /workspace/tools/native-fixture-replay; это дефект harness, не дополнительный app finding. Основная4h фаза исправлений остаётся активной до17:14:23; весь отказ/разбор фиксируется честно.
+
+### F027 — blank exit пропускает ожидание принятой защиты
+
+flushOnExit ждёт protection внутри saveNow только если проверка exists/title/body/table уже истинна. У новой пустой задачи protection flush ещё может ждать saveMutex до insert; выбранный срок лежит пока в UI. Exit пропускает saveNow, ждёт только clocks/tags и сообщает true до завершения KDF/security commit. Последующая навигация может отменить owner и оставить запись без ожидаемой защиты.
+
+[Probe](audit-probes/EmptyProtectionExitAuditProbe.kt):1 ожидаемый отказ Native Room/API28, общая серия8 проверок/4 наборов1m53s (остальные7 прошли). Mutex FIFO barriers координируют настоящий VM/Room/PasswordProtector без sleeps/моделирования скорости телефона/ослабления crypto. Успешный exit наблюдается, пока security commit ещё не может получить lock. Cleanup завершает настоящий hash/SQL даже после отрицательного assert. План: всегда ждать уже принятую protection operation до проверки наличия/содержимого черновика; ожидание не под saveMutex, self-join через Parent.flush по-прежнему исключён.
+
+Test receiver fixture переведён на ContextCompat.RECEIVER_NOT_EXPORTED. В API<33 Config.NONE явно выдаётся только искусственная signature permission, которую реальному приложению даёт merged AndroidX manifest; экспорт не включён и lint не подавлен. Исходные6 receiver tests наAPI28 прошли; следующие проверки включают26/28/35. Новый исправленный long harness30s тоже прошёл; его окончательная длительная проверка ещё впереди.
