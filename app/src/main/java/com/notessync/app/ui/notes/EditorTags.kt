@@ -44,7 +44,7 @@ internal class EditorTags(private val db: AppDatabase, private val scope: Corout
         } }
         pending.add(work); work.invokeOnCompletion { pending.remove(work) }
     }
-    suspend fun awaitIdle() { while (pending.isNotEmpty()) pending.toList().joinAll() }
+    suspend fun awaitIdle() = pending.awaitPendingCommands()
 
     private suspend fun mutate(id: Long, syncId: String, name: String, add: Boolean): Result? = db.withTransaction {
         val fresh = db.noteDao().getTransformAccess(id) ?: return@withTransaction null

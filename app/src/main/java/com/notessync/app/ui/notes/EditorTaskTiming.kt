@@ -39,7 +39,7 @@ internal class EditorTaskTiming(private val app: Application, private val scope:
         } }
         pending.add(work); work.invokeOnCompletion { pending.remove(work) }
     }
-    suspend fun awaitIdle() { while (pending.isNotEmpty()) pending.toList().joinAll() }
+    suspend fun awaitIdle() = pending.awaitPendingCommands()
     private fun save() = command { persist() }
     fun toggleTaskTimer() {
         if (!canStart || !isTask || (isCompleted && taskTimerStartedAt == null)) return

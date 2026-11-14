@@ -129,14 +129,19 @@ class RoomSyncDataSource(
                         dirty = false
                     )
                     ProtectionSession.lockNotebook(local?.id ?: entity.id)
-                    if (local == null) db.notebookDao().upsert(entity) else db.notebookDao().update(entity)
+                    val storedId = if (local == null) db.notebookDao().upsert(entity) else {
+                        db.notebookDao().update(entity); entity.id
+                    }
+                    if (entity.isDeleted) db.noteDao().detachDeletedNotebook(storedId)
                     appliedNotebooks++
                 }
             }
 
-            for (dto in changes.notes) {
+            for (incoming in changes.notes) {
                 val committed = linkedSetOf<Long>()
                 syncTransaction(afterCommit = { changedAlarms.addAll(committed) }) {
+                    val notebookId = incoming.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.takeUnless { book -> book.isDeleted }?.id }
+                    val dto = if (incoming.notebookSyncId != null && notebookId == null) incoming.copy(notebookSyncId = null) else incoming
                     val local = db.noteDao().getBySyncId(dto.syncId)
                     val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
                     val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
@@ -153,14 +158,15 @@ class RoomSyncDataSource(
                     }
                     when (resolution) {
                         is ConflictResolver.Resolution.ApplyRemote -> {
-                            val appliedId = applyNote(dto, local, discardedFiles)
+                            val appliedId = applyNote(dto, local, discardedFiles, notebookId)
                             if (alarmsRelevant) committed.add(appliedId)
                             appliedNotes++
                         }
                         is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
-                            val appliedId = applyNote(dto, local, discardedFiles)
+                            val appliedId = applyNote(dto, local, discardedFiles, notebookId)
                             if (alarmsRelevant) committed.add(appliedId)
-                            val copyId = applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true)
+                            val copyNotebookId = resolution.conflictCopy.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.takeUnless { book -> book.isDeleted }?.id }
+                            val copyId = applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, notebookId = copyNotebookId, localConflict = true)
                             if (alarmsRelevant) committed.add(copyId)
                             preserveConflictFiles(localSnapshot!!, resolution.conflictCopy, localFiles, discardedFiles)
                             appliedNotes++
@@ -196,7 +202,7 @@ class RoomSyncDataSource(
         }
     }
 
-    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>, localConflict: Boolean = false): Long {
+    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>, notebookId: Long?, localConflict: Boolean = false): Long {
         val rawEntity = NoteEntity(
             id = existing?.id ?: 0,
             syncId = dto.syncId,
@@ -204,7 +210,7 @@ class RoomSyncDataSource(
             content = dto.content,
             textFormat = dto.textFormat,
             tablesData = dto.tablesData ?: existing?.tablesData.orEmpty(),
-            notebookId = dto.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.id },
+            notebookId = notebookId,
             isFavorite = dto.favorite,
             isDeleted = dto.deleted,
             isPinned = dto.pinned ?: existing?.isPinned ?: false,

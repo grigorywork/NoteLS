@@ -118,6 +118,10 @@ interface NoteDao {
     @Query("UPDATE notes SET notebookId = NULL, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE notebookId = :notebookId")
     suspend fun clearNotebook(notebookId: Long, timestamp: Long = System.currentTimeMillis())
 
+    // Canonical effect of a received parent tombstone; the note's own version and dirty flag stay intact.
+    @Query("UPDATE notes SET notebookId = NULL WHERE notebookId = :notebookId AND EXISTS (SELECT 1 FROM notebooks WHERE id = :notebookId AND isDeleted = 1)")
+    suspend fun detachDeletedNotebook(notebookId: Long)
+
     @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id IN (:ids)")
     suspend fun getAlarmSnapshots(ids: List<Long>): List<com.notessync.app.data.local.model.NoteAlarmSnapshot>
 

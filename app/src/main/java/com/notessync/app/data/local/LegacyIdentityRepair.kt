@@ -4,12 +4,14 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import java.util.UUID
 
-/** Data-only repair also runs on staged legacy restores, before any UI can grant access to an empty ID. */
+/** Data-only repairs run on live/staged databases before UI reads identities or deleted container links. */
 internal object LegacyIdentityRepair : RoomDatabase.Callback() {
     override fun onOpen(db: SupportSQLiteDatabase) {
         super.onOpen(db)
         db.beginTransaction()
         try {
+            // A notebook deletion keeps its notes; old partial syncs may have left an inaccessible parent.
+            db.execSQL("UPDATE notes SET notebookId = NULL WHERE notebookId IN (SELECT id FROM notebooks WHERE isDeleted = 1)")
             val now = System.currentTimeMillis()
             for (table in listOf("notes", "notebooks")) {
                 db.compileStatement("UPDATE `$table` SET syncId = ?, dirty = 1, updatedAt = " +

@@ -1306,3 +1306,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T14:26:44Z: sourceb0 full652/161 прошёл0 failures/errors/skipped, lint0error/15warnings/2info/assemble SUCCESS13m24s. Native v3 реально нашёл F028: NoSuchElement в EditorTaskTiming.awaitIdle после1192 операций (14:11:32), pending.toList singleton race; аналог в tags. Итог/4h ещё не закрыты, готовится36/code59 и общий безопасный await.
 
 2026-11-14T14:33:54Z: F029 подтверждён3 отрицательными Native Room checks1m7s: partial protected notebook deletion, incoming relink и старый dangling state послеreopen. Body/UUID/version не потеряны, но UI недоступен из-за deleted protected parent. Готовится canonical FK detach вместе с F028 в1.10.36/code59.
+
+2026-11-14T14:44:09Z:1.10.36/code59 F028/F029 исправлены.38 checks/12 suites прошли6m26s, lint0error/15warnings/2info, assembleDebug/package/Debug cert verified, NOT-UPDATE. Main21701/212, VM686. Native45s smoke549 операций/12 groups как1 test. ОбщийCI budget40 после отменённого25min run35; test timeouts/forkEvery не менялись. Full661/CI и4h fix ещё не завершены.

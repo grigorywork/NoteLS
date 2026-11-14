@@ -47,7 +47,7 @@ class CloudRoomLongAudit {
     private val db get() = AppDatabase.get(app)
     private val manager get() = app.getSystemService(AlarmManager::class.java)
     private val random = Random((System.getProperty("notels.audit.seed") ?: "202611143").toLong())
-    private val counts = LongArray(11)
+    private val counts = LongArray(12)
     private var iterations = 0L
     private val password get() = "PUBLIC SYNTHETIC AUDIT PASSWORD".toCharArray()
     private val runtime = Class.forName("java.lang.management.ManagementFactory").getMethod("getRuntimeMXBean").invoke(null)
@@ -285,6 +285,23 @@ class CloudRoomLongAudit {
         assertFalse(saved.isDeleted)
         if (timer) assertNotNull(saved.taskCountdownEndAt) else assertNotNull(saved.taskTimerStartedAt)
     }
+    private suspend fun deletedNotebook() {
+        operation = "deleted-book/fixture"
+        val record = PasswordProtector.create("PUBLIC BOOK FIXTURE $iterations")
+        val book = com.notessync.app.data.local.entity.NotebookEntity(id = 1, name = "Container", isProtected = true,
+            passwordHash = record.hash, passwordSalt = record.salt, dirty = false)
+        db.notebookDao().upsert(book)
+        val note = save(NoteEntity(id = 1, title = "Child", content = text(), notebookId = book.id, dirty = false))
+        val source = RoomSyncDataSource(app, db); val before = source.getChangesSince(Long.MIN_VALUE)
+        source.applyChanges(before.copy(notebooks = listOf(before.notebooks.single().copy(deleted = true, updatedAt = book.updatedAt + 1)), notes = emptyList()))
+        val detached = db.noteDao().getById(1)!!
+        assertNull(detached.notebookId); assertEquals(note.updatedAt, detached.updatedAt)
+        assertEquals(note.dirty, detached.dirty); assertEquals(note.content, detached.content)
+        val changed = "peer-" + text()
+        source.applyChanges(before.copy(notebooks = emptyList(), notes = listOf(before.notes.single().copy(content = changed, updatedAt = note.updatedAt + 2))))
+        val current = db.noteDao().getById(1)!!
+        assertNull(current.notebookId); assertEquals(changed, current.content)
+    }
     private fun report(status: String) {
         println("CLOUD_ROOM_AUDIT status=$status utc=${Instant.now()} seed=${(System.getProperty("notels.audit.seed") ?: "202611143")} iterations=$iterations cases=${counts.joinToString(",")} activeMillis=$activeMillis excludedMillis=$excludedMillis operation=$operation")
         System.out.flush()
@@ -304,7 +321,7 @@ class CloudRoomLongAudit {
                     when (choice) {
                         0 -> freshProtection(); 1 -> stalePassword(); 2 -> conversion(); 3 -> peerTargets()
                         4 -> acceptedAlarm(); 5 -> archiveRestore(); 6 -> staleCard(); 7 -> tags()
-                        8 -> versions(); 9 -> dayReopen(); else -> blankClock()
+                        8 -> versions(); 9 -> dayReopen(); 10 -> blankClock(); else -> deletedNotebook()
                     }
                     counts[choice]++; iterations++
                 } finally {
