@@ -253,3 +253,12 @@ Applier собирает IDs только после commit внутри NonCanc
 Перед первой изменённой записью остаётся durable recovery revision. Marker не берёт alarm mutex внутри Room transaction, поэтому обратного lock ordering нет. Старый полный scan не может стереть более новую recovery revision/cursor0; interrupted recovery по-прежнему возобновляется только по foreground событию. Restore также оставляет отметку до live commit. SharedPreferences содержат только progress/revision, не секреты.
 
 8 профильных тестов/5 наборов проходят,0 failures/errors/skipped, BUILD SUCCESSFUL3m53s:3 исходныхF015, boot countdown, конкурентный snapshot/peer file publication,1→17/staged restore и EditorSyncPause. Журнал: /workspace/tools/fix-sync-alarms.log. Сложные rollback/cancellation и оптимизация выборки ещё проверяются отдельно; это не финальное закрытие аудита.
+
+
+### F016 исправлен — отдельное владение security metadata
+
+Обычный persistNow копирует свежие protection/hash/salt и не владеет ими. Проверка no-op сравнивает только принадлежащие обычному редактору поля, поэтому принятие новой защиты не переписывает неизменённый документ и не создаёт лишний save. Cache/UI adopt обновляется по принятой строке. Явные protect/remove по-прежнему проверяют свежий binding; также сверяется VM global identity.
+
+Преобразование существующей задачи выполняет EditorTaskProtection по свежей авторизованной строке, UPDATE сохраняет текст/таблицы/пин/связи. Session grant отзывается после commit; clocks обновляются по свежей projection. Для новой несохранённой записи тип меняется в памяти без пустого insert. Public save/exit ждёт уже принятую security/type команду; внутренний flush обходит это ожидание, исключая self-join. Type chip временно disabled на время команды. Главный VM679 строк, логика преобразования изолирована в TaskConversion.
+
+33 тестов/7 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL4m. Включены обаF016/F005 пути, история редактора, Camera/Audio persistence, сроки и sync pause. Журнал: /workspace/tools/fix-editor-metadata.log. Полный общий прогон/lint/APK ещё впереди; длительный audit fuzz продолжается.

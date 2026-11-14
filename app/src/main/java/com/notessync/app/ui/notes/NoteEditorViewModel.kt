@@ -295,7 +295,11 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val isProtected: Boolean
     )
 
-    suspend fun saveNow(force: Boolean = false): Boolean = saveMutex.withLock {
+    suspend fun saveNow(force: Boolean = false): Boolean {
+        protection.awaitIdle()
+        return saveDocument(force)
+    }
+    private suspend fun saveDocument(force: Boolean): Boolean = saveMutex.withLock {
         if (!loaded || accessDenied || deleted) return@withLock false
         // An insert and its returned ID/cache update must finish together even if the caller exits.
         withContext(NonCancellable) { persistNow(force) }
@@ -344,9 +348,16 @@ class NoteEditorViewModel @JvmOverloads constructor(
             if (exists && (fresh == null || fresh.isDeleted || fresh.isPurged || fresh.syncId != syncId)) { deleted = true; return@withTransaction false }
             if (fresh != null && !NoteActions(app, db).canAccess(fresh)) { accessDenied = true; return@withTransaction false }
             accepted = true
-            val note = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
+            val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
             val previous = lastSavedNote
-            if (previous != null && note.copy(isPinned = previous.isPinned, updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) return@withTransaction false
+            val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
+                passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt)
+            if (previous != null && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
+                    passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
+                    updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {
+                lastSavedNote = previous.copy(isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
+                return@withTransaction false
+            }
             if (exists) noteDao.update(note) else {
                 val newId = noteDao.upsert(note)
                 currentNoteId = newId
@@ -358,6 +369,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             lastSavedNote = note.copy(id = currentNoteId)
             true
         }
+        if (accepted) lastSavedNote?.let { isProtected = it.isProtected; passwordHash = it.passwordHash; passwordSalt = it.passwordSalt }
         if (!didWrite) return accepted
         // Observers must not see the new ID before the insert transaction commits.
         _noteIdFlow.value = currentNoteId
@@ -490,22 +502,15 @@ class NoteEditorViewModel @JvmOverloads constructor(
     fun toggleFavorite() { isFavorite = !isFavorite }
 
     fun toggleTask() {
-        isTask = !isTask
-        if (!isTask) {
-            taskPriority = 0
-            taskDueAt = null
-            isCompleted = false
-            taskCompletedAt = null
-            taskElapsedMillis = 0L
-            taskTimerStartedAt = null
-            taskCountdownMillis = 0L
-            taskCountdownEndAt = null
-            isProtected = false
-            passwordHash = null
-            passwordSalt = null
-            ProtectionSession.lockTask(syncId)
-            cancelCountdownAlarm()
-        }
+        if (isClosing || protection.busy) return
+        if (!isTask) isTask = true
+        else if (exists) protection.convertToNote() else applyTaskConversion(null)
+    }
+    private fun applyTaskConversion(note: NoteEntity?) {
+        isTask = false; taskPriority = 0; taskDueAt = null; isCompleted = false; taskCompletedAt = null
+        taskElapsedMillis = 0L; taskTimerStartedAt = null; taskCountdownMillis = 0L; taskCountdownEndAt = null
+        isProtected = false; passwordHash = null; passwordSalt = null
+        if (note != null) lastSavedNote = note
     }
 
     fun toggleCompleted() {
@@ -556,22 +561,26 @@ class NoteEditorViewModel @JvmOverloads constructor(
 
     private val protection = EditorTaskProtection(app, db, viewModelScope, saveMutex,
         object : EditorProtectionParent {
-            override val editable get() = loaded && !accessDenied && !deleted && !isClosing
+            override val editable get() = loaded && !accessDenied && !deleted
             override val task get() = isTask
             override val isProtected: Boolean get() = this@NoteEditorViewModel.isProtected
             override val noteId get() = currentNoteId
-            override suspend fun flush() = saveNow(force = true)
+            override val syncId get() = this@NoteEditorViewModel.syncId
+            override suspend fun flush() = saveDocument(force = true)
             override fun denied() { accessDenied = true }
             override fun changed(record: PasswordRecord?, timestamp: Long) {
                 this@NoteEditorViewModel.isProtected = record != null; passwordHash = record?.hash; passwordSalt = record?.salt
                 lastSavedNote = lastSavedNote?.copy(isProtected = isProtected, passwordHash = passwordHash,
                     passwordSalt = passwordSalt, updatedAt = timestamp, dirty = true)
             }
+            override fun converted(note: NoteEntity) = applyTaskConversion(note)
             override fun failed() { message = EditorMessage.SAVE_FAILED }
         })
     val taskProtectionBusy get() = protection.busy
-    fun protectTask(password: String) = protection.protect(password)
-    fun removeTaskProtection(password: String, onResult: (Boolean) -> Unit) = protection.remove(password, onResult)
+    fun protectTask(password: String) { if (!isClosing) protection.protect(password) }
+    fun removeTaskProtection(password: String, onResult: (Boolean) -> Unit) {
+        if (isClosing) onResult(false) else protection.remove(password, onResult)
+    }
     fun cancelTaskProtection() = protection.cancel()
     fun lockTask() {
         protection.cancel()

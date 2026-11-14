@@ -60,6 +60,7 @@ internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiStat
     FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         FilterChip(
             selected = viewModel.isTask,
+            enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
             onClick = viewModel::toggleTask,
             label = { Text(uiText("Задача")) },
             leadingIcon = { Icon(Icons.Default.CheckBox, contentDescription = null) },

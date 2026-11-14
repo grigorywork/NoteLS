@@ -1258,3 +1258,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T11:02:04Z: F016 подтверждён2 отрицательными Native Room probe: старый editor text-save снимает свежую защиту после легитимного нового unlock; toggleTask отзываeт собственный grant до save и не сохраняет преобразование.1m33s, без телефона. Нужны свежие security columns в общем save и отдельная commit-authorized conversion. [Журнал](docs/audit-window-2026-11-13.md).
 
 2026-11-14T11:10:58Z: F015 первое исправление — post-commit IDs/NonCancellable finally/fresh200-row projections; durable revision перед записью без Room→alarm mutex inversion.8 тестов/5 наборов прошли за3m53s. Дополнительные rollback/cancel проверки впереди; F016 ещё исправляется.
+
+2026-11-14T11:16:54Z: F016 исправлен: общие saves сохраняют свежую protection metadata/не пишут no-op; fresh transaction для conversion, grant revocation после commit, save/exit ждёт принятую команду без self-join. VM679 строк. 33 тестов/7 наборов прошли за4m,0 failures/errors/skipped. Полного итога ещё нет.
