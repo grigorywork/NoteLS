@@ -214,3 +214,10 @@ Boot и MY_PACKAGE_REPLACED восстанавливают оба типа си�
 EditorTaskTiming имеет раздельные поколения reminder/countdown и сверяет target/parent после каждого await. Сигнал ставится только после принятого save. Отмена также ждёт принятого save: старый редактор с отказом доступа не снимает сигнал другой восстановленной записи по reused local ID. Ошибки сохранения теперь сообщаются для всех timing-команд. Поля/анимации секундомера сохранены.
 
 46 тестов/11 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL3m5s. Оригинальные отрицательныеF008/F009/F010/F012 перенесены в обычные регрессии; async Receiver проверяется настоящим broadcast/goAsync completion до чтения NotificationManager shadow. Дополнены fixtures ожидаемыми UUID/deadline по новому контракту, прежние assertions сохранены. Включены QuickTaskStore/TaskTimer/сроки/NoteActions/backup/legacy restore. Журнал: /workspace/tools/fix-audit-alarms.log. Дополнительные edge/API проверки и полный итог ещё впереди.
+
+
+### Непрерывный динамический аудит фиксированного JVM снимка
+
+Запущен2026-11-14T10:49:39.819337+00:00 UTC, до текущей границы аудита2026-11-14T12:40:36Z (при фактических разрывах active time продлевается). Seed202611142, 192MiB JVM/один активный процессор, public synthetic fixtures. [Harness/ограничения](audit-tools/README.md), [исходник](audit-tools/CloudAuditFuzzer.java). Snapshot собранного кода соответствует рабочей1.10.35/code58/4c11e3c, classpath entries из app/build отдельно скопированы и не меняются дальнейшими Gradle сборками. Процесс не является субагентом и не редактирует приложение. Прогресс каждые15s в /workspace/tools/notels-fuzz/audit.log; PID и SHA в audit-run.json.
+
+Smoke30s:5273 итерации/21500 crypto checks/5273 ZIP/5273 formatting, без отказа. Первый smoke harness обнаружил собственную неверную предпосылку: raw-byte action у automatic legacy detection допустим и сам не валидирует ZIP. Harness исправлен на строгий encrypted codec и отдельно проверяет настоящий encrypted→ZIP pipeline; этот smoke не выдан за дефект приложения. Длительный прогон ещё не завершён и не объявляется четырьмя часами/испытанием телефона.
