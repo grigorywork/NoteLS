@@ -2,6 +2,7 @@ package com.notessync.app.audit
 
 import android.app.AlarmManager
 import android.app.Application
+import android.os.Looper
 import android.net.Uri
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
@@ -71,9 +72,12 @@ class CloudRoomLongAudit {
     private fun text() = "fixture $iterations " + "аб😀xy".repeat(1 + random.nextInt(600))
     private suspend fun save(note: NoteEntity) = note.copy(id = db.noteDao().upsert(note))
     private suspend fun open(note: NoteEntity): NoteEditorViewModel {
+        operation += "/open"
         val vm = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to note.id, "isTask" to note.isTask)))
         editors.add(vm); store.put("editor-${editors.size}", vm)
+        operation += "/ready"
         withContext(Dispatchers.IO) { withTimeout(15000) { while (!vm.isReady && !vm.accessDenied) delay(2) } }
+        operation += "/loaded"
         return vm
     }
     private fun home() = NotesViewModel(app).also { store.put("home", it) }
@@ -219,17 +223,22 @@ class CloudRoomLongAudit {
         action(); withTimeout(15000) { job.children.filter { it !in previous }.toList().joinAll() }
     }
     private suspend fun tags() {
+        operation = "tags/fixture"
         val note = save(NoteEntity(id = 1, title = "Owner", content = text(), dirty = false))
         val editor = open(note); val replacement = random.nextBoolean()
         if (replacement) db.noteDao().update(note.copy(syncId = UUID.randomUUID().toString()))
         val name = "fixture-tag-${random.nextInt(10000)}"
+        operation = "tags/add"
         editorCommand(editor) { editor.addTag(name) }
+        operation = "tags/check-add"
         if (replacement) assertTrue(db.tagDao().getTagNamesForNote(1).isEmpty())
         else {
             val tagged = db.noteDao().getById(1)!!
             assertTrue(tagged.dirty); assertTrue(tagged.updatedAt > note.updatedAt)
             assertEquals(listOf(name), db.tagDao().getTagNamesForNote(1)); assertEquals(note.content, tagged.content)
+            operation = "tags/remove"
             editorCommand(editor) { editor.removeTag(name) }
+            operation = "tags/check-remove"
             assertTrue(db.tagDao().getTagNamesForNote(1).isEmpty())
             assertTrue(db.noteDao().getById(1)!!.updatedAt > tagged.updatedAt)
         }
@@ -287,6 +296,8 @@ class CloudRoomLongAudit {
         report("started")
         try {
             do {
+                // An actual Android main loop runs between interactions; the long standalone harness must drive it too.
+                shadowOf(Looper.getMainLooper()).idle()
                 store = ViewModelStore(); editors.clear(); ProtectionSession.lockAll()
                 val choice = random.nextInt(counts.size); operation = choice.toString()
                 try {
@@ -302,12 +313,19 @@ class CloudRoomLongAudit {
                     shadowOf(manager).scheduledAlarms.toList().forEach { it.operation?.let { pending -> manager.cancel(pending); pending.cancel() } }
                     withContext(Dispatchers.IO) { db.clearAllTables() }
                     ProtectionSession.lockAll()
+                    shadowOf(Looper.getMainLooper()).idle()
                 }
                 val now = uptime(); val delta = now - last; last = now
                 if (delta > 30000) { excludedMillis += delta; report("execution_gap_excluded") } else activeMillis += delta
                 if (now - printed >= 15000) { report("running"); printed = now }
             } while (activeMillis < target && !stop.isFile)
             report(if (stop.isFile) "stopped" else "completed")
-        } catch (error: Throwable) { report("FAILED"); throw error }
+        } catch (error: Throwable) {
+            report("FAILED")
+            Thread.getAllStackTraces().entries.sortedBy { it.key.name }.forEach { (thread, frames) ->
+                System.err.println("AUDIT_THREAD name=${thread.name} state=${thread.state}\n" + frames.take(24).joinToString("\n"))
+            }
+            throw error
+        }
     }
 }

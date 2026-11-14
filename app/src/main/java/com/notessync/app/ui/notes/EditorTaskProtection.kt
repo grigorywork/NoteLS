@@ -24,7 +24,7 @@ internal interface EditorProtectionParent {
     val syncId: String
     suspend fun flush(): Boolean
     fun denied()
-    fun changed(record: PasswordRecord?, timestamp: Long)
+    fun changed(record: PasswordRecord?, beforeVersion: Long, timestamp: Long)
     fun converted(note: NoteEntity)
     fun failed()
 }
@@ -112,10 +112,10 @@ internal class EditorTaskProtection(context: Context, private val db: AppDatabas
                             val now = if (fresh.updatedAt == Long.MAX_VALUE) Long.MAX_VALUE
                                 else maxOf(System.currentTimeMillis(), fresh.updatedAt + 1)
                             db.noteDao().updateTaskProtection(fresh.id, record != null, record?.hash, record?.salt, now)
-                            now
+                            fresh.updatedAt to now
                         }
                         if (timestamp != null) {
-                            parent.changed(record, timestamp)
+                            parent.changed(record, timestamp.first, timestamp.second)
                             if (remove) ProtectionSession.lockTask(expected.syncId)
                             else db.withTransaction {
                                 val fresh = db.noteDao().getTaskProtection(expected.id)

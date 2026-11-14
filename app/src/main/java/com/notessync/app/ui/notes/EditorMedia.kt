@@ -19,7 +19,8 @@ import com.notessync.app.data.attachments.PhotoTooLargeException
 import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.TransformAccess
+import com.notessync.app.data.local.model.nextChangeTimestamp
 import com.notessync.app.security.ProtectionSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -44,7 +45,8 @@ internal interface EditorMediaParent {
     val deleted: Boolean
     val isClosing: Boolean
     val exists: Boolean
-    suspend fun accessibleParent(): NoteEntity?
+    suspend fun accessibleParent(): TransformAccess?
+    fun metadataChanged(beforeVersion: Long, version: Long)
     suspend fun persistParent()
     suspend fun saveParent()
     fun report(message: EditorMessage)
@@ -65,6 +67,13 @@ internal class EditorMedia(private val app: Application, private val db: AppData
     private val isClosing: Boolean get() = parent.isClosing
     private val exists: Boolean get() = parent.exists
     private suspend fun accessibleParent() = parent.accessibleParent()
+    private data class VersionChange(val before: Long, val after: Long)
+    private suspend fun markMetadataChanged(before: TransformAccess): VersionChange {
+        val next = nextChangeTimestamp(before.updatedAt)
+        noteDao.markContentChanged(currentNoteId, next)
+        return VersionChange(before.updatedAt, next)
+    }
+    private fun metadataCommitted(change: VersionChange) = parent.metadataChanged(change.before, change.after)
     private val photoStore = PhotoAttachmentStore(app)
     private val audioFiles = audioDependencies?.files ?: AudioFiles(app)
     val audioPlayback = AudioPlayback(audioDependencies?.playbackFactory ?: AndroidAudioPlaybackFactory(app), ::resolveAudio,
@@ -97,14 +106,14 @@ internal class EditorMedia(private val app: Application, private val db: AppData
             val stored = withContext(Dispatchers.IO) { audioFiles.store(draft, attachmentId) }
             var committed = false
             try {
-                committed = db.withTransaction {
-                    if (accessibleParent() == null) return@withTransaction false
+                val change = db.withTransaction {
+                    val before = accessibleParent() ?: return@withTransaction null
                     attachmentDao.upsert(AttachmentEntity(syncId = attachmentId, noteId = currentNoteId,
                         filePath = stored.file.absolutePath, mimeType = stored.mimeType, sizeBytes = stored.sizeBytes))
-                    noteDao.markContentChanged(currentNoteId)
-                    true
+                    markMetadataChanged(before)
                 }
-                if (committed) BackupManager.noteChanged()
+                committed = change != null
+                if (change != null) { metadataCommitted(change); BackupManager.noteChanged() }
                 committed
             } finally { if (!committed) withContext(Dispatchers.IO) { stored.file.delete() } }
         }
@@ -141,18 +150,19 @@ internal class EditorMedia(private val app: Application, private val db: AppData
                     if (deleted || accessDenied || accessibleParent() == null) return@withContext
                     val attachmentSyncId = UUID.randomUUID().toString()
                     val stored = withContext(Dispatchers.IO) { import(attachmentSyncId) }
-                    try {
+                    val change = try {
                         db.withTransaction {
-                            check(accessibleParent() != null) { "The attachment parent is no longer accessible" }
+                            val before = checkNotNull(accessibleParent()) { "The attachment parent is no longer accessible" }
                             attachmentDao.upsert(AttachmentEntity(syncId = attachmentSyncId,
                                 noteId = currentNoteId, filePath = stored.file.absolutePath,
                                 mimeType = stored.mimeType, sizeBytes = stored.sizeBytes))
-                            noteDao.markContentChanged(currentNoteId)
+                            markMetadataChanged(before)
                         }
                     } catch (error: Exception) {
                         withContext(Dispatchers.IO) { stored.file.delete() }
                         throw error
                     }
+                    metadataCommitted(change)
                     BackupManager.noteChanged()
                 }
             }
@@ -218,18 +228,21 @@ internal class EditorMedia(private val app: Application, private val db: AppData
     suspend fun savePhotoSize(photo: AttachmentEntity, requested: PhotoDisplaySize): Boolean {
         return try {
             saveMutex.withLock {
-                if (deleted || !loaded || accessDenied || photo.noteId != currentNoteId) return@withLock false
+                if (isClosing || deleted || !loaded || accessDenied || photo.noteId != currentNoteId) return@withLock false
                 val size = requested.bounded()
                 withContext(NonCancellable) {
-                    db.withTransaction {
+                    var change: VersionChange? = null
+                    val saved = db.withTransaction {
+                        val before = accessibleParent() ?: return@withTransaction false
                         val current = attachmentDao.getBySyncId(photo.syncId) ?: return@withTransaction false
                         if (current.id != photo.id || current.noteId != currentNoteId) return@withTransaction false
                         if (current.displayWidthDp == size.width && current.displayHeightDp == size.height) return@withTransaction true
                         if (attachmentDao.updateDisplaySize(current.id, currentNoteId, size.width, size.height) != 1) return@withTransaction false
-                        noteDao.markContentChanged(currentNoteId)
-                        BackupManager.noteChanged()
+                        change = markMetadataChanged(before)
                         true
                     }
+                    change?.let { metadataCommitted(it); BackupManager.noteChanged() }
+                    saved
                 }
             }
         } catch (error: Exception) {
@@ -240,21 +253,23 @@ internal class EditorMedia(private val app: Application, private val db: AppData
     }
 
     fun removeAttachment(attachment: AttachmentEntity) {
-        if (attachment.noteId != currentNoteId) return
+        if (isClosing || !loaded || accessDenied || deleted || attachment.noteId != currentNoteId) return
         if (audioPlayback.state.value.key == attachment.syncId) audioPlayback.stop()
         scope.launch {
             saveMutex.withLock {
                 withContext(NonCancellable) {
                     var removed: AttachmentEntity? = null
+                    var change: VersionChange? = null
                     db.withTransaction {
-                        if (accessibleParent() == null) return@withTransaction
+                        val before = accessibleParent() ?: return@withTransaction
                         val fresh = attachmentDao.getBySyncId(attachment.syncId) ?: return@withTransaction
                         if (fresh.id != attachment.id || fresh.noteId != currentNoteId) return@withTransaction
                         attachmentDao.deleteById(fresh.id)
-                        noteDao.markContentChanged(currentNoteId)
+                        change = markMetadataChanged(before)
                         removed = fresh
                     }
                     removed?.let { row ->
+                        change?.let(::metadataCommitted)
                         BackupManager.noteChanged()
                         db.withTransaction { NoteActions.deleteUnreferencedFiles(app, db, listOf(row.filePath)) }
                     }

@@ -1,12 +1,12 @@
 package com.notessync.app.ui.notes
 
-import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.NoteTagCrossRef
 import com.notessync.app.data.local.entity.TagEntity
-import com.notessync.app.notes.actions.NoteActions
+import com.notessync.app.data.local.model.nextChangeTimestamp
+import com.notessync.app.security.ProtectionSession
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -17,14 +17,14 @@ internal interface EditorTagsParent {
     val noteId: Long
     val syncId: String
     suspend fun flush(): Boolean
-    fun changed(names: List<String>)
+    fun changed(names: List<String>, beforeVersion: Long, version: Long)
     fun failed()
 }
 
 /** Owns finite accepted relation commands; a cached editor never owns a replacement record. */
-internal class EditorTags(context: Context, private val db: AppDatabase, private val scope: CoroutineScope,
+internal class EditorTags(private val db: AppDatabase, private val scope: CoroutineScope,
     private val saveMutex: Mutex, private val parent: EditorTagsParent) {
-    private val actions = NoteActions(context, db)
+    private data class Result(val names: List<String>, val beforeVersion: Long, val version: Long, val changed: Boolean)
     private val pending = ConcurrentHashMap.newKeySet<Job>()
     fun change(name: String, add: Boolean) {
         val clean = name.trim()
@@ -34,8 +34,8 @@ internal class EditorTags(context: Context, private val db: AppDatabase, private
                 if (!parent.flush()) return@withContext
                 saveMutex.withLock {
                     val result = mutate(parent.noteId, parent.syncId, clean, add) ?: return@withLock
-                    parent.changed(result.first)
-                    if (result.second) BackupManager.noteChanged()
+                    parent.changed(result.names, result.beforeVersion, result.version)
+                    if (result.changed) BackupManager.noteChanged()
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
@@ -46,23 +46,22 @@ internal class EditorTags(context: Context, private val db: AppDatabase, private
     }
     suspend fun awaitIdle() { while (pending.isNotEmpty()) pending.toList().joinAll() }
 
-    private suspend fun mutate(id: Long, syncId: String, name: String, add: Boolean): Pair<List<String>, Boolean>? = db.withTransaction {
-        val fresh = db.noteDao().getById(id) ?: return@withTransaction null
-        if (fresh.syncId != syncId || fresh.isDeleted || fresh.isPurged || !actions.canAccess(fresh)) return@withTransaction null
+    private suspend fun mutate(id: Long, syncId: String, name: String, add: Boolean): Result? = db.withTransaction {
+        val fresh = db.noteDao().getTransformAccess(id) ?: return@withTransaction null
+        if (fresh.syncId != syncId || !fresh.allowed(ProtectionSession.state.value)) return@withTransaction null
         val before = db.tagDao().getTagNamesForNote(id)
-        if (before.any { it.equals(name, ignoreCase = true) } == add) return@withTransaction before to false
+        if (before.any { it.equals(name, ignoreCase = true) } == add) return@withTransaction Result(before, fresh.updatedAt, fresh.updatedAt, false)
         val tag = db.tagDao().getByName(name)
         if (add) {
             val tagId = tag?.id ?: db.tagDao().insert(TagEntity(name = name)).takeIf { it > 0 }
                 ?: db.tagDao().getByName(name)?.id ?: return@withTransaction null
             db.tagDao().attachToNote(NoteTagCrossRef(id, tagId))
         } else {
-            if (tag == null) return@withTransaction before to false
+            if (tag == null) return@withTransaction Result(before, fresh.updatedAt, fresh.updatedAt, false)
             db.tagDao().detachFromNote(id, tag.id)
         }
-        val timestamp = if (fresh.updatedAt == Long.MAX_VALUE) Long.MAX_VALUE
-            else maxOf(System.currentTimeMillis(), fresh.updatedAt + 1)
+        val timestamp = nextChangeTimestamp(fresh.updatedAt)
         db.noteDao().markContentChanged(id, timestamp)
-        db.tagDao().getTagNamesForNote(id) to true
+        Result(db.tagDao().getTagNamesForNote(id), fresh.updatedAt, timestamp, true)
     }
 }

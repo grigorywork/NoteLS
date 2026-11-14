@@ -31,6 +31,7 @@ import com.notessync.app.data.local.entity.NotebookEntity
 import com.notessync.app.ui.notes.md.MarkdownEdit
 import com.notessync.app.ui.tasks.DEFAULT_TASK_COLOR
 import com.notessync.app.ui.tasks.TaskTimer
+import com.notessync.app.ui.tasks.toOrdinaryNote
 import com.notessync.app.widget.CalendarWidgetProvider
 import com.notessync.app.reminders.ReminderScheduler
 import com.notessync.app.security.PasswordProtector
@@ -123,7 +124,10 @@ class NoteEditorViewModel @JvmOverloads constructor(
             override val deleted get() = this@NoteEditorViewModel.deleted
             override val isClosing get() = this@NoteEditorViewModel.isClosing
             override val exists get() = this@NoteEditorViewModel.exists
-            override suspend fun accessibleParent() = this@NoteEditorViewModel.accessibleParent()
+            override suspend fun accessibleParent() = noteDao.getTransformAccess(currentNoteId)?.takeIf {
+                it.syncId == syncId && it.allowed(ProtectionSession.state.value)
+            }
+            override fun metadataChanged(beforeVersion: Long, version: Long) = adoptMetadataVersion(beforeVersion, version)
             override suspend fun persistParent() { persistNow(force = true) }
             override suspend fun saveParent() { saveNow(force = true) }
             override fun report(message: EditorMessage) { this@NoteEditorViewModel.message = message }
@@ -518,7 +522,12 @@ class NoteEditorViewModel @JvmOverloads constructor(
         isTask = false; taskPriority = 0; taskDueAt = null; isCompleted = false; taskCompletedAt = null
         taskElapsedMillis = 0L; taskTimerStartedAt = null; taskCountdownMillis = 0L; taskCountdownEndAt = null
         isProtected = false; passwordHash = null; passwordSalt = null
-        if (note != null) lastSavedNote = note
+        if (note != null) {
+            val previous = lastSavedNote
+            val converted = previous?.toOrdinaryNote(note.updatedAt)
+            // A metadata command must not rebase an unchanged stale editor onto a newer peer body.
+            lastSavedNote = if (converted == note) note else previous?.toOrdinaryNote(previous.updatedAt) ?: note
+        }
     }
 
     fun toggleCompleted() {
@@ -571,10 +580,10 @@ class NoteEditorViewModel @JvmOverloads constructor(
             override val syncId get() = this@NoteEditorViewModel.syncId
             override suspend fun flush() = saveDocument(force = true)
             override fun denied() { accessDenied = true }
-            override fun changed(record: PasswordRecord?, timestamp: Long) {
+            override fun changed(record: PasswordRecord?, beforeVersion: Long, timestamp: Long) {
                 this@NoteEditorViewModel.isProtected = record != null; passwordHash = record?.hash; passwordSalt = record?.salt
-                lastSavedNote = lastSavedNote?.copy(isProtected = isProtected, passwordHash = passwordHash,
-                    passwordSalt = passwordSalt, updatedAt = timestamp, dirty = true)
+                lastSavedNote = lastSavedNote?.let { saved -> saved.copy(isProtected = isProtected, passwordHash = passwordHash,
+                    passwordSalt = passwordSalt, updatedAt = if (saved.updatedAt == beforeVersion) timestamp else saved.updatedAt, dirty = true) }
             }
             override fun converted(note: NoteEntity) = applyTaskConversion(note)
             override fun failed() { message = EditorMessage.SAVE_FAILED }
@@ -601,12 +610,14 @@ class NoteEditorViewModel @JvmOverloads constructor(
         viewModelScope.launch { saveNow() }
     }
 
-    private val tags = EditorTags(app, db, viewModelScope, saveMutex, object : EditorTagsParent {
+    private val tags = EditorTags(db, viewModelScope, saveMutex, object : EditorTagsParent {
         override val editable get() = loaded && !isClosing && !accessDenied && !deleted
         override val noteId get() = currentNoteId
         override val syncId get() = this@NoteEditorViewModel.syncId
         override suspend fun flush() = saveNow(force = true)
-        override fun changed(names: List<String>) { noteTags = names }
+        override fun changed(names: List<String>, beforeVersion: Long, version: Long) {
+            noteTags = names; adoptMetadataVersion(beforeVersion, version)
+        }
         override fun failed() { message = EditorMessage.SAVE_FAILED }
     })
     fun addTag(name: String) = tags.change(name, add = true)
@@ -621,6 +632,13 @@ class NoteEditorViewModel @JvmOverloads constructor(
     suspend fun savePhotoSize(photo: AttachmentEntity, requested: PhotoDisplaySize): Boolean = media.savePhotoSize(photo, requested)
     fun removeAttachment(attachment: AttachmentEntity) = media.removeAttachment(attachment)
 
+    private fun adoptMetadataVersion(beforeVersion: Long, version: Long) {
+        val saved = lastSavedNote ?: return
+        // Only this exact saved document may adopt its own relation revision; a peer edit stays stale.
+        if (saved.updatedAt == beforeVersion && version != beforeVersion) {
+            lastSavedNote = saved.copy(updatedAt = version, dirty = true)
+        }
+    }
     private suspend fun accessibleParent(): NoteEntity? {
         val current = noteDao.getById(currentNoteId) ?: return null
         return current.takeIf { it.syncId == syncId && !it.isDeleted && !it.isPurged && NoteActions(app, db).canAccess(it) }
