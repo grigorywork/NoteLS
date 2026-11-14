@@ -337,3 +337,9 @@ addTag игнорирует отрицательный saveNow, removeTag воо
 [Probe](audit-probes/EditorTagOwnershipAuditProbe.kt):3 ожидаемых отказа Native Room/API28,1m52s общего smoke/probe прогона. Добавление stale tag к replacement, удаление тега уже закрытой задачи и clean-parent dirty проверены настоящими публичными VM командами. Отдельный smoke CloudRoomLongAudit в этом же запуске отклонил собственную невалидную fixture: take(200) разрезал emoji UTF16 в table cell; это ошибка harness, не дополнительная находка приложения. Исправляется генерация fixture, исходные3F021 asserts не меняются.
 
 План: отдельный EditorTags, свежие identity/access и relation+monotonic parent version в одной transaction; конечная принятая команда/exit await, no-op без новой версии, закрытый editor новых команд не принимает.
+
+### F021 исправлен — отдельный EditorTags
+
+Identity/access, relation и версия родителя обновляются одной свежей transaction. Нет полного stale UPDATE документа. Dirty/монотонная версия защищают tag-only изменения от старого conditional ACK; duplicate add/absent remove остаются no-op. Конечные принятые команды переживают закрытие scope, flushOnExit ждёт их до cleanup; новые команды закрытого редактора отклоняются. EditorTags вынесен из VM, VM665 строк.
+
+11 проверок/3 набора прошли,0 failures/errors/skipped: исходные3F021,3 положительных/no-op/exit,4F020 и1 внешний Native long smoke30s. Smoke число случайных операций записано отдельно и не увеличивает JUnit count. Синтетическая table fixture исправлена Unicode-safe clipping, без изменения app table logic/исходных asserts. /workspace/tools/fix-editor-tags-native-smoke.log. Полный набор/lint/APK впереди.

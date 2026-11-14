@@ -25,9 +25,7 @@ import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.AttachmentEntity
 import com.notessync.app.data.local.entity.NoteEntity
-import com.notessync.app.data.local.entity.NoteTagCrossRef
 import com.notessync.app.data.local.entity.NotebookEntity
-import com.notessync.app.data.local.entity.TagEntity
 import com.notessync.app.ui.notes.md.MarkdownEdit
 import com.notessync.app.ui.tasks.DEFAULT_TASK_COLOR
 import com.notessync.app.ui.tasks.TaskTimer
@@ -395,6 +393,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             // Freeze edits while the final write is pending, so exit cannot drop a late edit.
             if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables) saveNow(force = true)
             timing.awaitIdle()
+            tags.awaitIdle()
             discardIfEmptyOnExit()
             BackupManager.requestAutoBackup(app, afterNote = true)
             true
@@ -600,31 +599,16 @@ class NoteEditorViewModel @JvmOverloads constructor(
         viewModelScope.launch { saveNow() }
     }
 
-    fun addTag(name: String) {
-        val clean = name.trim()
-        if (clean.isEmpty() || noteTags.any { it.equals(clean, ignoreCase = true) }) return
-        viewModelScope.launch {
-            saveNow()
-            // Аудит 2026-11-11: один запрос вместо двух; при гонке вставки
-            // (IGNORE вернул -1) идентификатор дочитываем.
-            val tagId = tagDao.getByName(clean)?.id
-                ?: tagDao.insert(TagEntity(name = clean)).takeIf { it > 0 }
-                ?: tagDao.getByName(clean)?.id
-                ?: return@launch
-            tagDao.attachToNote(NoteTagCrossRef(noteId = currentNoteId, tagId = tagId))
-            BackupManager.noteChanged()
-            noteTags = tagDao.getTagNamesForNote(currentNoteId)
-        }
-    }
-
-    fun removeTag(name: String) {
-        viewModelScope.launch {
-            val tag = tagDao.getByName(name) ?: return@launch
-            tagDao.detachFromNote(currentNoteId, tag.id)
-            BackupManager.noteChanged()
-            noteTags = tagDao.getTagNamesForNote(currentNoteId)
-        }
-    }
+    private val tags = EditorTags(app, db, viewModelScope, saveMutex, object : EditorTagsParent {
+        override val editable get() = loaded && !isClosing && !accessDenied && !deleted
+        override val noteId get() = currentNoteId
+        override val syncId get() = this@NoteEditorViewModel.syncId
+        override suspend fun flush() = saveNow(force = true)
+        override fun changed(names: List<String>) { noteTags = names }
+        override fun failed() { message = EditorMessage.SAVE_FAILED }
+    })
+    fun addTag(name: String) = tags.change(name, add = true)
+    fun removeTag(name: String) = tags.change(name, add = false)
 
     // ---------- Вложения (Этап 3) ----------
 
