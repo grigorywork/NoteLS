@@ -187,3 +187,8 @@ LegacyIdentityRepair присваивает пустым note/notebook syncId н
 [Probe](audit-probes/LegacyMigrationAuditProbe.kt) создаёт настоящую SQLite DB по schema1.json из текущего main, с двумя заметками, блокнотом, тегом/связью и attachment row. Затем AppDatabase проходит цепочку1→17.1 ожидаемый отказ Room schema validation notes/index_notes_syncId (BUILD FAILED1m4s). Проверка выполнена на рабочем исправленииF011, но сам migration1→2 ещё неизменён относительно1.10.34; сбой происходит до нового onOpen repair. Это уже реальная миграция, в отличие от ранней фикстуры пустых ID. Пользовательских данных/архивов исходников не использовано.
 
 Исправление: добавить недостающие CREATE INDEX IF NOT EXISTS для notes/notebooks/tags/attachments именно в1→2; новые текущие базы/форматRoom17 не менять. Затем повторить полноценную миграцию и сохранность связей/идентичностей при повторном открытии, а также staged restore этой базы.
+
+
+### F014 исправлен и проверен вместе с F011
+
+MIGRATION_1_2 теперь создаёт четыре недостающих неуникальных syncId индекса, соответствующих отслеживаемой схеме. Два Native Room теста проходят: настоящая1→17 migration и публичный BackupManager.restore legacy ZIP1 через staged DB. Проверены две независимые стабильные note UUID, notebook UUID, bodies, тег/связь, attachment row/bytes и повторное открытие. Room17/schema JSON/signing прежние. BUILD SUCCESSFUL2m4s,2 теста,0 failures/errors/skipped. Журнал: /workspace/tools/fix-audit-legacy-migration.log. Физический телефон и пользовательский архив не использовались.

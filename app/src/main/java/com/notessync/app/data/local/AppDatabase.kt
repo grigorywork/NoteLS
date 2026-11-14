@@ -55,6 +55,9 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE tags ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE tags ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1")
                 db.execSQL("ALTER TABLE attachments ADD COLUMN syncId TEXT NOT NULL DEFAULT ''")
+                for (table in listOf("notes", "notebooks", "tags", "attachments")) {
+                    db.execSQL("CREATE INDEX IF NOT EXISTS `index_${table}_syncId` ON `$table` (`syncId`)")
+                }
             }
         }
 
