@@ -1280,3 +1280,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T12:15:03Z: F021 подтверждён3 отрицательными Native Room VM проверками: stale/locked tag writes и отсутствие dirty/version у чистого родителя.1m52s. Отдельный long harness smoke требует исправления собственной emoji fixture, не дефект приложения.
 
 2026-11-14T12:20:33Z: F021 исправлен отдельным EditorTags, VM665 строк.11 проверок/3 набора прошли; включает внешний30s Native randomized smoke, не прибавляем его операции к JUnit tests. Полный итог/lint/APK ещё впереди.
+
+2026-11-14T12:23:25Z: F022 подтверждён3 отрицательными version/old-ACK probes, F023 —1 day uncheck alarm probe; общий1m50s. Исправляются logical version отдельно от event clocks и общая fresh post-commit reconciliation дня.

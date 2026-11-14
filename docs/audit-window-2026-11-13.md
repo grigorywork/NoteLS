@@ -343,3 +343,15 @@ addTag игнорирует отрицательный saveNow, removeTag воо
 Identity/access, relation и версия родителя обновляются одной свежей transaction. Нет полного stale UPDATE документа. Dirty/монотонная версия защищают tag-only изменения от старого conditional ACK; duplicate add/absent remove остаются no-op. Конечные принятые команды переживают закрытие scope, flushOnExit ждёт их до cleanup; новые команды закрытого редактора отклоняются. EditorTags вынесен из VM, VM665 строк.
 
 11 проверок/3 набора прошли,0 failures/errors/skipped: исходные3F021,3 положительных/no-op/exit,4F020 и1 внешний Native long smoke30s. Smoke число случайных операций записано отдельно и не увеличивает JUnit count. Синтетическая table fixture исправлена Unicode-safe clipping, без изменения app table logic/исходных asserts. /workspace/tools/fix-editor-tags-native-smoke.log. Полный набор/lint/APK впереди.
+
+### F022 — wall-clock updatedAt теряет более новую локальную правку / старый ACK очищает dirty
+
+Обычный editor save и TaskCompletion записывают System.currentTimeMillis/переданный event time прямо в updatedAt. Если полученная запись пришла с опережающими часами, следующая локальная правка имеет меньшую версию и отвергается peer. SQL markContentChanged также не увеличивает версию при совпадении миллисекунды: ACK прежнего snapshot снимает dirty с новой relation/attachment правки.
+
+[Probe](audit-probes/LocalChangeVersionAuditProbe.kt):3 ожидаемых отказа Native Room/API28, настоящий editor/save и conditional DAO ACK, плюс TaskCompletion с положительными elapsed/countdown/event-time controls. Искусственный skew+1h, не изменение часов телефона. Общий прогонF022/F0231m50s. План: монотонная свежая версия отдельно от event wall clock во всех локальных writers; SQL CASE/MAX без переполнения. Не подменять wall time логической версией при расчёте секундомера/обратного отсчёта.
+
+### F023 — повторное открытие задачи из дня не возвращает сохранённые alarms
+
+DayTaskActions при completed=false меняет Room, но не регистрирует future reminder/countdown. Допустимая завершённая задача с targets может поступить от peer либо получить reminder через QuickTaskStore; при возвращении в активное состояние сроки остаются без сигналов. Прямой cancel после completed=true также не использует общий fresh backend.
+
+[Probe](audit-probes/DayReopenAlarmAuditProbe.kt):1 ожидаемый отказ Native Room/API28, реальные DayTaskActions и AlarmManager shadow. Запись становится active, оба future targets сохранены,0 alarms вместо2. Не реальный виджет/телефон. План: requireRecovery перед relevant write, конечная принятая операция и общая fresh post-commit reconciliation обоих kind при обоих переходах.
