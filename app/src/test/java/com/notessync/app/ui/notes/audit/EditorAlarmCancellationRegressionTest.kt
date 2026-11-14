@@ -29,7 +29,8 @@ class EditorAlarmCancellationRegressionTest {
         shadowOf(alarms).scheduledAlarms.toList().forEach { it.operation?.let { operation -> alarms.cancel(operation) } }
     }
     private fun timing(title: suspend () -> String) = EditorTaskTiming(app, scope,
-        { true }, { false }, { false }, { 123L }, title, persist = { true }, report = {}, parentSyncId = { "fixture-123" })
+        { true }, { false }, { false }, { 123L }, persist = { true }, report = {}, parentSyncId = { "fixture-123" },
+        alarms = GatedAlarmCommands(ShadowAlarmCommands(app)) { title() })
     @Test fun `clearing reminder while title is loading cannot rearm the cleared alarm`() = runTest(dispatcher) {
         val entered = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
         val timing = timing { entered.complete(Unit); release.await(); "Fixture" }

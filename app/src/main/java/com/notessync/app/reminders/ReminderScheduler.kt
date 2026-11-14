@@ -41,17 +41,22 @@ object ReminderScheduler {
             .putExtra(ReminderReceiver.EXTRA_IS_TIMER, timer).putExtra(ReminderReceiver.EXTRA_EXPECTED_AT, at)
             .putExtra(ReminderReceiver.EXTRA_SYNC_ID, syncId).putExtra(ReminderReceiver.EXTRA_TITLE, title.take(256))
 
-    private fun scheduleAlarm(context: Context, id: Long, title: String, at: Long, syncId: String, timer: Boolean): Boolean {
-        if (id <= 0 || syncId.isBlank() || at <= System.currentTimeMillis()) return false
+    internal fun scheduleAccepted(context: Context, id: Long, title: String, at: Long, syncId: String, timer: Boolean) =
+        scheduleAlarm(context, id, title, at, syncId, timer, accepted = true)
+
+    private fun scheduleAlarm(context: Context, id: Long, title: String, at: Long, syncId: String, timer: Boolean, accepted: Boolean = false): Boolean {
+        val now = System.currentTimeMillis()
+        val trigger = if (accepted) maxOf(at, now + 1) else at
+        if (id <= 0 || syncId.isBlank() || at <= 0 || trigger <= now) return false
         return runCatching {
             val manager = context.getSystemService(AlarmManager::class.java)
             cancelLegacy(context, id, timer)
             val pending = PendingIntent.getBroadcast(context, 0, deliveryIntent(context, id, timer, at, syncId, title),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             if (Build.VERSION.SDK_INT < 31 || manager.canScheduleExactAlarms()) {
-                runCatching { manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }
-                    .onFailure { manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }.getOrThrow()
-            } else manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+                runCatching { manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pending) }
+                    .onFailure { manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pending) }.getOrThrow()
+            } else manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pending)
         }.isSuccess
     }
 

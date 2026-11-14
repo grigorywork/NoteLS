@@ -132,8 +132,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
     val audioPlayback: AudioPlayback get() = media.audioPlayback
     val audioCapture: AudioCapture get() = media.audioCapture
     private val timing = EditorTaskTiming(app, viewModelScope, task = { isTask }, completed = { isCompleted },
-        removed = { deleted || accessDenied }, parentId = { currentNoteId }, titleForNotification = { notificationTitle() },
-        persist = { saveNow(force = true) }, report = { message = it }, parentSyncId = { syncId })
+        removed = { deleted || accessDenied }, parentId = { currentNoteId },
+        persist = { saveNow(force = true) }, report = { message = it }, parentSyncId = { syncId }, acceptsNew = { !isClosing })
     var taskElapsedMillis: Long
         get() = timing.taskElapsedMillis
         set(value) { timing.taskElapsedMillis = value }
@@ -358,6 +358,11 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 lastSavedNote = previous.copy(isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
                 return@withTransaction false
             }
+            if ((fresh?.reminderAt != note.reminderAt || fresh?.taskCountdownEndAt != note.taskCountdownEndAt ||
+                    fresh?.isTask != note.isTask || fresh?.isCompleted != note.isCompleted) &&
+                (fresh?.reminderAt != null || fresh?.taskCountdownEndAt != null || note.reminderAt != null || note.taskCountdownEndAt != null)) {
+                com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
+            }
             if (exists) noteDao.update(note) else {
                 val newId = noteDao.upsert(note)
                 currentNoteId = newId
@@ -388,6 +393,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         return try {
             // Freeze edits while the final write is pending, so exit cannot drop a late edit.
             if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables) saveNow(force = true)
+            timing.awaitIdle()
             discardIfEmptyOnExit()
             BackupManager.requestAutoBackup(app, afterNote = true)
             true
@@ -554,11 +560,6 @@ class NoteEditorViewModel @JvmOverloads constructor(
     fun reportReminderNotificationsDisabled() = timing.reportReminderNotificationsDisabled()
     fun clearReminder() = timing.clearReminder()
     private fun cancelCountdownAlarm() = timing.cancelCountdownAlarm()
-    private suspend fun notificationTitle(): String {
-        val notebookProtected = notebookId?.let { db.notebookDao().getById(it)?.isProtected } == true
-        return if (isProtected || notebookProtected) uiText("Защищённая запись") else title.ifBlank { uiText("Без названия") }
-    }
-
     private val protection = EditorTaskProtection(app, db, viewModelScope, saveMutex,
         object : EditorProtectionParent {
             override val editable get() = loaded && !accessDenied && !deleted

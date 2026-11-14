@@ -20,12 +20,10 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
     private val app = context.applicationContext
     enum class Action { TRASH, RESTORE, PURGE, PIN, UNPIN }
 
-    private data class Changed(val id: Long, val syncId: String, val title: String, val reminderAt: Long?, val completed: Boolean, val protected: Boolean)
-
     suspend fun apply(ids: Set<Long>?, action: Action): Int = withContext(NonCancellable) {
         val discardedFiles = mutableListOf<String>()
         val changed = db.withTransaction {
-            val changedRows = mutableListOf<Changed>()
+            val changedRows = mutableListOf<Long>()
             val books = mutableMapOf<Long, com.notessync.app.data.local.entity.NotebookEntity?>()
             val selectedIds = ids?.toList()
             var offset = 0
@@ -59,25 +57,19 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                         db.attachmentDao().deleteByNoteId(note.id)
                         db.tagDao().detachAllFromNote(note.id)
                     }
+                    if (action in setOf(Action.TRASH, Action.RESTORE, Action.PURGE) &&
+                        (note.reminderAt != null || note.taskCountdownEndAt != null)) com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
                     db.noteDao().update(updated.copy(updatedAt = now, dirty = true))
                     // Retain no bodies, tables or formatting while processing the next batch.
-                    changedRows.add(Changed(updated.id, updated.syncId, com.notessync.app.notes.text.notePreviewText(updated.title, 256), updated.reminderAt,
-                        updated.isCompleted, updated.isProtected || book?.isProtected == true))
+                    changedRows.add(updated.id)
                 }
             }
             changedRows
         }
         // Commit first: a failed SQL write must never remove the original file.
         runCatching { db.withTransaction { deleteUnreferencedFiles(app, db, discardedFiles) } }
-        changed.forEach { note ->
-            if (action in setOf(Action.TRASH, Action.RESTORE, Action.PURGE)) {
-                ReminderScheduler.cancel(app, note.id)
-                ReminderScheduler.cancelTimer(app, note.id)
-                val at = note.reminderAt
-                if (action == Action.RESTORE && !note.completed && at != null && at > System.currentTimeMillis() && ReminderScheduler.canNotify(app)) {
-                    ReminderScheduler.schedule(app, note.id, if (note.protected) uiText("Защищённая запись") else note.title, at, note.syncId)
-                }
-            }
+        if (action in setOf(Action.TRASH, Action.RESTORE, Action.PURGE) && changed.isNotEmpty()) {
+            runCatching { com.notessync.app.reminders.AlarmReconciler.refreshNotes(app, db, changed.toSet()) }
         }
         if (changed.isNotEmpty()) runCatching { CalendarWidgetProvider.refreshAll(app) }
         changed.size

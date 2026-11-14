@@ -60,8 +60,8 @@ interface NoteDao {
     @Query("UPDATE notes SET dirty = 1, updatedAt = :timestamp WHERE id = :id")
     suspend fun markContentChanged(id: Long, timestamp: Long = System.currentTimeMillis())
 
-    @Query("UPDATE notes SET reminderAt = NULL, dirty = 1, updatedAt = :timestamp WHERE id = :id AND reminderAt = :expected AND isDeleted = 0")
-    suspend fun clearFailedReminder(id: Long, expected: Long, timestamp: Long = System.currentTimeMillis()): Int
+    @Query("UPDATE notes SET reminderAt = NULL, dirty = 1, updatedAt = :timestamp WHERE id = :id AND syncId = :syncId AND reminderAt = :expected AND isDeleted = 0")
+    suspend fun clearFailedReminder(id: Long, expected: Long, syncId: String, timestamp: Long = System.currentTimeMillis()): Int
 
     // Мягкое удаление: запись помечается, чтобы удаление могло синхронизироваться (Этап 5).
     @Query("UPDATE notes SET isDeleted = 1, taskElapsedMillis = MAX(0, taskElapsedMillis) + CASE WHEN taskTimerStartedAt IS NULL THEN 0 ELSE MAX(0, :timestamp - taskTimerStartedAt) END, taskTimerStartedAt = NULL, taskCountdownMillis = CASE WHEN taskCountdownEndAt IS NULL THEN taskCountdownMillis ELSE MAX(0, taskCountdownEndAt - :timestamp) END, taskCountdownEndAt = NULL, updatedAt = :timestamp, dirty = 1 WHERE id = :id AND isPurged = 0")

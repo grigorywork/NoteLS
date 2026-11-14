@@ -6,6 +6,9 @@ import com.notessync.app.data.backup.BackupManager
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.NoteEntity
 import com.notessync.app.notes.text.notePreviewText
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import com.notessync.app.reminders.AlarmReconciler
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -19,7 +22,7 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
     private val db = AppDatabase.get(app)
     private val dao = db.noteDao()
 
-    suspend fun save(draft: QuickTaskDraft): QuickTaskSaved = writes.withLock {
+    suspend fun save(draft: QuickTaskDraft): QuickTaskSaved = writes.withLock { withContext(NonCancellable) {
         val text = draft.text.trim()
         val now = System.currentTimeMillis()
         var previous: NoteEntity? = null
@@ -30,7 +33,10 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
             val old = previous
             check(old?.isProtected != true && old?.notebookId?.let { db.notebookDao().getById(it)?.isProtected } != true) { "This draft is protected" }
             if (text.isEmpty()) {
-                if (old != null && !old.isDeleted && !old.isPurged) { dao.softDelete(old.id); changed = true }
+                if (old != null && !old.isDeleted && !old.isPurged) {
+                    if (old.reminderAt != null || old.taskCountdownEndAt != null) AlarmReconciler.requireRecovery(app)
+                    dao.softDelete(old.id); changed = true
+                }
                 return@withTransaction null
             }
             check(old?.isDeleted != true && old?.isPurged != true) { "This draft was deleted" }
@@ -46,20 +52,21 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
                 dayKey = draft.dayKey, isTask = true, reminderAt = requested.takeIf { warning == null })
             if (old != null && candidate == old) return@withTransaction old
             changed = true
+            if (old?.reminderAt != candidate.reminderAt) AlarmReconciler.requireRecovery(app)
             val saved = candidate.copy(updatedAt = now, dirty = true)
             if (old == null) saved.copy(id = dao.upsert(saved)) else { dao.update(saved); saved }
         }
         if (note == null) {
-            previous?.let { reminders.cancel(it.id) }
+            previous?.let { reminders.cancel(it.id, it.syncId) }
         } else if (note.isCompleted) {
-            reminders.cancel(note.id)
+            reminders.cancel(note.id, note.syncId)
         } else if (note.reminderAt == null) {
-            if (previous?.reminderAt != null) reminders.cancel(note.id)
+            if (previous?.reminderAt != null) reminders.cancel(note.id, note.syncId)
         } else if (note.reminderAt > now &&
             (previous?.reminderAt != note.reminderAt || previous?.title != note.title)) {
             if (!reminders.schedule(note.id, note.title, note.reminderAt, note.syncId)) {
-                reminders.cancel(note.id)
-                dao.clearFailedReminder(note.id, note.reminderAt)
+                dao.clearFailedReminder(note.id, note.reminderAt, note.syncId)
+                reminders.cancel(note.id, note.syncId)
                 warning = QuickTaskWarning.SCHEDULE
                 changed = true
             }
@@ -70,7 +77,7 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
             runCatching { CalendarWidgetProvider.refreshAll(app) }
         }
         QuickTaskSaved(note?.id ?: 0L, removed = note == null && changed, warning = warning)
-    }
+    } }
 
     companion object { private val writes = Mutex() }
 }
