@@ -1276,3 +1276,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T12:06:37Z: F020 —2 отрицательных Native Room VM probe: countdown-only/stopwatch-only задача удаляется empty cleanup на exit.1m48s. Нужна проверка осмысленной clock state в пустоте черновика, без сохранения полностью пустых/отменённых задач.
 
 2026-11-14T12:11:07Z: F020 исправлен,13 тестов/5 наборов прошли3m48s. Running/paused clock state защищает задачу от empty cleanup; пустой/отменённый draft по-прежнему убирается. UUID Undo DTO @Keep. Полного итога/APK ещё нет.
+
+2026-11-14T12:15:03Z: F021 подтверждён3 отрицательными Native Room VM проверками: stale/locked tag writes и отсутствие dirty/version у чистого родителя.1m52s. Отдельный long harness smoke требует исправления собственной emoji fixture, не дефект приложения.

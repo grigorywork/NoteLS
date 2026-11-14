@@ -329,3 +329,11 @@ Undo из карточки и editor navigation несёт пару NoteIdentity
 ### F020 исправлен — часы учитываются при очистке пустого черновика
 
 Свежая transaction проверяет running stopwatch/countdown и положительный накопленный/оставшийся интервал. Задача только с выбранными часами сохраняется; полностью пустая не создаётся, отменённый countdown очищается как раньше. NoteIdentity помечен @Keep для Serializable SavedState после shrink.13 тестов/5 наборов,0 failures/errors/skipped,3m48s; исходные2F020 и2 положительных empty controls, срок/история/alarm freshness/lifecycle. /workspace/tools/fix-empty-timer.log. Полный набор/lint/APK ещё не запускались для1.10.35.
+
+### F021 — теги обходят fresh parent guard и не версионируют relation change
+
+addTag игнорирует отрицательный saveNow, removeTag вообще не перечитывает родителя. Старый editor меняет связи нового UUID под тем же ID либо уже защищённой задачи. У чистой заметки tag-only изменение не помечает parent dirty/updatedAt: DTO с прежней версией отвергается peer и conditional ACK может очистить более новую связь как прежний snapshot.
+
+[Probe](audit-probes/EditorTagOwnershipAuditProbe.kt):3 ожидаемых отказа Native Room/API28,1m52s общего smoke/probe прогона. Добавление stale tag к replacement, удаление тега уже закрытой задачи и clean-parent dirty проверены настоящими публичными VM командами. Отдельный smoke CloudRoomLongAudit в этом же запуске отклонил собственную невалидную fixture: take(200) разрезал emoji UTF16 в table cell; это ошибка harness, не дополнительная находка приложения. Исправляется генерация fixture, исходные3F021 asserts не меняются.
+
+План: отдельный EditorTags, свежие identity/access и relation+monotonic parent version в одной transaction; конечная принятая команда/exit await, no-op без новой версии, закрытый editor новых команд не принимает.
