@@ -1296,3 +1296,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T13:26:17Z: Native v2 PID14783/source9ee2983 и baseline control PID14787/production5c1dd28 запущены, timeout15s/asserts прежние. Начата оптимизация format без Formatter и полный обычный test/lint/APK, результат ещё неизвестен.4h fix до17:14:23 продолжаются.
 
 2026-11-14T13:43:00Z: baseline control завершён OK(1 test),6069 операций/900.432s/0 excluded на production5c1dd28 с новым harness9ee2983. Старый timeout1383 не повторился после driving main queue. Основной long14783 и полный Gradle ещё продолжаются;4h fix до17:14:23 не завершены.
+
+2026-11-14T13:53:23Z: обычный полный JUnit651/160 прошёл0 failures/errors/skipped, но Gradle FAILED24m53s: lint1error в legacy test receiver registration, assemble ещё не достигнут. Native v2 failed10523 из-за равных old/new fixtures; JavaRandom replay подтвердил334/334 и все11 counters, app no-op корректен. Clock Formatter optimization проверена651-suite; далее fixture lint и blank protection exit probe.

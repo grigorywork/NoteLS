@@ -1,7 +1,5 @@
 package com.notessync.app.ui.tasks
 
-import java.util.Locale
-
 data class TaskTimerSnapshot(
     val elapsedMillis: Long,
     val startedAt: Long?
@@ -49,6 +47,13 @@ object TaskTimer {
         val hours = totalSeconds / 3_600L
         val minutes = (totalSeconds % 3_600L) / 60L
         val seconds = totalSeconds % 60L
-        return String.format(Locale.ROOT, "%02d:%02d:%02d", hours, minutes, seconds)
+        return buildString(20) {
+            if (hours < 10) append('0')
+            append(hours); append(':')
+            if (minutes < 10) append('0')
+            append(minutes); append(':')
+            if (seconds < 10) append('0')
+            append(seconds)
+        }
     }
 }
