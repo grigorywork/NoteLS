@@ -81,7 +81,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NoteEditorScreen(
     onBack: () -> Unit,
-    onDeleted: (Long) -> Unit,
+    onDeleted: (com.notessync.app.data.local.model.NoteIdentity) -> Unit,
     viewModel: NoteEditorViewModel = viewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -283,7 +283,7 @@ fun NoteEditorScreen(
             try {
                 discardedAudio.await()
                 val id = viewModel.deleteNow()
-                onDeleted(id)
+                onDeleted(viewModel.noteIdentity.copy(id = id))
             } finally { voiceClosing = false }
         }
     }

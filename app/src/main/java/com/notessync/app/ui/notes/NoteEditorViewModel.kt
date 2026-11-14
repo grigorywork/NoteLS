@@ -183,6 +183,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
     val notebooks: StateFlow<List<NotebookEntity>> = db.notebookDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val noteIdentity get() = com.notessync.app.data.local.model.NoteIdentity(currentNoteId, syncId)
     val exists: Boolean
         get() = currentNoteId != -1L
 
@@ -659,9 +660,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
 
     suspend fun deleteNow(): Long = saveMutex.withLock {
         withContext(NonCancellable) {
-            val deletedId = if (!exists) -1L else db.withTransaction {
-                if (accessibleParent() == null) return@withTransaction -1L
-                val changed = NoteActions(app, db).apply(setOf(currentNoteId), NoteActions.Action.TRASH)
+            val deletedId = if (!exists || accessibleParent() == null) -1L else {
+                val changed = NoteActions(app, db).apply(setOf(currentNoteId), NoteActions.Action.TRASH, mapOf(currentNoteId to syncId))
                 if (changed > 0) currentNoteId else -1L
             }
             if (deletedId > 0 && dayKey != null) CalendarWidgetProvider.refreshAll(app)

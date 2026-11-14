@@ -84,9 +84,9 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                 onOpenEditor = { noteId, isTask ->
                     navigate(Routes.editor(noteId, isTask))
                 },
-                deletedNoteEvents = backStackEntry.savedStateHandle.getStateFlow("deleted_note_id", -1L),
+                deletedNoteEvents = backStackEntry.savedStateHandle.getStateFlow<com.notessync.app.data.local.model.NoteIdentity?>("deleted_note_event", null),
                 onDeletedEventHandled = {
-                    backStackEntry.savedStateHandle["deleted_note_id"] = -1L
+                    backStackEntry.savedStateHandle["deleted_note_event"] = null
                 }
             )
         }
@@ -100,9 +100,9 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
         ) {
             NoteEditorScreen(
                 onBack = { back() },
-                onDeleted = { id -> activity.runOnUiThread {
+                onDeleted = { event -> activity.runOnUiThread {
                     if (!activity.isDestroyed) {
-                        navController.previousBackStackEntry?.savedStateHandle?.set("deleted_note_id", id)
+                        if (event.id > 0) navController.previousBackStackEntry?.savedStateHandle?.set("deleted_note_event", event)
                         navController.popBackStack()
                     }
                 } }

@@ -42,7 +42,7 @@ data class NoteEntity(
     override val taskColor: String = "violet",
     @ColumnInfo(defaultValue = "0") val taskPriority: Int = 0,
     val taskElapsedMillis: Long = 0L,
-    val taskTimerStartedAt: Long? = null,
+    override val taskTimerStartedAt: Long? = null,
     // Таймер обратного отсчёта (Этап 30): остаток на паузе и дедлайн при работе.
     val taskCountdownMillis: Long = 0L,
     val taskCountdownEndAt: Long? = null,

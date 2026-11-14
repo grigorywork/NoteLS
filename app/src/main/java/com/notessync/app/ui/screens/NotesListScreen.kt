@@ -95,7 +95,7 @@ fun NotesListScreen(
     onOpenCalendar: () -> Unit,
     onOpenQuotes: () -> Unit,
     onOpenEditor: (Long, Boolean) -> Unit,
-    deletedNoteEvents: StateFlow<Long>? = null,
+    deletedNoteEvents: StateFlow<NoteIdentity?>? = null,
     onDeletedEventHandled: () -> Unit = {},
     viewModel: NotesViewModel = viewModel()
 ) {
@@ -149,23 +149,26 @@ fun NotesListScreen(
     val scope = rememberCoroutineScope()
     val notebookUi = remember { HomeNotebookState() }
 
-    var selected by remember { mutableStateOf(emptySet<Long>()) }
+    var selected by remember { mutableStateOf(emptyMap<Long, String>()) }
     var pendingPurge by remember { mutableStateOf(false) }
-    var purgeIds by remember { mutableStateOf<Set<Long>?>(emptySet()) }
+    var purgeTargets by remember { mutableStateOf<Map<Long, String>?>(emptyMap()) }
     var busy by remember { mutableStateOf(false) }
     val searchFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    LaunchedEffect(query, filter) { selected = emptySet() }
-    LaunchedEffect(shownNotes) { selected = selected.intersect(shownNotes.map { it.id }.toSet()) }
-    BackHandler(selected.isNotEmpty()) { selected = emptySet() }
-    fun select(note: NoteCardEntry) { if (!busy) selected = if (note.id in selected) selected - note.id else selected + note.id }
-    fun apply(ids: Set<Long>?, action: NoteActions.Action) {
+    LaunchedEffect(query, filter) { selected = emptyMap() }
+    LaunchedEffect(shownNotes) {
+        val current = shownNotes.associate { it.id to it.syncId }
+        selected = selected.filter { current[it.key] == it.value }
+    }
+    BackHandler(selected.isNotEmpty()) { selected = emptyMap() }
+    fun select(note: NoteCardEntry) { if (!busy) selected = if (selected[note.id] == note.syncId) selected - note.id else selected + (note.id to note.syncId) }
+    fun apply(ids: Set<Long>?, action: NoteActions.Action, identities: Map<Long, String>? = if (ids == null) null else selected.filterKeys { it in ids }) {
         if (busy) return
         busy = true
         scope.launch {
             val message = try {
-                val count = viewModel.applyAction(ids, action)
-                selected = emptySet()
+                val count = viewModel.applyAction(ids, action, identities)
+                selected = emptyMap()
                 uiText("Обработано: %1\$s", (count))
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
@@ -188,11 +191,11 @@ fun NotesListScreen(
     }
 
     LaunchedEffect(deletedNoteEvents) {
-        deletedNoteEvents?.collect { id ->
-            if (id > 0) {
+        deletedNoteEvents?.collect { event ->
+            if (event != null && event.id > 0) {
                 onDeletedEventHandled()
                 val result = snackbarHostState.showSnackbar(uiText("Заметка удалена"), actionLabel = uiText("Отменить"))
-                if (result == SnackbarResult.ActionPerformed) viewModel.restore(id)
+                if (result == SnackbarResult.ActionPerformed) viewModel.restore(event.id, event.syncId)
             }
         }
     }
@@ -283,19 +286,19 @@ fun NotesListScreen(
 
                 if (selected.isNotEmpty()) FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(uiText("Выбрано: %1\$s", (selected.size)), modifier = Modifier.padding(12.dp))
-                    IconButton(onClick = { selected = emptySet() }, enabled = !busy) { Icon(Icons.Default.Close, uiText("Снять выделение")) }
-                    IconButton(onClick = { selected = shownNotes.map { it.id }.toSet() }, enabled = !busy) { Icon(Icons.Default.SelectAll, uiText("Выбрать все найденные")) }
-                    if (filter == NoteFilter.Trash) IconButton(onClick = { apply(selected, NoteActions.Action.RESTORE) }, enabled = !busy) { Icon(Icons.Default.RestoreFromTrash, uiText("Восстановить выбранные")) }
-                    else IconButton(onClick = { apply(selected, if (shownNotes.filter { it.id in selected }.all { it.isPinned }) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, enabled = !busy) { Icon(Icons.Default.PushPin, uiText("Закрепить или открепить выбранные")) }
+                    IconButton(onClick = { selected = emptyMap() }, enabled = !busy) { Icon(Icons.Default.Close, uiText("Снять выделение")) }
+                    IconButton(onClick = { selected = shownNotes.associate { it.id to it.syncId } }, enabled = !busy) { Icon(Icons.Default.SelectAll, uiText("Выбрать все найденные")) }
+                    if (filter == NoteFilter.Trash) IconButton(onClick = { apply(selected.keys, NoteActions.Action.RESTORE, selected) }, enabled = !busy) { Icon(Icons.Default.RestoreFromTrash, uiText("Восстановить выбранные")) }
+                    else IconButton(onClick = { apply(selected.keys, if (shownNotes.filter { it.id in selected }.all { it.isPinned }) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, enabled = !busy) { Icon(Icons.Default.PushPin, uiText("Закрепить или открепить выбранные")) }
                     IconButton(onClick = {
-                        if (filter == NoteFilter.Trash) { purgeIds = selected; pendingPurge = true }
-                        else apply(selected, NoteActions.Action.TRASH)
+                        if (filter == NoteFilter.Trash) { purgeTargets = selected.toMap(); pendingPurge = true }
+                        else apply(selected.keys, NoteActions.Action.TRASH, selected)
                     }, enabled = !busy) { Icon(Icons.Default.Delete, if (filter == NoteFilter.Trash) uiText("Удалить выбранные навсегда") else uiText("В корзину")) }
                 }
                 if (filter == NoteFilter.Trash) {
                     FlowRow(Modifier.padding(horizontal = 12.dp)) {
                         TextButton(onClick = { apply(null, NoteActions.Action.RESTORE) }, enabled = !busy) { Text(uiText("Восстановить все")) }
-                        TextButton(onClick = { purgeIds = null; pendingPurge = true }, enabled = !busy) { Text(uiText("Очистить корзину")) }
+                        TextButton(onClick = { purgeTargets = null; pendingPurge = true }, enabled = !busy) { Text(uiText("Очистить корзину")) }
                     }
                     Text(uiText("Закрытые записи доступны после разблокировки."), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp))
                 }
@@ -351,9 +354,9 @@ fun NotesListScreen(
                             else if (ProtectionSession.isUnlocked(note)) onOpenEditor(note.id, note.isTask)
                             else { notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = note.unlockTarget() }
                         }, onUnlock = { task -> notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = task },
-                        onDelete = { if (filter == NoteFilter.Trash) { purgeIds = setOf(it.id); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
-                        onToggleTimer = viewModel::toggleTaskTimer, selected = selected, onSelect = ::select,
-                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE) }, deadlineNow = taskTime)
+                        onDelete = { if (filter == NoteFilter.Trash) { purgeTargets = mapOf(it.id to it.syncId); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
+                        onToggleTimer = viewModel::toggleTaskTimer, selected = selected.keys, onSelect = ::select,
+                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN, mapOf(it.id to it.syncId)) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE, mapOf(it.id to it.syncId)) }, deadlineNow = taskTime)
 
                 }
             }
@@ -362,9 +365,9 @@ fun NotesListScreen(
 
     if (pendingPurge) AlertDialog(
         onDismissRequest = { pendingPurge = false },
-        title = { Text(if (purgeIds == null) uiText("Очистить корзину?") else uiText("Удалить навсегда?")) },
+        title = { Text(if (purgeTargets == null) uiText("Очистить корзину?") else uiText("Удалить навсегда?")) },
         text = { Text(uiText("Текст и вложения будут удалены. Восстановить из корзины нельзя. Закрытые записи останутся до разблокировки.")) },
-        confirmButton = { TextButton(onClick = { pendingPurge = false; apply(purgeIds, NoteActions.Action.PURGE) }, enabled = !busy) { Text(uiText("Удалить навсегда")) } },
+        confirmButton = { TextButton(onClick = { pendingPurge = false; apply(purgeTargets?.keys, NoteActions.Action.PURGE, purgeTargets) }, enabled = !busy) { Text(uiText("Удалить навсегда")) } },
         dismissButton = { TextButton(onClick = { pendingPurge = false }) { Text(uiText("Отмена")) } }
     )
 
@@ -380,7 +383,7 @@ fun NotesListScreen(
                         try {
                             if (viewModel.delete(note) > 0) {
                                 val result = snackbarHostState.showSnackbar(uiText("Заметка в корзине"), actionLabel = uiText("Отменить"))
-                                if (result == SnackbarResult.ActionPerformed) viewModel.restore(note.id)
+                                if (result == SnackbarResult.ActionPerformed) viewModel.restore(note.id, note.syncId)
                             }
                         } catch (error: Exception) {
                             if (error is kotlinx.coroutines.CancellationException) throw error

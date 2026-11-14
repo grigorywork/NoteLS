@@ -20,7 +20,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
     private val app = context.applicationContext
     enum class Action { TRASH, RESTORE, PURGE, PIN, UNPIN }
 
-    suspend fun apply(ids: Set<Long>?, action: Action): Int = withContext(NonCancellable) {
+    suspend fun apply(ids: Set<Long>?, action: Action, identities: Map<Long, String>? = null): Int = withContext(NonCancellable) {
         val discardedFiles = mutableListOf<String>()
         val changed = db.withTransaction {
             val changedRows = mutableListOf<Long>()
@@ -38,6 +38,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                 }
                 if (selectedIds == null && rows.isEmpty()) break
                 for (note in rows) {
+                    if (identities != null && identities[note.id] != note.syncId) continue
                     val bookId = note.notebookId
                     val book = if (bookId == null) null else {
                         if (bookId !in books) books[bookId] = db.notebookDao().getById(bookId)

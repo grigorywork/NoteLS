@@ -307,3 +307,12 @@ One-off/delete/bulk UI передают local ID, но теряют исходн
 [Probe](audit-probes/StaleCardActionsAuditProbe.kt):4 ожидаемых отказа Native Room/API28/настоящий VM. Использован кешированный реальный card SQL DTO. При смене UUID та же числовая строка неожиданно completed/deleted; при сохранении UUID поздние старые команды отменяют новые completion/running state. BUILD FAILED1m37s. Это контролируемая замена/обновление БД, а не физический restore gesture/замер телефона.
 
 План: identity bindings у пользовательских действий/selection/delete prompt/Undo event и свежая проверка внутри транзакции; cached state определяет желаемое действие, повтор/опережающий update не инвертирует его. Lazy keys должны различать новую UUID при прежнем ID. Не ослаблять текущую авторизацию защищённых записей.
+
+
+### F019 исправлен — identity-bound карточки, selection и Undo
+
+One-off delete и batch действия могут передавать ожидаемые UUID; fresh transaction пропускает изменившиеся identities. Main UI хранит selection/purge targets как id→UUID, обновляет их заO(n+m), индивидуальные prompts сохраняют собственный binding. Lazy item keys учитывают UUID и сбрасывают remembers при замене записи. Completion/start действия проверяют ожидаемое прежнее состояние: повтор или запоздалый cached label не инвертирует более новый результат другого писателя.
+
+Undo из карточки и editor navigation несёт пару NoteIdentity вместо одного Long; в SavedState только идентификаторы, без текста/пароля. Editor delete также передаёт binding. Внешняя Room transaction вокруг commit-owning NoteActions удалена: собственная transaction уже повторяет доступ/UUID, а post-commit alarm mutex не должен браться при ещё удерживаемом внешнем writer. Completion обновляет clocks после подтверждённого commit по свежей projection.
+
+38 тестов/7 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL4m45s. Исходные4F019, операции/корзина, Native Compose grid/anchors/actions, EditorHistory toolbar, Audio persistence/сроки/история. Журнал: /workspace/tools/fix-stale-card-actions.log. Физический restore/телефон не тестировались; полный набор/lint/APK впереди.

@@ -280,11 +280,11 @@ internal fun NotesCardsLayout(notes: List<NoteCardEntry>, locked: List<TaskUnloc
                 top = if (grid) 6.dp else 0.dp, bottom = 160.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp), verticalItemSpacing = if (grid) 12.dp else 0.dp
         ) {
-            items(locked, key = { "locked-${it.id}" }, span = { StaggeredGridItemSpan.FullLine }) { task ->
+            items(locked, key = { "locked-${it.id}:${it.syncId}" }, span = { StaggeredGridItemSpan.FullLine }) { task ->
                 LockedTaskCard({ onUnlock(task) }, horizontalPadding = if (grid) 0.dp else 16.dp)
             }
-            items(notes, key = { "note-${it.id}" }, contentType = { if (grid) "grid" else "list" }) { note ->
-                val active by remember(state, note.id) { derivedStateOf { state.layoutInfo.visibleItemsInfo.any { it.key == "note-${note.id}" } } }
+            items(notes, key = { "note-${it.id}:${it.syncId}" }, contentType = { if (grid) "grid" else "list" }) { note ->
+                val active by remember(state, note.id) { derivedStateOf { state.layoutInfo.visibleItemsInfo.any { it.key == "note-${note.id}:${note.syncId}" } } }
                 if (grid) NoteGridCard(note, photos[note.id], showPriority,
                     { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) },
                     { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow)

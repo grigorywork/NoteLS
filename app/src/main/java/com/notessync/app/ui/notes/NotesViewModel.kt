@@ -245,23 +245,26 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val actions = NoteActions(application, db)
 
-    suspend fun delete(note: NoteListEntry): Int = actions.apply(setOf(note.id), NoteActions.Action.TRASH)
-    suspend fun restore(noteId: Long) { actions.apply(setOf(noteId), NoteActions.Action.RESTORE) }
-    suspend fun applyAction(ids: Set<Long>?, action: NoteActions.Action): Int = actions.apply(ids, action)
+    suspend fun delete(note: NoteListEntry): Int = actions.apply(setOf(note.id), NoteActions.Action.TRASH, mapOf(note.id to note.syncId))
+    suspend fun restore(noteId: Long, syncId: String? = null) {
+        actions.apply(setOf(noteId), NoteActions.Action.RESTORE, syncId?.let { mapOf(noteId to it) })
+    }
+    suspend fun applyAction(ids: Set<Long>?, action: NoteActions.Action, identities: Map<Long, String>? = null): Int = actions.apply(ids, action, identities)
 
     fun toggleCompleted(note: NoteListEntry) {
         viewModelScope.launch {
-            db.withTransaction {
-                val fresh = noteDao.getById(note.id) ?: return@withTransaction
-                if (!fresh.isTask || fresh.isDeleted || !actions.canAccess(fresh)) return@withTransaction
+            val changed = db.withTransaction {
+                val fresh = noteDao.getById(note.id) ?: return@withTransaction false
+                if (fresh.syncId != note.syncId || !fresh.isTask || fresh.isDeleted || fresh.isPurged || fresh.isCompleted != note.isCompleted || !actions.canAccess(fresh)) return@withTransaction false
                 val updated = TaskCompletion.toggle(fresh)
+                if (fresh.reminderAt != null || fresh.taskCountdownEndAt != null) com.notessync.app.reminders.AlarmReconciler.requireRecovery(getApplication())
                 noteDao.update(updated)
-                if (updated.isCompleted) {
-                    ReminderScheduler.cancel(getApplication(), note.id)
-                    ReminderScheduler.cancelTimer(getApplication(), note.id)
-                }
+                true
             }
-            CalendarWidgetProvider.refreshAll(getApplication())
+            if (changed) {
+                runCatching { com.notessync.app.reminders.AlarmReconciler.refreshNotes(getApplication(), db, setOf(note.id)) }
+                CalendarWidgetProvider.refreshAll(getApplication())
+            }
         }
     }
 
@@ -269,7 +272,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             db.withTransaction {
                 val fresh = noteDao.getById(note.id) ?: return@withTransaction
-                if (!fresh.isTask || fresh.isDeleted || !actions.canAccess(fresh) || (fresh.isCompleted && fresh.taskTimerStartedAt == null)) return@withTransaction
+                if (fresh.syncId != note.syncId || !fresh.isTask || fresh.isDeleted || fresh.isPurged ||
+                    (fresh.taskTimerStartedAt != null) != (note.taskTimerStartedAt != null) ||
+                    !actions.canAccess(fresh) || (fresh.isCompleted && fresh.taskTimerStartedAt == null)) return@withTransaction
                 val now = System.currentTimeMillis()
                 val timer = TaskTimer.toggle(fresh.taskElapsedMillis, fresh.taskTimerStartedAt, now)
                 noteDao.update(fresh.copy(taskElapsedMillis = timer.elapsedMillis, taskTimerStartedAt = timer.startedAt, updatedAt = now, dirty = true))
