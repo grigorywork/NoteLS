@@ -325,3 +325,7 @@ Undo из карточки и editor navigation несёт пару NoteIdentity
 [Probe](audit-probes/EmptyTimerTaskAuditProbe.kt):2 ожидаемых отказа Native Room/API28 через настоящие VM.startCountdownUntil/toggleTaskTimer/flushOnExit. После успешного exit сохранённая строка isDeleted=true вместоfalse. BUILD FAILED1m48s. Это программный exit path, не измерение телефона/физический Back press.
 
 План: учитывать положительный elapsed/paused countdown и running timestamps при проверке пустого черновика. Сохранить прежнюю очистку полностью пустого/отменённого draft; проверить отсутствие лишних новых пустых строк.
+
+### F020 исправлен — часы учитываются при очистке пустого черновика
+
+Свежая transaction проверяет running stopwatch/countdown и положительный накопленный/оставшийся интервал. Задача только с выбранными часами сохраняется; полностью пустая не создаётся, отменённый countdown очищается как раньше. NoteIdentity помечен @Keep для Serializable SavedState после shrink.13 тестов/5 наборов,0 failures/errors/skipped,3m48s; исходные2F020 и2 положительных empty controls, срок/история/alarm freshness/lifecycle. /workspace/tools/fix-empty-timer.log. Полный набор/lint/APK ещё не запускались для1.10.35.

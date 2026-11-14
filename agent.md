@@ -1274,3 +1274,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T12:03:24Z: F019 исправлен: UUID bindings в one-off/bulk selection/prompts/Undo, conditional desired-state guards, UID lazy keys, post-commit completion clocks; editor delete не держит внешнюю Room transaction вокруг alarm refresh. 38 тестов/7 наборов прошли4m45s. Полный набор/lint/APK ещё впереди.
 
 2026-11-14T12:06:37Z: F020 —2 отрицательных Native Room VM probe: countdown-only/stopwatch-only задача удаляется empty cleanup на exit.1m48s. Нужна проверка осмысленной clock state в пустоте черновика, без сохранения полностью пустых/отменённых задач.
+
+2026-11-14T12:11:07Z: F020 исправлен,13 тестов/5 наборов прошли3m48s. Running/paused clock state защищает задачу от empty cleanup; пустой/отменённый draft по-прежнему убирается. UUID Undo DTO @Keep. Полного итога/APK ещё нет.

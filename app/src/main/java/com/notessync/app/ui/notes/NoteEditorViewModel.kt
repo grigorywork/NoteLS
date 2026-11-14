@@ -649,6 +649,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 db.withTransaction {
                     val fresh = accessibleParent() ?: return@withTransaction
                     if (fresh.title.isBlank() && fresh.content.isBlank() && fresh.tablesData.isBlank() && fresh.reminderAt == null && fresh.taskDueAt == null &&
+                        fresh.taskElapsedMillis <= 0 && fresh.taskTimerStartedAt == null && fresh.taskCountdownMillis <= 0 && fresh.taskCountdownEndAt == null &&
                         attachmentDao.countByNoteId(currentNoteId) == 0) {
                         noteDao.softDelete(currentNoteId); deleted = true
                     }
