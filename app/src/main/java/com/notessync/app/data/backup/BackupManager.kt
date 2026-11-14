@@ -44,13 +44,25 @@ object BackupManager {
 
     fun noteChanged() { revision.incrementAndGet() }
 
+    private val automaticQueue = AutoBackupQueue(scope) { context, afterNote -> autoBackupIfDue(context, afterNote) }
+
     fun requestAutoBackup(context: Context, afterNote: Boolean) {
-        val app = context.applicationContext
-        scope.launch { autoBackupIfDue(app, afterNote) }
+        automaticQueue.request(context.applicationContext, afterNote)
+    }
+
+    private suspend fun <T> snapshotOperation(context: Context, action: suspend () -> T): T {
+        val pause = com.notessync.app.sync.auto.AutomaticSyncRuntime.existing(context)?.pauseManual()
+            ?: com.notessync.app.sync.core.SyncWorkGate.pauseAutomatic()
+        try {
+            // Same order as restore: transfer gate before operation, never the reverse.
+            return com.notessync.app.sync.core.SyncWorkGate.transfer(automatic = false) {
+                operation.withLock { action() }
+            }
+        } finally { pause.close() }
     }
 
     suspend fun createBackup(context: Context, out: OutputStream): BackupInfo = withContext(Dispatchers.IO) {
-        operation.withLock {
+        snapshotOperation(context) {
             val identity = BackupProtection(context).current() ?: error(uiText("Сначала задайте пароль резервных копий"))
             val job = currentCoroutineContext()
             BackupEncryptedIO.write(out, identity, checkCancelled = { job.ensureActive() }) { createUnlocked(context, it) }.copy(encrypted = true)
@@ -144,7 +156,7 @@ object BackupManager {
                 check(temp.mkdirs()) { uiText("Не удалось подготовить восстановление") }
                 val job = currentCoroutineContext()
                 val info = context.contentResolver.openInputStream(uri)?.use { input ->
-                    BackupEncryptedIO.read(input, access, { job.ensureActive() }) { BackupArchive.extract(it, temp) }
+                    BackupEncryptedIO.read(input, access, { job.ensureActive() }) { BackupArchive.extract(it, temp, checkCancelled = { job.ensureActive() }) }
                 }
                     ?: error(uiText("Не удалось открыть файл"))
                 check(info.dbVersion <= AppDatabase.VERSION) { uiText("Обновите NoteLS для восстановления этой копии") }
@@ -254,14 +266,13 @@ object BackupManager {
     }
 
     suspend fun autoBackupIfDue(context: Context, afterNote: Boolean) = withContext(Dispatchers.IO) {
-        if (!operation.tryLock()) return@withContext
-        try {
+        try { snapshotOperation(context) {
             val settings = SettingsRepository.get(context)
             val state = settings.state.value
             val current = revision.get()
             if (!BackupPolicy.isDue(state.backupFrequency, afterNote && current != backedUpRevision,
-                    state.lastAutoBackupAt, System.currentTimeMillis())) return@withContext
-            val identity = BackupProtection(context).current() ?: return@withContext
+                    state.lastAutoBackupAt, System.currentTimeMillis())) return@snapshotOperation
+            val identity = BackupProtection(context).current() ?: return@snapshotOperation
             val job = currentCoroutineContext()
             val directory = autoDirectories(context).first().apply { check(isDirectory || mkdirs()) }
             val file = File(directory, "notels-auto-${System.currentTimeMillis()}-${UUID.randomUUID()}.nlsbackup")
@@ -278,9 +289,8 @@ object BackupManager {
                     .filter { it.isFile && it.name.startsWith("notels-auto-") && it.extension in setOf("zip", "nlsbackup") }
                     .sortedByDescending { it.lastModified() }.drop(5).forEach { it.delete() }
             } finally { pending.delete() }
-        } catch (cancel: CancellationException) { throw cancel }
+        } } catch (cancel: CancellationException) { throw cancel }
         catch (_: Exception) { /* A failed copy must not interrupt saving a note. */ }
-        finally { operation.unlock() }
     }
 
     suspend fun unlock(context: Context, uri: Uri, password: CharArray): BackupAccess = withContext(Dispatchers.IO) {
@@ -304,7 +314,7 @@ object BackupManager {
             val job = currentCoroutineContext()
             file.inputStream().buffered().use { input ->
                 if (BackupEncryptedIO.encrypted(input)) BackupEncryptedIO.copy(input, output) { job.ensureActive() }
-                else BackupEncryptedIO.write(output, identity, createdAt = file.lastModified().coerceAtLeast(1),
+                else BackupEncryptedIO.write(output, identity, createdAt = legacyCreatedAt(file),
                     checkCancelled = { job.ensureActive() }) { BackupEncryptedIO.copy(input, it) { job.ensureActive() } }
             }
         }
@@ -321,7 +331,7 @@ object BackupManager {
                     val modified = file.lastModified(); val pending = File(file.parentFile, file.name + ".protecting")
                     try {
                         pending.outputStream().use { output ->
-                            BackupEncryptedIO.write(output, identity, modified.coerceAtLeast(1), { job.ensureActive() }) {
+                            BackupEncryptedIO.write(output, identity, legacyCreatedAt(file), { job.ensureActive() }) {
                                 BackupEncryptedIO.copy(input, it) { job.ensureActive() }
                             }
                             output.fd.sync()
@@ -333,6 +343,8 @@ object BackupManager {
             count
         }
     }
+
+    private fun legacyCreatedAt(file: File): Long = file.inputStream().use { BackupArchive.inspect(it).createdAt }
 
     // Preserve access to v1.10.0 copies previously stored in external app storage.
     private fun autoDirectories(context: Context): List<File> = buildList {

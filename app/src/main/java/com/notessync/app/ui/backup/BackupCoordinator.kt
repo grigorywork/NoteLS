@@ -96,7 +96,7 @@ internal class BackupCoordinator(context: Context, private val scope: CoroutineS
                         refresh()
                         // Retain the only old copy on conversion failure; allow an explicit retry.
                         BackupManager.protectLocalCopies(context); refresh()
-                        busy = false; message(uiText("Новые копии зашифрованы. Старые выгруженные файлы сохраняют прежний пароль."))
+                        busy = false; message(uiText("Новые копии зашифрованы. Прежние зашифрованные копии сохраняют старый пароль. Для новых копий включите биометрию заново."))
                     }
                     BackupPasswordMode.UNLOCK -> {
                         var unlocked: BackupAccess? = null

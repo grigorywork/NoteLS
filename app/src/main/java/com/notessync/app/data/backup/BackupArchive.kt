@@ -19,6 +19,9 @@ internal object BackupArchive {
     const val MANIFEST = "backup.json"
     const val ATTACHMENTS = "attachments/"
     private const val MAX_MANIFEST_BYTES = 64 * 1024
+    private const val MAX_PATH_BYTES = 4096
+    private const val MAX_PATH_TOTAL_BYTES = 16L * 1024 * 1024
+    private const val MAX_PATH_DEPTH = 32
     const val MAX_ENTRIES = 100_000
     const val MAX_BYTES = 2L * 1024 * 1024 * 1024
     private val sqliteHeader = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
@@ -65,14 +68,24 @@ internal object BackupArchive {
         return relative
     }
 
-    fun extract(input: InputStream, directory: File, maxBytes: Long = MAX_BYTES): Info {
+    fun extract(input: InputStream, directory: File, maxBytes: Long = MAX_BYTES,
+        checkCancelled: () -> Unit = {}): Info {
+        require(maxBytes in 0..MAX_BYTES)
         require(directory.isDirectory || directory.mkdirs()) { uiText("Не удалось подготовить восстановление") }
         val seen = mutableSetOf<String>()
         var total = 0L
+        var pathBytes = 0L
+        val root = directory.canonicalPath + File.separator
+        val buffer = ByteArray(32 * 1024)
         ZipInputStream(input.buffered()).use { zip ->
             while (true) {
+                checkCancelled()
                 val entry = zip.nextEntry ?: break
                 val name = entry.name
+                val nameBytes = name.toByteArray(Charsets.UTF_8).size
+                pathBytes += nameBytes
+                require(nameBytes in 1..MAX_PATH_BYTES && pathBytes <= MAX_PATH_TOTAL_BYTES &&
+                    name.count { it == '/' } <= MAX_PATH_DEPTH) { uiText("Некорректный путь в архиве") }
                 require(seen.add(name) && seen.size <= MAX_ENTRIES) { uiText("Повторяющиеся файлы в архиве") }
                 require('\\' !in name && (name == MANIFEST || name == DATABASE || name.startsWith(ATTACHMENTS))) {
                     uiText("Неизвестный файл в резервной копии")
@@ -80,17 +93,22 @@ internal object BackupArchive {
                 if (entry.isDirectory) {
                     require(name.startsWith(ATTACHMENTS)) { uiText("Некорректный архив") }
                     if (name != ATTACHMENTS) relativeAttachmentPath(name.removeSuffix("/"))
+                    // closeEntry otherwise inflates and discards an unbounded directory payload.
+                    // Reading one byte rejects it without draining the rest; empty entries still check CRC.
+                    checkCancelled()
+                    require(zip.read() == -1) { uiText("Некорректный архив") }
                 } else {
                     if (name.startsWith(ATTACHMENTS)) relativeAttachmentPath(name)
                     val target = File(directory, name)
-                    require(target.canonicalPath.startsWith(directory.canonicalPath + File.separator)) { uiText("Некорректный путь в архиве") }
+                    require(target.canonicalPath.startsWith(root)) { uiText("Некорректный путь в архиве") }
                     check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs())
                     target.outputStream().buffered().use { output ->
-                        val buffer = ByteArray(32 * 1024)
                         var entrySize = 0L
                         while (true) {
+                            checkCancelled()
                             val read = zip.read(buffer)
                             if (read < 0) break
+                            check(read > 0)
                             total += read
                             entrySize += read
                             require(total <= maxBytes) { uiText("Резервная копия слишком велика") }

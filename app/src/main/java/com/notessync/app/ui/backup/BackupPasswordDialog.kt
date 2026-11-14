@@ -25,7 +25,7 @@ internal fun BackupPasswordDialog(mode: BackupPasswordMode, busy: Boolean, biome
         title = { Text(uiText(if (setting) "Пароль резервных копий" else "Открыть зашифрованную копию")) },
         text = {
             Column(Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (setting) Text(uiText("Не менее 8 символов. Храните пароль отдельно. Старые выгруженные копии сохранят прежний пароль."))
+                if (setting) Text(uiText("Не менее 8 символов. Храните пароль отдельно. Прежние зашифрованные копии сохранят старый пароль. Биометрию для новых копий нужно включить заново."))
                 if (needsOld) BackupPasswordField(old, { old = it }, uiText(if (setting) "Текущий пароль" else "Пароль"), busy)
                 if (setting) {
                     BackupPasswordField(fresh, { fresh = it }, uiText("Новый пароль"), busy)

@@ -59,10 +59,11 @@ internal data class BackupIdentity(val publicKey: String, val salt: String, val 
     }
     fun changePassword(access: BackupAccess, password: CharArray): BackupIdentity {
         require(password.size in 8..256 && access.keyId == id)
-        val fresh = copy(salt = encode(random(16)), rounds = DEFAULT_ROUNDS, privateIv = encode(random(12)), privateData = "")
-        val plain = access.encoded()
-        try { return fresh.copy(privateData = encode(fresh.passwordCipher(password, true).doFinal(plain))) }
-        finally { plain.fill(0) }
+        // Old portable archives expose this private key to anyone with the old password.
+        // Rewrapping it would let that key decrypt every future archive as well.
+        // Prove that the authorized access is still live before generating a new recipient.
+        access.encoded().fill(0)
+        return create(password)
     }
     private fun passwordCipher(password: CharArray, encrypt: Boolean): Cipher {
         val spec = PBEKeySpec(password, decode(salt), rounds, 256)

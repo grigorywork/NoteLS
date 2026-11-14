@@ -46,17 +46,28 @@ class EncryptedBackupStreamsTest {
         }
         assertFalse(bytes.toString(Charsets.ISO_8859_1).contains("secret body"))
     }
-    @Test fun `password change keeps identity and local access but exported old files keep old password`() {
+    @Test fun `password change rotates recipient while previous archives retain their old password`() {
         val bytes = encrypt(byteArrayOf(1, 2, 3))
+        val nextPassword = "a different password".toCharArray()
         identity.unlock(password).use { lease ->
-            val changed = identity.changePassword(lease, "a different password".toCharArray())
-            assertEquals(identity.id, changed.id)
+            val changed = identity.changePassword(lease, nextPassword)
+            assertNotEquals(identity.id, changed.id)
+            assertNotEquals(identity.publicKey, changed.publicKey)
             assertTrue(runCatching { changed.unlock(password) }.isFailure)
-            changed.unlock("a different password".toCharArray()).use {
-                assertArrayEquals(byteArrayOf(1, 2, 3), BackupEncryptedIO.read(bytes.inputStream(), it) { stream -> stream.readBytes() })
+            changed.unlock(nextPassword).use { current ->
+                assertTrue(runCatching { BackupEncryptedIO.read(bytes.inputStream(), current) { it.readBytes() } }.isFailure)
+                val future = ByteArrayOutputStream().also { out -> BackupEncryptedIO.write(out, changed) { it.write(42) } }.toByteArray()
+                assertArrayEquals(byteArrayOf(42), BackupEncryptedIO.read(future.inputStream(), current) { it.readBytes() })
+                val wrapped = BackupIdentity.decode(BackupEnvelopeCodec.read(future.inputStream()).header.wrappedKey)
+                assertEquals(32, current.unwrap(wrapped).also { it.fill(0) }.size)
+                // Verify cryptographic separation, independently of the Reader's keyId guard.
+                assertTrue(runCatching { lease.unwrap(wrapped) }.isFailure)
+                assertTrue(runCatching { BackupEncryptedIO.read(future.inputStream(), lease) { it.readBytes() } }.isFailure)
             }
         }
-        assertTrue(runCatching { BackupEnvelopeCodec.read(bytes.inputStream()).header.identity.unlock("a different password".toCharArray()) }.isFailure)
+        val previous = BackupEnvelopeCodec.read(bytes.inputStream()).header.identity
+        assertTrue(runCatching { previous.unlock(nextPassword) }.isFailure)
+        previous.unlock(password).use { assertArrayEquals(byteArrayOf(1, 2, 3), BackupEncryptedIO.read(bytes.inputStream(), it) { stream -> stream.readBytes() }) }
     }
     @Test fun `header edits ciphertext edits reordered replayed missing and extra records fail closed`() {
         val bytes = encrypt(ByteArray(150000) { 7 }); val start = headerEnd(bytes)
