@@ -316,3 +316,12 @@ One-off delete и batch действия могут передавать ожи�
 Undo из карточки и editor navigation несёт пару NoteIdentity вместо одного Long; в SavedState только идентификаторы, без текста/пароля. Editor delete также передаёт binding. Внешняя Room transaction вокруг commit-owning NoteActions удалена: собственная transaction уже повторяет доступ/UUID, а post-commit alarm mutex не должен браться при ещё удерживаемом внешнем writer. Completion обновляет clocks после подтверждённого commit по свежей projection.
 
 38 тестов/7 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL4m45s. Исходные4F019, операции/корзина, Native Compose grid/anchors/actions, EditorHistory toolbar, Audio persistence/сроки/история. Журнал: /workspace/tools/fix-stale-card-actions.log. Физический restore/телефон не тестировались; полный набор/lint/APK впереди.
+
+
+### F020 — empty cleanup удаляет задачу с выбранными часами (средний приоритет)
+
+Новый editor с пустым текстом, но явным countdown либо running stopwatch сохраняет осмысленную task state. flushOnExit затем считает запись пустой, поскольку discardIfEmptyOnExit проверяет только title/body/tables/reminder/due/attachments. Запись попадает в корзину, countdown останавливается и валидная доставка больше не наступит.
+
+[Probe](audit-probes/EmptyTimerTaskAuditProbe.kt):2 ожидаемых отказа Native Room/API28 через настоящие VM.startCountdownUntil/toggleTaskTimer/flushOnExit. После успешного exit сохранённая строка isDeleted=true вместоfalse. BUILD FAILED1m48s. Это программный exit path, не измерение телефона/физический Back press.
+
+План: учитывать положительный elapsed/paused countdown и running timestamps при проверке пустого черновика. Сохранить прежнюю очистку полностью пустого/отменённого draft; проверить отсутствие лишних новых пустых строк.

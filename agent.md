@@ -1272,3 +1272,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T11:54:05Z: F019 подтверждён4 отрицательными Native Room VM probe: stale card delete/complete действует на другую UUID под тем же ID, старые start/complete инвертируют более новое состояние той же записи.1m37s. Проверяются identity-bound actions/selection/Undo.
 
 2026-11-14T12:03:24Z: F019 исправлен: UUID bindings в one-off/bulk selection/prompts/Undo, conditional desired-state guards, UID lazy keys, post-commit completion clocks; editor delete не держит внешнюю Room transaction вокруг alarm refresh. 38 тестов/7 наборов прошли4m45s. Полный набор/lint/APK ещё впереди.
+
+2026-11-14T12:06:37Z: F020 —2 отрицательных Native Room VM probe: countdown-only/stopwatch-only задача удаляется empty cleanup на exit.1m48s. Нужна проверка осмысленной clock state в пустоте черновика, без сохранения полностью пустых/отменённых задач.
