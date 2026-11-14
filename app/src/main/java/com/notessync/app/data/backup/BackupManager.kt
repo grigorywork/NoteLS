@@ -199,6 +199,7 @@ object BackupManager {
                     val oldAlarms = live.openHelper.readableDatabase.query(
                         "SELECT id FROM notes WHERE reminderAt IS NOT NULL OR taskCountdownEndAt IS NOT NULL"
                     ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.getLong(0)) } }
+                    com.notessync.app.reminders.AlarmReconciler.requireRecovery(context)
                     currentCoroutineContext().ensureActive()
                     live.runInTransaction {
                         val target = live.openHelper.writableDatabase

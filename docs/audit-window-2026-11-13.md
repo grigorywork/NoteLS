@@ -244,3 +244,12 @@ persistNow строит полный NoteEntity из кеша, включая pr
 [Probe](audit-probes/EditorMetadataProtectionAuditProbe.kt):2 ожидаемых отказа Native Room/API28/настоящий PasswordProtector. В первой проверке исходно публичный editor, независимо защищённая строка и настоящий свежий NotesViewModel.unlockTask новым паролем. Обычное редактирование текста принято, новый body записан, но protection исчезает без команды снятия. Во второй владелец открывает защищённую задачу, toggleTask лишает его grant и save возвращает отказ вместо преобразования. BUILD FAILED1m33s. Это дополнительные пути общего stale metadata writer, уже после исправления явныхF005 protect/remove команд.
 
 План: общие text/table saves должны сохранять свежие security columns; явные команды защиты остаются единственным владельцем их изменения. Преобразование типа с удалением task protection требует отдельной авторизованной транзакции по свежей строке и отзыва grant после commit, с сохранением body/tables/пина. Случай не решается выдачей разрешения после отказавшего save или ослаблением canAccess.
+
+
+### Первое исправление F015
+
+Applier собирает IDs только после commit внутри NonCancellable boundary, до возобновления отменённого caller. finally обновляет свежие alarm projections только этих IDs, группами200, в том числе при частично применённом пакете. Удалены alarm side effects из незавершённой entity transaction. Старые/новые targets снимаются и ставятся по текущей строке/UUID/защите; не затронутые пакетом alarms не сканируются.
+
+Перед первой изменённой записью остаётся durable recovery revision. Marker не берёт alarm mutex внутри Room transaction, поэтому обратного lock ordering нет. Старый полный scan не может стереть более новую recovery revision/cursor0; interrupted recovery по-прежнему возобновляется только по foreground событию. Restore также оставляет отметку до live commit. SharedPreferences содержат только progress/revision, не секреты.
+
+8 профильных тестов/5 наборов проходят,0 failures/errors/skipped, BUILD SUCCESSFUL3m53s:3 исходныхF015, boot countdown, конкурентный snapshot/peer file publication,1→17/staged restore и EditorSyncPause. Журнал: /workspace/tools/fix-sync-alarms.log. Сложные rollback/cancellation и оптимизация выборки ещё проверяются отдельно; это не финальное закрытие аудита.

@@ -5,7 +5,7 @@ import com.notessync.app.i18n.uiText
 import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.notes.actions.NoteActions
-import com.notessync.app.reminders.ReminderScheduler
+import com.notessync.app.reminders.AlarmReconciler
 import com.notessync.app.notes.photos.PhotoDisplaySize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -110,6 +110,8 @@ class RoomSyncDataSource(
         var conflicts = 0
 
         val discardedFiles = mutableListOf<String>()
+        val changedAlarms = linkedSetOf<Long>()
+        var recoveryMarked = false
         try {
             for (dto in changes.notebooks) syncTransaction {
                 val local = db.notebookDao().getBySyncId(dto.syncId)
@@ -132,7 +134,9 @@ class RoomSyncDataSource(
                 }
             }
 
-            for (dto in changes.notes) syncTransaction {
+            for (dto in changes.notes) {
+                val committed = linkedSetOf<Long>()
+                syncTransaction(afterCommit = { changedAlarms.addAll(committed) }) {
                 val local = db.noteDao().getBySyncId(dto.syncId)
                 val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
                 val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
@@ -141,24 +145,32 @@ class RoomSyncDataSource(
                     if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
                     if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList())
                 val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
+                if (resolution != ConflictResolver.Resolution.KeepLocal && !recoveryMarked) {
+                    AlarmReconciler.requireRecovery(context)
+                    recoveryMarked = true
+                }
                 when (resolution) {
                     is ConflictResolver.Resolution.ApplyRemote -> {
-                        applyNote(dto, local, discardedFiles)
+                        committed.add(applyNote(dto, local, discardedFiles))
                         appliedNotes++
                     }
                     is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
-                        applyNote(dto, local, discardedFiles)
-                        applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true)
+                        committed.add(applyNote(dto, local, discardedFiles))
+                        committed.add(applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true))
                         preserveConflictFiles(localSnapshot!!, resolution.conflictCopy, localFiles, discardedFiles)
                         appliedNotes++
                         conflicts++
                     }
                     ConflictResolver.Resolution.KeepLocal -> Unit
                 }
+                }
             }
 
         } finally {
-            withContext(NonCancellable) { runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } } }
+            withContext(NonCancellable) {
+                runCatching { db.withTransaction { NoteActions.deleteUnreferencedFiles(context, db, discardedFiles) } }
+                if (changedAlarms.isNotEmpty()) runCatching { AlarmReconciler.refreshNotes(context, db, changedAlarms) }
+            }
         }
         val missing = changes.notes
             .filter { dto -> db.noteDao().getBySyncId(dto.syncId)?.let { current ->
@@ -171,12 +183,15 @@ class RoomSyncDataSource(
     }
 
     /** Finish the current entity transaction; cancellation is checked before the next one. */
-    private suspend fun syncTransaction(block: suspend () -> Unit) {
+    private suspend fun syncTransaction(afterCommit: () -> Unit = {}, block: suspend () -> Unit) {
         currentCoroutineContext().ensureActive()
-        withContext(NonCancellable) { db.withTransaction { block() } }
+        withContext(NonCancellable) {
+            db.withTransaction { block() }
+            afterCommit() // Record ownership before cancellation can resume at the caller.
+        }
     }
 
-    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>, localConflict: Boolean = false) {
+    private suspend fun applyNote(dto: NoteDto, existing: NoteEntity?, discardedFiles: MutableList<String>, localConflict: Boolean = false): Long {
         val rawEntity = NoteEntity(
             id = existing?.id ?: 0,
             syncId = dto.syncId,
@@ -248,15 +263,12 @@ class RoomSyncDataSource(
         }
 
         db.tagDao().detachAllFromNote(localId)
-        if (entity.isDeleted || entity.isCompleted) {
-            ReminderScheduler.cancel(context, localId)
-            ReminderScheduler.cancelTimer(context, localId)
-        }
         for (name in if (entity.isPurged) emptyList() else dto.tagNames) {
             val tag = db.tagDao().getByName(name) ?: TagEntity(name = name, dirty = false)
                 .also { db.tagDao().insert(it) }
             db.tagDao().attachToNote(NoteTagCrossRef(noteId = localId, tagId = tag.id))
         }
+        return localId
     }
 
     private suspend fun preserveConflictFiles(original: NoteDto, copy: NoteDto, files: List<AttachmentEntity>, discarded: MutableList<String>) {

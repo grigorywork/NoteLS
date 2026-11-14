@@ -1256,3 +1256,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T10:58:53Z: F015 подтверждён3 отрицательными Native Room probe: пришедшие reminder/countdown не регистрируются; перенос/снятие peer target оставляет старые alarms. Нужна commit-aware свежая batch reconciliation затронутых ID с crash recovery и без инверсии lock ordering. [Доказательство](docs/audit-window-2026-11-13.md). Непрерывный JVM fuzz продолжает работу без отказа.
 
 2026-11-14T11:02:04Z: F016 подтверждён2 отрицательными Native Room probe: старый editor text-save снимает свежую защиту после легитимного нового unlock; toggleTask отзываeт собственный grant до save и не сохраняет преобразование.1m33s, без телефона. Нужны свежие security columns в общем save и отдельная commit-authorized conversion. [Журнал](docs/audit-window-2026-11-13.md).
+
+2026-11-14T11:10:58Z: F015 первое исправление — post-commit IDs/NonCancellable finally/fresh200-row projections; durable revision перед записью без Room→alarm mutex inversion.8 тестов/5 наборов прошли за3m53s. Дополнительные rollback/cancel проверки впереди; F016 ещё исправляется.

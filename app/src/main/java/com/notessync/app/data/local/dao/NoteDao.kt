@@ -118,6 +118,9 @@ interface NoteDao {
     @Query("UPDATE notes SET notebookId = NULL, updatedAt = :timestamp, dirty = 1 WHERE notebookId = :notebookId")
     suspend fun clearNotebook(notebookId: Long, timestamp: Long = System.currentTimeMillis())
 
+    @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id IN (:ids)")
+    suspend fun getAlarmSnapshots(ids: List<Long>): List<com.notessync.app.data.local.model.NoteAlarmSnapshot>
+
     @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id = :id")
     suspend fun getAlarmSnapshot(id: Long): com.notessync.app.data.local.model.NoteAlarmSnapshot?
 
