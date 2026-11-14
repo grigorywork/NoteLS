@@ -1310,3 +1310,6 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T14:44:09Z:1.10.36/code59 F028/F029 исправлены.38 checks/12 suites прошли6m26s, lint0error/15warnings/2info, assembleDebug/package/Debug cert verified, NOT-UPDATE. Main21701/212, VM686. Native45s smoke549 операций/12 groups как1 test. ОбщийCI budget40 после отменённого25min run35; test timeouts/forkEvery не менялись. Full661/CI и4h fix ещё не завершены.
 
 2026-11-14T14:46:50Z: Native v4 PID30586, sourcec330bd7,12 групп, frozen/real-active target17:14:23 запущен. Full661/163 пока ожидается, CI43606407747 running40min budget. Main/test freeze до конца Gradle.4h fix ещё не закрыты.
+
+
+2026-11-14T15:04:29Z: полный36/c330 прошёл661/163,0 failures/errors/skipped, lint0error/15warnings/2info, assembleDebug18m25s. CI43606407747/job132481885392 success17m27s:661/0fail/0ignored, lint0error/16warnings/2info. Отчёт14119486499 и APK14119197053 скачаны, ZIP digests сверены с API; README/source/SHA256SUMS/package/version36/code59/Android Debug certificate проверены. APK e67e0d9a4930738cc8bd3e3e397068a3157427f050fbcb5849ff6d5a5a49c931, NOT-UPDATE. Ссылка выдана пользователю, постоянный ключ не затронут. Native v4 продолжает frozen c330,12 случайных групп;4h fix до17:14:23 пока не закрыты. Main21701 строк/212 файлов, этапов0.
