@@ -1304,3 +1304,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T14:05:45Z: F027 исправлен unconditional protection await перед blank check.46 проверок/13 наборов прошли, lint0error/15warnings/2info, assembleDebug SUCCESS6m18s; package/version35/code58/Debug cert проверены, NOT-UPDATE. Main Kotlin21678/211, VM686. Внешний30s Native smoke358 операций как1 test; полный финальный обычный652/CI ещё не объявлен пройденным.4h fix до17:14:23 активны.
 
 2026-11-14T14:26:44Z: sourceb0 full652/161 прошёл0 failures/errors/skipped, lint0error/15warnings/2info/assemble SUCCESS13m24s. Native v3 реально нашёл F028: NoSuchElement в EditorTaskTiming.awaitIdle после1192 операций (14:11:32), pending.toList singleton race; аналог в tags. Итог/4h ещё не закрыты, готовится36/code59 и общий безопасный await.
+
+2026-11-14T14:33:54Z: F029 подтверждён3 отрицательными Native Room checks1m7s: partial protected notebook deletion, incoming relink и старый dangling state послеreopen. Body/UUID/version не потеряны, но UI недоступен из-за deleted protected parent. Готовится canonical FK detach вместе с F028 в1.10.36/code59.
