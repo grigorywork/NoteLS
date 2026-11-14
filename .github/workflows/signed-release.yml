@@ -1,0 +1,88 @@
+name: Signed NoteLS APK
+
+on:
+  workflow_run:
+    workflows: [Android checks]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-notels-main
+  cancel-in-progress: false
+
+jobs:
+  identity:
+    # Never expose signing Secrets to a pull request, including a fork branch named main.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.pin.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Check whether the permanent identity is configured
+        id: pin
+        run: |
+          if test -s .github/signing-certificate.sha256; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Permanent signing setup is pending; no signed APK will be generated.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+  release:
+    needs: identity
+    if: needs.identity.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Require existing signing Secrets and pinned certificate
+        env:
+          NOTELS_KEYSTORE_BASE64: ${{ secrets.NOTELS_KEYSTORE_BASE64 }}
+          NOTELS_SIGNING_PASSWORD: ${{ secrets.NOTELS_SIGNING_PASSWORD }}
+        run: |
+          test -n "$NOTELS_KEYSTORE_BASE64" || { echo 'Configure the permanent keystore Secret first'; exit 1; }
+          test -n "$NOTELS_SIGNING_PASSWORD" || { echo 'Configure the permanent password Secret first'; exit 1; }
+          test -s .github/signing-certificate.sha256 || { echo 'Commit the public certificate fingerprint first'; exit 1; }
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and lint release
+        run: ./gradlew :app:lintRelease :app:assembleRelease --console=plain --max-workers=2 --no-daemon
+      - name: Verify signing guards with disposable test keys
+        run: >-
+          python3 scripts/test_sign_apk.py
+          --apk app/build/outputs/apk/release/app-release-unsigned.apk
+          --metadata app/build/outputs/apk/release/output-metadata.json
+          --tools "$ANDROID_HOME/build-tools/35.0.0"
+          --keytool "$JAVA_HOME/bin/keytool"
+      - name: Sign with the existing permanent key and verify its identity
+        env:
+          NOTELS_KEYSTORE_BASE64: ${{ secrets.NOTELS_KEYSTORE_BASE64 }}
+          NOTELS_SIGNING_PASSWORD: ${{ secrets.NOTELS_SIGNING_PASSWORD }}
+          NOTELS_SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: >-
+          python3 scripts/sign_apk.py
+          --apk app/build/outputs/apk/release/app-release-unsigned.apk
+          --metadata app/build/outputs/apk/release/output-metadata.json
+          --tools "$ANDROID_HOME/build-tools/35.0.0"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NoteLS-permanent-signature-${{ github.event.workflow_run.head_sha || github.sha }}
+          path: signed-release-apk/
+          if-no-files-found: error
+          retention-days: 30

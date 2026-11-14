@@ -20,3 +20,6 @@ captures/
 *.apk
 *.aab
 *.zip
+__pycache__/
+*.pyc
+signed-release-apk/

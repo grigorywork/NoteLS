@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 59
-        versionName = "1.10.36"
+        versionCode = 60
+        versionName = "1.10.37"
         resourceConfigurations += listOf("ru", "en")
     }
 
@@ -42,7 +42,11 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            // Cloud releases are signed after compilation with a pinned certificate.
+            // Without local credentials produce an unsigned APK, never an alternate key.
+            if (keystoreProperties.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             // Единая постоянная подпись для всех выдаваемых сборок: обновления не

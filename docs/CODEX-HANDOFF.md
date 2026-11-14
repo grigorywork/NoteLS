@@ -1,3 +1,8 @@
+<!-- CURRENT-SIGNING-TRANSITION -->
+> Новое указание пользователя14 ноября2026: разрешены новый постоянный ключ и переустановка приложения. **1.10.37/code60 готовится, постоянный ключ ещё не создан/не сохранён, подписанного новым ключом APK пока нет.** Текущее GitHub-подключение получает403 на Actions Secrets; ожидается вход владельца. Старый запрет замены ключа отменён этим новым указанием; приватные ключи/пароли по-прежнему не публиковать. [Переход подписи и защита данных](signing-transition-1.10.37.md). Завершённый аудит1.10.36 ниже остаётся историческим результатом, не новой подписанной сборкой.
+
+<!-- END-CURRENT-SIGNING-TRANSITION -->
+
 <!-- CURRENT-MAINTENANCE-STATUS -->
 > Текущее завершённое техническое обслуживание: **1.10.36/code59, Room17/data2/security3**. Полный обычный набор661 тест/163 набора,0 failures/errors/skipped; lint0error/15warnings/2info, assembleDebug18m25s. [CI43606407747](https://github.com/grigorywork/NoteLS/actions/runs/43606407747) success наsourcec330bd7c9bb642b96771c8ad5b942aaec23d9ef3:661/0fail/0ignored, lint0error/16warnings/2info, build17m27s. [APK36/code59](https://github.com/grigorywork/NoteLS/actions/runs/43606407747/artifacts/14119197053) — **Android Debug/NOT-UPDATE, не обновление установленного приложения**. Source/package/version/certificate/SHA256 проверены; постоянная подпись не менялась.
 >
