@@ -226,3 +226,12 @@ Smoke30s:5273 итерации/21500 crypto checks/5273 ZIP/5273 formatting, б�
 ### Дополнительные alarm contracts на API26/28/35
 
 18 тестов/3 отдельных JVM набора (minSdk26, Android9/API28, Android15/API35),0 failures/errors/skipped, BUILD SUCCESSFUL1m58s. Проверены новый и старый deadline, reused local ID с новым UUID, generic title защищённого блокнота даже в unlocked сессии, completion обоих alarm kinds, независимые cancel/notification tags при Int-fold collision и отказ legacy queued Intent без binding. На API35 тест явно выдаёт fixture POST_NOTIFICATIONS и регистрирует receiver с NOT_EXPORTED; это облачная проверка Android API/shadows, а не выдача разрешения/запуск на реальном телефоне. Журнал: /workspace/tools/audit-alarm-api-matrix.log. Непрерывный fuzz в это время реально делает новые seeded итерации на отдельном immutable artifact; не мешает freeze исходников во время Gradle.
+
+
+### F015 — применение peer data не согласует локальные alarms (высокий приоритет)
+
+RoomSyncDataSource записывает полученный reminderAt/countdownEndAt, но ставит/переставляет сигналы только UI/boot/restore. Обычная applyNote снимает сигналы только для deleted/completed; новые сроки не регистрируются, перенесённый срок оставляет прежний alarm, снятый срок оставляет лишнее пробуждение.
+
+[Probe](audit-probes/SyncAlarmAuditProbe.kt):3 ожидаемых отказа Native Room/API28 через настоящий RoomSyncDataSource и AlarmManager shadows. Новая задача peer имеет оба будущих срока в БД, но0 alarms вместо2. Перенос записан в БД, но scheduled triggerAt остаётся прежним. Снятие обоих сроков записано, но оба alarms остаются. BUILD FAILED1m35s. Использованы собственные DTO/фикстуры, без настоящей сети/телефона. Проба выполнена на текущем исправленииF008–F012; отсутствие регистрации находится в прежнем applier, не заменяется свежей проверкой доставки.
+
+План: после подтверждённых entity commits обновлять только затронутые alarm projections порциями, включая частично применённый пакет/отмену, без полных тел/N+1. Сигналы не должны меняться до commit/для проигнорированной remote версии. Сохранять конечную recovery отметку перед записью, чтобы аварийное завершение между DB/AlarmManager не теряло восстановление; порядок блокировок не должен становиться Room→alarm mutex при обратном alarm mutex→Room. Проверить сохранение не относящихся к пакету alarms.
