@@ -77,6 +77,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     val biometrics = com.notessync.app.security.biometrics.NotebookBiometricController(viewModelScope, db,
         com.notessync.app.security.biometrics.AndroidNotebookBiometricVault(application))
 
+    internal val taskPasswords = com.notessync.app.security.TaskPasswordController(viewModelScope, db)
+    fun cancelAuthentication() { biometrics.cancel(); taskPasswords.cancel() }
+
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
@@ -207,18 +210,11 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         ProtectionSession.lockNotebook(notebook.id)
     }
 
-    fun unlockTask(note: NoteEntity, password: String, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val record = if (note.isProtected && note.passwordHash != null && note.passwordSalt != null) {
-                PasswordRecord(note.passwordHash, note.passwordSalt)
-            } else {
-                null
-            }
-            val unlocked = verify(record, password)
-            if (unlocked) ProtectionSession.unlockTask(note.syncId)
-            onResult(unlocked)
-        }
-    }
+    fun unlockTask(note: NoteEntity, password: String, onResult: (Boolean) -> Unit) =
+        unlockTask(note.id, note.syncId, note.isDeleted, password, onResult)
+
+    fun unlockTask(id: Long, syncId: String, deleted: Boolean, password: String, onResult: (Boolean) -> Unit) =
+        taskPasswords.unlock(id, syncId, deleted, password, onResult)
 
     private suspend fun verify(record: PasswordRecord?, password: String): Boolean {
         if (record == null) return false
@@ -244,7 +240,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    override fun onCleared() { biometrics.cancel(); super.onCleared() }
+    override fun onCleared() { cancelAuthentication(); super.onCleared() }
 
     private val actions = NoteActions(application, db)
 
@@ -374,7 +370,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }
             sql.append(" AND (notes.isProtected = 0")
             if (unlockedTaskIds.isNotEmpty()) {
-                sql.append(" OR notes.syncId IN (${unlockedTaskIds.joinToString(",") { "?" }})")
+                sql.append(" OR (notes.syncId != '' AND notes.syncId IN (${unlockedTaskIds.joinToString(",") { "?" }}))")
                 args.addAll(unlockedTaskIds)
             }
             sql.append(")")

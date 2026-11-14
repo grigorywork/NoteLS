@@ -29,6 +29,9 @@ interface NoteDao {
     @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
     fun observeNextTaskDue(query: SupportSQLiteQuery): Flow<Long?>
 
+    @Query("SELECT id, syncId, isTask, isDeleted, isPurged, isProtected, passwordHash, passwordSalt FROM notes WHERE id = :id")
+    suspend fun getTaskProtection(id: Long): com.notessync.app.data.local.model.TaskProtectionSnapshot?
+
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: Long): NoteEntity?
 
@@ -43,6 +46,9 @@ interface NoteDao {
 
     @Update
     suspend fun update(note: NoteEntity)
+
+    @Query("UPDATE notes SET isProtected = :isProtected, passwordHash = :hash, passwordSalt = :salt, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
+    suspend fun updateTaskProtection(id: Long, isProtected: Boolean, hash: String?, salt: String?, timestamp: Long)
 
     // Attachment changes affect sync metadata only; never rewrite a stale document snapshot.
     @Query("UPDATE notes SET dirty = 1, updatedAt = :timestamp WHERE id = :id")

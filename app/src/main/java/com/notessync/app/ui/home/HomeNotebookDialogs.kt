@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.notessync.app.data.local.entity.NotebookEntity
 import com.notessync.app.ui.common.SetPasswordDialog
 import com.notessync.app.ui.common.UnlockPasswordDialog
@@ -148,16 +149,18 @@ internal fun HomeNotebookDialogs(viewModel: NotesViewModel, notebookUi: HomeNote
         )
     }
 
+    val taskBusy by viewModel.taskPasswords.busy.collectAsStateWithLifecycle()
     notebookUi.taskToUnlock?.let { note ->
         UnlockPasswordDialog(
             title = uiText("Открыть защищённую задачу"),
             showError = notebookUi.taskUnlockError,
-            onDismiss = { notebookUi.taskToUnlock = null },
+            busy = taskBusy,
+            onDismiss = { notebookUi.taskToUnlock = null; viewModel.taskPasswords.cancel() },
             onConfirm = { password ->
                 viewModel.unlockTask(note, password) { unlocked ->
                     if (unlocked) {
                         notebookUi.taskToUnlock = null
-                        onOpenEditor(note.id, true)
+                        if (!note.isDeleted) onOpenEditor(note.id, true)
                     } else {
                         notebookUi.taskUnlockError = true
                     }

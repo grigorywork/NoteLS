@@ -20,7 +20,7 @@ object ProtectionSession {
         !notebook.isProtected || notebook.id in _state.value.notebookIds
 
     fun isUnlocked(note: NoteEntity): Boolean =
-        !note.isProtected || note.syncId in _state.value.taskSyncIds
+        !note.isProtected || (note.syncId.isNotBlank() && note.syncId in _state.value.taskSyncIds)
 
     fun lockAll() { _state.value = ProtectionState() }
 
@@ -33,6 +33,7 @@ object ProtectionSession {
     }
 
     fun unlockTask(syncId: String) {
+        if (syncId.isBlank()) return
         _state.update { it.copy(taskSyncIds = it.taskSyncIds + syncId) }
     }
 

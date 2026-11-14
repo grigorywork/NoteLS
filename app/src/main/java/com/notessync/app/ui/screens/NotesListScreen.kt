@@ -111,9 +111,9 @@ fun NotesListScreen(
     val biometricBindings by viewModel.biometrics.bindings.collectAsStateWithLifecycle()
     val biometricLifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(viewModel, biometricLifecycle) {
-        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) viewModel.biometrics.cancel() }
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) viewModel.cancelAuthentication() }
         biometricLifecycle.addObserver(observer)
-        onDispose { biometricLifecycle.removeObserver(observer); viewModel.biometrics.cancel() }
+        onDispose { biometricLifecycle.removeObserver(observer); viewModel.cancelAuthentication() }
     }
     val lockedTasks by viewModel.lockedTasks.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()

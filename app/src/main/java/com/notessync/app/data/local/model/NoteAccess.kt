@@ -7,5 +7,5 @@ data class NoteAccess(val id: Long, val syncId: String, val isDeleted: Boolean, 
     val isProtected: Boolean, val notebookId: Long?, val notebookProtected: Boolean) {
     fun allowed(expectedId: Long, expectedSyncId: String, session: ProtectionState): Boolean =
         id == expectedId && syncId == expectedSyncId && !isDeleted && !isPurged &&
-            (!isProtected || syncId in session.taskSyncIds) && (!notebookProtected || notebookId in session.notebookIds)
+            (!isProtected || (syncId.isNotBlank() && syncId in session.taskSyncIds)) && (!notebookProtected || notebookId in session.notebookIds)
 }

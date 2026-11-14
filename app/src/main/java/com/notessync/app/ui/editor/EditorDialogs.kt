@@ -179,10 +179,19 @@ internal fun EditorDialogs(viewModel: NoteEditorViewModel, ui: EditorUiState, se
         )
     }
 
+    val protectionLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    androidx.compose.runtime.DisposableEffect(viewModel, protectionLifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) viewModel.cancelTaskProtection()
+        }
+        protectionLifecycle.addObserver(observer)
+        onDispose { protectionLifecycle.removeObserver(observer); viewModel.cancelTaskProtection() }
+    }
+
     if (ui.showTaskPasswordDialog) {
         SetPasswordDialog(
             title = uiText("Пароль задачи"),
-            onDismiss = { ui.showTaskPasswordDialog = false },
+            onDismiss = { ui.showTaskPasswordDialog = false; viewModel.cancelTaskProtection() },
             onConfirm = { password ->
                 viewModel.protectTask(password)
                 ui.showTaskPasswordDialog = false
@@ -194,7 +203,8 @@ internal fun EditorDialogs(viewModel: NoteEditorViewModel, ui: EditorUiState, se
         UnlockPasswordDialog(
             title = uiText("Снять защиту задачи"),
             showError = ui.taskProtectionError,
-            onDismiss = { ui.showRemoveTaskProtection = false },
+            busy = viewModel.taskProtectionBusy,
+            onDismiss = { ui.showRemoveTaskProtection = false; viewModel.cancelTaskProtection() },
             onConfirm = { password ->
                 viewModel.removeTaskProtection(password) { verified ->
                     if (verified) ui.showRemoveTaskProtection = false else ui.taskProtectionError = true
