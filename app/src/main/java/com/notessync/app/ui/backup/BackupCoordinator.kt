@@ -53,7 +53,8 @@ internal class BackupCoordinator(context: Context, private val scope: CoroutineS
         scope.launch(start = CoroutineStart.UNDISPATCHED) {
             try { action() }
             catch (cancel: CancellationException) { throw cancel }
-            catch (_: Exception) { busy = false; message(uiText("Операция не выполнена. Проверьте пароль или файл и повторите.")) }
+            catch (_: Exception) { message(uiText("Операция не выполнена. Проверьте пароль или файл и повторите.")) }
+            // Release ownership once, after cleanup/feedback; an older finally must not clear a new task.
             finally { busy = false }
         }
     }
@@ -63,14 +64,14 @@ internal class BackupCoordinator(context: Context, private val scope: CoroutineS
                 ?: error("Output unavailable")
         }
         settings.setLastBackupAt(System.currentTimeMillis())
-        busy = false; message(uiText("Бэкап сохранён"))
+        message(uiText("Бэкап сохранён"))
     }
     fun export(uri: Uri, file: File) = task {
         withContext(Dispatchers.IO) {
             context.contentResolver.openOutputStream(uri, "wt")?.use { BackupManager.exportCopy(context, file, it) }
                 ?: error("Output unavailable")
         }
-        busy = false; message(uiText("Копия сохранена в выбранную папку"))
+        message(uiText("Копия сохранена в выбранную папку"))
     }
     fun select(uri: Uri) = task {
         val token = ++generation
@@ -96,7 +97,7 @@ internal class BackupCoordinator(context: Context, private val scope: CoroutineS
                         refresh()
                         // Retain the only old copy on conversion failure; allow an explicit retry.
                         BackupManager.protectLocalCopies(context); refresh()
-                        busy = false; message(uiText("Новые копии зашифрованы. Прежние зашифрованные копии сохраняют старый пароль. Для новых копий включите биометрию заново."))
+                        message(uiText("Новые копии зашифрованы. Прежние зашифрованные копии сохраняют старый пароль. Для новых копий включите биометрию заново."))
                     }
                     BackupPasswordMode.UNLOCK -> {
                         var unlocked: BackupAccess? = null
@@ -169,7 +170,7 @@ internal class BackupCoordinator(context: Context, private val scope: CoroutineS
             try {
                 val result = BackupManager.restore(context, uri, lease)
                 check(result.isSuccess)
-                busy = false; message(uiText("Данные восстановлены. Автообмен приостановлен."))
+                message(uiText("Данные восстановлены. Автообмен приостановлен."))
             } finally { lease?.close() }
         }
     }

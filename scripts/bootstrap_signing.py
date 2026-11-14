@@ -14,7 +14,7 @@ def run(command, data=None, env=None):
     result = subprocess.run(command, input=data, capture_output=True, env=env)
     if result.returncode:
         # Do not print subprocess output: credentials must never become a CI/chat log.
-        raise SystemExit('Signing setup failed. Credentials remain private; no alternate key was created.')
+        raise SystemExit('Signing setup failed. Retain the private setup directory and resume; never generate a replacement.')
     return result.stdout
 
 
@@ -53,8 +53,13 @@ def main():
     if not state.exists():
         if any(root.iterdir()):
             raise SystemExit('Private directory is not empty; inspect it instead of generating another key')
-        password_file.touch(mode=0o600)
-        password_file.write_text(secrets.token_urlsafe(48))
+        # Only one initializer may reserve credentials, even if two owner commands race.
+        try:
+            descriptor = os.open(password_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            raise SystemExit('Another setup reserved this identity; inspect or resume it instead of replacing it')
+        with os.fdopen(descriptor, 'w') as password_output:
+            password_output.write(secrets.token_urlsafe(48))
         env = {**os.environ, 'NOTELS_SETUP_PASSWORD': password_file.read_text()}
         run([args.keytool, '-genkeypair', '-alias', 'notels-2026', '-keyalg', 'RSA', '-keysize', '3072',
              '-sigalg', 'SHA256withRSA', '-validity', '10000', '-dname', 'CN=NoteLS', '-storetype', 'PKCS12',

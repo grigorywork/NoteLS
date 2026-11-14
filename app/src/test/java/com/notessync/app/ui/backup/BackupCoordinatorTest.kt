@@ -17,6 +17,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.SQLiteMode
 import java.io.File
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.coroutines.CoroutineContext
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, manifest = Config.NONE)
@@ -52,6 +54,39 @@ class BackupCoordinatorTest {
         assertTrue(owner.confirmRestore); assertEquals("Current", db.noteDao().getById(id)!!.title)
         owner.cancelRestore(); assertFalse(owner.confirmRestore); assertNull(owner.restoreInfo)
         assertEquals("Current", db.noteDao().getById(id)!!.title)
+    }
+    @Test fun `busy stays owned until failure feedback has been scheduled`() = runBlocking {
+        owner.stopped(); scope.cancel()
+        val pending = ConcurrentLinkedQueue<Runnable>()
+        val dispatcher = object : CoroutineDispatcher() {
+            var beforeDispatch: (CoroutineContext) -> Unit = {}
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                beforeDispatch(context); pending.add(block)
+            }
+        }
+        scope = CoroutineScope(SupervisorJob() + dispatcher)
+        owner = BackupCoordinator(app, scope, SettingsRepository.get(app), SnackbarHostState())
+        suspend fun drainOperation() = withTimeout(15000) {
+            while (owner.busy) { pending.poll()?.run(); delay(2) }
+        }
+        try {
+            owner.select(Uri.fromFile(file)); drainOperation()
+            assertEquals(BackupPasswordMode.UNLOCK, owner.passwordMode)
+            owner.password(BackupPasswordMode.UNLOCK, "incorrect".toCharArray(), charArrayOf())
+            val operation = scope.coroutineContext[Job]!!.children.single()
+            var busyAtFeedback: Boolean? = null
+            dispatcher.beforeDispatch = { context ->
+                // Feedback is a separate child; this intercepts scheduling before the owner can finalize.
+                if (context[Job] !== operation) busyAtFeedback = owner.busy
+            }
+            drainOperation()
+            assertEquals(true, busyAtFeedback)
+            assertFalse(owner.busy); assertFalse(owner.confirmRestore)
+            assertEquals("Current", db.noteDao().getById(id)!!.title)
+        } finally {
+            scope.cancel()
+            while (true) (pending.poll() ?: break).run()
+        }
     }
     @Test fun `STOP during password derivation clears input and late result cannot open confirmation`() = runBlocking {
         owner.select(Uri.fromFile(file)); idle()
