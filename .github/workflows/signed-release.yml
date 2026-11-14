@@ -51,11 +51,9 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Require existing signing Secrets and pinned certificate
         env:
-          NOTELS_KEYSTORE_BASE64: ${{ secrets.NOTELS_KEYSTORE_BASE64 }}
-          NOTELS_SIGNING_PASSWORD: ${{ secrets.NOTELS_SIGNING_PASSWORD }}
+          NOTELS_SIGNING_MATERIAL: ${{ secrets.NOTELS_SIGNING_MATERIAL }}
         run: |
-          test -n "$NOTELS_KEYSTORE_BASE64" || { echo 'Configure the permanent keystore Secret first'; exit 1; }
-          test -n "$NOTELS_SIGNING_PASSWORD" || { echo 'Configure the permanent password Secret first'; exit 1; }
+          test -n "$NOTELS_SIGNING_MATERIAL" || { echo 'Configure the permanent signing material Secret first'; exit 1; }
           test -s .github/signing-certificate.sha256 || { echo 'Commit the public certificate fingerprint first'; exit 1; }
       - uses: actions/setup-java@v4
         with:
@@ -73,8 +71,7 @@ jobs:
           --keytool "$JAVA_HOME/bin/keytool"
       - name: Sign with the existing permanent key and verify its identity
         env:
-          NOTELS_KEYSTORE_BASE64: ${{ secrets.NOTELS_KEYSTORE_BASE64 }}
-          NOTELS_SIGNING_PASSWORD: ${{ secrets.NOTELS_SIGNING_PASSWORD }}
+          NOTELS_SIGNING_MATERIAL: ${{ secrets.NOTELS_SIGNING_MATERIAL }}
           NOTELS_SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: >-
           python3 scripts/sign_apk.py

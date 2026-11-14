@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from sign_apk import certificate_digest, sign
+from signing_material import SECRET, fingerprint
 
 
 class SigningContract(unittest.TestCase):
@@ -30,8 +31,8 @@ class SigningContract(unittest.TestCase):
             subprocess.run(command, env=env, capture_output=True, check=True)
             cert = subprocess.check_output([ARGS.keytool, '-exportcert', '-alias', 'notels-2026',
                        '-keystore', str(key), '-storepass:env', 'NOTELS_TEST_PASSWORD'], env=env, stderr=subprocess.DEVNULL)
-            cls.environments.append({'NOTELS_KEYSTORE_BASE64': base64.b64encode(key.read_bytes()).decode(),
-                                     'NOTELS_SIGNING_PASSWORD': cls.password})
+            cls.environments.append({SECRET: json.dumps({'keystore_base64': base64.b64encode(key.read_bytes()).decode(),
+                                                        'password': cls.password})})
             if index == 0:
                 cls.fingerprint = hashlib.sha256(cert).hexdigest()
                 cls.pin = cls.root / 'certificate.sha256'
@@ -69,18 +70,20 @@ class SigningContract(unittest.TestCase):
         self.assertFalse(self.output.exists())
 
     def test_wrong_password_never_reaches_upload_directory(self):
+        material = json.loads(self.environments[0][SECRET]); material['password'] = 'wrong-test-password'
         with self.assertRaisesRegex(ValueError, 'signing failed'):
-            self.invoke({**self.environments[0], 'NOTELS_SIGNING_PASSWORD': 'wrong-test-password'})
+            self.invoke({SECRET: json.dumps(material)})
         self.assertFalse(self.output.exists())
 
     def test_absent_secret_does_not_generate_a_key(self):
         with self.assertRaisesRegex(ValueError, 'no fallback'):
-            self.invoke({'NOTELS_KEYSTORE_BASE64': '', 'NOTELS_SIGNING_PASSWORD': ''})
+            self.invoke({SECRET: ''})
         self.assertFalse(self.output.exists())
 
     def test_invalid_encoding_is_rejected(self):
+        material = json.loads(self.environments[0][SECRET]); material['keystore_base64'] = '$invalid!'
         with self.assertRaisesRegex(ValueError, 'encoding'):
-            self.invoke({**self.environments[0], 'NOTELS_KEYSTORE_BASE64': '$invalid!'})
+            self.invoke({SECRET: json.dumps(material)})
         self.assertFalse(self.output.exists())
 
     def test_invalid_pin_does_not_publish(self):
@@ -104,6 +107,38 @@ class SigningContract(unittest.TestCase):
         result = subprocess.run([sys.executable, str(Path(__file__).with_name('bootstrap_signing.py')),
                                  '--initialize-new-key', '--private-dir', str(target)],
                                 env={**os.environ, 'GITHUB_ACTIONS': 'true'}, capture_output=True, text=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('Key generation in CI is forbidden', result.stderr)
+        self.assertFalse(target.exists())
+
+    def test_invalid_material_is_rejected_without_echoing_its_content(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid signing material') as caught:
+            self.invoke({SECRET: '{"password":"disposable-private-marker"'})
+        self.assertNotIn('disposable-private-marker', str(caught.exception))
+        self.assertFalse(self.output.exists())
+
+    def test_existing_atomic_secret_recovers_the_same_public_fingerprint(self):
+        self.assertEqual(self.fingerprint, fingerprint(self.environments[0][SECRET], ARGS.keytool))
+
+    def test_owner_flag_does_not_authorize_an_ordinary_workflow(self):
+        target = self.root / 'forbidden-owner-flag'
+        result = subprocess.run([sys.executable, str(Path(__file__).with_name('bootstrap_signing.py')),
+                                 '--initialize-new-key', '--owner-workflow', '--private-dir', str(target)],
+                                env={**os.environ, 'GITHUB_ACTIONS': 'true', 'GITHUB_WORKFLOW': 'Android checks',
+                                     'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REF': 'refs/heads/main'},
+                                capture_output=True, text=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('Key generation in CI is forbidden', result.stderr)
+        self.assertFalse(target.exists())
+
+    def test_owner_setup_cannot_run_in_a_different_repository(self):
+        target = self.root / 'forbidden-owner-repository'
+        result = subprocess.run([sys.executable, str(Path(__file__).with_name('bootstrap_signing.py')),
+                                 '--initialize-new-key', '--owner-workflow', '--private-dir', str(target)],
+                                env={**os.environ, 'GITHUB_ACTIONS': 'true',
+                                     'GITHUB_WORKFLOW': 'Configure permanent signing',
+                                     'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REF': 'refs/heads/main',
+                                     'GITHUB_REPOSITORY': 'other/repository'}, capture_output=True, text=True)
         self.assertNotEqual(0, result.returncode)
         self.assertIn('Key generation in CI is forbidden', result.stderr)
         self.assertFalse(target.exists())

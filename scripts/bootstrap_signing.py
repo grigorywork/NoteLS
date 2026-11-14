@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-time owner setup. Never run in CI; never publish private files or passwords."""
+"""One-time owner setup; regular CI may never initialize a permanent identity."""
 import argparse
 import base64
 import hashlib
@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import secrets
 import subprocess
+from signing_material import SECRET
 
 
 def run(command, data=None, env=None):
@@ -23,8 +24,13 @@ def main():
     parser.add_argument('--initialize-new-key', action='store_true', required=True)
     parser.add_argument('--private-dir', type=Path, required=True)
     parser.add_argument('--keytool', default='keytool')
+    parser.add_argument('--owner-workflow', action='store_true')
     args = parser.parse_args()
-    if os.environ.get('GITHUB_ACTIONS') == 'true':
+    dedicated_owner_run = (args.owner_workflow and os.environ.get('GITHUB_WORKFLOW') == 'Configure permanent signing' and
+                           os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' and
+                           os.environ.get('GITHUB_REPOSITORY') == 'grigorywork/NoteLS' and
+                           os.environ.get('GITHUB_REF') == 'refs/heads/main')
+    if os.environ.get('GITHUB_ACTIONS') == 'true' and not dedicated_owner_run:
         raise SystemExit('Key generation in CI is forbidden')
     repo = 'grigorywork/NoteLS'
     pin = Path('.github/signing-certificate.sha256')
@@ -33,6 +39,8 @@ def main():
     # Check actual access before creating any permanent material.
     existing = json.loads(run(['gh', 'api', f'repos/{repo}/actions/secrets']))
     run(['gh', 'api', f'repos/{repo}/actions/secrets/public-key'])
+    if dedicated_owner_run and json.loads(run(['gh', 'api', 'user']))['login'] != 'grigorywork':
+        raise SystemExit('Only the repository owner can initialize this identity')
     if args.private_dir.is_symlink():
         raise SystemExit('Private directory must not be a symlink')
     root = args.private_dir.resolve()
@@ -48,7 +56,7 @@ def main():
     root.chmod(0o700)
     key, password_file, state = root / 'notels-permanent-2026.p12', root / 'password', root / 'setup-state.json'
     secret_names = {s['name'] for s in existing.get('secrets', [])}
-    if not state.exists() and secret_names & {'NOTELS_KEYSTORE_BASE64', 'NOTELS_SIGNING_PASSWORD'}:
+    if not state.exists() and SECRET in secret_names:
         raise SystemExit('Signing Secrets already exist. Refusing to overwrite their identity.')
     if not state.exists():
         if any(root.iterdir()):
@@ -74,10 +82,11 @@ def main():
     cert = run([args.keytool, '-exportcert', '-alias', 'notels-2026', '-keystore', str(key),
                 '-storepass:env', 'NOTELS_SETUP_PASSWORD'], env=env)
     fingerprint = hashlib.sha256(cert).hexdigest()
-    run(['gh', 'secret', 'set', 'NOTELS_KEYSTORE_BASE64', '--repo', repo], data=base64.b64encode(key.read_bytes()))
-    run(['gh', 'secret', 'set', 'NOTELS_SIGNING_PASSWORD', '--repo', repo], data=password_file.read_bytes())
+    material = json.dumps({'keystore_base64': base64.b64encode(key.read_bytes()).decode(),
+                           'password': password_file.read_text()}, separators=(',', ':')).encode()
+    run(['gh', 'secret', 'set', SECRET, '--repo', repo], data=material)
     names = {s['name'] for s in json.loads(run(['gh', 'api', f'repos/{repo}/actions/secrets']))['secrets']}
-    if not {'NOTELS_KEYSTORE_BASE64', 'NOTELS_SIGNING_PASSWORD'} <= names:
+    if SECRET not in names:
         raise SystemExit('Secrets were not confirmed; retain private material and resume this setup')
     pin.write_text(fingerprint + '\n')
     state.write_text(json.dumps({'key_created': True, 'secrets_saved': True, 'certificate_sha256': fingerprint}))

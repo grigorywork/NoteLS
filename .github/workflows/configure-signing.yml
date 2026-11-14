@@ -1,0 +1,65 @@
+name: Configure permanent signing
+
+on:
+  workflow_dispatch:
+    inputs:
+      initialize:
+        description: Explicit owner-authorized first setup (never a release fallback)
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notels-permanent-owner-setup
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    if: github.ref == 'refs/heads/main' && inputs.initialize
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare receiver or recover existing public identity
+        id: receiver
+        env:
+          NOTELS_SIGNING_MATERIAL: ${{ secrets.NOTELS_SIGNING_MATERIAL }}
+        run: python3 scripts/configure_signing.py prepare
+      - name: Publish only the ephemeral public receiver key
+        if: steps.receiver.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-signing-receiver-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/notels-owner-setup/public/
+          if-no-files-found: error
+          retention-days: 1
+      - name: Receive owner-authorized encrypted input and save the permanent material
+        if: steps.receiver.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/configure_signing.py complete
+      - name: Commit only the public certificate fingerprint
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/configure_signing.py publish
+      - name: Retain only the public permanent certificate proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: permanent-signing-public-certificate-${{ github.run_id }}
+          path: .github/signing-certificate.sha256
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Remove all temporary private material
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/notels-owner-setup"

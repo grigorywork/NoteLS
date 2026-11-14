@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+from signing_material import credentials
 
 
 def certificate_digest(output):
@@ -22,16 +23,7 @@ def sign(apk, metadata, certificate, output, tools):
     expected = certificate.read_text().strip().lower()
     if not re.fullmatch(r'[0-9a-f]{64}', expected):
         raise ValueError('Missing or invalid pinned signing certificate')
-    encoded = os.environ.get('NOTELS_KEYSTORE_BASE64', '')
-    password = os.environ.get('NOTELS_SIGNING_PASSWORD', '')
-    if not encoded or not password:
-        raise ValueError('Signing Secrets are required; no fallback key is generated')
-    try:
-        key = base64.b64decode(encoded, validate=True)
-    except ValueError:
-        raise ValueError('Invalid keystore encoding') from None
-    if not key or len(key) > 65536:
-        raise ValueError('Invalid keystore size')
+    key, password = credentials()
     info = json.loads(metadata.read_text())['elements'][0]
     version, code = info['versionName'], info['versionCode']
     if not re.fullmatch(r'\d+(?:\.\d+)*', version) or not isinstance(code, int):
