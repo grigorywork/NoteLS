@@ -1264,3 +1264,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T11:25:58Z: F0157 тестов/2 набора прошли3m12s: partial rollback, cancel внутри SQL/NonCancellable commit, supplied target DB, keep-local и no-clock peer note. Убраны лишние alarm/recovery действия для обычных текстовых заметок. Непрерывный JVM fuzz без отказа;4h окна не объявлены завершёнными.
 
 2026-11-14T11:33:29Z: F017 —1 отрицательный Native Room probe подтверждает: после реального commit reminderAt отмена editor scope на metadata await оставляет0 OS alarms вместо1.1m38s. Проверяется конечное завершение принятой команды и защита от stale binding; не физический Back/телефон.
+
+2026-11-14T11:39:55Z: F018 подтверждён2 отрицательными Native Room probe: поздняя регистрация старого editor заменяет уже установленный новый UUID/deadline alarm.1m34s. Нужен fresh DB-bound backend, одного Receiver guard недостаточно. Общий фиксF017/F018 в работе.

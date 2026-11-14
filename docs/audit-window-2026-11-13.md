@@ -278,3 +278,12 @@ EditorTaskTiming записывает выбранный срок, затем о
 [Probe](audit-probes/EditorAlarmLifetimeAuditProbe.kt):1 ожидаемый отказ Native Room/API28. Persist lambda действительно записывает reminderAt в Room; после подтверждения значения запрос title контролируемо приостановлен, scope закрыт и зависимость отпущена. В БД срок остаётся, AlarmManager содержит0 вместо1. BUILD FAILED1m38s. Это проверка компонента/границы scope, не физический Back press и не измерение телефона.
 
 План: конечное завершение принятой команды после подтверждённого save с сохранением generation/identity/deadline guards; закрытый scope не должен принимать новые команды. Не отключать отмену всего редактора и не ставить сигналы по stale binding. Проверить также подмену свежего срока другим писателем во время metadata await.
+
+
+### F018 — stale editor registration заменяет уже поставленный новый alarm (высокий приоритет)
+
+Проверки generation/parent модели недостаточны, если другой писатель сменил фактический UUID/deadline в БД, а старый editor кеш остался прежним. Поздняя metadata completion проходит локальные проверки и обновляет PendingIntent по тому же local ID/kind старым binding. Новый валидный alarm заменён старым; свежий Receiver потом правильно отклонит его, но актуального сигнала больше нет.
+
+[Probe](audit-probes/EditorAlarmFreshBindingAuditProbe.kt):2 ожидаемых отказа Native Room/API28. Реальный первый target записан; editor подготовка приостановлена. Другой writer меняет UUID под прежним local ID для reminder либо deadline той же UUID для countdown и действительно регистрирует новый signal (проверен новый triggerAt перед release). После завершения старого editor triggerAt заменяется прежним. BUILD FAILED1m34s. Это управляемые писатели/AlarmManager shadows, не реальный peer/телефон.
+
+ПланF017/F018: общий suspend backend с fresh projection и проверкой expected UUID/deadline/current generation непосредственно в Room transaction перед platform effect; UI callback не принимает stale как schedule failure и не очищает более новый target. Тонкий ReminderScheduler остаётся синхронным Android adapter. Принятые команды завершаются конечным действием при закрытии owner; новые команды закрытый owner не принимает. Остальные registration writers должны пользоваться такой же свежей границей, сохраняя обратную совместимость пользовательских данных.
