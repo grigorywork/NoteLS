@@ -11,12 +11,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.compositeOver
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.*
 import com.notessync.app.ui.tasks.taskColorOption
 import com.notessync.app.ui.theme.LocalGlassTheme
 
 @Composable
-internal fun noteCardContainer(note: NoteEntity): Color {
+internal fun noteCardContainer(note: NoteListEntry): Color {
     val palette = taskColorOption(if (note.isTask) note.taskColor else note.noteColor)
     val glass = LocalGlassTheme.current
     return if (note.isTask && note.isCompleted) palette.completedContainer.copy(alpha = if (glass.enabled) .55f else 1f)
@@ -26,7 +26,7 @@ internal fun noteCardContainer(note: NoteEntity): Color {
 
 /** Keep the selected hue, with readable text in both themes. No per-frame color calculation. */
 @Composable
-internal fun noteAccent(note: NoteEntity): Color {
+internal fun noteAccent(note: NoteListEntry): Color {
     val background = noteCardContainer(note).compositeOver(MaterialTheme.colorScheme.surface)
     val fallback = if (background.luminance() > .179f) Color(0xFF1D1B20) else Color.White
     val raw = if (note.isTask) taskColorOption(note.taskColor).accent
@@ -40,7 +40,7 @@ internal fun noteAccent(note: NoteEntity): Color {
 }
 
 @Composable
-internal fun NoteCardMenu(note: NoteEntity, onDelete: () -> Unit, onSelect: () -> Unit,
+internal fun NoteCardMenu(note: NoteCardEntry, onDelete: () -> Unit, onSelect: () -> Unit,
     onPin: () -> Unit, onRestore: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {

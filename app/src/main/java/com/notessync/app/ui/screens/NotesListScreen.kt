@@ -76,7 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.settings.NotesLayout
 import com.notessync.app.settings.SettingsRepository
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.*
 import com.notessync.app.security.ProtectionSession
 import com.notessync.app.security.visibleNotes
 import com.notessync.app.ui.notes.isUnfinished
@@ -158,7 +158,7 @@ fun NotesListScreen(
     LaunchedEffect(query, filter) { selected = emptySet() }
     LaunchedEffect(shownNotes) { selected = selected.intersect(shownNotes.map { it.id }.toSet()) }
     BackHandler(selected.isNotEmpty()) { selected = emptySet() }
-    fun select(note: NoteEntity) { if (!busy) selected = if (note.id in selected) selected - note.id else selected + note.id }
+    fun select(note: NoteCardEntry) { if (!busy) selected = if (note.id in selected) selected - note.id else selected + note.id }
     fun apply(ids: Set<Long>?, action: NoteActions.Action) {
         if (busy) return
         busy = true
@@ -175,7 +175,7 @@ fun NotesListScreen(
         }
     }
 
-    var deleteCandidate by remember { mutableStateOf<NoteEntity?>(null) }
+    var deleteCandidate by remember { mutableStateOf<NoteCardEntry?>(null) }
 
     val notebookFilterId = (filter as? NoteFilter.Notebook)?.id
     val visibleLockedTasks = if (query.isBlank()) {
@@ -349,7 +349,7 @@ fun NotesListScreen(
                         onOpen = { note ->
                             if (selected.isNotEmpty() || filter == NoteFilter.Trash) select(note)
                             else if (ProtectionSession.isUnlocked(note)) onOpenEditor(note.id, note.isTask)
-                            else { notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = note }
+                            else { notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = note.unlockTarget() }
                         }, onUnlock = { task -> notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = task },
                         onDelete = { if (filter == NoteFilter.Trash) { purgeIds = setOf(it.id); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
                         onToggleTimer = viewModel::toggleTaskTimer, selected = selected, onSelect = ::select,

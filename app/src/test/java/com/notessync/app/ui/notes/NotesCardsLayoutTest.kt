@@ -13,7 +13,7 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.entity.AttachmentEntity
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.*
 import com.notessync.app.settings.NotesLayout
 import com.notessync.app.ui.home.NotesCardsLayout
 import org.junit.*
@@ -30,7 +30,7 @@ import java.io.File
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class NotesCardsLayoutTest {
     @get:Rule val compose = createComposeRule()
-    private fun notes(count: Int) = (1..count).map { i -> NoteEntity(id = i.toLong(), title = "Note $i",
+    private fun notes(count: Int) = (1..count).map { i -> NoteCardEntry(id = i.toLong(), title = "Note $i",
         content = if (i % 2 == 1) "Long line\n".repeat(12) else "Short") }
 
     @Test fun `two lanes have varying height and photos while distant notes remain uncomposed`() {
@@ -78,12 +78,12 @@ class NotesCardsLayoutTest {
 
     @Test fun `compact actions remain distinct and locked cards expose no note content or photo`() {
         var opened = 0; var unlocked = 0; var deleted = 0; var completed = 0; var timer = 0
-        val task = NoteEntity(id = 1, title = "Task", isTask = true, taskPriority = 3, isFavorite = true, tablesData = "[]")
-        val locked = NoteEntity(id = 2, title = "SECRET", content = "SECRET", isTask = true, isProtected = true)
+        val task = NoteCardEntry(id = 1, title = "Task", isTask = true, taskPriority = 3, isFavorite = true, hasTables = true)
+        val locked = NoteCardEntry(id = 2, title = "SECRET", content = "SECRET", isTask = true, isProtected = true)
         val hiddenPhoto = AttachmentEntity(noteId = 2, filePath = "never-read-this-file", mimeType = "image/jpeg", sizeBytes = 3)
         compose.setContent { MaterialTheme {
             Box(Modifier.requiredSize(240.dp, 720.dp)) {
-                NotesCardsLayout(listOf(task, NoteEntity(id = 3, title = "Narrow")), listOf(locked), NotesLayout.GRID, mapOf(2L to hiddenPhoto), true,
+                NotesCardsLayout(listOf(task, NoteCardEntry(id = 3, title = "Narrow")), listOf(locked.unlockTarget()), NotesLayout.GRID, mapOf(2L to hiddenPhoto), true,
                     onOpen = { opened++ }, onUnlock = { unlocked++ }, onDelete = { deleted++ },
                     onToggleCompleted = { completed++ }, onToggleTimer = { timer++ })
             }

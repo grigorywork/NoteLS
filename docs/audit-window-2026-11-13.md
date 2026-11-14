@@ -192,3 +192,14 @@ LegacyIdentityRepair присваивает пустым note/notebook syncId н
 ### F014 исправлен и проверен вместе с F011
 
 MIGRATION_1_2 теперь создаёт четыре недостающих неуникальных syncId индекса, соответствующих отслеживаемой схеме. Два Native Room теста проходят: настоящая1→17 migration и публичный BackupManager.restore legacy ZIP1 через staged DB. Проверены две независимые стабильные note UUID, notebook UUID, bodies, тег/связь, attachment row/bytes и повторное открытие. Room17/schema JSON/signing прежние. BUILD SUCCESSFUL2m4s,2 теста,0 failures/errors/skipped. Журнал: /workspace/tools/fix-audit-legacy-migration.log. Физический телефон и пользовательский архив не использовались.
+
+
+### F006/F007 — ограниченные read models главной и форматирование видимого префикса
+
+Настоящий VM результатов/закрытых карточек теперь читает NoteCardEntry/TaskUnlockTarget вместо полных NoteEntity. Card SQL возвращает title/body prefixes, ограниченную format string и hasTables Boolean; закрытый target содержит только id/syncId/notebookId/isDeleted. DTO нельзя передать DAO записи документа. Полный текст остаётся в WHERE поиска и свежих чтениях перед мутацией/редактированием. Общая NoteListEntry позволяет применять одну visibility/clock policy к полному документу и read model без превращения префикса обратно в документ. SQL/Room17 schema не изменены.
+
+TextFormatting.decodePreview пересекает валидные диапазоны с видимым префиксом, сохраняя границы Unicode. Только карточки включают clipFormatting; строгий decode полного документа и Markdown/редактор прежние. Подтверждены жирность/выравнивание длинных диапазонов, emoji и отсутствие изменения исходных JSON диапазонов. UI fixtures сетки переведены на явный read model без ослабления assertions/анимаций.
+
+Фактический Native SQL witness на тех же20 заметках возвращает40000 UTF16 body chars вместо4000000; table JSON больше не возвращается (только20 Boolean). Закрытая задача не имеет title/body/table/password columns в результате запроса. Это подсчёт результатов, не RAM/PSS/CPU/замер телефона; native SQLite, full search и число строк всё ещё имеют свои затраты. Дополнительно подтверждены поиск за пределами2000-char префикса, полная сохранность body/tables/format после card completion и корректные4000 UTF16 из SQLite SUBSTR2000 codepoints/2000 видимых UTF16 emoji.
+
+21 набор/96 тестов,0 failures/errors/skipped, BUILD SUCCESSFUL3m13s. Включены Native Compose сетка/anchor/действия/приватность, сроки/кеш/часы, все Markdown и rich formatting проверки. Журнал: /workspace/tools/fix-audit-home-projections.log. Полный итог/lint/APK ещё не объявлен.

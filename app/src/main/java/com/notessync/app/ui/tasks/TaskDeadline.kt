@@ -30,8 +30,8 @@ object TaskDeadlines {
 }
 
 /** Recheck cached rows at a clock boundary while the new SQL result is in flight. */
-internal fun filterCachedDeadlines(notes: List<com.notessync.app.data.local.entity.NoteEntity>, filter: TaskDueFilter,
-    now: Long, zone: ZoneId): List<com.notessync.app.data.local.entity.NoteEntity> {
+internal fun <T : com.notessync.app.data.local.model.NoteListEntry> filterCachedDeadlines(notes: List<T>, filter: TaskDueFilter,
+    now: Long, zone: ZoneId): List<T> {
     if (filter == TaskDueFilter.ALL) return notes
     val bounds = if (filter == TaskDueFilter.TODAY) TaskDeadlines.dayBounds(now, zone) else 0L to 0L
     return notes.filter { note ->

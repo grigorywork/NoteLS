@@ -56,7 +56,7 @@ import com.notessync.app.settings.NotesLayout
 import com.notessync.app.notes.text.notePreviewText
 import com.notessync.app.ui.notes.NoteGridCard
 import com.notessync.app.ui.notes.NotePhotoPreview
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.*
 import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.tasks.*
 import com.notessync.app.ui.notes.md.MarkdownLite
@@ -106,7 +106,7 @@ private fun LockedTaskCard(onClick: () -> Unit, horizontalPadding: Dp = 16.dp) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NoteCard(
-    note: NoteEntity,
+    note: NoteCardEntry,
     showPriority: Boolean = true,
     photo: AttachmentEntity? = null,
     onClick: () -> Unit,
@@ -191,13 +191,13 @@ private fun NoteCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                if (note.tablesData.isNotEmpty()) Text(uiText("Таблица"), style = MaterialTheme.typography.labelMedium,
+                if (note.hasTables) Text(uiText("Таблица"), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (photo != null) NotePhotoPreview(photo, 120)
                 if (note.content.isNotBlank()) {
                     Text(
                         // HF-1: в карточках списка тоже отрисованный текст, без ** и [ ].
-                        text = remember(note.content, note.textFormat) { MarkdownLite.parse(notePreviewText(note.content), formatting = note.textFormat) },
+                        text = remember(note.content, note.textFormat) { MarkdownLite.parse(notePreviewText(note.content), formatting = note.textFormat, clipFormatting = true) },
                         style = MaterialTheme.typography.bodyMedium,
                         color = LocalContentColor.current.copy(alpha = 0.75f),
                         maxLines = 2,
@@ -252,13 +252,13 @@ private fun NoteCard(
 @OptIn(ExperimentalFoundationApi::class)
 
 @Composable
-internal fun NotesCardsLayout(notes: List<NoteEntity>, locked: List<NoteEntity>, layout: NotesLayout,
+internal fun NotesCardsLayout(notes: List<NoteCardEntry>, locked: List<TaskUnlockTarget>, layout: NotesLayout,
     photos: Map<Long, AttachmentEntity>, showPriority: Boolean,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
-    onOpen: (NoteEntity) -> Unit, onUnlock: (NoteEntity) -> Unit, onDelete: (NoteEntity) -> Unit,
-    onToggleCompleted: (NoteEntity) -> Unit, onToggleTimer: (NoteEntity) -> Unit,
-    selected: Set<Long> = emptySet(), onSelect: (NoteEntity) -> Unit = {},
-    onPin: (NoteEntity) -> Unit = {}, onRestore: (NoteEntity) -> Unit = {}, deadlineNow: Long = System.currentTimeMillis()
+    onOpen: (NoteCardEntry) -> Unit, onUnlock: (TaskUnlockTarget) -> Unit, onDelete: (NoteCardEntry) -> Unit,
+    onToggleCompleted: (NoteCardEntry) -> Unit, onToggleTimer: (NoteCardEntry) -> Unit,
+    selected: Set<Long> = emptySet(), onSelect: (NoteCardEntry) -> Unit = {},
+    onPin: (NoteCardEntry) -> Unit = {}, onRestore: (NoteCardEntry) -> Unit = {}, deadlineNow: Long = System.currentTimeMillis()
 ) {
     val grid = layout == NotesLayout.GRID
     BoxWithConstraints(Modifier.fillMaxSize()) {

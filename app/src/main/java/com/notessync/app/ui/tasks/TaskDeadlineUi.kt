@@ -15,7 +15,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.NoteListEntry
 import com.notessync.app.i18n.uiText
 import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.notes.*
@@ -69,7 +69,7 @@ internal fun TaskDeadlineLabel(at: Long?, now: Long, completed: Boolean, color: 
 
 /** One foreground boundary wake-up; no clock per card and no periodic/background job. */
 @Composable
-internal fun TaskDeadlineClock(viewModel: NotesViewModel, filter: NoteFilter, notes: List<NoteEntity>) {
+internal fun TaskDeadlineClock(viewModel: NotesViewModel, filter: NoteFilter, notes: List<NoteListEntry>) {
     val now by viewModel.taskClock.collectAsStateWithLifecycle()
     val nextDue by viewModel.nextTaskDue.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle

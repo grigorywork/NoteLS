@@ -1,6 +1,6 @@
 package com.notessync.app.security
 
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.NoteListEntry
 import com.notessync.app.data.local.entity.NotebookEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +19,7 @@ object ProtectionSession {
     fun isUnlocked(notebook: NotebookEntity): Boolean =
         !notebook.isProtected || notebook.id in _state.value.notebookIds
 
-    fun isUnlocked(note: NoteEntity): Boolean =
+    fun isUnlocked(note: NoteListEntry): Boolean =
         !note.isProtected || (note.syncId.isNotBlank() && note.syncId in _state.value.taskSyncIds)
 
     fun lockAll() { _state.value = ProtectionState() }

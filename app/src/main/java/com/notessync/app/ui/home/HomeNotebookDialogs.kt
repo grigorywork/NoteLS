@@ -157,7 +157,7 @@ internal fun HomeNotebookDialogs(viewModel: NotesViewModel, notebookUi: HomeNote
             busy = taskBusy,
             onDismiss = { notebookUi.taskToUnlock = null; viewModel.taskPasswords.cancel() },
             onConfirm = { password ->
-                viewModel.unlockTask(note, password) { unlocked ->
+                viewModel.unlockTask(note.id, note.syncId, note.isDeleted, password) { unlocked ->
                     if (unlocked) {
                         notebookUi.taskToUnlock = null
                         if (!note.isDeleted) onOpenEditor(note.id, true)

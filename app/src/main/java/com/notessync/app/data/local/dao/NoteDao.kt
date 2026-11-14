@@ -24,6 +24,12 @@ interface NoteDao {
 
     // Фильтры (блокнот/избранное/тег) + сортировка собираются в один запрос (Этап 2).
     @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
+    fun rawCards(query: SupportSQLiteQuery): Flow<List<com.notessync.app.data.local.model.NoteCardEntry>>
+
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class])
+    fun rawLockedTaskTargets(query: SupportSQLiteQuery): Flow<List<com.notessync.app.data.local.model.TaskUnlockTarget>>
+
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
     fun rawQuery(query: SupportSQLiteQuery): Flow<List<NoteEntity>>
 
     @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])

@@ -20,26 +20,26 @@ import java.util.UUID
     indices = [Index("notebookId"), Index("updatedAt"), Index("syncId"), Index("dayKey"), Index(name = "index_notes_task_due", value = ["isDeleted", "isPurged", "isTask", "isCompleted", "taskDueAt", "isProtected", "notebookId"]), Index(name = "index_notes_visible_order", value = ["isDeleted", "isPurged", "isPinned", "updatedAt", "id", "isProtected", "notebookId"])]
 )
 data class NoteEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) override val id: Long = 0,
     // Global sync identity; local database ids can differ between devices.
-    val syncId: String = UUID.randomUUID().toString(),
+    override val syncId: String = UUID.randomUUID().toString(),
     val title: String = "",
     val content: String = "",
     @ColumnInfo(defaultValue = "''") val textFormat: String = "",
     @ColumnInfo(defaultValue = "''") val tablesData: String = "",
-    val notebookId: Long? = null,
+    override val notebookId: Long? = null,
     val isFavorite: Boolean = false,
-    val isDeleted: Boolean = false,
-    @ColumnInfo(defaultValue = "0") val isPurged: Boolean = false,
+    override val isDeleted: Boolean = false,
+    @ColumnInfo(defaultValue = "0") override val isPurged: Boolean = false,
     @ColumnInfo(defaultValue = "0") val isPinned: Boolean = false,
-    @ColumnInfo(defaultValue = "''") val noteColor: String = "",
+    @ColumnInfo(defaultValue = "''") override val noteColor: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val reminderAt: Long? = null,
-    @ColumnInfo(defaultValue = "NULL") val taskDueAt: Long? = null,
+    @ColumnInfo(defaultValue = "NULL") override val taskDueAt: Long? = null,
     val dayKey: Long? = null,
-    val isTask: Boolean = false,
-    val isCompleted: Boolean = false,
-    val taskColor: String = "violet",
+    override val isTask: Boolean = false,
+    override val isCompleted: Boolean = false,
+    override val taskColor: String = "violet",
     @ColumnInfo(defaultValue = "0") val taskPriority: Int = 0,
     val taskElapsedMillis: Long = 0L,
     val taskTimerStartedAt: Long? = null,
@@ -49,10 +49,10 @@ data class NoteEntity(
     // Когда задача была выполнена (Этап 31): основа аналитики. Null у старых записей —
     // для них статистика использует updatedAt.
     val taskCompletedAt: Long? = null,
-    val isProtected: Boolean = false,
+    override val isProtected: Boolean = false,
     val passwordHash: String? = null,
     val passwordSalt: String? = null,
     // Sync metadata: updatedAt drives deltas and dirty marks local changes.
     val updatedAt: Long = System.currentTimeMillis(),
     val dirty: Boolean = true
-)
+) : com.notessync.app.data.local.model.NoteListEntry

@@ -129,14 +129,24 @@ data class TextFormatting(val version: Int = 1, val marks: List<FormatMark> = em
     companion object {
         const val MAX_MARKS = 2000
         private val json = Json { ignoreUnknownKeys = true }
-        fun decode(raw: String, textLength: Int): TextFormatting {
+        fun decode(raw: String, textLength: Int): TextFormatting = decodeInternal(raw, textLength, null)
+        fun decodePreview(raw: String, text: String): TextFormatting = decodeInternal(raw, text.length, text)
+        private fun decodeInternal(raw: String, textLength: Int, preview: String?): TextFormatting {
             if (raw.isBlank() || raw.length > 250_000) return TextFormatting()
             return runCatching {
                 val parsed = json.decodeFromString<TextFormatting>(raw)
                 if (parsed.version != 1) return TextFormatting()
-                val valid = parsed.marks.take(MAX_MARKS).filter { mark ->
+                val valid = parsed.marks.take(MAX_MARKS).mapNotNull { mark ->
                     val kind = FormatKind.entries.firstOrNull { it.name == mark.kind }
-                    kind != null && kind.valid(mark.value) && mark.start >= 0 && mark.start < mark.end && mark.end <= textLength
+                    if (kind == null || !kind.valid(mark.value) || mark.start < 0 || mark.start >= mark.end ||
+                        mark.start >= textLength || (preview == null && mark.end > textLength)) return@mapNotNull null
+                    var start = mark.start
+                    var end = minOf(mark.end, textLength)
+                    if (preview != null) {
+                        if (start > 0 && preview[start - 1].isHighSurrogate() && preview[start].isLowSurrogate()) start--
+                        if (end < preview.length && preview[end - 1].isHighSurrogate() && preview[end].isLowSurrogate()) end++
+                    }
+                    mark.copy(start = start, end = end)
                 }
                 normalized(TextFormatting(marks = valid).runs().flatMap { run ->
                     run.values.map { (kind, value) -> FormatMark(run.start, run.end, kind.name, value) }

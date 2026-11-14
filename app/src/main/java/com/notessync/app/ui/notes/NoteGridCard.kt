@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.notessync.app.data.local.entity.AttachmentEntity
-import com.notessync.app.data.local.entity.NoteEntity
+import com.notessync.app.data.local.model.*
 import com.notessync.app.notes.photos.PhotoDisplaySize
 import com.notessync.app.notes.text.notePreviewText
 import com.notessync.app.ui.common.formatDateTime
@@ -36,7 +36,7 @@ import com.notessync.app.ui.theme.*
 
 @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriority: Boolean,
+internal fun NoteGridCard(note: NoteCardEntry, photo: AttachmentEntity?, showPriority: Boolean,
     onClick: () -> Unit, onDelete: () -> Unit, onToggleCompleted: () -> Unit, onToggleTimer: () -> Unit,
     onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
     selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis()
@@ -65,11 +65,11 @@ internal fun NoteGridCard(note: NoteEntity, photo: AttachmentEntity?, showPriori
                 if (note.isPinned) Icon(Icons.Default.PushPin, uiText("Закреплено"), modifier = Modifier.size(18.dp))
                 if (note.isFavorite) Icon(Icons.Default.Star, uiText("Избранное"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 if (note.isProtected) Icon(Icons.Default.Lock, uiText("Защищено паролем"), modifier = Modifier.size(18.dp))
-                if (note.tablesData.isNotEmpty()) Text(uiText("Таблица"), style = MaterialTheme.typography.labelSmall)
+                if (note.hasTables) Text(uiText("Таблица"), style = MaterialTheme.typography.labelSmall)
             }
             if (photo != null) NotePhotoPreview(photo, 180)
             if (note.content.isNotBlank()) Text(
-                remember(note.content, note.textFormat) { MarkdownLite.parse(notePreviewText(note.content), formatting = note.textFormat) },
+                remember(note.content, note.textFormat) { MarkdownLite.parse(notePreviewText(note.content), formatting = note.textFormat, clipFormatting = true) },
                 style = MaterialTheme.typography.bodyMedium, maxLines = 8, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(vertical = 4.dp))
             if (note.isTask) {
