@@ -99,3 +99,21 @@ ReminderReceiver берёт noteId/title/isTimer из Intent и сразу пу�
 План: отдельная свежая разрешающая проекция записи/блокнота и срока; пропуск отсутствующей/deleted/purged/completed/отменённой/перенесённой записи, безопасный текущий заголовок. Не блокировать main thread BroadcastReceiver чтением Room; goAsync с гарантированным finish. Для новых PendingIntent привязать срок/идентичность, совместимость прежних будильников проверить отдельно. Все пути Schedule/Cancel/Restore/Boot должны согласовываться с этим правилом.
 
 -06:27:45 UTC: F008 подтверждён тремя проверками. Далее исследуется перепостановка countdown после boot и гонка постановки/отмены в редакторе.
+
+### F009 — running countdown не перепоставляется после boot (средний приоритет)
+
+BootReceiver читает только getWithFutureReminders и перепоставляет обычные напоминания. Задача с future taskCountdownEndAt, но reminderAt=NULL, не попадает в выборку. После потери системных alarm при reboot сохранённый работающий countdown остаётся без сигнала.
+
+Доказательство: [probe](audit-probes/BootCountdownAuditProbe.kt), Native Room/API28, динамическая регистрация BootReceiver и BOOT_COMPLETED через Robolectric, ожидание фактического PendingResult.finish. Обычное напоминание успешно появилось (положительный контроль), timer отсутствует;1 ожидаемый отказ. Это модель boot delivery на облачной Android-runtime, **не настоящая перезагрузка телефона**. До прогона исправлена nullable operation в cleanup теста; ошибка компиляции не считалась результатом аудита.
+
+План: единая конечная перепостановка reminder+countdown по допустимому текущему состоянию, без чтения полных документов и N+1 notebook-запросов; finish в finally. Проверить пустой набор, ошибку БД, deleted/purged/завершённые timers, обновление пакета/часов и защиту заголовка.
+
+### F010 — поздняя операция редактора возвращает отменённый/старый alarm (средний приоритет)
+
+EditorTaskTiming.setReminder сохраняет at в coroutine и после suspend persist/title вызывает schedule без проверки поколения. scheduleCountdownAlarm аналогично захватывает endAt до suspend title. clear/cancel снимают alarm, но старый запрос после возобновления ставит его снова. Более поздно завершившийся старый reminder заменяет новый выбранный target.
+
+Доказательство: [probe](audit-probes/EditorAlarmCancellationAuditProbe.kt),3 ожидаемых отказа на API28. CompletableDeferred удерживает реальный suspend title-provider, без sleeps/оценок быстродействия; затем clear/cancel/new time. Состояние модели уже очищено, но ShadowAlarmManager получает старый alarm; в третьем случае второй target заменён первым. Общий прогонF009/F0101m1s, не измерение телефона.
+
+План: поколения/снимки reminder и countdown, проверки после каждого suspend перед schedule и перед откатом при ошибке; сохранить идентичность текущего родителя. Новый выбор/отмена/удаление должны побеждать старый callback. Исправлять вместе со свежим receiverF008, чтобы не оставлять лишние wakeups и не сообщать успех при неподтверждённом сохранении.
+
+-06:36:27 UTC: F009 иF010 подтверждены4 проверками; основная фаза аудита продолжается.
