@@ -24,3 +24,7 @@ CloudRoomLongAudit — отдельный внешний test source, не об�
 ### Первый long run остановился, не полный успех
 
 Первый Native long run source5c1dd28 завершился ошибкой12:35:57 UTC после1383 итераций: timeout15s в group7 и queued Main looper runnables. Он не засчитывается как4h. Для диагностики в harness добавлена обработка Android main queue между пользовательскими взаимодействиями и после teardown итерации, явные этапы open/tags и thread dump при отказе. Реальный Android main loop работает между такими событиями; standalone длинный цикл раньше его не прокачивал. **Timeout15s/исходные проверки/ограничения памяти не увеличены и не ослаблены.** Новый30s smoke прошёл394 операции во всех11 группах. Причина долгого отказа ещё проверяется сравнительным replay старой неизменяемой production сборки с новым test harness; такой control отличается только harness, не новым app fix. Будущий новый long run требует отдельного фактического итога.
+
+### Второй long assertion был неверным предположением fixture
+
+V2 наiteration10523 получил равный old/new body (334 одинаковых повтора). No-op save правильно не меняет logical version. RandomFixtureReplay.java независимо воспроизводит java.util.Random и все11 counters до этого шага. В generator branch0 versions теперь новый body имеет гарантированно отличающийся префикс changed-, assertion увеличения версии сохранён. Тесты no-op semantics приложения не ослаблены. Новая30s smoke358 операций/все11 groups прошла; длительный v3 всё ещё требует фактического запуска/итога.

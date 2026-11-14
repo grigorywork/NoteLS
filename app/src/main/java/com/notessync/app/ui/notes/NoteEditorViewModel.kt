@@ -396,6 +396,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
     suspend fun flushOnExit(): Boolean {
         isClosing = true
         return try {
+            protection.awaitIdle()
             // Freeze edits while the final write is pending, so exit cannot drop a late edit.
             if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables) saveNow(force = true)
             timing.awaitIdle()

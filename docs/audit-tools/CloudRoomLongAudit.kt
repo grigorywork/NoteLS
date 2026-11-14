@@ -249,7 +249,7 @@ class CloudRoomLongAudit {
             taskTimerStartedAt = now - 1000, updatedAt = previous, dirty = false))
         when (random.nextInt(3)) {
             0 -> {
-                val editor = open(note); val body = text(); editor.onContentChange(TextFieldValue(body))
+                val editor = open(note); val body = "changed-" + text(); editor.onContentChange(TextFieldValue(body))
                 assertTrue(editor.saveNow(force = true)); assertEquals(body, db.noteDao().getById(1)!!.content)
             }
             1 -> {
