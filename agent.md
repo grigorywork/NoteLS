@@ -1292,3 +1292,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T13:17:27Z: аудит4h подтверждён завершённым fuzz12:40:37 (1021280 итераций/4163760 crypto checks,0 failures). Native long остановился12:35:57 по timeout,4h не засчитаны. Консервативная пауза fix12:40:36→13:14:23 исключена; отдельные4h исправлений до17:14:23. F0262 отрицательных probe подтверждают stale conversion/protection caches;1m44s.
 
 2026-11-14T13:23:48Z: F024–F026 исправлены;36 проверок/9 наборов прошли3m22s, включая Native smoke30s/394 операции как1 JUnit test. Media/tag access без полного body; own revisions не благословляют stale peer document; conversion не возвращает старый body. VM685 строк, app Kotlin21672/211 файлов. Полный набор/lint/APK впереди;4h fix до17:14:23 не завершены.
+
+2026-11-14T13:26:17Z: Native v2 PID14783/source9ee2983 и baseline control PID14787/production5c1dd28 запущены, timeout15s/asserts прежние. Начата оптимизация format без Formatter и полный обычный test/lint/APK, результат ещё неизвестен.4h fix до17:14:23 продолжаются.
