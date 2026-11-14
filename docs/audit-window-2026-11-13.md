@@ -472,3 +472,6 @@ CI35 run43603061552/job132471752328 отменён общим25min budget14:31:0
 
 
 2026-11-14T15:04:29Z: полный36/c330 прошёл661/163,0 failures/errors/skipped, lint0error/15warnings/2info, assembleDebug18m25s. CI43606407747/job132481885392 success17m27s:661/0fail/0ignored, lint0error/16warnings/2info. Отчёт14119486499 и APK14119197053 скачаны, ZIP digests сверены с API; README/source/SHA256SUMS/package/version36/code59/Android Debug certificate проверены. APK e67e0d9a4930738cc8bd3e3e397068a3157427f050fbcb5849ff6d5a5a49c931, NOT-UPDATE. Ссылка выдана пользователю, постоянный ключ не затронут. Native v4 продолжает frozen c330,12 случайных групп;4h fix до17:14:23 пока не закрыты. Main21701 строк/212 файлов, этапов0.
+
+
+2026-11-14T16:00:02Z: промежуточный Native v4 checkpoint на frozen c330:57604 операции/4442224ms активного времени/0excluded,12 групп, ошибок пока нет. Это running, не итоговый success. Полный661/163/lint/APK и CI подтверждены ранее; production source после c330 не менялся. Четыре часа fix/verification продолжаются до17:14:23 UTC; очереди этапов0.
