@@ -137,32 +137,37 @@ class RoomSyncDataSource(
             for (dto in changes.notes) {
                 val committed = linkedSetOf<Long>()
                 syncTransaction(afterCommit = { changedAlarms.addAll(committed) }) {
-                val local = db.noteDao().getBySyncId(dto.syncId)
-                val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
-                val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
-                val localSnapshot = local?.toDto(
-                    if (mayConflict) local.notebookId?.let { db.notebookDao().getById(it)?.syncId } else null,
-                    if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
-                    if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList())
-                val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
-                if (resolution != ConflictResolver.Resolution.KeepLocal && !recoveryMarked) {
-                    AlarmReconciler.requireRecovery(context)
-                    recoveryMarked = true
-                }
-                when (resolution) {
-                    is ConflictResolver.Resolution.ApplyRemote -> {
-                        committed.add(applyNote(dto, local, discardedFiles))
-                        appliedNotes++
+                    val local = db.noteDao().getBySyncId(dto.syncId)
+                    val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
+                    val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
+                    val localSnapshot = local?.toDto(
+                        if (mayConflict) local.notebookId?.let { db.notebookDao().getById(it)?.syncId } else null,
+                        if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
+                        if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList())
+                    val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
+                    val alarmsRelevant = local?.reminderAt != null || local?.taskCountdownEndAt != null ||
+                        dto.reminderAt != null || dto.taskCountdownEndAt != null
+                    if (alarmsRelevant && resolution != ConflictResolver.Resolution.KeepLocal && !recoveryMarked) {
+                        AlarmReconciler.requireRecovery(context)
+                        recoveryMarked = true
                     }
-                    is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
-                        committed.add(applyNote(dto, local, discardedFiles))
-                        committed.add(applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true))
-                        preserveConflictFiles(localSnapshot!!, resolution.conflictCopy, localFiles, discardedFiles)
-                        appliedNotes++
-                        conflicts++
+                    when (resolution) {
+                        is ConflictResolver.Resolution.ApplyRemote -> {
+                            val appliedId = applyNote(dto, local, discardedFiles)
+                            if (alarmsRelevant) committed.add(appliedId)
+                            appliedNotes++
+                        }
+                        is ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy -> {
+                            val appliedId = applyNote(dto, local, discardedFiles)
+                            if (alarmsRelevant) committed.add(appliedId)
+                            val copyId = applyNote(resolution.conflictCopy, existing = null, discardedFiles = discardedFiles, localConflict = true)
+                            if (alarmsRelevant) committed.add(copyId)
+                            preserveConflictFiles(localSnapshot!!, resolution.conflictCopy, localFiles, discardedFiles)
+                            appliedNotes++
+                            conflicts++
+                        }
+                        ConflictResolver.Resolution.KeepLocal -> Unit
                     }
-                    ConflictResolver.Resolution.KeepLocal -> Unit
-                }
                 }
             }
 

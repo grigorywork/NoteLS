@@ -262,3 +262,10 @@ Applier собирает IDs только после commit внутри NonCanc
 Преобразование существующей задачи выполняет EditorTaskProtection по свежей авторизованной строке, UPDATE сохраняет текст/таблицы/пин/связи. Session grant отзывается после commit; clocks обновляются по свежей projection. Для новой несохранённой записи тип меняется в памяти без пустого insert. Public save/exit ждёт уже принятую security/type команду; внутренний flush обходит это ожидание, исключая self-join. Type chip временно disabled на время команды. Главный VM679 строк, логика преобразования изолирована в TaskConversion.
 
 33 тестов/7 наборов,0 failures/errors/skipped, BUILD SUCCESSFUL4m. Включены обаF016/F005 пути, история редактора, Camera/Audio persistence, сроки и sync pause. Журнал: /workspace/tools/fix-editor-metadata.log. Полный общий прогон/lint/APK ещё впереди; длительный audit fuzz продолжается.
+
+
+### F015 дополнительные commit/cancellation проверки и оптимизация
+
+7 тестов/2 набора,0 failures/errors/skipped, BUILD SUCCESSFUL3m12s. К исходным3 добавлены4 реальные Native Room проверки: проигнорированная старая версия не трогает signal/recovery; поздний SQL rollback сохраняет alarm предыдущей committed записи и посторонней заметки; отмена внутри INSERT через публичный Room QueryCallback всё равно завершает принятый commit и ставит сигнал; обычные peer тексты без clock targets не запрашивают recovery/не трогают посторонний сигнал. Для cancellation target — отдельная in-memory DB, global source после подготовки DTO очищена, поэтому проверяется использование именно переданного db. Применены CountDownLatch/CompletableDeferred, не timing sleeps и не физическая сеть.
+
+Applier теперь помечает/обновляет alarms только при наличии прежнего либо нового reminder/countdown target. Для обычных текстовых заметок нет лишнего prefs commit, свежей alarm выборки и cancel calls. Это структурное уменьшение работы, не измерение ускорения телефона. Первый более широкий прогон SyncRoomSafety/StreamingRoom до этого также прошёл1m56s; финальный общий набор ещё впереди. Журнал финального профиля: /workspace/tools/audit-sync-alarm-safety-focused.log.
