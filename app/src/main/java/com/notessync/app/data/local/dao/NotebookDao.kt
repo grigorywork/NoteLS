@@ -30,7 +30,7 @@ interface NotebookDao {
     suspend fun update(notebook: NotebookEntity)
 
     // Мягкое удаление, чтобы удаление синхронизировалось (Этап 5).
-    @Query("UPDATE notebooks SET isDeleted = 1, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
+    @Query("UPDATE notebooks SET isDeleted = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE id = :id")
     suspend fun softDelete(id: Long, timestamp: Long = System.currentTimeMillis())
 
     @Query("SELECT * FROM notebooks WHERE dirty = 1 OR updatedAt > :since")

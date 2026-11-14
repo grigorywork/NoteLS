@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.data.local.model.nextChangeTimestamp
+
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -162,7 +164,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             db.withTransaction {
                 val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
                 if (fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction
-                notebookDao.update(fresh.copy(name = name.trim(), updatedAt = System.currentTimeMillis(), dirty = true))
+                notebookDao.update(fresh.copy(name = name.trim(), updatedAt = nextChangeTimestamp(fresh.updatedAt), dirty = true))
             }
         }
     }
@@ -175,7 +177,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
                 if (fresh.isDeleted || fresh.isProtected || fresh.syncId != notebook.syncId) return@withTransaction
                 notebookDao.update(fresh.copy(isProtected = true, passwordHash = record.hash, passwordSalt = record.salt,
-                    updatedAt = System.currentTimeMillis(), dirty = true))
+                    updatedAt = nextChangeTimestamp(fresh.updatedAt), dirty = true))
                 ProtectionSession.unlockNotebook(fresh.id)
             }
         }
@@ -196,7 +198,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 if (!verified || latest == null || latest.isDeleted || latest.syncId != notebook.syncId || latest.passwordRecord() != expected) false
                 else {
                     notebookDao.update(latest.copy(isProtected = false, passwordHash = null, passwordSalt = null,
-                        updatedAt = System.currentTimeMillis(), dirty = true))
+                        updatedAt = nextChangeTimestamp(latest.updatedAt), dirty = true))
                     ProtectionSession.lockNotebook(notebook.id)
                     true
                 }
@@ -277,7 +279,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                     !actions.canAccess(fresh) || (fresh.isCompleted && fresh.taskTimerStartedAt == null)) return@withTransaction
                 val now = System.currentTimeMillis()
                 val timer = TaskTimer.toggle(fresh.taskElapsedMillis, fresh.taskTimerStartedAt, now)
-                noteDao.update(fresh.copy(taskElapsedMillis = timer.elapsedMillis, taskTimerStartedAt = timer.startedAt, updatedAt = now, dirty = true))
+                noteDao.update(fresh.copy(taskElapsedMillis = timer.elapsedMillis, taskTimerStartedAt = timer.startedAt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now), dirty = true))
             }
         }
     }

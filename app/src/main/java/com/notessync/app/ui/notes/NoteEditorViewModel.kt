@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import com.notessync.app.data.local.model.nextChangeTimestamp
+
 import com.notessync.app.i18n.uiText
 import com.notessync.app.audio.*
 import com.notessync.app.notes.actions.NoteActions
@@ -350,7 +352,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
             val previous = lastSavedNote
             val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
-                passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt)
+                passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
             if (previous != null && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
                     updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {

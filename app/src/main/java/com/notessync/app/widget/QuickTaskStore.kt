@@ -1,5 +1,7 @@
 package com.notessync.app.widget
 
+import com.notessync.app.data.local.model.nextChangeTimestamp
+
 import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.data.backup.BackupManager
@@ -53,7 +55,7 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
             if (old != null && candidate == old) return@withTransaction old
             changed = true
             if (old?.reminderAt != candidate.reminderAt) AlarmReconciler.requireRecovery(app)
-            val saved = candidate.copy(updatedAt = now, dirty = true)
+            val saved = candidate.copy(updatedAt = old?.let { nextChangeTimestamp(it.updatedAt, now) } ?: now, dirty = true)
             if (old == null) saved.copy(id = dao.upsert(saved)) else { dao.update(saved); saved }
         }
         if (note == null) {

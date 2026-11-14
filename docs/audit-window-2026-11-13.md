@@ -355,3 +355,11 @@ Identity/access, relation и версия родителя обновляютс�
 DayTaskActions при completed=false меняет Room, но не регистрирует future reminder/countdown. Допустимая завершённая задача с targets может поступить от peer либо получить reminder через QuickTaskStore; при возвращении в активное состояние сроки остаются без сигналов. Прямой cancel после completed=true также не использует общий fresh backend.
 
 [Probe](audit-probes/DayReopenAlarmAuditProbe.kt):1 ожидаемый отказ Native Room/API28, реальные DayTaskActions и AlarmManager shadow. Запись становится active, оба future targets сохранены,0 alarms вместо2. Не реальный виджет/телефон. План: requireRecovery перед relevant write, конечная принятая операция и общая fresh post-commit reconciliation обоих kind при обоих переходах.
+
+### F022/F023 исправлены — logical version отдельно от event time, fresh day alarms
+
+nextChangeTimestamp применён к editor, home stopwatch/completion, notebooks, quick drafts и batch actions. Свежий updatedAt растёт при skew/одинаковой миллисекунде; Long.MAX_VALUE не переполняется. DAO local change/delete/restore/detach используют CASE/MAX атомарно, условие ACK остаётся exact equality. Event timestamps и пауза/elapsed/countdown вычисляются настоящим временем события; batch trash больше не использует будущую logical version как часы.
+
+DayTaskActions помечает durable recovery перед relevant write и свежим общим backend регистрирует оба kind после commit при завершении/повторном открытии. Принятая конечная операция завершается даже при cancellation caller; новые отменённые вызовы не принимаются. Прямой stale cancel заменён fresh reconciliation.
+
+38 проверок/8 наборов,0 failures/errors/skipped,4m53s. Исходные4F022/F023, matching ACK положительный control для notes/notebooks, SQL delete/restore/detach и elapsed wall-clock controls, исходные TaskCompletion/Day/NoteActions/QuickTaskStore/tag regressions. Один из38 — внешний Native long smoke30s/307 случайных операций, все11 groups; операции не считаются отдельными JUnit tests. При предварительном diff review поймана чрезмерная текстовая замена ACK equality, первый запуск остановлен до compile/tests, условие восстановлено и добавлен matching-current-ACK control; это не дополнительная находка/не успешный прогон. Полный набор/lint/APK впереди.

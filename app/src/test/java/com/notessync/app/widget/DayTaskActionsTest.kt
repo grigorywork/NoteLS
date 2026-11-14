@@ -38,7 +38,7 @@ class DayTaskActionsTest {
     @After fun tearDown() { AppDatabase.closeInstance() }
 
     @Test fun `checking a quick note makes a completed task and unchecking restores active state`() = runBlocking {
-        val id = db.noteDao().upsert(NoteEntity(title = "Из виджета", dayKey = day, dirty = false))
+        val id = db.noteDao().upsert(NoteEntity(title = "Из виджета", dayKey = day, dirty = false, updatedAt = 1))
         assertFalse(db.noteDao().getById(id)!!.isTask)
         assertTrue(DayTaskActions.setCompleted(context, id, day, true, now = 100_000))
         val done = db.noteDao().observeByDay(day).first().single()

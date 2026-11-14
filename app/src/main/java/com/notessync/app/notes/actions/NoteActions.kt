@@ -1,5 +1,7 @@
 package com.notessync.app.notes.actions
 
+import com.notessync.app.data.local.model.nextChangeTimestamp
+
 import com.notessync.app.i18n.uiText
 
 import android.content.Context
@@ -45,11 +47,12 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                         books[bookId]
                     }
                     if (note.isPurged || !ProtectionSession.isUnlocked(note) || (book != null && !ProtectionSession.isUnlocked(book))) continue
-                    val now = maxOf(System.currentTimeMillis(), note.updatedAt + 1)
+                    val now = System.currentTimeMillis()
+                    val version = nextChangeTimestamp(note.updatedAt, now)
                     val updated = when (action) {
                         Action.TRASH -> if (!note.isDeleted) paused(note, now).copy(isDeleted = true) else null
                         Action.RESTORE -> if (note.isDeleted) paused(note, now).copy(isDeleted = false) else null
-                        Action.PURGE -> if (note.isDeleted) tombstone(note, now) else null
+                        Action.PURGE -> if (note.isDeleted) tombstone(note, version) else null
                         Action.PIN -> if (!note.isDeleted && !note.isPinned) note.copy(isPinned = true) else null
                         Action.UNPIN -> if (!note.isDeleted && note.isPinned) note.copy(isPinned = false) else null
                     } ?: continue
@@ -60,7 +63,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                     }
                     if (action in setOf(Action.TRASH, Action.RESTORE, Action.PURGE) &&
                         (note.reminderAt != null || note.taskCountdownEndAt != null)) com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
-                    db.noteDao().update(updated.copy(updatedAt = now, dirty = true))
+                    db.noteDao().update(updated.copy(updatedAt = version, dirty = true))
                     // Retain no bodies, tables or formatting while processing the next batch.
                     changedRows.add(updated.id)
                 }

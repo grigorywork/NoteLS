@@ -53,18 +53,18 @@ interface NoteDao {
     @Update
     suspend fun update(note: NoteEntity)
 
-    @Query("UPDATE notes SET isProtected = :isProtected, passwordHash = :hash, passwordSalt = :salt, updatedAt = :timestamp, dirty = 1 WHERE id = :id")
+    @Query("UPDATE notes SET isProtected = :isProtected, passwordHash = :hash, passwordSalt = :salt, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE id = :id")
     suspend fun updateTaskProtection(id: Long, isProtected: Boolean, hash: String?, salt: String?, timestamp: Long)
 
     // Attachment changes affect sync metadata only; never rewrite a stale document snapshot.
-    @Query("UPDATE notes SET dirty = 1, updatedAt = :timestamp WHERE id = :id")
+    @Query("UPDATE notes SET dirty = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END WHERE id = :id")
     suspend fun markContentChanged(id: Long, timestamp: Long = System.currentTimeMillis())
 
-    @Query("UPDATE notes SET reminderAt = NULL, dirty = 1, updatedAt = :timestamp WHERE id = :id AND syncId = :syncId AND reminderAt = :expected AND isDeleted = 0")
+    @Query("UPDATE notes SET reminderAt = NULL, dirty = 1, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END WHERE id = :id AND syncId = :syncId AND reminderAt = :expected AND isDeleted = 0")
     suspend fun clearFailedReminder(id: Long, expected: Long, syncId: String, timestamp: Long = System.currentTimeMillis()): Int
 
     // Мягкое удаление: запись помечается, чтобы удаление могло синхронизироваться (Этап 5).
-    @Query("UPDATE notes SET isDeleted = 1, taskElapsedMillis = MAX(0, taskElapsedMillis) + CASE WHEN taskTimerStartedAt IS NULL THEN 0 ELSE MAX(0, :timestamp - taskTimerStartedAt) END, taskTimerStartedAt = NULL, taskCountdownMillis = CASE WHEN taskCountdownEndAt IS NULL THEN taskCountdownMillis ELSE MAX(0, taskCountdownEndAt - :timestamp) END, taskCountdownEndAt = NULL, updatedAt = :timestamp, dirty = 1 WHERE id = :id AND isPurged = 0")
+    @Query("UPDATE notes SET isDeleted = 1, taskElapsedMillis = MAX(0, taskElapsedMillis) + CASE WHEN taskTimerStartedAt IS NULL THEN 0 ELSE MAX(0, :timestamp - taskTimerStartedAt) END, taskTimerStartedAt = NULL, taskCountdownMillis = CASE WHEN taskCountdownEndAt IS NULL THEN taskCountdownMillis ELSE MAX(0, taskCountdownEndAt - :timestamp) END, taskCountdownEndAt = NULL, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE id = :id AND isPurged = 0")
     suspend fun softDelete(id: Long, timestamp: Long = System.currentTimeMillis())
 
     @Query("SELECT * FROM notes WHERE isDeleted = 1 AND isPurged = 0 AND id > :afterId ORDER BY id LIMIT 400")
@@ -77,7 +77,7 @@ interface NoteDao {
     suspend fun markVersionSynced(syncId: String, timestamp: Long)
 
     // Отмена удаления (Snackbar «Отменить», Этап 1).
-    @Query("UPDATE notes SET isDeleted = 0, updatedAt = :timestamp, dirty = 1 WHERE id = :id AND isPurged = 0")
+    @Query("UPDATE notes SET isDeleted = 0, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE id = :id AND isPurged = 0")
     suspend fun restore(id: Long, timestamp: Long = System.currentTimeMillis())
 
     // Аудит 2026-11-11: вызывающий код обязан экранировать %, _ и \ в запросе
@@ -115,7 +115,7 @@ interface NoteDao {
     suspend fun assignSyncId(id: Long, syncId: String, timestamp: Long): Int
 
     // При удалении блокнота его заметки переходят в «Все заметки» (Этап 2).
-    @Query("UPDATE notes SET notebookId = NULL, updatedAt = :timestamp, dirty = 1 WHERE notebookId = :notebookId")
+    @Query("UPDATE notes SET notebookId = NULL, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE notebookId = :notebookId")
     suspend fun clearNotebook(notebookId: Long, timestamp: Long = System.currentTimeMillis())
 
     @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id IN (:ids)")

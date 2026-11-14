@@ -1,5 +1,7 @@
 package com.notessync.app.ui.tasks
 
+import com.notessync.app.data.local.model.nextChangeTimestamp
+
 import com.notessync.app.data.local.entity.NoteEntity
 
 /** Единый переход состояния задачи для списка, календаря и окна виджета. */
@@ -21,14 +23,14 @@ object TaskCompletion {
                 ),
                 taskCountdownEndAt = null,
                 reminderAt = null,
-                updatedAt = now,
+                updatedAt = nextChangeTimestamp(note.updatedAt, now),
                 dirty = true
             )
         }
         return note.copy(
             isCompleted = false,
             taskCompletedAt = null,
-            updatedAt = now,
+            updatedAt = nextChangeTimestamp(note.updatedAt, now),
             dirty = true
         )
     }

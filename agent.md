@@ -1282,3 +1282,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T12:20:33Z: F021 исправлен отдельным EditorTags, VM665 строк.11 проверок/3 набора прошли; включает внешний30s Native randomized smoke, не прибавляем его операции к JUnit tests. Полный итог/lint/APK ещё впереди.
 
 2026-11-14T12:23:25Z: F022 подтверждён3 отрицательными version/old-ACK probes, F023 —1 day uncheck alarm probe; общий1m50s. Исправляются logical version отдельно от event clocks и общая fresh post-commit reconciliation дня.
+
+2026-11-14T12:30:16Z: F022/F023 исправлены и38 проверок/8 наборов прошли4m53s. Logical version не подменяет event clocks, old/current ACK оба проверены. Day reopen fresh alarms. Внешний Native smoke30s/307 операций входит как1 test, не307 JUnit tests. Полный набор/lint/APK впереди.
