@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit
 internal fun deliverReminder(context: Context, queued: Intent) {
     val receiver = ReminderReceiver()
     val filter = IntentFilter(ReminderReceiver.ACTION_ALARM).apply { addDataScheme("notels") }
-    context.registerReceiver(receiver, filter)
+    if (android.os.Build.VERSION.SDK_INT >= 33) context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+    else context.registerReceiver(receiver, filter)
     try {
         context.sendBroadcast(Intent(queued).setComponent(null))
         shadowOf(Looper.getMainLooper()).idle()

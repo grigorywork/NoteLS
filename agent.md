@@ -1250,3 +1250,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T10:48:38Z: F008–F010/F012 реализованы: свежий deadline/identity/title перед уведомлением, полный Long ID/kind PI и notification tag, boot+package replacement/countdown recovery порциями200 с persisted cursor/foreground resume, поколения timing и accepted-save перед alarm mutation.46 профильных тестов/11 наборов прошли за3m5s; реального телефона/reboot не было. [Журнал](docs/audit-window-2026-11-13.md).
 
 2026-11-14T10:49:39.819337+00:00: начат непрерывный seeded fuzz на фиксированном собранном JVM snapshot1.10.35/code58/4c11e3c до границы аудита12:40:36 UTC с исключением execution gaps.192MiB/один CPU — параметры облачного процесса, не моделирование/замер телефона. Smoke30s прошёл, длительный прогон ещё выполняется. [Harness](docs/audit-tools/README.md). Продолжаются дополнительные regression/API проверки и исправления.
+
+2026-11-14T10:54:38Z:18 дополнительных alarm contract проверок прошли на API26/28/35 в3 JVM за1m58s; старый deadline/UUID/cancel/completion/privacy/legacy intent. Не телефон. Непрерывный cloud fuzz выполняется без отказа; часы ещё не завершены.
