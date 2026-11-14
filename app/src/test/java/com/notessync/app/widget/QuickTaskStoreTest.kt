@@ -108,7 +108,7 @@ class QuickTaskStoreTest {
         val cancelled = mutableListOf<Long>()
         val failing = QuickTaskStore(app, object : QuickTaskReminders {
             override fun canNotify() = true
-            override fun schedule(id: Long, title: String, at: Long): Boolean {
+            override fun schedule(id: Long, title: String, at: Long, syncId: String): Boolean {
                 db.openHelper.writableDatabase.execSQL("UPDATE notes SET taskPriority = 3 WHERE id = $id")
                 return false
             }

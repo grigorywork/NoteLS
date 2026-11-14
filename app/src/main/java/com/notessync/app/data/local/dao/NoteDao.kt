@@ -118,6 +118,13 @@ interface NoteDao {
     @Query("UPDATE notes SET notebookId = NULL, updatedAt = :timestamp, dirty = 1 WHERE notebookId = :notebookId")
     suspend fun clearNotebook(notebookId: Long, timestamp: Long = System.currentTimeMillis())
 
+    @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id = :id")
+    suspend fun getAlarmSnapshot(id: Long): com.notessync.app.data.local.model.NoteAlarmSnapshot?
+
+    @Query(com.notessync.app.data.local.model.NOTE_ALARM_SELECT + "WHERE n.id > :afterId AND n.isDeleted = 0 AND n.isPurged = 0 " +
+        "AND (n.isTask = 0 OR n.isCompleted = 0) AND (n.reminderAt > :now OR (n.isTask = 1 AND n.taskCountdownEndAt > :now)) ORDER BY n.id LIMIT 200")
+    suspend fun getAlarmPage(afterId: Long, now: Long): List<com.notessync.app.data.local.model.NoteAlarmSnapshot>
+
     // Будущие напоминания — для перепостановки после перезагрузки (Этап 3).
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND reminderAt IS NOT NULL AND reminderAt > :now")
     suspend fun getWithFutureReminders(now: Long): List<NoteEntity>

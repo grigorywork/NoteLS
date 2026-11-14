@@ -20,7 +20,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
     private val app = context.applicationContext
     enum class Action { TRASH, RESTORE, PURGE, PIN, UNPIN }
 
-    private data class Changed(val id: Long, val title: String, val reminderAt: Long?, val completed: Boolean, val protected: Boolean)
+    private data class Changed(val id: Long, val syncId: String, val title: String, val reminderAt: Long?, val completed: Boolean, val protected: Boolean)
 
     suspend fun apply(ids: Set<Long>?, action: Action): Int = withContext(NonCancellable) {
         val discardedFiles = mutableListOf<String>()
@@ -61,7 +61,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                     }
                     db.noteDao().update(updated.copy(updatedAt = now, dirty = true))
                     // Retain no bodies, tables or formatting while processing the next batch.
-                    changedRows.add(Changed(updated.id, com.notessync.app.notes.text.notePreviewText(updated.title, 256), updated.reminderAt,
+                    changedRows.add(Changed(updated.id, updated.syncId, com.notessync.app.notes.text.notePreviewText(updated.title, 256), updated.reminderAt,
                         updated.isCompleted, updated.isProtected || book?.isProtected == true))
                 }
             }
@@ -75,7 +75,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                 ReminderScheduler.cancelTimer(app, note.id)
                 val at = note.reminderAt
                 if (action == Action.RESTORE && !note.completed && at != null && at > System.currentTimeMillis() && ReminderScheduler.canNotify(app)) {
-                    ReminderScheduler.schedule(app, note.id, if (note.protected) uiText("Защищённая запись") else note.title, at)
+                    ReminderScheduler.schedule(app, note.id, if (note.protected) uiText("Защищённая запись") else note.title, at, note.syncId)
                 }
             }
         }

@@ -57,7 +57,7 @@ class QuickTaskStore(context: Context, private val reminders: QuickTaskReminders
             if (previous?.reminderAt != null) reminders.cancel(note.id)
         } else if (note.reminderAt > now &&
             (previous?.reminderAt != note.reminderAt || previous?.title != note.title)) {
-            if (!reminders.schedule(note.id, note.title, note.reminderAt)) {
+            if (!reminders.schedule(note.id, note.title, note.reminderAt, note.syncId)) {
                 reminders.cancel(note.id)
                 dao.clearFailedReminder(note.id, note.reminderAt)
                 warning = QuickTaskWarning.SCHEDULE

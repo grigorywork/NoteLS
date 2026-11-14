@@ -217,7 +217,7 @@ object BackupManager {
                             ReminderScheduler.cancel(context, it)
                             ReminderScheduler.cancelTimer(context, it)
                         }
-                        reschedule(context, live.openHelper.readableDatabase)
+                        com.notessync.app.reminders.AlarmReconciler.reschedule(context)
                         CalendarWidgetProvider.refreshAll(context)
                     }
                     backedUpRevision = revision.get()
@@ -248,19 +248,6 @@ object BackupManager {
                     }
                     insert.executeInsert()
                 }
-            }
-        }
-    }
-
-    private fun reschedule(context: Context, db: SupportSQLiteDatabase) {
-        db.query("SELECT n.id, n.title, n.reminderAt, n.taskCountdownEndAt, " +
-            "(n.isProtected OR COALESCE(b.isProtected, 0)) FROM notes n " +
-            "LEFT JOIN notebooks b ON n.notebookId = b.id WHERE n.isDeleted = 0 AND n.isCompleted = 0").use { cursor ->
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(0)
-                val title = if (cursor.getInt(4) != 0) uiText("Защищённая запись") else cursor.getString(1).ifBlank { uiText("Без названия") }
-                if (!cursor.isNull(2)) ReminderScheduler.schedule(context, id, title, cursor.getLong(2))
-                if (!cursor.isNull(3)) ReminderScheduler.scheduleTimer(context, id, title, cursor.getLong(3))
             }
         }
     }

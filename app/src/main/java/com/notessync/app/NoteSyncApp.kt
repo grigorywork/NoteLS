@@ -22,6 +22,7 @@ class NoteSyncApp : Application() {
                 if (started++ == 0) {
                     com.notessync.app.sync.auto.AutomaticSyncRuntime.get(this@NoteSyncApp).foreground(true)
                     BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = false)
+                    com.notessync.app.reminders.AlarmReconciler.resumePending(this@NoteSyncApp)
                     com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this@NoteSyncApp)
                     com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this@NoteSyncApp)
                 }

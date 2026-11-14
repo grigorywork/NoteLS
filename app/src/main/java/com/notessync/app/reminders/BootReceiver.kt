@@ -1,36 +1,20 @@
 package com.notessync.app.reminders
 
-import com.notessync.app.i18n.uiText
-
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.notessync.app.data.local.AppDatabase
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
-/** После перезагрузки устройства будильники сбрасываются — ставим заново. */
+/** Rebuild future reminders and countdowns after boot or an application update, including legacy PI migration. */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
-        val pending = goAsync()
-        val appContext = context.applicationContext
-        Thread {
-            runBlocking {
-                val now = System.currentTimeMillis()
-                val database = AppDatabase.get(appContext)
-                database.noteDao().getWithFutureReminders(now).forEach { note ->
-                    val notebookProtected = note.notebookId?.let {
-                        database.notebookDao().getById(it)?.isProtected
-                    } == true
-                    val title = if (note.isProtected || notebookProtected) {
-                        uiText("Защищённая запись")
-                    } else {
-                        note.title.ifBlank { uiText("Без названия") }
-                    }
-                    ReminderScheduler.schedule(appContext, note.id, title, note.reminderAt!!)
-                }
-            }
-            pending.finish()
-        }.start()
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
+        val pending = goAsync() ?: return
+        val app = context.applicationContext
+        CoroutineScope(Dispatchers.IO).launch {
+            try { withTimeout(8_000) { AlarmReconciler.reschedule(app) } }
+            catch (_: Exception) { /* Interrupted recovery keeps a cursor for the next foreground session. */ }
+            finally { pending.finish() }
+        }
     }
 }

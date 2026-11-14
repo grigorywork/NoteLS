@@ -132,8 +132,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
     val audioPlayback: AudioPlayback get() = media.audioPlayback
     val audioCapture: AudioCapture get() = media.audioCapture
     private val timing = EditorTaskTiming(app, viewModelScope, task = { isTask }, completed = { isCompleted },
-        removed = { deleted }, parentId = { currentNoteId }, titleForNotification = { notificationTitle() },
-        persist = { saveNow(force = true) }, report = { message = it })
+        removed = { deleted || accessDenied }, parentId = { currentNoteId }, titleForNotification = { notificationTitle() },
+        persist = { saveNow(force = true) }, report = { message = it }, parentSyncId = { syncId })
     var taskElapsedMillis: Long
         get() = timing.taskElapsedMillis
         set(value) { timing.taskElapsedMillis = value }
@@ -498,13 +498,13 @@ class NoteEditorViewModel @JvmOverloads constructor(
             taskCompletedAt = null
             taskElapsedMillis = 0L
             taskTimerStartedAt = null
-            cancelCountdownAlarm()
             taskCountdownMillis = 0L
             taskCountdownEndAt = null
             isProtected = false
             passwordHash = null
             passwordSalt = null
             ProtectionSession.lockTask(syncId)
+            cancelCountdownAlarm()
         }
     }
 
@@ -525,9 +525,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 taskCountdownMillis, taskCountdownEndAt, System.currentTimeMillis()
             )
             taskCountdownEndAt = null
-            cancelCountdownAlarm()
             reminderAt = null
-            if (exists) ReminderScheduler.cancel(app, currentNoteId)
+            cancelCountdownAlarm()
+            timing.clearReminder()
         }
     }
 

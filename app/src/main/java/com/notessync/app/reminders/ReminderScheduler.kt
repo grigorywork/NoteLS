@@ -1,7 +1,6 @@
 package com.notessync.app.reminders
 
 import com.notessync.app.i18n.uiText
-
 import android.Manifest
 import android.app.NotificationManager
 import android.app.AlarmManager
@@ -9,12 +8,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 
-/** Постановка и отмена локальных напоминаний (Этап 3). */
+/** Full local identity plus kind names each alarm; the expected global identity/deadline validates delivery. */
 object ReminderScheduler {
-
     fun canNotify(context: Context): Boolean {
         val runtimePermissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
@@ -26,79 +25,52 @@ object ReminderScheduler {
             channel?.importance != NotificationManager.IMPORTANCE_NONE
     }
 
-    fun schedule(context: Context, noteId: Long, noteTitle: String, at: Long): Boolean {
-        if (at <= System.currentTimeMillis()) return false
+
+    fun schedule(context: Context, noteId: Long, noteTitle: String, at: Long, syncId: String): Boolean =
+        scheduleAlarm(context, noteId, noteTitle, at, syncId, false)
+    fun scheduleTimer(context: Context, noteId: Long, noteTitle: String, at: Long, syncId: String): Boolean =
+        scheduleAlarm(context, noteId, noteTitle, at, syncId, true)
+
+    internal fun alarmUri(id: Long, timer: Boolean): Uri = Uri.Builder().scheme("notels").authority("alarm")
+        .appendPath(if (timer) "timer" else "reminder").appendPath(id.toString()).build()
+    internal fun notificationTag(id: Long, timer: Boolean) = "notels:${if (timer) "timer" else "reminder"}:$id"
+    private fun baseIntent(context: Context, id: Long, timer: Boolean) = Intent(context, ReminderReceiver::class.java)
+        .setAction(ReminderReceiver.ACTION_ALARM).setData(alarmUri(id, timer))
+    internal fun deliveryIntent(context: Context, id: Long, timer: Boolean, at: Long, syncId: String, title: String = "") =
+        baseIntent(context, id, timer).putExtra(ReminderReceiver.EXTRA_NOTE_ID, id)
+            .putExtra(ReminderReceiver.EXTRA_IS_TIMER, timer).putExtra(ReminderReceiver.EXTRA_EXPECTED_AT, at)
+            .putExtra(ReminderReceiver.EXTRA_SYNC_ID, syncId).putExtra(ReminderReceiver.EXTRA_TITLE, title.take(256))
+
+    private fun scheduleAlarm(context: Context, id: Long, title: String, at: Long, syncId: String, timer: Boolean): Boolean {
+        if (id <= 0 || syncId.isBlank() || at <= System.currentTimeMillis()) return false
         return runCatching {
-            val alarmManager = context.getSystemService(AlarmManager::class.java)
-            val intent = pendingIntent(context, noteId, noteTitle)
-            val exactAllowed = android.os.Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()
-            if (exactAllowed) {
-                runCatching {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-                }.onFailure {
-                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-                }.getOrThrow()
-            } else {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-            }
+            val manager = context.getSystemService(AlarmManager::class.java)
+            cancelLegacy(context, id, timer)
+            val pending = PendingIntent.getBroadcast(context, 0, deliveryIntent(context, id, timer, at, syncId, title),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            if (Build.VERSION.SDK_INT < 31 || manager.canScheduleExactAlarms()) {
+                runCatching { manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }
+                    .onFailure { manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }.getOrThrow()
+            } else manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
         }.isSuccess
     }
 
-    fun cancel(context: Context, noteId: Long) {
-        context.getSystemService(AlarmManager::class.java)
-            .cancel(pendingIntent(context, noteId, ""))
+    fun cancel(context: Context, noteId: Long) = cancelAlarm(context, noteId, false)
+    fun cancelTimer(context: Context, noteId: Long) = cancelAlarm(context, noteId, true)
+    private fun cancelAlarm(context: Context, id: Long, timer: Boolean) {
+        PendingIntent.getBroadcast(context, 0, baseIntent(context, id, timer),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+            context.getSystemService(AlarmManager::class.java).cancel(it); it.cancel()
+        }
+        cancelLegacy(context, id, timer)
+        NotificationManagerCompat.from(context).cancel(notificationTag(id, timer), 0)
     }
-
-    // ---------- Таймер задачи (Этап 30): отдельный request code и подпись ----------
-
-    fun scheduleTimer(context: Context, noteId: Long, noteTitle: String, at: Long): Boolean {
-        if (at <= System.currentTimeMillis()) return false
-        return runCatching {
-            val alarmManager = context.getSystemService(AlarmManager::class.java)
-            val intent = timerPendingIntent(context, noteId, noteTitle)
-            val exactAllowed = android.os.Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()
-            if (exactAllowed) {
-                runCatching {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-                }.onFailure {
-                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-                }.getOrThrow()
-            } else {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
-            }
-        }.isSuccess
-    }
-
-    fun cancelTimer(context: Context, noteId: Long) {
-        context.getSystemService(AlarmManager::class.java)
-            .cancel(timerPendingIntent(context, noteId, ""))
-    }
-
-    private fun timerPendingIntent(context: Context, noteId: Long, title: String): PendingIntent {
-        val intent = Intent(context, ReminderReceiver::class.java)
-            .putExtra(ReminderReceiver.EXTRA_NOTE_ID, noteId)
-            .putExtra(ReminderReceiver.EXTRA_TITLE, title)
-            .putExtra(ReminderReceiver.EXTRA_IS_TIMER, true)
-        return PendingIntent.getBroadcast(
-            context,
-            (noteId xor (noteId ushr 32)).toInt() xor TIMER_REQUEST_SALT,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
-    private const val TIMER_REQUEST_SALT = 0x51A7E3
-
-    private fun pendingIntent(context: Context, noteId: Long, title: String): PendingIntent {
-        val intent = Intent(context, ReminderReceiver::class.java)
-            .putExtra(ReminderReceiver.EXTRA_NOTE_ID, noteId)
-            .putExtra(ReminderReceiver.EXTRA_TITLE, title)
-        return PendingIntent.getBroadcast(
-            context,
-            (noteId xor (noteId ushr 32)).toInt(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+    private fun cancelLegacy(context: Context, id: Long, timer: Boolean) {
+        val folded = (id xor (id ushr 32)).toInt() xor (if (timer) 0x51A7E3 else 0)
+        PendingIntent.getBroadcast(context, folded, Intent(context, ReminderReceiver::class.java),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+            context.getSystemService(AlarmManager::class.java).cancel(it); it.cancel()
+        }
     }
 }
 
