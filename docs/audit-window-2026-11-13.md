@@ -369,3 +369,15 @@ DayTaskActions помечает durable recovery перед relevant write и с
 2026-11-14T12:32:22.734373+00:00: standalone JUnitCore PID13234, snapshot source 5c1dd28d6d951a292ca92c89654275be060e8fde, seed202611143, запрошено14894 активных секунд до границы16:40:36 UTC. Frozen snapshot всех8 app/build classpath entries и Android manifest/resource APK/assets; всего305 classpath entries, snapshot proof SHA256 c73ccc9dea21220e47f74231f673fa5e9937c43916649963cc487fd83b25b8fd. Перед запуском отдельный direct-Java smoke5s/16 операций завершился OK(1 test), а Gradle30s/307 операций проверил все11 groups. RuntimeMXBean/UTC heartbeat15s подтверждают реальную облачную работу, без измерений телефона.
 
 Прогон идёт одновременно с оставшимся аудитом и последующими исправлениями. Его ранние минуты не засчитываются в отдельные4 часа исправлений. Проверяется зафиксированный source5c1dd28; последующие изменения требуют собственных новых проверок, старый snapshot не выдаётся за их исполнение. Статус пока running,4-часовая фаза аудита до12:40:36 ещё не объявлена завершённой.
+
+### F024 — изменение размера фото не проверяет свежего родителя
+
+EditorMedia.savePhotoSize проверяет только локальные deleted/accessDenied и identity attachment. После свежей блокировки задачи старая открытая карточка фото всё ещё изменяет displayWidthDp/displayHeightDp и dirty родителя. Это не чтение закрытого body/не изменение самого JPEG, но нарушение авторизации metadata write.
+
+### F025 — собственная metadata revision ломает новый AI capture
+
+Фото resize/import/remove обновляют версию parent без согласования lastSavedNote VM; следующий новый captureTransformSource получает STALE, хотя body не менялось и текущую metadata запись выполнил тот же editor. Tag-only dirty/version исправлениеF021 проявляет ту же проблему для тегов: это регрессия текущего исправления, не скрытая дополнительная исходная находка.
+
+[Общий probe](audit-probes/EditorMediaOwnershipAuditProbe.kt):3 ожидаемых отказа Native Room/API28,1m50s. Первый resize вернулtrue вместоfalse после fresh protection; два новых capture отклонены STALE после собственных resize/tag. Ни одного внешнего AI вызова, синтетические body/password/attachment metadata; JPEG не декодировался/физический телефон не проверялся. Предварительный запуск не дошёл до тестов из-за ошибочного non-Unit @Before harness, исправлен return Unit; initializationError не засчитан как приложение/три отрицательных результата.
+
+План: свежий малый access/version JOIN внутри media/tag transaction, metadata version callback только после commit. Cache принимает own revision только если его прежняя версия совпадала со свежей предыдущей; чужая правка не должна становиться current. Сохранить строгие stale source guards, не отключать AI в тесте и не вызывать сеть.

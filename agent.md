@@ -1286,3 +1286,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T12:30:16Z: F022/F023 исправлены и38 проверок/8 наборов прошли4m53s. Logical version не подменяет event clocks, old/current ACK оба проверены. Day reopen fresh alarms. Внешний Native smoke30s/307 операций входит как1 test, не307 JUnit tests. Полный набор/lint/APK впереди.
 
 2026-11-14T12:32:22Z: Native Room long validation запущен PID13234, immutable source5c1dd28,11 случайных групп, target16:40:36 UTC. Непрерывный crypto/ZIP fuzz тоже ещё идёт. Ни4h аудит, ни4h исправления пока не закрыты.
+
+2026-11-14T12:37:46Z: F024/F025 подтверждены3 отрицательными Native Room проверками1m50s: fresh parent guard при resize и собственные media/tag revisions против AI capture. Реальных AI вызовов/телефона нет; tag-path отмечен как регрессия новогоF021, не исходный дополнительный дефект.
