@@ -1308,3 +1308,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T14:33:54Z: F029 подтверждён3 отрицательными Native Room checks1m7s: partial protected notebook deletion, incoming relink и старый dangling state послеreopen. Body/UUID/version не потеряны, но UI недоступен из-за deleted protected parent. Готовится canonical FK detach вместе с F028 в1.10.36/code59.
 
 2026-11-14T14:44:09Z:1.10.36/code59 F028/F029 исправлены.38 checks/12 suites прошли6m26s, lint0error/15warnings/2info, assembleDebug/package/Debug cert verified, NOT-UPDATE. Main21701/212, VM686. Native45s smoke549 операций/12 groups как1 test. ОбщийCI budget40 после отменённого25min run35; test timeouts/forkEvery не менялись. Full661/CI и4h fix ещё не завершены.
+
+2026-11-14T14:46:50Z: Native v4 PID30586, sourcec330bd7,12 групп, frozen/real-active target17:14:23 запущен. Full661/163 пока ожидается, CI43606407747 running40min budget. Main/test freeze до конца Gradle.4h fix ещё не закрыты.
