@@ -1262,3 +1262,5 @@ UiCatalog разделён на тематические функции запо
 2026-11-14T11:16:54Z: F016 исправлен: общие saves сохраняют свежую protection metadata/не пишут no-op; fresh transaction для conversion, grant revocation после commit, save/exit ждёт принятую команду без self-join. VM679 строк. 33 тестов/7 наборов прошли за4m,0 failures/errors/skipped. Полного итога ещё нет.
 
 2026-11-14T11:25:58Z: F0157 тестов/2 набора прошли3m12s: partial rollback, cancel внутри SQL/NonCancellable commit, supplied target DB, keep-local и no-clock peer note. Убраны лишние alarm/recovery действия для обычных текстовых заметок. Непрерывный JVM fuzz без отказа;4h окна не объявлены завершёнными.
+
+2026-11-14T11:33:29Z: F017 —1 отрицательный Native Room probe подтверждает: после реального commit reminderAt отмена editor scope на metadata await оставляет0 OS alarms вместо1.1m38s. Проверяется конечное завершение принятой команды и защита от stale binding; не физический Back/телефон.

@@ -269,3 +269,12 @@ Applier собирает IDs только после commit внутри NonCanc
 7 тестов/2 набора,0 failures/errors/skipped, BUILD SUCCESSFUL3m12s. К исходным3 добавлены4 реальные Native Room проверки: проигнорированная старая версия не трогает signal/recovery; поздний SQL rollback сохраняет alarm предыдущей committed записи и посторонней заметки; отмена внутри INSERT через публичный Room QueryCallback всё равно завершает принятый commit и ставит сигнал; обычные peer тексты без clock targets не запрашивают recovery/не трогают посторонний сигнал. Для cancellation target — отдельная in-memory DB, global source после подготовки DTO очищена, поэтому проверяется использование именно переданного db. Применены CountDownLatch/CompletableDeferred, не timing sleeps и не физическая сеть.
 
 Applier теперь помечает/обновляет alarms только при наличии прежнего либо нового reminder/countdown target. Для обычных текстовых заметок нет лишнего prefs commit, свежей alarm выборки и cancel calls. Это структурное уменьшение работы, не измерение ускорения телефона. Первый более широкий прогон SyncRoomSafety/StreamingRoom до этого также прошёл1m56s; финальный общий набор ещё впереди. Журнал финального профиля: /workspace/tools/audit-sync-alarm-safety-focused.log.
+
+
+### F017 — закрытие editor scope теряет уже записанный reminder (высокий приоритет)
+
+EditorTaskTiming записывает выбранный срок, затем ожидает notification metadata и только после этого регистрирует alarm. Если viewModel scope отменён между этими шагами, строка уже имеет reminderAt, но регистрации нет. Простого сохранения при выходе недостаточно, чтобы завершить эту принятую операцию.
+
+[Probe](audit-probes/EditorAlarmLifetimeAuditProbe.kt):1 ожидаемый отказ Native Room/API28. Persist lambda действительно записывает reminderAt в Room; после подтверждения значения запрос title контролируемо приостановлен, scope закрыт и зависимость отпущена. В БД срок остаётся, AlarmManager содержит0 вместо1. BUILD FAILED1m38s. Это проверка компонента/границы scope, не физический Back press и не измерение телефона.
+
+План: конечное завершение принятой команды после подтверждённого save с сохранением generation/identity/deadline guards; закрытый scope не должен принимать новые команды. Не отключать отмену всего редактора и не ставить сигналы по stale binding. Проверить также подмену свежего срока другим писателем во время metadata await.
