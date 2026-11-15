@@ -1,5 +1,5 @@
 <!-- CURRENT-QWEN-43 -->
-> **74/Qwen выполняется в1.10.43/code66/Room17**, checkpoint32e853b/codex/qwen-1.10.43; originmain802bdf4verified42. Первый50/1fail,49pass; UTF8classificationисправлен, выполняетсяповторqwen43-checks2.log/session8988. ПокаНЕполныйCI/неinstallable43. [Отчёт](qwen-1.10.43.md), [продолжение](NEXT-CHAT.md). Не менятьmain/testприживойпроверке/не запускать второйGradle. FreeусловияGroq/account/keyявноописаны, платныхвызововнет. DraftpatchУЖЕприменён/удалён.
+> **74/Qwen:1.10.43/code66/Room17**, локально50/50/lint0error/assembleSUCCESS8m8s, NativeCanvasпроверен. ОтправляетсяmainдляполногоCI732ожидаемого/autoSigned; покаНЕinstallable43. [Отчёт](qwen-1.10.43.md), [продолжение](NEXT-CHAT.md). Не менятьmain/testприживойпроверке/не запускать второйGradle. FreeусловияGroq/account/keyявноописаны, реальныхAIвызововнет. Последнийпроверенныйinstallable42ниже. ВсеWIPвmain/draftpatchприменён/удалён.
 <!-- END-CURRENT-QWEN-43 -->
 
 <!-- CURRENT-SETTINGS-42 -->

@@ -77,3 +77,6 @@
 
 
 2026-11-15T17:42UTC: после независимойпроверки42 применено дополнение74/QwenчерезGroq в кандидат43/code66/Room17;18новыхофлайнкейсов/RUEN, fixedorigin/model, separatevaultAAD, configsnapshotguard. ПокаНЕpass/НЕinstallable43. Черновикpatchприменён/удалён,не применятьещёраз. Checkpointcodex/qwen-1.10.43 передцелевымиAI/EditorTransform/SettingsGroups/UiCatalog+lint/assemble. Отчётdocs/qwen-1.10.43.md. РеальныхpaidAPIнет/ключиsigningпрежние.
+
+
+2026-11-15:74/Qwen43/code66/Room17. Повторный qwen43-checks2.log завершился BUILD SUCCESSFUL8m8s:50тестов/13классов/0fail/errors/skipped, lint0error/15warnings/2info, assembleDebug.18новыхкейсов+32прежних подтверждены. NativeCanvas320×720полностьюopaque(230400alpha255), визуально проверен: provider/Freeусловия/model/key/actionsпомещаются. PNGf58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1 сохранён docs/design/qwen-settings-1.10.43.png. Аудит: fixedorigin/model, redirectsfalse/noSDK/noauto/inference, отдельныеvault/prefs/alias/AAD и закрытаяbackupallowlistDB/attachments; старыеOpenAIsettings/keys/preview/Backпроверены. Source43 готовится кобычномуfast-forwardmain/полныйCI732ожидается(покаНЕpass)/autoSigned. Последнийinstallable42. Не менятьmain/test/не запускать второйGradle во времяпроверки. РеальныхAIвызововнет.

@@ -2,7 +2,9 @@
 
 ## Текущий74: Qwen в кандидате1.10.43/code66/Room17
 
-42 полностью проверен ниже. Дополнение Qwen применено в43; [отчёт](qwen-1.10.43.md).WIP32e853b сохранён в codex/qwen-1.10.43, локальнаяmainсодержитего/originmain802bdf4verified42. Первый qwen43-checks.log:50/1fail (49pass),6m59s; Groq malformedUTF8 ошибочно NETWORK, исправлено PROVIDERбезослабленияassertion. Все4QwenUI/3vault/2session/1persistпрошли; NativePNGимеетпрозрачныйфоноболочки, замененаSurface. Выполняется qwen43-checks2.log/session8988:теже50AI/EditorTransform/SettingsGroups/UiCatalog+lint/assemble. Пока43неCIpass/неinstallable. Исходныйdraft.patch уже применён и удалён, не применятьповторно. Веткаcheckpointcodex/qwen-1.10.43 сохраняется перед запуском. Приживойпроверке main/testне менять/второйGradleне запускать. РеальныхплатныхAPIвызововнет. После полногоCI/Signed43/независимойпроверки закрыть74 и затем75–82 безновыхэтапов.
+Повторный qwen43-checks2.log завершился BUILD SUCCESSFUL8m8s:50тестов/13классов/0fail/errors/skipped, lint0error/15warnings/2info, assembleDebug.18новыхкейсов+32прежних подтверждены. NativeCanvas320×720полностьюopaque(230400alpha255), визуально проверен: provider/Freeусловия/model/key/actionsпомещаются. PNGf58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1 сохранён docs/design/qwen-settings-1.10.43.png. Аудит: fixedorigin/model, redirectsfalse/noSDK/noauto/inference, отдельныеvault/prefs/alias/AAD и закрытаяbackupallowlistDB/attachments; старыеOpenAIsettings/keys/preview/Backпроверены. Source43 готовится кобычномуfast-forwardmain/полныйCI732ожидается(покаНЕpass)/autoSigned. Последнийinstallable42. Не менятьmain/test/не запускать второйGradle во времяпроверки. РеальныхAIвызововнет.
+
+[ОтчётQwen](qwen-1.10.43.md). Все WIP55e3f4a/32e853b/8f724b1 изcodex/qwen-1.10.43 включаютсявmain. Draftpatch уже применён/удалён, не применятьповторно. После полногоCI/Signed43/независимойпроверки закрыть74 и затем75–82 безновыхэтапов.
 
 ## Проверенный выпуск 1.10.42/code65/Room17 — компактная часть74
 
