@@ -1,6 +1,5 @@
 <!-- CURRENT-SIGNING-TRANSITION -->
-> **Передача в следующий чат: [NEXT-CHAT](docs/NEXT-CHAT.md).** Текущая версия1.10.37/code60, Room17/data2/security3; CI43640361858:662 теста без отказов/lint0error/build success. Новый постоянный ключ **УЖЕ СОХРАНЁН** в NOTELS_SIGNING_MATERIAL, public pin c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c. Не генерировать/не менять ключ, не просить повторный вход GitHub ради обычных сборок. Настройка43655877564 успешно завершена, private temp/авторизация/временная transport-ветка удалены. **Устанавливаемый APK ещё не выдан:** проверить актуальное состояние Signed NoteLS APK run43656026968 и его артефакт; при передаче15 ноября00:09 UTC build/lint release ещё in_progress. App source в нём совпадает с провереннымe2ed; source сборкиc54a0c7. Ожидание результата не заменять новым bootstrap или Android Debug APK. [Подпись и проверки](docs/signing-transition-1.10.37.md). Согласованных feature-этапов0,68/iPhone не начинать.
-
+> **Установочный APK1.10.37/code60 проверен15 ноября2026:** [артефакт permanent-signature](https://github.com/grigorywork/NoteLS/actions/runs/43656026968/artifacts/14138093571), sourcec54a0c739883113bd4ca99d6dba7dab42d132352. Signed NoteLS APK43656026968: identity/release success, release build/lint12m58s,13 signing contracts OK. Скачанный ZIP SHA256004a68e8bd0cfad443c2e9f3a82278a06c17ce1a331977eacf7a6666b58b6198 совпал с GitHub API; APK SHA256b3b29d5b2eacecc216206b89ddd0ae35b17533a16e957a1681d3acbe23543709 совпал с SHA256SUMS. Настоящий apksigner подтвердил v2/v3 и единственный сертификат c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c, строго равный .github/signing-certificate.sha256; aapt2 подтвердил com.notessync.app/1.10.37/60/non-debuggable. App tree совпадает сe2ed/CI43640361858:662 теста без отказов, lint0error/build success; Room17/data2/security3. Ключ сохранён в NOTELS_SIGNING_MATERIAL: не заменять/не генерировать заново/не просить повторный вход. Первая установка: экспортировать копию вне app data и сохранить её пароль, затем удалить прежнюю версию с другой подписью; прежняя биометрия не заменяет пароль копии. Установка на физический телефон не проверялась. [Итог проверки](docs/signing-transition-1.10.37.md), [продолжение](docs/NEXT-CHAT.md). Текущая задача завершена; feature-очередь0,68/iPhone и новые этапы не начинать.
 <!-- END-CURRENT-SIGNING-TRANSITION -->
 
 <!-- CURRENT-MAINTENANCE-STATUS -->
@@ -14,7 +13,7 @@
 
 Android-приложение заметок автора **MSS9LN**. Заметки, задачи, виджеты, напоминания, цитаты, шрифты и резервное копирование. Прямая синхронизация устройств по Wi-Fi с сопряжением через QR-код.
 
-Актуальные исходники: **1.10.37**, `versionCode 60`. Новый постоянный ключ сохранён, устанавливаемый APK проверяется в CI43656026968 и пока не выдан. Выпуск1.10.1 относится к прежней подписи.
+Актуальные исходники: **1.10.37**, `versionCode 60`. Установочный APK с постоянной подписью [проверен и подготовлен к выдаче](https://github.com/grigorywork/NoteLS/actions/runs/43656026968/artifacts/14138093571); CI43656026968 success. Выпуск1.10.1 относится к прежней подписи.
 
 Основной репозиторий: https://github.com/grigorywork/NoteLS (приватный). Все последующие изменения ведутся здесь; локальная папка — рабочая копия этого репозитория.
 
