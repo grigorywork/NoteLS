@@ -1429,3 +1429,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15:72 локально подтверждён63 разными целевымикейсами.63-прогон62pass/1ошибка новогоownerfixture (ожиданиевставкивначало приdefaultкурсоре вконце); явныйTextRange(0) сохранён с прежнимassertion, повторные8/8VoiceEditor0fail/errors/skipped. LintDebug0error/15warnings/2info/assembleDebugSUCCESS4m26s, voice40-ui-final.log. NativeCanvas panel-ime.png просмотрен, курсорвиденнадIME, управлениевнеscroll/popup. Checkpointcodex/voice-1.10.40; нормальныйfast-forwardmainдляполногоCI701ожидается,ноегоещёнеpass/неinstallable40. Ключ/Room17не менялись.
+
+
+2026-11-15: source87f65add7bad85414f9da83344c54012b32935b7 отправлен fast-forward вmain, Android checks43712089734/job132805662061 in_progress. ВсеWIPветкиvoice уже включены, дерево чистое; локальныхGradle нет. Исходникиmain/test заморожены. ПолныйCI701 ожидается, не объявляетсяpass; послеуспеха автоматическийSigned проверить поactualsource/pin/ZIP/API/SUMS/APK/package/version/nondebug. Следующие73–82 после закрытия72.

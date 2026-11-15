@@ -1,3 +1,7 @@
+<!-- CURRENT-VOICE-40 -->
+> **72 выполняется: 1.10.40/code63/Room17.** [Полный CI43712089734](https://github.com/grigorywork/NoteLS/actions/runs/43712089734)/job132805662061, source87f65ad, in_progress. Локальные63 разных целевых кейса подтверждены, lint0error/assembleDebug success; это пока не полный CI и не установочный40. Исходники уже в main, предыдущие WIP включены. [Отчёт72](voice-1.10.40.md), [свежее продолжение](NEXT-CHAT.md). Последний проверенный installable39 ниже; после закрытия72 продолжать73–82.
+<!-- END-CURRENT-VOICE-40 -->
+
 <!-- CURRENT-NAVIGATION-39 -->
 > **69 закрыт:1.10.39/code62/Room17.** [ПроверенныйустановочныйAPK14154919194](https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194), source3e16a94. ПолныйCI43696196924:690/0fail/0ignored/lint0error; signed43698349185SUCCESS, ZIP/API/APK/source/version/nondebug и настоящийapksigner/certificate по прежнемуpin сверены. Следующий72, затем73–82 автономно. [Отчёт39](navigation-1.10.39.md), [продолжение](NEXT-CHAT.md).68/iPhone отложен.
 <!-- END-CURRENT-NAVIGATION-39 -->

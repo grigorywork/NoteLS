@@ -1,10 +1,10 @@
 # NoteLS: продолжение разработки
 
-## Текущий этап72 —1.10.40/code63/Room17, полныйCI впереди
+## Текущий этап72 —1.10.40/code63/Room17, полный CI выполняется
 
 [Отчёт72](voice-1.10.40.md). Панель диктовки вне popup/scroll, язык SYSTEM/RU/EN, preview/modal/owner cancellation и VMguard, непустой кандидат/защита Bundle, вставка между словами и история реализованы. Локальные63 разных целевых кейса подтверждены: первый фактический прогон62/63, ошибочный новый owner-setup задал ожидание начала без перестановки курсора; исправлена явная TextRange(0), затем8/8VoiceEditor. LintDebug0error/15warnings/2info, assembleDebug SUCCESS4m26s; лог `/workspace/tools/voice40-ui-final.log`. Компактный редактор/IME/язык/аудиоресурсы/история также прошли. Это ещё НЕполныйCI/НЕinstallable40.
 
-WIP a94dd02/08b5d1c/6440c7c сохранены в`codex/voice-1.10.40`; эта работа отправляется вmain для полногоCI. В свежей среде проверить новые коммитыmain/CI, не повторять72 с нуля. Проверить живыеGradle/CI и не менять main/test во время проверки/не запускать второй Gradle. После успешного полногонабора проверить автоматическийSigned поactualcheckout/READMEsource, ZIP/API/SUMS/APKhash/package/version/nondebug/actualapksignerpin. Следующие73–82 только после закрытия72.
+Полный [CI43712089734](https://github.com/grigorywork/NoteLS/actions/runs/43712089734), job132805662061, source `87f65add7bad85414f9da83344c54012b32935b7` реально in_progress. Main отправлен fast-forward, дерево чистое; локальных Gradle нет. WIP a94dd02/08b5d1c/6440c7c из `codex/voice-1.10.40` уже включены в main. В свежей среде проверить новые коммитыmain/CI, не повторять72 с нуля. Проверить живыеGradle/CI и не менять main/test во время проверки/не запускать второй Gradle. После успешного полногонабора проверить автоматическийSigned поactualcheckout/READMEsource, ZIP/API/SUMS/APKhash/package/version/nondebug/actualapksignerpin. Следующие73–82 только после закрытия72.
 
 Та же резервная automation перенесена на2026-11-15T14:06:02Z, API подтвердил is_enabled=true. Не создавать дубль; если исходный исполнитель активен, продолжать его работу без параллельного запуска. Последний проверенный installable —39, ниже.
 
