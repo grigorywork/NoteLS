@@ -1408,3 +1408,6 @@ UiCatalog разделён на тематические функции запо
 
 
 Первый локальный прогон39/navigation39-checks.log:37tests/1failure,6m58s. Все7NavigationDataTest, NotesQuery10, HomeQueryProjection3, SettingsGroups3, TaskDeadlineList1/Query3, CalendarMath5, HomeActions2 прошли; NavigationSectionsUi2/3. Причина: списочнаягалочка не имела доступногоимени, в отличиеотсетки. Добавлена подпись «Снятьвыполнение/Выполнитьзадачу:+название»; assertionнеубран. NativeCanvas показал обрезкудлинногозаголовка: верхняяпанель теперьоднострочная сAnalytics/Sync/⋮, сортировка/настройки в⋮, теже разделы доступныиоттуда. UIпроверяетновыепереходысортировки/настроек. Повторнаяпроверка ещёожидается; source39необъявлятьготовым.
+
+
+2026-11-15T08:45:38Z: повторный39 локальный navigation39-ui-final.log SUCCESS7m19s.9/9UI безfailures/errors/skipped (NavigationSections3,HomeActions2,TaskDeadlineList1,SettingsGroups3), lintDebug0error/15warnings/2info иassembleDebug success, metadata1.10.39/62. NativeCanvas completed.png проверен:заголовокоднострочный, Analytics/Sync/⋮, сортировка/настройки действуютчерез⋮. Ранее28 неизменённыхNativeданных/SQL/CalendarMath прошли; ключ/Roomне менялись. НормальныйpushmainдляновогополногоCI, ожидается690 (680+10), но0fail/установочный39поканеподтверждены. ПоследнийготовыйAPK38выдансохраняется.

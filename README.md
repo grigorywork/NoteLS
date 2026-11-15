@@ -1,3 +1,7 @@
+<!-- CURRENT-NAVIGATION-39 -->
+> **Текущая работа69:1.10.39/code62/Room17.** Компактные меню, опциональный раздел выполненных, дневник и ежедневник. Локальные проверки/lint/assembleDebug прошли; полныйCI и установочный39 ещё ожидаются. [Отчёт](docs/navigation-1.10.39.md). Последний проверенныйAPK38 ниже.
+<!-- END-CURRENT-NAVIGATION-39 -->
+
 <!-- CURRENT-EDITOR-38 -->
 > **Готов установочный1.10.38/code61/Room17:** [APK14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633).680 тестов без отказов/пропусков, lint0error; ZIP/APK/source/version/non-debuggable и настоящийapksigner certificate проверены, постоянная подпись прежняя.71 и70 закрыты, далее69 и72–82. [Отчёт](docs/editor-1.10.38.md), [продолжение](docs/NEXT-CHAT.md), [очередь](docs/improvements-after-1.10.37.md). Ниже исторические выпуски.
 <!-- END-CURRENT-EDITOR-38 -->

@@ -1,3 +1,7 @@
+<!-- CURRENT-NAVIGATION-39 -->
+> **69 вработе:1.10.39/code62/Room17.** Локальные последние9UI/0fail/lint0error/assembleDebug прошли, предыдущие28 проверокданных/SQL прошли; полныйCI/подписанный39 ещё ожидаются. [Продолжение](NEXT-CHAT.md), [отчёт39](navigation-1.10.39.md). Последний проверенныйinstallable38 ниже; новыеэтапынедобавлять,68/iPhoneотложен.
+<!-- END-CURRENT-NAVIGATION-39 -->
+
 <!-- CURRENT-EDITOR-38 -->
 > **71 и70 закрыты:1.10.38/code61/Room17.** [ПроверенныйAPK14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633), источникebc0c01, полныйCI43689688187:680/0fail/0ignored/lint0error. Подписанный43690896800 SUCCESS, ZIP/APK/source/version/non-debuggable и actualapksigner v2/v3/certificate сверены по прежнемуpin. Следующий69, затем72–82 автономно. [Продолжение](NEXT-CHAT.md), [отчёт](editor-1.10.38.md), [очередь](improvements-after-1.10.37.md).68/iPhone отложен. Ниже исторические границы старой очереди.
 <!-- END-CURRENT-EDITOR-38 -->
