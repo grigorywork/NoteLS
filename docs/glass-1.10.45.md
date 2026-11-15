@@ -17,3 +17,5 @@
 ## Реализация и незавершённая проверка
 
 Checkpoint f0f8fc5 сохранён в codex/glass-1.10.45. Новый GlassAppearance, 5 pure/3 prefs/4 NativeUI теста; CI сохраняет glass-preview. Первоначальная компиляция main успешна, Gradle glass45-checks.log пока выполняется. Ни тесты, ни45/installable не объявлены успешными до фактических отчётов. SharedPreferences settings сохраняет только локальное оформление; Room18 и формат backup/sync прежние.
+
+Первый glass45-checks.log остановился на компиляции нового теста: RuntimeEnvironment.getApplication в этой версии Robolectric не generic. Исправлен вызов с явным типом Application; приложение компилировалось успешно, тестовые результаты этого прогона не заявлены.

@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class)
 class GlassPreferencesTest {
-    private val app get() = RuntimeEnvironment.getApplication<Application>()
+    private val app: Application get() = RuntimeEnvironment.getApplication()
     private val settings get() = SettingsRepository.get(app)
     private val prefs get() = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
     @Before fun before() { settings.setGlassAppearance(GlassAppearance()) }
