@@ -3,6 +3,7 @@ package com.notessync.app.ui.editor
 import com.notessync.app.i18n.uiText
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.Icons
@@ -32,48 +33,36 @@ import com.notessync.app.data.local.entity.NotebookEntity
 @Composable
 internal fun EditorBottomBar(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState,
     notebooks: List<NotebookEntity>, recordingBusy: Boolean, voiceClosing: Boolean,
-    onRecordAudio: () -> Unit, onGallery: () -> Unit, onCamera: () -> Unit, onReminder: () -> Unit) {
-    Box {
-        Column {
-            if (viewModel.historyEnabled) EditorHistoryActions(
-                canUndo = viewModel.canUndo && !viewModel.isClosing,
-                canRedo = viewModel.canRedo && !viewModel.isClosing,
-                onUndo = viewModel::undo, onRedo = viewModel::redo)
-            NavigationBar {
-                NavigationBarItem(
-                    selected = ui.showFormattingPanel,
-                    onClick = { ui.showFormattingPanel = !ui.showFormattingPanel },
-                    icon = { Icon(Icons.Default.FormatBold, contentDescription = null) },
-                    label = { Text(uiText("Текст")) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    enabled = !viewModel.isPhotoBusy && !viewModel.isClosing && viewModel.isReady && !recordingBusy && !voiceClosing,
-                    onClick = { ui.showPhotoMenu = true },
-                    icon = { Icon(Icons.Default.AttachFile, contentDescription = null) },
-                    label = { Text(uiText("Файлы")) }
-                )
-                NavigationBarItem(
-                    selected = viewModel.reminderAt != null,
-                    onClick = { onReminder() },
-                    icon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-                    label = { Text(uiText("Сигнал")) }
-                )
-                NavigationBarItem(
-                    selected = viewModel.notebookName != null,
-                    onClick = { ui.showNotebookMenu = true },
-                    icon = { Icon(Icons.Default.Folder, contentDescription = null) },
-                    label = { Text(uiText("Блокнот")) }
-                )
-                NavigationBarItem(
-                    selected = viewModel.noteTags.isNotEmpty(),
-                    onClick = { ui.showTagDialog = true },
-                    icon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                    label = { Text(uiText("Теги")) }
-                )
+    onRecordAudio: () -> Unit, onGallery: () -> Unit, onCamera: () -> Unit, onReminder: () -> Unit,
+    voiceIdle: Boolean = true, showFormatting: Boolean = true) {
+    Box(androidx.compose.ui.Modifier.navigationBarsPadding()) {
+        if (showFormatting) com.notessync.app.ui.notes.text.FormattingToolbar(
+            active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
+            activeList = activeEditorList(viewModel), popup = ui.formatPopup, onPopup = { ui.formatPopup = it },
+            actions = editorFormattingActions(viewModel), enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.previewMode,
+            showTables = settingsState.showTables,
+            onTable = { ui.dismissMenus(); if (viewModel.tables?.blocks.isNullOrEmpty()) ui.showAddTable = true else ui.popup = EditorPopup.TABLES },
+            onInsert = { ui.showPhotoMenu = true })
+        DropdownMenu(ui.popup == EditorPopup.TABLES, { ui.dismissMenus() }) {
+            DropdownMenuItem(text = { Text(uiText("Новая таблица")) }, onClick = { ui.dismissMenus(); ui.showAddTable = true })
+            viewModel.tables?.blocks.orEmpty().forEachIndexed { index, table ->
+                DropdownMenuItem(text = { Text(uiText("Таблица %1\$s × %2\$s", table.rowCount, table.columnCount) + " · ${index + 1}") },
+                    onClick = { ui.dismissMenus(); ui.openTable = table.id })
             }
         }
         DropdownMenu(expanded = ui.showPhotoMenu, onDismissRequest = { ui.showPhotoMenu = false }) {
+            DropdownMenuItem(text = { Text(uiText("Блокнот")) }, leadingIcon = { Icon(Icons.Default.Folder, null) },
+                onClick = { ui.showNotebookMenu = true })
+            DropdownMenuItem(text = { Text(uiText("Теги")) }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) },
+                onClick = { ui.dismissMenus(); ui.showTagDialog = true })
+            DropdownMenuItem(text = { Text(uiText("Сигнал")) }, leadingIcon = { Icon(Icons.Default.Alarm, null) },
+                onClick = { ui.dismissMenus(); onReminder() })
+            if (settingsState.aiEnabled) DropdownMenuItem(text = { Text(uiText("Преобразовать текст")) },
+                enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !viewModel.isPhotoBusy &&
+                    viewModel.contentField.text.isNotBlank() && !recordingBusy && !voiceClosing && voiceIdle,
+                onClick = { ui.dismissMenus(); ui.showTransform = true })
+            if (viewModel.reminderAt != null) DropdownMenuItem(text = { Text(uiText("Убрать напоминание")) },
+                onClick = { ui.dismissMenus(); viewModel.clearReminder() })
             if (settingsState.audioRecording) DropdownMenuItem(text = { Text(uiText("Записать аудио")) }, leadingIcon = { Icon(Icons.Default.Mic, null) }, onClick = {
                 ui.showPhotoMenu = false
                 onRecordAudio()
@@ -147,3 +136,15 @@ internal fun EditorBottomBar(viewModel: NoteEditorViewModel, ui: EditorUiState, 
         }
     }
 }
+
+internal fun activeEditorList(viewModel: NoteEditorViewModel): com.notessync.app.ui.notes.md.MarkdownEdit.ListKind? {
+    val value = viewModel.contentField
+    val cursor = value.selection.min.coerceIn(0, value.text.length)
+    val start = value.text.lastIndexOf('\n', (cursor - 1).coerceAtLeast(-1)) + 1
+    return com.notessync.app.ui.notes.md.ListMarkers.parse(value.text.substring(start))?.kind
+}
+
+internal fun editorFormattingActions(viewModel: NoteEditorViewModel) = com.notessync.app.ui.notes.text.FormattingActions(
+    viewModel::toggleTextStyle, viewModel::formatSelection, viewModel::toggleHeading,
+    viewModel::toggleLocalizedList, { viewModel.formatParagraph(com.notessync.app.notes.text.FormatKind.ALIGN, it) },
+    viewModel::changeIndent, viewModel::selectAllContent)

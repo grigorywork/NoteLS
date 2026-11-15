@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Schedule
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -44,7 +46,9 @@ fun TaskTimerIndicator(
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Unspecified,
     animateIcon: Boolean = false,
-    active: Boolean = true
+    active: Boolean = true,
+    compact: Boolean = false,
+    icon: ImageVector = Icons.Default.Schedule
 ) {
     var now by remember(startedAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = startedAt != null
@@ -64,16 +68,17 @@ fun TaskTimerIndicator(
     val color = if (contentColor == Color.Unspecified) LocalContentColor.current else contentColor
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = Icons.Default.Schedule,
+            imageVector = icon,
             contentDescription = if (running) uiText("Секундомер работает") else uiText("Секундомер на паузе"),
             tint = color,
-            modifier = Modifier.graphicsLayer { rotationZ = angle.value }
+            modifier = Modifier.size(if (compact) 18.dp else 24.dp).graphicsLayer { rotationZ = angle.value }
         )
         Text(
-            text = TaskTimer.format(TaskTimer.elapsedAt(elapsedMillis, startedAt, now)),
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
+            text = TaskTimer.format(TaskTimer.elapsedAt(elapsedMillis, startedAt, now)).let { if (compact) it.removePrefix("00:") else it },
+            style = (if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall).copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
+            maxLines = if (compact) 1 else Int.MAX_VALUE,
             color = color,
-            modifier = Modifier.padding(start = 6.dp)
+            modifier = Modifier.padding(start = if (compact) 3.dp else 6.dp)
         )
     }
 }
@@ -91,7 +96,8 @@ fun CountdownIndicator(
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Unspecified,
     animateIcon: Boolean = true,
-    active: Boolean = true
+    active: Boolean = true,
+    compact: Boolean = false
 ) {
     var now by remember(endAt) { mutableLongStateOf(System.currentTimeMillis()) }
     val running = endAt != null
@@ -143,13 +149,14 @@ fun CountdownIndicator(
                 else -> uiText("Таймер на паузе")
             },
             tint = color,
-            modifier = if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation.value } else Modifier
+            modifier = Modifier.size(if (compact) 18.dp else 24.dp).then(if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation.value } else Modifier)
         )
         Text(
-            text = if (finished) uiText("Время вышло") else TaskTimer.format(remaining),
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
+            text = if (finished) uiText("Время вышло") else TaskTimer.format(remaining).let { if (compact) it.removePrefix("00:") else it },
+            style = (if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall).copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
+            maxLines = if (compact) 1 else Int.MAX_VALUE,
             color = color,
-            modifier = Modifier.padding(start = 6.dp)
+            modifier = Modifier.padding(start = if (compact) 3.dp else 6.dp)
         )
     }
 }

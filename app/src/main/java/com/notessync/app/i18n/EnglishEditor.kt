@@ -1,6 +1,22 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addEditorEnglish() {
+    put("Полное оформление", "All formatting")
+    put("Сбросить секундомер", "Reset stopwatch")
+    put("Оформление текста", "Text formatting")
+    put("Нумерованный", "Numbered")
+    put("Буквенный", "Lettered")
+    put("Маркированный", "Bulleted")
+    put("Вставить", "Insert")
+    put("clipboard|Вставить", "Paste")
+    put("Копировать", "Copy")
+    put("Вырезать", "Cut")
+    put("Сделать заметкой", "Convert to note")
+    put("Сделать задачей", "Convert to task")
+    put("Вложения", "Attachments")
+    put("Нет вложений", "No attachments")
+    put("Голосовой ввод", "Voice input")
+    put("Параметры задачи", "Task options")
     put("Снять выполнение: ", "Mark incomplete: ")
     put("Выполнить задачу: ", "Complete task: ")
     put("Поставить таймер на паузу", "Pause stopwatch")

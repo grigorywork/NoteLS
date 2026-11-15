@@ -101,7 +101,7 @@ object MarkdownEdit {
      * снимается. Префиксы никогда не накладываются друг на друга
      * («- - [ ] текст» исключено).
      */
-    fun toggleListKind(value: TextFieldValue, kind: ListKind): TextFieldValue {
+    fun toggleListKind(value: TextFieldValue, kind: ListKind, alphabet: ListAlphabet = ListAlphabet.LATIN): TextFieldValue {
         return ParagraphEdit.transform(value) { lines ->
             val allTarget = lines.any { ListMarkers.parse(it)?.kind == kind } &&
                 lines.all { ListMarkers.parse(it)?.kind == kind || (it.isBlank() && lines.size > 1) }
@@ -112,7 +112,7 @@ object MarkdownEdit {
                     allTarget -> if (marker != null) line.substring(marker.length) else line
                     line.isBlank() && lines.size > 1 -> line
                     kind == ListKind.CHECKLIST && marker?.kind == kind -> line
-                    else -> ListMarkers.prefix(kind, ordinal++) + (marker?.let { line.substring(it.length) } ?: line)
+                    else -> ListMarkers.prefix(kind, ordinal++, alphabet = alphabet) + (marker?.let { line.substring(it.length) } ?: line)
                 }
             }
         }
@@ -137,8 +137,8 @@ object MarkdownEdit {
         val line = prev.text.substring(lineStart, cursor)
         val marker = ListMarkers.parse(line) ?: return next
         if ((marker.kind == ListKind.NUMBER && marker.ordinal >= 999999) ||
-            (marker.kind == ListKind.LETTER && marker.ordinal >= 475254)) return next
-        val prefix = ListMarkers.prefix(marker.kind, marker.ordinal + 1, marker.uppercase)
+            (marker.kind == ListKind.LETTER && marker.ordinal >= marker.alphabet.maxOrdinal)) return next
+        val prefix = ListMarkers.prefix(marker.kind, marker.ordinal + 1, marker.uppercase, marker.alphabet)
         val markerLength = marker.length
         val content = line.substring(markerLength)
         if (content.isBlank()) {

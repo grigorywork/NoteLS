@@ -87,6 +87,7 @@ class VoiceEditorTest {
             NoteSyncTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) { NoteEditorScreen({}, {}, viewModel = editor) } }
         } }
         compose.waitUntil(10_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); editor.isReady }
+        compose.onNodeWithContentDescription("Действия").performClick()
         return editor
     }
     private fun result(value: String) = Bundle().apply { putStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION, arrayListOf(value)) }

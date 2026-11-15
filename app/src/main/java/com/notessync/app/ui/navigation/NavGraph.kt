@@ -100,6 +100,7 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
         ) {
             NoteEditorScreen(
                 onBack = { back() },
+                onOpenCalendar = { navigate(Routes.CALENDAR) },
                 onDeleted = { event -> activity.runOnUiThread {
                     if (!activity.isDestroyed) {
                         if (event.id > 0) navController.previousBackStackEntry?.savedStateHandle?.set("deleted_note_event", event)

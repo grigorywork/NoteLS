@@ -21,27 +21,37 @@ object ParagraphEdit {
     }
 }
 
-data class ListMarker(val kind: MarkdownEdit.ListKind, val length: Int, val ordinal: Int = 1, val uppercase: Boolean = false)
+enum class ListAlphabet(val letters: String, val maxOrdinal: Int) {
+    LATIN("abcdefghijklmnopqrstuvwxyz", 475254),
+    CYRILLIC("абвгдеёжзийклмнопрстуфхцчшщъыьэюя", 1222980)
+}
+data class ListMarker(val kind: MarkdownEdit.ListKind, val length: Int, val ordinal: Int = 1,
+    val uppercase: Boolean = false, val alphabet: ListAlphabet = ListAlphabet.LATIN)
 object ListMarkers {
     private val number = Regex("^([0-9]{1,6})[.)] ")
     // Parentheses avoid interpreting ordinary English sentences such as "Note. ..." as lists.
-    private val letter = Regex("^([a-zA-Z]{1,4})\\) ")
+    private val letter = Regex("^([a-zA-Zа-яА-ЯёЁ]{1,4})\\) ")
     fun parse(line: String): ListMarker? = when {
         line.startsWith("- [ ] ") || line.startsWith("- [x] ") || line.startsWith("- [X] ") -> ListMarker(MarkdownEdit.ListKind.CHECKLIST, 6)
         line.startsWith("- ") -> ListMarker(MarkdownEdit.ListKind.BULLET, 2)
         else -> number.find(line)?.let { ListMarker(MarkdownEdit.ListKind.NUMBER, it.value.length, it.groupValues[1].toInt()) }
-            ?: letter.find(line)?.let { ListMarker(MarkdownEdit.ListKind.LETTER, it.value.length,
-                it.groupValues[1].lowercase().fold(0) { total, char -> total * 26 + char.code - 'a'.code + 1 },
-                it.groupValues[1].first().isUpperCase()) }
+            ?: letter.find(line)?.let {
+                val text = it.groupValues[1].lowercase(java.util.Locale.ROOT)
+                val alphabet = if (text.first() in ListAlphabet.CYRILLIC.letters) ListAlphabet.CYRILLIC else ListAlphabet.LATIN
+                if (text.any { char -> char !in alphabet.letters }) null else ListMarker(MarkdownEdit.ListKind.LETTER,
+                    it.value.length, text.fold(0) { total, char -> total * alphabet.letters.length + alphabet.letters.indexOf(char) + 1 },
+                    it.groupValues[1].first().isUpperCase(), alphabet)
+            }
     }
-    fun prefix(kind: MarkdownEdit.ListKind, ordinal: Int = 1, uppercase: Boolean = false): String = when (kind) {
+    fun prefix(kind: MarkdownEdit.ListKind, ordinal: Int = 1, uppercase: Boolean = false,
+        alphabet: ListAlphabet = ListAlphabet.LATIN): String = when (kind) {
         MarkdownEdit.ListKind.BULLET -> "- "
         MarkdownEdit.ListKind.CHECKLIST -> "- [ ] "
         MarkdownEdit.ListKind.NUMBER -> "${ordinal.coerceIn(1, 999999)}. "
         MarkdownEdit.ListKind.LETTER -> {
-            var number = ordinal.coerceIn(1, 475254); var result = ""
-            while (number > 0) { number--; result = ('a' + number % 26) + result; number /= 26 }
-            (if (uppercase) result.uppercase() else result) + ") "
+            var number = ordinal.coerceIn(1, alphabet.maxOrdinal); var result = ""
+            while (number > 0) { number--; result = alphabet.letters[number % alphabet.letters.length] + result; number /= alphabet.letters.length }
+            (if (uppercase) result.uppercase(java.util.Locale.ROOT) else result) + ") "
         }
     }
 }

@@ -32,6 +32,7 @@ jobs:
           name: verification-reports
           path: |
             app/build/reports/tests/
+            app/build/reports/editor-preview/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
       - name: Prepare cloud debug APK (not an installed-app update)

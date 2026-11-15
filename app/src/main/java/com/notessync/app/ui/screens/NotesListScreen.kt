@@ -356,7 +356,10 @@ fun NotesListScreen(
                         }, onUnlock = { task -> notebookUi.taskUnlockError = false; notebookUi.taskToUnlock = task },
                         onDelete = { if (filter == NoteFilter.Trash) { purgeTargets = mapOf(it.id to it.syncId); pendingPurge = true } else deleteCandidate = it }, onToggleCompleted = viewModel::toggleCompleted,
                         onToggleTimer = viewModel::toggleTaskTimer, selected = selected.keys, onSelect = ::select,
-                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN, mapOf(it.id to it.syncId)) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE, mapOf(it.id to it.syncId)) }, deadlineNow = taskTime)
+                        onPin = { apply(setOf(it.id), if (it.isPinned) NoteActions.Action.UNPIN else NoteActions.Action.PIN, mapOf(it.id to it.syncId)) }, onRestore = { apply(setOf(it.id), NoteActions.Action.RESTORE, mapOf(it.id to it.syncId)) }, deadlineNow = taskTime, onProtection = { note ->
+                            notebookUi.taskProtectionError = false
+                            if (note.isProtected) notebookUi.taskToUnprotect = note else notebookUi.taskToProtect = note
+                        })
 
                 }
             }

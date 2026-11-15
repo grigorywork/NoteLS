@@ -39,7 +39,7 @@ import com.notessync.app.ui.theme.*
 internal fun NoteGridCard(note: NoteCardEntry, photo: AttachmentEntity?, showPriority: Boolean,
     onClick: () -> Unit, onDelete: () -> Unit, onToggleCompleted: () -> Unit, onToggleTimer: () -> Unit,
     onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
-    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis()
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis(), onProtection: (() -> Unit)? = null
 ) {
     val accent = noteAccent(note)
     val glass = LocalGlassTheme.current
@@ -57,7 +57,7 @@ internal fun NoteGridCard(note: NoteCardEntry, photo: AttachmentEntity?, showPri
                 Text(notePreviewText(note.title, 256).ifBlank { uiText("Без названия") }, Modifier.weight(1f), maxLines = 3,
                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium,
                     color = accent)
-                NoteCardMenu(note, onDelete, onSelect, onPin, onRestore)
+                NoteCardMenu(note, onDelete, onSelect, onPin, onRestore, onProtection)
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (showPriority && note.isTask && note.taskPriority != 0) Icon(Icons.Default.Flag,

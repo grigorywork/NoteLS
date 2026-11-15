@@ -81,7 +81,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         com.notessync.app.security.biometrics.AndroidNotebookBiometricVault(application))
 
     internal val taskPasswords = com.notessync.app.security.TaskPasswordController(viewModelScope, db)
-    fun cancelAuthentication() { biometrics.cancel(); taskPasswords.cancel() }
+    internal val listProtection = com.notessync.app.security.ListTaskProtection(application, db, viewModelScope)
+    fun cancelAuthentication() { biometrics.cancel(); taskPasswords.cancel(); listProtection.cancel() }
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()

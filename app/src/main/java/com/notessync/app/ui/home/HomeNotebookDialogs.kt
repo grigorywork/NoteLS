@@ -149,6 +149,23 @@ internal fun HomeNotebookDialogs(viewModel: NotesViewModel, notebookUi: HomeNote
         )
     }
 
+    val protectionBusy by viewModel.listProtection.busy.collectAsStateWithLifecycle()
+    notebookUi.taskToProtect?.let { note ->
+        SetPasswordDialog(title = uiText("Пароль задачи"),
+            onDismiss = { notebookUi.taskToProtect = null; viewModel.listProtection.cancel() },
+            onConfirm = { password -> viewModel.listProtection.change(note, password, false) { accepted ->
+                notebookUi.taskToProtect = null
+                if (!accepted) scope.launch { snackbarHostState.showSnackbar(uiText("Не удалось выполнить действие. Повторите.")) }
+            } })
+    }
+    notebookUi.taskToUnprotect?.let { note ->
+        UnlockPasswordDialog(title = uiText("Снять защиту задачи"), showError = notebookUi.taskProtectionError,
+            busy = protectionBusy, onDismiss = { notebookUi.taskToUnprotect = null; viewModel.listProtection.cancel() },
+            onConfirm = { password -> viewModel.listProtection.change(note, password, true) { accepted ->
+                if (accepted) notebookUi.taskToUnprotect = null else notebookUi.taskProtectionError = true
+            } })
+    }
+
     val taskBusy by viewModel.taskPasswords.busy.collectAsStateWithLifecycle()
     notebookUi.taskToUnlock?.let { note ->
         UnlockPasswordDialog(

@@ -114,7 +114,7 @@ private fun NoteCard(
     onToggleCompleted: () -> Unit,
     onToggleTimer: () -> Unit,
     onSelect: () -> Unit = {}, onPin: () -> Unit = {}, onRestore: () -> Unit = {},
-    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis()
+    selecting: Boolean = false, selected: Boolean = false, active: Boolean = true, deadlineNow: Long = System.currentTimeMillis(), onProtection: (() -> Unit)? = null
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val glass = LocalGlassTheme.current
@@ -243,7 +243,7 @@ private fun NoteCard(
                     )
                 }
             }
-            NoteCardMenu(note, onDelete, onSelect, onPin, onRestore)
+            NoteCardMenu(note, onDelete, onSelect, onPin, onRestore, onProtection)
         }
     }
 }
@@ -258,7 +258,8 @@ internal fun NotesCardsLayout(notes: List<NoteCardEntry>, locked: List<TaskUnloc
     onOpen: (NoteCardEntry) -> Unit, onUnlock: (TaskUnlockTarget) -> Unit, onDelete: (NoteCardEntry) -> Unit,
     onToggleCompleted: (NoteCardEntry) -> Unit, onToggleTimer: (NoteCardEntry) -> Unit,
     selected: Set<Long> = emptySet(), onSelect: (NoteCardEntry) -> Unit = {},
-    onPin: (NoteCardEntry) -> Unit = {}, onRestore: (NoteCardEntry) -> Unit = {}, deadlineNow: Long = System.currentTimeMillis()
+    onPin: (NoteCardEntry) -> Unit = {}, onRestore: (NoteCardEntry) -> Unit = {}, deadlineNow: Long = System.currentTimeMillis(),
+    onProtection: (NoteCardEntry) -> Unit = {}
 ) {
     val grid = layout == NotesLayout.GRID
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -287,10 +288,10 @@ internal fun NotesCardsLayout(notes: List<NoteCardEntry>, locked: List<TaskUnloc
                 val active by remember(state, note.id) { derivedStateOf { state.layoutInfo.visibleItemsInfo.any { it.key == "note-${note.id}:${note.syncId}" } } }
                 if (grid) NoteGridCard(note, photos[note.id], showPriority,
                     { onOpen(note) }, { onDelete(note) }, { onToggleCompleted(note) }, { onToggleTimer(note) },
-                    { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow)
+                    { onSelect(note) }, { onPin(note) }, { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow, { onProtection(note) })
                 else NoteCard(note, showPriority, photos[note.id], { onOpen(note) }, { onDelete(note) },
                     { onToggleCompleted(note) }, { onToggleTimer(note) }, { onSelect(note) }, { onPin(note) },
-                    { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow)
+                    { onRestore(note) }, selected.isNotEmpty(), note.id in selected, active, deadlineNow, { onProtection(note) })
             }
         }
     }

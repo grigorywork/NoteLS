@@ -160,7 +160,10 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
         pendingFormatting = emptyMap(); contentField = next
     }
     fun toggleHeading(level: Int = 1) { updateLines(MarkdownEdit.toggleLinePrefix(contentField, "#".repeat(level.coerceIn(1, 3)) + " ")) }
-    fun toggleList(kind: MarkdownEdit.ListKind = MarkdownEdit.ListKind.BULLET) { updateLines(MarkdownEdit.toggleListKind(contentField, kind)) }
+    fun toggleList(kind: MarkdownEdit.ListKind = MarkdownEdit.ListKind.BULLET,
+        alphabet: com.notessync.app.ui.notes.md.ListAlphabet = com.notessync.app.ui.notes.md.ListAlphabet.LATIN) {
+        updateLines(MarkdownEdit.toggleListKind(contentField, kind, alphabet))
+    }
     fun toggleChecklist() { updateLines(MarkdownEdit.toggleListKind(contentField, MarkdownEdit.ListKind.CHECKLIST)) }
     fun formatParagraph(kind: FormatKind, value: String) = edit {
         if (kind != FormatKind.ALIGN && kind != FormatKind.INDENT) return@edit

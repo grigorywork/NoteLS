@@ -16,6 +16,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -82,10 +87,13 @@ import kotlinx.coroutines.launch
 fun NoteEditorScreen(
     onBack: () -> Unit,
     onDeleted: (com.notessync.app.data.local.model.NoteIdentity) -> Unit,
-    viewModel: NoteEditorViewModel = viewModel()
+    viewModel: NoteEditorViewModel = viewModel(),
+    onOpenCalendar: () -> Unit = {},
+    imeInsets: WindowInsets = WindowInsets.ime
 ) {
     val scope = rememberCoroutineScope()
     val ui = remember { EditorUiState() }
+    val selectionToolbar = ui.selectionToolbar
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val titleFocus = remember { FocusRequester() }
@@ -287,7 +295,15 @@ fun NoteEditorScreen(
             } finally { voiceClosing = false }
         }
     }
-    BackHandler { exit() }
+    BackHandler {
+        if (ui.popup != null) ui.dismissMenus()
+        else if (selectionToolbar.status == androidx.compose.ui.platform.TextToolbarStatus.Shown) selectionToolbar.hide()
+        else exit()
+    }
+    LaunchedEffect(ui.popup) {
+        if (ui.popup != null && ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT) selectionToolbar.hide()
+    }
+    LaunchedEffect(ui.modalOpen) { selectionToolbar.hide() }
     val historyKeys = Modifier.onPreviewKeyEvent {
         if (!viewModel.historyEnabled || !it.isCtrlPressed || it.type != KeyEventType.KeyDown) false
         else when (it.key) {
@@ -303,51 +319,31 @@ fun NoteEditorScreen(
         com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context)) { ui.showTransform = false }
     }
     EditorScaffold(
+        imeInsets = imeInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(if (viewModel.isTask) uiText("Задача") else uiText("Заметка")) },
-                navigationIcon = {
-                    IconButton(onClick = { exit() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
-                    }
-                },
-                actions = {
-                    com.notessync.app.ui.notes.VoiceInputButton(settingsState.voiceControl, voiceState,
-                        onStart = { startVoiceInput() }, onFinish = voiceManager::finish, onCancel = voiceManager::cancel,
-                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing && !captureState.busy && !audioPlaying)
-                    IconButton(onClick = viewModel::toggleFavorite) {
-                        Icon(
-                            if (viewModel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = uiText("Избранное"),
-                            tint = if (viewModel.isFavorite) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    // Предпросмотр
-                    IconButton(onClick = { viewModel.previewMode = !viewModel.previewMode }) {
-                        Icon(
-                            if (viewModel.previewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = uiText("Предпросмотр")
-                        )
-                    }
-                    if (viewModel.exists) {
-                        IconButton(onClick = { ui.showDeleteDialog = true }, enabled = !viewModel.isPhotoBusy) {
-                            Icon(Icons.Default.Delete, contentDescription = uiText("Удалить"))
-                        }
-                    }
-                }
-            )
+            EditorTopBar(viewModel, ui, settingsState, onExit = { exit() }, onCalendar = {
+                scope.launch { if (viewModel.saveNow(force = true)) onOpenCalendar() }
+            }, voice = {
+                com.notessync.app.ui.notes.VoiceInputButton(settingsState.voiceControl, voiceState,
+                    onStart = { startVoiceInput() }, onFinish = voiceManager::finish, onCancel = voiceManager::cancel,
+                    enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing && !captureState.busy && !audioPlaying)
+            })
         },
         bottomBar = {
             EditorBottomBar(viewModel, ui, settingsState, notebooks, captureState.busy, voiceClosing,
                 onRecordAudio = { startAudioRecording() },
                 onGallery = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 onCamera = { if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
-                    else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() })
+                    else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() },
+                voiceIdle = voiceState == com.notessync.app.voice.VoiceState.IDLE,
+                showFormatting = selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown || viewModel.contentField.selection.collapsed)
         }
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
+        val inputMinHeight = (viewportHeight - 120.dp).coerceAtLeast(160.dp)
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             // Listening and waiting for the final result are distinct; partial text is never inserted.
             if (voiceState != com.notessync.app.voice.VoiceState.IDLE) {
                 Surface(
@@ -377,6 +373,7 @@ fun NoteEditorScreen(
                     }
                 }
             }
+            if (!ui.showMedia) {
             AudioRecordingPanel(viewModel.audioCapture, captureState)
             AudioAttachmentList(audios, viewModel.audioPlayback, viewModel::removeAttachment) { message ->
                 scope.launch { snackbarHostState.showSnackbar(message) }
@@ -388,13 +385,27 @@ fun NoteEditorScreen(
                     onRemove = viewModel::removeAttachment
                 )
             }
-            EditorTaskControls(viewModel, ui, settingsState, onExit = { exit() })
+            }
+            EditorTaskControls(viewModel, ui, settingsState)
 
-            EditorTextFields(viewModel, ui, settingsState, historyKeys, titleFocus, contentFocus, captureState.busy, voiceState, voiceClosing)
+            EditorTextFields(viewModel, ui, settingsState, historyKeys, titleFocus, contentFocus, captureState.busy, voiceState, voiceClosing,
+                inputMinHeight, viewportHeight, selectionToolbar)
 
+        }
         }
     }
 
+    EditorSelectionMenu(selectionToolbar, viewModel, ui, settingsState)
+    if (ui.showMedia) androidx.compose.material3.ModalBottomSheet(onDismissRequest = { ui.showMedia = false }) {
+        Column(Modifier.fillMaxWidth()) {
+            AudioRecordingPanel(viewModel.audioCapture, captureState)
+            if (photos.isEmpty() && audios.isEmpty()) Text(uiText("Нет вложений"), Modifier.padding(16.dp))
+            PhotoAttachmentGrid(photos, onOpen = { ui.showMedia = false; ui.openPhoto = it.id }, onRemove = viewModel::removeAttachment)
+            AudioAttachmentList(audios, viewModel.audioPlayback, viewModel::removeAttachment) { message ->
+                scope.launch { snackbarHostState.showSnackbar(message) }
+            }
+        }
+    }
     EditorDialogs(viewModel, ui, settingsState, attachments, snackbarHostState, scope, onDelete = { deleteNote() })
 }
 

@@ -188,30 +188,6 @@ internal fun EditorDialogs(viewModel: NoteEditorViewModel, ui: EditorUiState, se
         onDispose { protectionLifecycle.removeObserver(observer); viewModel.cancelTaskProtection() }
     }
 
-    if (ui.showTaskPasswordDialog) {
-        SetPasswordDialog(
-            title = uiText("Пароль задачи"),
-            onDismiss = { ui.showTaskPasswordDialog = false; viewModel.cancelTaskProtection() },
-            onConfirm = { password ->
-                viewModel.protectTask(password)
-                ui.showTaskPasswordDialog = false
-            }
-        )
-    }
-
-    if (ui.showRemoveTaskProtection) {
-        UnlockPasswordDialog(
-            title = uiText("Снять защиту задачи"),
-            showError = ui.taskProtectionError,
-            busy = viewModel.taskProtectionBusy,
-            onDismiss = { ui.showRemoveTaskProtection = false; viewModel.cancelTaskProtection() },
-            onConfirm = { password ->
-                viewModel.removeTaskProtection(password) { verified ->
-                    if (verified) ui.showRemoveTaskProtection = false else ui.taskProtectionError = true
-                }
-            }
-        )
-    }
 
     if (ui.showDeleteDialog) {
         AlertDialog(

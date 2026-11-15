@@ -41,7 +41,7 @@ internal fun noteAccent(note: NoteListEntry): Color {
 
 @Composable
 internal fun NoteCardMenu(note: NoteCardEntry, onDelete: () -> Unit, onSelect: () -> Unit,
-    onPin: () -> Unit, onRestore: () -> Unit) {
+    onPin: () -> Unit, onRestore: () -> Unit, onProtection: (() -> Unit)? = null) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) { Icon(Icons.Default.MoreVert, uiText("Действия")) }
@@ -50,6 +50,10 @@ internal fun NoteCardMenu(note: NoteCardEntry, onDelete: () -> Unit, onSelect: (
                 onClick = { open = false; onSelect() })
             if (!note.isDeleted) DropdownMenuItem(text = { Text(if (note.isPinned) uiText("Открепить") else uiText("Закрепить")) },
                 leadingIcon = { Icon(Icons.Default.PushPin, null) }, onClick = { open = false; onPin() })
+            if (note.isTask && !note.isDeleted && onProtection != null) DropdownMenuItem(
+                text = { Text(uiText(if (note.isProtected) "Снять защиту" else "Защитить паролем")) },
+                leadingIcon = { Icon(if (note.isProtected) Icons.Default.LockOpen else Icons.Default.Lock, null) },
+                onClick = { open = false; onProtection() })
             if (note.isDeleted) DropdownMenuItem(text = { Text(uiText("Восстановить")) }, leadingIcon = { Icon(Icons.Default.RestoreFromTrash, null) },
                 onClick = { open = false; onRestore() })
             DropdownMenuItem(text = { Text(if (note.isDeleted) uiText("Удалить навсегда") else uiText("Удалить")) }, leadingIcon = { Icon(Icons.Default.Delete, null) },

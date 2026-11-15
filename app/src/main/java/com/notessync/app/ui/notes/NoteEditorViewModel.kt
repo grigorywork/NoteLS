@@ -428,6 +428,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
     fun toggleTextStyle(kind: FormatKind) = document.toggleTextStyle(kind)
     fun toggleHeading(level: Int = 1) = document.toggleHeading(level)
     fun toggleList(kind: MarkdownEdit.ListKind = MarkdownEdit.ListKind.BULLET) = document.toggleList(kind)
+    fun toggleLocalizedList(kind: MarkdownEdit.ListKind) = document.toggleList(kind,
+        if (com.notessync.app.i18n.UiStrings.language == com.notessync.app.i18n.UiLanguage.RUSSIAN)
+            com.notessync.app.ui.notes.md.ListAlphabet.CYRILLIC else com.notessync.app.ui.notes.md.ListAlphabet.LATIN)
     fun toggleChecklist() = document.toggleChecklist()
     fun formatParagraph(kind: FormatKind, value: String) = document.formatParagraph(kind, value)
     fun changeIndent(delta: Int) = document.changeIndent(delta)

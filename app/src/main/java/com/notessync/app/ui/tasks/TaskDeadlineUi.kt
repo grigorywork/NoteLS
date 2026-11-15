@@ -22,36 +22,46 @@ import com.notessync.app.ui.notes.*
 import kotlinx.coroutines.delay
 import java.time.*
 
+@Composable
+internal fun TaskDeadlinePicker(value: Long?, enabled: Boolean, onChange: (Long?) -> Unit) =
+    TaskDeadlinePickerContent(value, enabled, onChange)
+
+@Composable
+internal fun TaskDeadlineDialog(value: Long?, enabled: Boolean, onChange: (Long?) -> Unit, onDismiss: () -> Unit) =
+    TaskDeadlinePickerContent(value, enabled, onChange, showTrigger = false, onDismiss = onDismiss)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun TaskDeadlinePicker(value: Long?, enabled: Boolean, onChange: (Long?) -> Unit) {
-    var step by rememberSaveable { mutableIntStateOf(0) }
+private fun TaskDeadlinePickerContent(value: Long?, enabled: Boolean, onChange: (Long?) -> Unit,
+    showTrigger: Boolean = true, onDismiss: () -> Unit = {}) {
+    var step by rememberSaveable { mutableIntStateOf(if (showTrigger) 0 else 1) }
     var day by rememberSaveable { mutableLongStateOf(LocalDate.now().toEpochDay()) }
     val zone = ZoneId.systemDefault()
-    AssistChip(onClick = { step = 1 }, enabled = enabled,
+    fun close() { step = 0; onDismiss() }
+    if (showTrigger) AssistChip(onClick = { step = 1 }, enabled = enabled,
         label = { Text(value?.let { uiText("Срок: %1\$s", formatDateTime(it)) } ?: uiText("Срок задачи")) },
         leadingIcon = { Icon(Icons.Default.Event, null) })
     if (step == 1) {
         val initial = value?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() } ?: LocalDate.now()
         val bounded = initial.coerceIn(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 12, 31))
         val picker = rememberDatePickerState(initialSelectedDateMillis = bounded.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(), yearRange = 1900..2100)
-        DatePickerDialog(onDismissRequest = { step = 0 }, confirmButton = {
+        DatePickerDialog(onDismissRequest = { close() }, confirmButton = {
             TextButton(onClick = { picker.selectedDateMillis?.let { day = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay(); step = 2 } }) { Text(uiText("Далее")) }
         }, dismissButton = {
-            Row { if (value != null) TextButton(onClick = { onChange(null); step = 0 }) { Text(uiText("Убрать срок")) }
-                TextButton(onClick = { step = 0 }) { Text(uiText("Отмена")) } }
+            Row { if (value != null) TextButton(onClick = { onChange(null); close() }) { Text(uiText("Убрать срок")) }
+                TextButton(onClick = { close() }) { Text(uiText("Отмена")) } }
         }) { DatePicker(picker) }
     }
     if (step == 2) {
         val time = value?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalTime() } ?: LocalTime.of(23, 59)
         val picker = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
-        AlertDialog(onDismissRequest = { step = 0 }, title = { Text(uiText("Время срока")) },
+        AlertDialog(onDismissRequest = { close() }, title = { Text(uiText("Время срока")) },
             text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(uiText("Срок не включает напоминание или таймер."), style = MaterialTheme.typography.bodySmall)
                 TimeInput(picker)
             } }, confirmButton = { TextButton(onClick = {
-                onChange(LocalDate.ofEpochDay(day).atTime(picker.hour, picker.minute).atZone(zone).toInstant().toEpochMilli()); step = 0
-            }) { Text(uiText("Готово")) } }, dismissButton = { TextButton(onClick = { step = 0 }) { Text(uiText("Отмена")) } })
+                onChange(LocalDate.ofEpochDay(day).atTime(picker.hour, picker.minute).atZone(zone).toInstant().toEpochMilli()); close()
+            }) { Text(uiText("Готово")) } }, dismissButton = { TextButton(onClick = { close() }) { Text(uiText("Отмена")) } })
     }
 }
 

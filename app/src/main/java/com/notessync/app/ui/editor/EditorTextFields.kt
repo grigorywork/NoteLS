@@ -2,6 +2,9 @@ package com.notessync.app.ui.editor
 
 import com.notessync.app.i18n.uiText
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -9,6 +12,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +52,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.settings.CompletedStyle
 import com.notessync.app.ui.notes.NoteEditorViewModel
@@ -55,28 +64,14 @@ import com.notessync.app.ui.tasks.taskColorOption
 import com.notessync.app.settings.SettingsState
 import androidx.compose.foundation.layout.ColumnScope
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun ColumnScope.EditorTextFields(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState,
     modifier: Modifier, titleFocus: FocusRequester, contentFocus: FocusRequester,
-    recordingBusy: Boolean, voiceState: com.notessync.app.voice.VoiceState, voiceClosing: Boolean) {
-    if (settingsState.showTables) {
-        if (viewModel.tables == null) {
-            Text(uiText("Таблица недоступна для редактирования. Данные сохранены."), Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { ui.showAddTable = true }, enabled = viewModel.isReady && !viewModel.isClosing) {
-                Icon(Icons.Default.TableChart, null); Text(uiText("Таблица"))
-            }
-            viewModel.tables?.blocks.orEmpty().forEachIndexed { index, table ->
-                OutlinedButton(onClick = { ui.openTable = table.id }, modifier = Modifier.padding(start = 4.dp)) {
-                    Text("${index + 1}: ${table.rowCount} × ${table.columnCount}")
-                }
-            }
-        }
-    }
-
+    recordingBusy: Boolean, voiceState: com.notessync.app.voice.VoiceState, voiceClosing: Boolean,
+    inputMinHeight: Dp = 160.dp, viewportHeight: Dp = inputMinHeight,
+    selectionToolbar: androidx.compose.ui.platform.TextToolbar? = null) {
+    val defaultToolbar = androidx.compose.ui.platform.LocalTextToolbar.current
     if (viewModel.previewMode) {
         PreviewBlock(
             text = viewModel.contentField.text,
@@ -85,64 +80,57 @@ internal fun ColumnScope.EditorTextFields(viewModel: NoteEditorViewModel, ui: Ed
             onToggleCheckbox = viewModel::toggleCheckboxAtLine,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .heightIn(min = inputMinHeight)
         )
     } else {
-        if (ui.showFormattingPanel) {
-            if (settingsState.aiEnabled) OutlinedButton(onClick = { ui.showTransform = true },
-                enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !viewModel.isPhotoBusy && !recordingBusy &&
-                    voiceState == com.notessync.app.voice.VoiceState.IDLE && !voiceClosing && viewModel.contentField.text.isNotBlank(),
-                modifier = Modifier.padding(horizontal = 8.dp)) { Text(uiText("Преобразовать текст")) }
-
-            com.notessync.app.ui.notes.text.FormattingToolbar(
-                active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
-                onToggle = viewModel::toggleTextStyle, onFormat = viewModel::formatSelection,
-                onHeading = viewModel::toggleHeading, onList = viewModel::toggleList,
-                onAlign = { viewModel.formatParagraph(com.notessync.app.notes.text.FormatKind.ALIGN, it) },
-                onIndent = viewModel::changeIndent,
-                onChecklist = viewModel::toggleChecklist, onSelectAll = viewModel::selectAllContent)
-        }
         HistoryInput(viewModel::prepareClipboardEdit) {
-            TextField(
+            BasicTextField(
                 enabled = viewModel.isReady && !viewModel.isClosing,
-                value = viewModel.titleField,
-                onValueChange = viewModel::onTitleChange,
-                placeholder = {
-                    Text(
-                        if (viewModel.isTask) uiText("Название задачи") else uiText("Заголовок"),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                textStyle = MaterialTheme.typography.titleLarge.copy(
-                    // Этап 35: название задачи — цветом задачи.
-                    color = if (viewModel.isTask) {
-                        taskColorOption(viewModel.taskColor).accent
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
-                ),
-                colors = borderlessColors(),
+                value = viewModel.titleField, onValueChange = viewModel::onTitleChange,
+                textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.then(modifier).focusRequester(titleFocus)
                     .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.TITLE) }
-                    .fillMaxWidth()
+                    .fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).testTag("editor-title"),
+                decorationBox = { inner -> Box {
+                    if (viewModel.titleField.text.isEmpty()) Text(uiText(if (viewModel.isTask) "Название задачи" else "Заголовок"),
+                        style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    inner()
+                } }
             )
         }
+
         val visualTransformation = remember(viewModel.formatting) {
             com.notessync.app.ui.notes.text.FormattedTextTransformation(viewModel.formatting)
         }
         var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+        val caretVisibility = remember { BringIntoViewRequester() }
+        var contentFocused by remember { mutableStateOf(false) }
         val density = LocalDensity.current
         // Отступ текста задан явно в contentPadding DecorationBox ниже.
         val padStartPx = with(density) { 16.dp.toPx() }
         val padTopPx = with(density) { 16.dp.toPx() }
         val glyphZonePx = with(density) { 56.dp.toPx() }
         val editorInteractionSource = remember { MutableInteractionSource() }
+        val windowFocused = androidx.compose.ui.platform.LocalWindowInfo.current.isWindowFocused
+        val cursorBox = editorLayout?.let { layout ->
+            val offset = visualTransformation.filter(AnnotatedString(viewModel.contentField.text)).offsetMapping
+                .originalToTransformed(viewModel.contentField.selection.end)
+            layout.getCursorRect(offset.coerceIn(0, layout.layoutInput.text.length)).translate(padStartPx, padTopPx)
+        }
+        // Key by caret geometry, not TextLayoutResult identity: remeasurement must not request another scroll forever.
+        LaunchedEffect(cursorBox, viewModel.contentField.selection, viewportHeight, contentFocused, windowFocused) {
+            if (contentFocused && windowFocused && cursorBox != null) caretVisibility.bringIntoView(cursorBox)
+        }
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalTextToolbar provides (selectionToolbar ?: defaultToolbar)) {
         HistoryInput(viewModel::prepareClipboardEdit) {
             BasicTextField(
                 enabled = viewModel.isReady && !viewModel.isClosing,
                 value = viewModel.contentField,
                 onValueChange = viewModel::onContentChange,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize * 1.125f,
                     color = MaterialTheme.colorScheme.onSurface
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -151,9 +139,13 @@ internal fun ColumnScope.EditorTextFields(viewModel: NoteEditorViewModel, ui: Ed
                 onTextLayout = { editorLayout = it },
                 interactionSource = editorInteractionSource,
                 modifier = Modifier.then(modifier).focusRequester(contentFocus)
-                    .onFocusChanged { if (it.isFocused) viewModel.onEditorFocus(EditorField.CONTENT) }
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .bringIntoViewRequester(caretVisibility)
+                    .onFocusChanged {
+                        contentFocused = it.isFocused
+                        if (it.isFocused) viewModel.onEditorFocus(EditorField.CONTENT)
+                    }
+                    .fillMaxWidth().testTag("editor-body")
+                    .heightIn(min = inputMinHeight)
                     // Тап по квадратику чекбокса переключает его, не двигая курсор.
                     .pointerInput(visualTransformation) {
                         awaitEachGesture {
@@ -205,6 +197,7 @@ internal fun ColumnScope.EditorTextFields(viewModel: NoteEditorViewModel, ui: Ed
                 }
             )
         }
+        }
     }
 }
 /**
@@ -244,9 +237,7 @@ private fun PreviewBlock(
                 onToggleCheckbox(sourceLine)
             }
         },
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier = modifier.padding(16.dp)
     )
 }
 

@@ -1,274 +1,107 @@
 package com.notessync.app.ui.editor
 
-import com.notessync.app.i18n.uiText
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.notessync.app.i18n.uiText
+import com.notessync.app.settings.SettingsState
 import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.notes.NoteEditorViewModel
-import com.notessync.app.ui.tasks.TaskTimerIndicator
-import com.notessync.app.ui.tasks.CountdownIndicator
-import com.notessync.app.ui.tasks.taskColorOption
-import com.notessync.app.settings.SettingsState
+import com.notessync.app.ui.tasks.*
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState, onExit: () -> Unit) {
-    if (viewModel.noteTags.isNotEmpty()) {
-        FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        viewModel.noteTags.forEach { tag ->
-            InputChip(
-                selected = false,
-                onClick = { viewModel.removeTag(tag) },
-                label = { Text(tag) },
-                trailingIcon = { Icon(Icons.Default.Close, contentDescription = uiText("Убрать тег")) },
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        }
-        }
+internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState) {
+    val enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.taskProtectionBusy
+    if (!viewModel.isTask) {
+        viewModel.notebookName?.let { name -> TextButton(onClick = { ui.showNotebookMenu = true }, enabled = enabled,
+            modifier = Modifier.padding(start = 8.dp)) {
+            Icon(Icons.Default.FolderOpen, null, Modifier.size(16.dp))
+            Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+        } }
+        return
     }
-    FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        FilterChip(
-            selected = viewModel.isTask,
-            enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
-            onClick = viewModel::toggleTask,
-            label = { Text(uiText("Задача")) },
-            leadingIcon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
-            modifier = Modifier.padding(end = 8.dp)
-        )
-            AssistChip(
-                onClick = { ui.showColorDialog = true },
-                label = { Text(if (!viewModel.isTask && viewModel.noteColor.isEmpty()) uiText("Цвет") else taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).label) },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Palette,
-                        contentDescription = null,
-                        // Этап 35: насыщенный акцент вместо бледной пастели.
-                        tint = taskColorOption(if (viewModel.isTask) viewModel.taskColor else viewModel.noteColor).accent
-                    )
-                },
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        if (viewModel.isTask) {
-            FilterChip(
-                selected = viewModel.isCompleted,
-                onClick = viewModel::toggleCompleted,
-                label = { Text(if (viewModel.isCompleted) uiText("Выполнено") else uiText("Выполнить")) },
-                leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            AssistChip(
-                onClick = viewModel::toggleTaskTimer,
-                enabled = !viewModel.isCompleted || viewModel.taskTimerStartedAt != null,
-                label = {
-                    Text(
-                        when {
-                            viewModel.taskTimerStartedAt != null -> uiText("Пауза")
-                            viewModel.taskElapsedMillis > 0L -> uiText("Продолжить")
-                            else -> uiText("Запустить")
-                        }
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        if (viewModel.taskTimerStartedAt != null) Icons.Default.Pause
-                        else Icons.Default.PlayArrow,
-                        contentDescription = null
-                    )
-                },
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            // Этап 30: обратный отсчёт с шаблонами и своим временем.
-            Box {
-                val countdownActive = viewModel.taskCountdownMillis > 0L ||
-                    viewModel.taskCountdownEndAt != null
-                AssistChip(
-                    onClick = { ui.showCountdownMenu = true },
-                    enabled = !viewModel.isCompleted || countdownActive,
-                    label = { Text(uiText("Таймер")) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Timer, contentDescription = null)
-                    }
-                )
-                DropdownMenu(
-                    expanded = ui.showCountdownMenu,
-                    onDismissRequest = { ui.showCountdownMenu = false }
-                ) {
-                    countdownPresets.forEach { (label, millis) ->
-                        DropdownMenuItem(
-                            text = { Text(uiText(label)) },
-                            onClick = {
-                                ui.showCountdownMenu = false
-                                viewModel.startCountdown(millis)
-                            }
-                        )
-                    }
-                    DropdownMenuItem(
-                        text = { Text(uiText("Своё время…")) },
-                        onClick = {
-                            ui.showCountdownMenu = false
-                            ui.showCountdownCustomDialog = true
-                        }
-                    )
-                    DropdownMenuItem(text = { Text(uiText("До времени…")) }, onClick = { ui.showCountdownMenu = false; ui.showCountdownUntil = true })
-                    if (countdownActive) {
-                        if (viewModel.taskCountdownEndAt != null) {
-                            DropdownMenuItem(
-                                text = { Text(uiText("Пауза")) },
-                                onClick = {
-                                    ui.showCountdownMenu = false
-                                    viewModel.pauseCountdown()
-                                }
-                            )
-                        } else {
-                            DropdownMenuItem(
-                                text = { Text(uiText("Продолжить")) },
-                                onClick = {
-                                    ui.showCountdownMenu = false
-                                    viewModel.resumeCountdown()
-                                }
-                            )
-                        }
-                        DropdownMenuItem(
-                            text = { Text(uiText("Снять таймер")) },
-                            onClick = {
-                                ui.showCountdownMenu = false
-                                viewModel.cancelCountdown()
-                            }
-                        )
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 6.dp).testTag("editor-task-row"),
+            verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = viewModel::toggleCompleted, enabled = enabled, modifier = Modifier.size(44.dp)) {
+                Icon(if (viewModel.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                    uiText(if (viewModel.isCompleted) "Выполнено" else "Выполнить"), Modifier.size(20.dp),
+                    tint = if (viewModel.isCompleted) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+            }
+            IconButton(onClick = { ui.dismissMenus(); ui.showColorDialog = true }, enabled = enabled, modifier = Modifier.size(44.dp)) {
+                Icon(Icons.Default.Circle, uiText("Цвет задачи"), Modifier.size(12.dp), tint = taskColorOption(viewModel.taskColor).accent)
+            }
+            IconButton(onClick = viewModel::toggleTaskTimer,
+                enabled = enabled && (!viewModel.isCompleted || viewModel.taskTimerStartedAt != null),
+                modifier = Modifier.weight(1f).heightIn(min = 44.dp).testTag("editor-stopwatch")) {
+                TaskTimerIndicator(viewModel.taskElapsedMillis, viewModel.taskTimerStartedAt, compact = true,
+                    icon = if (viewModel.taskTimerStartedAt != null) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentColor = MaterialTheme.colorScheme.primary)
+            }
+            Box(Modifier.weight(1f)) {
+                val active = viewModel.taskCountdownMillis > 0 || viewModel.taskCountdownEndAt != null
+                IconButton(onClick = { ui.showCountdownMenu = true }, enabled = enabled && (!viewModel.isCompleted || active),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).testTag("editor-countdown")) {
+                    if (active) CountdownIndicator(viewModel.taskCountdownMillis, viewModel.taskCountdownEndAt,
+                        compact = true, contentColor = MaterialTheme.colorScheme.primary)
+                    else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Icon(Icons.Default.HourglassEmpty, uiText("Таймер"), Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text("00:00", style = MaterialTheme.typography.labelMedium)
                     }
                 }
+                CountdownMenu(viewModel, ui)
             }
             Box {
-                AssistChip(
-                    onClick = {
-                        if (viewModel.isProtected) ui.showTaskProtectionMenu = true
-                        else ui.showTaskPasswordDialog = true
-                    },
-                    label = { Text(if (viewModel.isProtected) uiText("Защищено") else uiText("Пароль")) },
-                    leadingIcon = {
-                        Icon(
-                            if (viewModel.isProtected) Icons.Default.Lock else Icons.Default.LockOpen,
-                            contentDescription = null
-                        )
-                    }
-                )
-                DropdownMenu(
-                    expanded = ui.showTaskProtectionMenu,
-                    onDismissRequest = { ui.showTaskProtectionMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(uiText("Заблокировать и закрыть")) },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        onClick = {
-                            ui.showTaskProtectionMenu = false
-                            viewModel.lockTask()
-                            onExit()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(uiText("Снять защиту")) },
-                        leadingIcon = { Icon(Icons.Default.LockOpen, contentDescription = null) },
-                        onClick = {
-                            ui.showTaskProtectionMenu = false
-                            ui.taskProtectionError = false
-                            ui.showRemoveTaskProtection = true
-                        }
-                    )
+                IconButton(onClick = { ui.popup = if (ui.popup == EditorPopup.TASK) null else EditorPopup.TASK },
+                    enabled = enabled, modifier = Modifier.size(44.dp)) {
+                    Icon(if (ui.popup == EditorPopup.TASK) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        uiText("Параметры задачи"), Modifier.size(20.dp))
+                }
+                DropdownMenu(ui.popup == EditorPopup.TASK, { ui.dismissMenus() }) {
+                    DropdownMenuItem(text = { Text(viewModel.taskDueAt?.let { formatDateTime(it) } ?: uiText("Срок задачи")) },
+                        leadingIcon = { Icon(Icons.Default.Event, null, Modifier.size(20.dp)) },
+                        onClick = { ui.dismissMenus(); ui.showDeadlinePicker = true })
+                    if (settingsState.showTaskPriorities) DropdownMenuItem(text = { Text(TaskPriority.from(viewModel.taskPriority).label) },
+                        leadingIcon = { Icon(Icons.Default.Flag, null, Modifier.size(20.dp), tint = priorityColor(viewModel.taskPriority)) },
+                        onClick = { ui.dismissMenus(); ui.showPriorityMenu = true })
+                    DropdownMenuItem(text = { Text(uiText("Сбросить секундомер")) }, enabled = viewModel.taskElapsedMillis > 0 || viewModel.taskTimerStartedAt != null,
+                        leadingIcon = { Icon(Icons.Default.RestartAlt, null, Modifier.size(20.dp)) },
+                        onClick = { ui.dismissMenus(); ui.showTimerResetDialog = true })
+                }
+                DropdownMenu(ui.showPriorityMenu, { ui.showPriorityMenu = false }) {
+                    TaskPriority.entries.forEach { priority -> DropdownMenuItem(text = { Text(priority.label) },
+                        leadingIcon = { Icon(Icons.Default.Flag, null, Modifier.size(20.dp), tint = priorityColor(priority.value)) },
+                        onClick = { ui.showPriorityMenu = false; viewModel.choosePriority(priority.value) }) }
                 }
             }
         }
     }
-    if (viewModel.isTask) Box(Modifier.padding(horizontal = 16.dp)) {
-        com.notessync.app.ui.tasks.TaskDeadlinePicker(viewModel.taskDueAt, viewModel.isReady && !viewModel.isClosing, viewModel::chooseTaskDeadline)
-    }
-    if (viewModel.isTask && settingsState.showTaskPriorities) {
-        Box(Modifier.padding(horizontal = 16.dp)) {
-            com.notessync.app.ui.tasks.TaskPriorityPicker(viewModel.taskPriority, viewModel::choosePriority)
+    if (ui.showDeadlinePicker) TaskDeadlineDialog(viewModel.taskDueAt, enabled, viewModel::chooseTaskDeadline,
+        onDismiss = { ui.showDeadlinePicker = false })
+}
+
+@Composable
+private fun CountdownMenu(viewModel: NoteEditorViewModel, ui: EditorUiState) {
+    val active = viewModel.taskCountdownMillis > 0 || viewModel.taskCountdownEndAt != null
+    DropdownMenu(ui.showCountdownMenu, { ui.showCountdownMenu = false }) {
+        listOf("10 минут" to 10, "15 минут" to 15, "30 минут" to 30, "1 час" to 60, "2 часа" to 120).forEach { (label, minutes) ->
+            DropdownMenuItem(text = { Text(uiText(label)) }, onClick = { ui.dismissMenus(); viewModel.startCountdown(minutes * 60_000L) })
         }
-    }
-    if (viewModel.isTask) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TaskTimerIndicator(
-                elapsedMillis = viewModel.taskElapsedMillis,
-                startedAt = viewModel.taskTimerStartedAt,
-                contentColor = taskColorOption(viewModel.taskColor).accent,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(
-                onClick = { ui.showTimerResetDialog = true },
-                enabled = viewModel.taskElapsedMillis > 0L || viewModel.taskTimerStartedAt != null
-            ) {
-                Icon(Icons.Default.RestartAlt, contentDescription = null)
-                Text(uiText("Сбросить"))
-            }
+        DropdownMenuItem(text = { Text(uiText("Своё время…")) }, onClick = { ui.dismissMenus(); ui.showCountdownCustomDialog = true })
+        DropdownMenuItem(text = { Text(uiText("До времени…")) }, onClick = { ui.dismissMenus(); ui.showCountdownUntil = true })
+        if (active) {
+            DropdownMenuItem(text = { Text(uiText(if (viewModel.taskCountdownEndAt != null) "Пауза" else "Продолжить")) },
+                onClick = { ui.dismissMenus(); if (viewModel.taskCountdownEndAt != null) viewModel.pauseCountdown() else viewModel.resumeCountdown() })
+            DropdownMenuItem(text = { Text(uiText("Снять таймер")) }, onClick = { ui.dismissMenus(); viewModel.cancelCountdown() })
         }
-        // Этап 30: строка обратного отсчёта (когда таймер задан).
-        if (viewModel.taskCountdownMillis > 0L || viewModel.taskCountdownEndAt != null) {
-            CountdownIndicator(
-                countdownMillis = viewModel.taskCountdownMillis,
-                endAt = viewModel.taskCountdownEndAt,
-                contentColor = taskColorOption(viewModel.taskColor).accent,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-        }
-    }
-    viewModel.reminderAt?.let { at ->
-        InputChip(
-            selected = true,
-            onClick = { ui.showDatePicker = true },
-            label = { Text(uiText("Напомнить: ") + formatDateTime(at)) },
-            leadingIcon = { Icon(Icons.Default.Alarm, contentDescription = null) },
-            trailingIcon = {
-                IconButton(onClick = viewModel::clearReminder) {
-                    Icon(Icons.Default.Close, contentDescription = uiText("Убрать напоминание"))
-                }
-            },
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
     }
 }
-private val countdownPresets: List<Pair<String, Long>> = listOf(
-    "10 минут" to 10 * 60_000L,
-    "15 минут" to 15 * 60_000L,
-    "30 минут" to 30 * 60_000L,
-    "1 час" to 60 * 60_000L,
-    "2 часа" to 2 * 60 * 60_000L
-)
