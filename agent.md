@@ -1384,3 +1384,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: финальныеlintDebug/assembleDebug после контекстной правки SUCCESS1m26s, lint0error/15warnings/2info. Отправляется обычныйfast-forward main с1.10.38/code61/Room17 для полногоCI и автоматического signed-release существующимNOTELS_SIGNING_MATERIAL. Полный набор и installableAPK38 пока не pass; ожидать фактический результат и независимую проверку артефакта.
+
+
+2026-11-15T07:01:16Z: main f858f3d46749c9febcf3a78ba1494465d4a65c75 отправлен fast-forward; Android checks43687997788/verify132732414380 реальноin_progress (push). Новых параллельныхGradle нет, исходникиmain/test во времяCI не меняются. Та же одноразоваяautomation обновлена черезAPI на2026-11-15T09:15:00Z как резерв продолжения после ожидаемой паузы лимита, is_enabledtrue; prompt читает свежие документы/main и проверяет живую работу. Не дублировать её и не принимать local40 за полныйCI680. Следом проверить autoSigned и артефакт.

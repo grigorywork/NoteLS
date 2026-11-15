@@ -40,3 +40,8 @@ Room17/data2/security3 без изменений. ПоддержаныRU/EN, п�
 Расширенный прогон:39/39,0failures/errors/skipped; lintDebug0error/15warnings/2info, assembleDebug success,6m59s (`editor38-extended-checks.log`). Аудит выявил возможное дублирование нижней панели при контекстном подменю после скрытия native toolbar: удерживаемый контекст теперь также скрывает панель. Кнопка Aa у выделения получила RU/EN доступное имя.
 
 В дополнительном прогоне5 прежних CompactEditor-кейсов прошли; новый жест наAPI28 остановился в системной Magnifier/SurfaceSession (Robolectric не имеет настоящего Surface root). Только новый gesture-кейс проверен на поддерживаемомAPI27, где платформенной лупы нет:1/1 без отказов,14.492s, весь прогон2m45s (`editor38-selection-gesture.log`). Он реально выполняет долгое нажатие, открывает контекстные FULL→COLOR, проверяет скрытие дублирующей панели и применение цвета к выделению. Исходники приложения ради ошибки nativeMagnifier не менялись, старыеAPI28 проверки/таймауты/утверждения сохранены. Итого40 различных целевых тестов подтверждены; это ещё не полный набор. Финальные lintDebug/assembleDebug после последней правки прошли:0error/15warnings/2info,1m26s (`editor38-final-build.log`).
+
+
+### Полный CI
+
+Источникmain `f858f3d46749c9febcf3a78ba1494465d4a65c75`, [Android checks43687997788](https://github.com/grigorywork/NoteLS/actions/runs/43687997788), verifyjob132732414380: in_progress. После успеха workflow_run запускает Signed NoteLS APK с тем же sourceSHA и сохранённым Secret. Пока нет подтверждённого полного результата/установочного38.
