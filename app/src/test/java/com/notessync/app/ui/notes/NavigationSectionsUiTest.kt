@@ -46,6 +46,7 @@ class NavigationSectionsUiTest {
     private lateinit var drawingView: View
     private val opened = AtomicLong()
     private val agenda = AtomicInteger()
+    private val settingsOpened = AtomicInteger()
     @Before fun before() {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ProtectionSession.lockAll()
         SettingsRepository.get(app).apply { setUiLanguage(UiLanguage.RUSSIAN); setBackupFrequency(BackupFrequency.MANUAL)
@@ -64,7 +65,7 @@ class NavigationSectionsUiTest {
         compose.setContent {
             drawingView = LocalView.current
             NoteSyncTheme(darkTheme = true, dynamicColor = false) { Box(Modifier.requiredSize(320.dp, 760.dp).testTag("nav-viewport")) {
-                NotesListScreen({}, {}, {}, {}, {}, { id, _ -> opened.set(id) }, viewModel = vm,
+                NotesListScreen({ settingsOpened.incrementAndGet() }, {}, {}, {}, {}, { id, _ -> opened.set(id) }, viewModel = vm,
                     onOpenAgenda = { agenda.incrementAndGet() })
             } }
         }
@@ -121,6 +122,13 @@ class NavigationSectionsUiTest {
             assertEquals(listOf(DiaryEntries.TAG_NAME), AppDatabase.get(app).tagDao().getTagNamesForNote(note.id))
         }
         section("Ежедневник"); assertEquals(1, agenda.get())
+        compose.onNodeWithContentDescription("Действия со списком").performClick()
+        compose.onNodeWithText("Сортировка").performClick()
+        compose.onNodeWithText("По имени").performClick()
+        assertEquals(NoteSort.BY_NAME, vm.sort.value)
+        compose.onNodeWithContentDescription("Действия со списком").performClick()
+        compose.onNodeWithText("Настройки").performClick()
+        assertEquals(1, settingsOpened.get())
     }
     @Test fun `English daily agenda keeps the month collapsed and offers date and month navigation`() {
         SettingsRepository.get(app).setUiLanguage(UiLanguage.ENGLISH)

@@ -221,7 +221,8 @@ fun NotesListScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text(filterTitle(filter)) },
+                    title = { Text(filterTitle(filter), style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = uiText("Меню"))
@@ -231,13 +232,10 @@ fun NotesListScreen(
                         IconButton(onClick = onOpenAnalytics) {
                             Icon(Icons.Default.QueryStats, contentDescription = uiText("Аналитика"))
                         }
-                        SortMenu(sort, viewModel::selectSort)
                         IconButton(onClick = onOpenSync) {
                             Icon(Icons.Default.Sync, contentDescription = uiText("Синхронизация"))
                         }
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(Icons.Default.Settings, contentDescription = uiText("Настройки"))
-                        }
+                        HomeActionsMenu(sort, viewModel::selectSort, filter, viewModel::selectFilter, onOpenSettings, onOpenAgenda)
                     }
                 )
             },

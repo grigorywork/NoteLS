@@ -153,6 +153,10 @@ private fun NoteCard(
                 Checkbox(
                     checked = note.isCompleted,
                     onCheckedChange = { onToggleCompleted() },
+                    modifier = Modifier.semantics {
+                        contentDescription = (if (note.isCompleted) uiText("Снять выполнение: ") else uiText("Выполнить задачу: ")) +
+                            notePreviewText(note.title, 128).ifBlank { uiText("Без названия") }
+                    },
                     colors = CheckboxDefaults.colors(
                         checkedColor = accent,
                         uncheckedColor = accent

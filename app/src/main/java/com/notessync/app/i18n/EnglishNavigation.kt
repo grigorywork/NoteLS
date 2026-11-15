@@ -2,6 +2,8 @@ package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addNavigationEnglish() {
     put("Разделы заметок", "Note sections")
+    put("Действия со списком", "List actions")
+    put("Выполненные", "Completed")
     put("Выполненные задачи", "Completed tasks")
     put("Нет выполненных задач", "No completed tasks")
     put("Выполненные — в отдельный раздел", "Keep completed tasks in a separate section")

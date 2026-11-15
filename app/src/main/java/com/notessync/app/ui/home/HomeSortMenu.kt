@@ -1,61 +1,54 @@
 package com.notessync.app.ui.home
 
-import com.notessync.app.i18n.uiText
-import androidx.compose.foundation.ExperimentalFoundationApi
-import com.notessync.app.security.biometrics.*
-import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.material.icons.filled.EventBusy
-import com.notessync.app.ui.tasks.*
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import com.notessync.app.i18n.uiText
 import com.notessync.app.ui.notes.NoteFilter
 import com.notessync.app.ui.notes.NoteSort
 
 @Composable
-internal fun SortMenu(current: NoteSort, onSelect: (NoteSort) -> Unit) {
+internal fun HomeActionsMenu(current: NoteSort, onSelect: (NoteSort) -> Unit, filter: NoteFilter,
+    onFilter: (NoteFilter) -> Unit, onSettings: () -> Unit, onAgenda: () -> Unit) {
     var open by remember { mutableStateOf(false) }
+    var sorting by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }) {
-            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = uiText("Сортировка"))
+        IconButton(onClick = { sorting = false; open = true }) {
+            Icon(Icons.Default.MoreVert, uiText("Действия со списком"))
         }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(
-                text = { Text(uiText("По дате") + if (current == NoteSort.BY_DATE) " ✓" else "") },
-                leadingIcon = { Icon(Icons.Default.Update, null) },
-                onClick = { onSelect(NoteSort.BY_DATE); open = false }
-            )
-            DropdownMenuItem(text = { Text(uiText("По сроку") + if (current == NoteSort.BY_DUE) " ✓" else "") },
-                leadingIcon = { Icon(Icons.Default.EventBusy, null) },
-                onClick = { onSelect(NoteSort.BY_DUE); open = false })
-            DropdownMenuItem(
-                text = { Text(uiText("По имени") + if (current == NoteSort.BY_NAME) " ✓" else "") },
-                leadingIcon = { Icon(Icons.Default.SortByAlpha, null) },
-                onClick = { onSelect(NoteSort.BY_NAME); open = false }
-            )
+        DropdownMenu(open, { open = false }) {
+            if (sorting) {
+                listOf(Triple(NoteSort.BY_DATE, "По дате", Icons.Default.Update),
+                    Triple(NoteSort.BY_DUE, "По сроку", Icons.Default.EventBusy),
+                    Triple(NoteSort.BY_NAME, "По имени", Icons.Default.SortByAlpha)).forEach { (sort, label, icon) ->
+                    DropdownMenuItem(text = { Text(uiText(label)) }, leadingIcon = { Icon(icon, null) },
+                        modifier = Modifier.semantics { selected = current == sort },
+                        trailingIcon = { if (current == sort) Icon(Icons.Default.Check, null) },
+                        onClick = { onSelect(sort); open = false })
+                }
+            } else {
+                DropdownMenuItem(text = { Text(uiText("Сортировка")) }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.Sort, null) },
+                    onClick = { sorting = true })
+                DropdownMenuItem(text = { Text(uiText("Настройки")) }, leadingIcon = { Icon(Icons.Default.Settings, null) },
+                    onClick = { open = false; onSettings() })
+                HorizontalDivider()
+                NoteSectionItems(filter, onFilter, onAgenda) { open = false }
+            }
         }
     }
 }
-
 
 internal fun filterTitle(filter: NoteFilter): String = when (filter) {
     NoteFilter.Trash -> uiText("Корзина")
     NoteFilter.All -> uiText("Заметки")
     NoteFilter.Tasks -> uiText("Задачи")
-    NoteFilter.Completed -> uiText("Выполненные задачи")
+    NoteFilter.Completed -> uiText("Выполненные")
     NoteFilter.Unfinished -> uiText("Невыполненные")
     NoteFilter.Overdue -> uiText("Просроченные")
     NoteFilter.Favorites -> uiText("Избранное")
