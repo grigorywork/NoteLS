@@ -1,6 +1,20 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addNavigationEnglish() {
+    put("Разделы заметок", "Note sections")
+    put("Выполненные задачи", "Completed tasks")
+    put("Нет выполненных задач", "No completed tasks")
+    put("Выполненные — в отдельный раздел", "Keep completed tasks in a separate section")
+    put("Скрывать завершённые задачи в основных списках заметок. Снятие галочки возвращает запись.", "Hide completed tasks in the main note lists. Unchecking restores the entry.")
+    put("Дневник", "Journal")
+    put("Ежедневник", "Daily planner")
+    put("Новая запись дневника", "New journal entry")
+    put("В дневнике пока нет записей", "No journal entries yet")
+    put("Не удалось создать запись дневника. Повторите.", "Could not create the journal entry. Try again.")
+    put("Показать месяц", "Show month")
+    put("Показать дела дня", "Show daily agenda")
+    put("Предыдущий день", "Previous day")
+    put("Следующий день", "Next day")
     put("Корзина", "Trash")
     put("Цитаты", "Quotes")
     put("Блокноты", "Notebooks")

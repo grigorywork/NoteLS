@@ -21,6 +21,14 @@ import com.notessync.app.settings.SettingsState
 @Composable
 internal fun EditorSettings(state: SettingsState, settings: SettingsRepository) {
     SettingsCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            SettingsToggle(uiText("Выполненные — в отдельный раздел"), state.archiveCompletedTasks,
+                settings::setArchiveCompletedTasks, padded = false)
+            Text(uiText("Скрывать завершённые задачи в основных списках заметок. Снятие галочки возвращает запись."),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    SettingsCard(Modifier.fillMaxWidth()) {
         SettingsToggle(uiText("Сразу выбирать время быстрой задачи"), state.quickTaskTime, settings::setQuickTaskTime)
     }
     SettingsCard(Modifier.fillMaxWidth()) {

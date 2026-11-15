@@ -23,6 +23,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ViewDay
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
@@ -42,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,24 +81,31 @@ fun CalendarScreen(
     onBack: () -> Unit,
     onOpenNote: (Long, Boolean) -> Unit,
     onAddEntry: (Long, Boolean) -> Unit,
-    viewModel: CalendarViewModel = viewModel()
+    viewModel: CalendarViewModel = viewModel(),
+    agendaMode: Boolean = false
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(context) }
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val weeks = remember(state.cells) { state.cells.chunked(7) }
+    var showMonth by rememberSaveable(agendaMode) { mutableStateOf(!agendaMode) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiText("Календарь")) },
+                title = { Text(uiText(if (showMonth) "Календарь" else "Ежедневник"),
+                    style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showMonth = !showMonth; viewModel.selectAgendaDate(state.selectedDate) }) {
+                        Icon(if (showMonth) Icons.Default.ViewDay else Icons.Default.CalendarMonth,
+                            uiText(if (showMonth) "Показать дела дня" else "Показать месяц"))
+                    }
                     IconButton(onClick = { onAddEntry(state.selectedDate.toEpochDay(), false) }) {
                         Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = uiText("Новая заметка в полном редакторе"))
                     }
@@ -115,68 +125,81 @@ fun CalendarScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = viewModel::previousMonth) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = uiText("Предыдущий месяц"))
-                }
-                Text(
-                    text = monthTitle(state),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                IconButton(onClick = viewModel::nextMonth) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = uiText("Следующий месяц"))
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            ) {
-                listOf(uiText("Пн"), uiText("Вт"), uiText("Ср"), uiText("Чт"), uiText("Пт"), uiText("Сб"), uiText("Вс")).forEach { weekday ->
+            if (showMonth) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = viewModel::previousMonth) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = uiText("Предыдущий месяц"))
+                    }
                     Text(
-                        text = weekday,
+                        text = monthTitle(state),
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.titleLarge
                     )
+                    IconButton(onClick = viewModel::nextMonth) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = uiText("Следующий месяц"))
+                    }
                 }
-            }
 
-            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                weeks.forEach { week ->
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        week.forEach { cell ->
-                            CalendarDayCell(
-                                cell = cell,
-                                selected = cell.date == state.selectedDate,
-                                today = cell.date == LocalDate.now(),
-                                entries = state.notesByDay[cell.date.toEpochDay()].orEmpty(),
-                                completedStyle = settings.widgetCompletedStyle,
-                                coloredTasks = settings.widgetColoredTasks,
-                                onClick = { viewModel.selectDate(cell.date) },
-                                modifier = Modifier.weight(1f)
-                            )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    listOf(uiText("Пн"), uiText("Вт"), uiText("Ср"), uiText("Чт"), uiText("Пт"), uiText("Сб"), uiText("Вс")).forEach { weekday ->
+                        Text(
+                            text = weekday,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                    weeks.forEach { week ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            week.forEach { cell ->
+                                CalendarDayCell(
+                                    cell = cell,
+                                    selected = cell.date == state.selectedDate,
+                                    today = cell.date == LocalDate.now(),
+                                    entries = state.notesByDay[cell.date.toEpochDay()].orEmpty(),
+                                    completedStyle = settings.widgetCompletedStyle,
+                                    coloredTasks = settings.widgetColoredTasks,
+                                    onClick = { viewModel.selectDate(cell.date) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }
-            }
 
+            } else {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { viewModel.selectAgendaDate(state.selectedDate.minusDays(1)) }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, uiText("Предыдущий день"))
+                    }
+                    Text(selectedDayTitle(state.selectedDate), Modifier.weight(1f),
+                        textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = { viewModel.selectAgendaDate(state.selectedDate.plusDays(1)) }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, uiText("Следующий день"))
+                    }
+                }
+            }
             HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                item {
+                if (showMonth) item {
                     Text(
                         text = selectedDayTitle(state.selectedDate),
                         style = MaterialTheme.typography.titleMedium,

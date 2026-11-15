@@ -62,14 +62,15 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
     notebooks: List<NotebookEntity>, protectionState: ProtectionState, biometricBindings: Map<String, String>,
     displaySettings: SettingsState, drawerQuoteIndex: Int, drawerState: DrawerState, scope: CoroutineScope,
     snackbarHostState: SnackbarHostState, settingsContext: android.content.Context,
-    onOpenCalendar: () -> Unit, onOpenAnalytics: () -> Unit, onOpenQuotes: () -> Unit) {
+    onOpenCalendar: () -> Unit, onOpenQuotes: () -> Unit, onOpenAgenda: () -> Unit = onOpenCalendar) {
     ModalDrawerSheet {
         Column(Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState())) {
-        Text(
-            uiText("Заметки"),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(uiText("Заметки"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            NotesSectionsMenu(filter, onSelect = {
+                viewModel.selectFilter(it); scope.launch { drawerState.close() }
+            }, onOpenAgenda = { scope.launch { drawerState.close() }; onOpenAgenda() })
+        }
         NavigationDrawerItem(
             label = { Text(uiText("Все заметки")) },
             icon = { Icon(Icons.Default.Edit, contentDescription = null) },
@@ -90,10 +91,6 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
             },
             modifier = Modifier.padding(horizontal = 12.dp)
         )
-        NavigationDrawerItem(label = { Text(uiText("Невыполненные")) }, icon = { Icon(Icons.Default.CheckBoxOutlineBlank, null) },
-            selected = filter == NoteFilter.Unfinished, onClick = { viewModel.selectFilter(NoteFilter.Unfinished); scope.launch { drawerState.close() } }, modifier = Modifier.padding(horizontal = 12.dp))
-        NavigationDrawerItem(label = { Text(uiText("Просроченные")) }, icon = { Icon(Icons.Default.EventBusy, null) },
-            selected = filter == NoteFilter.Overdue, onClick = { viewModel.selectFilter(NoteFilter.Overdue); scope.launch { drawerState.close() } }, modifier = Modifier.padding(horizontal = 12.dp))
         NavigationDrawerItem(
             label = { Text(uiText("Избранное")) },
             icon = { Icon(Icons.Default.Star, contentDescription = null) },
@@ -102,12 +99,6 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
                 viewModel.selectFilter(NoteFilter.Favorites)
                 scope.launch { drawerState.close() }
             },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-        NavigationDrawerItem(
-            label = { Text(uiText("Корзина")) }, icon = { Icon(Icons.Default.Delete, null) },
-            selected = filter == NoteFilter.Trash,
-            onClick = { viewModel.selectFilter(NoteFilter.Trash); scope.launch { drawerState.close() } },
             modifier = Modifier.padding(horizontal = 12.dp)
         )
         NavigationDrawerItem(
@@ -121,24 +112,6 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
             modifier = Modifier.padding(horizontal = 12.dp)
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        // Этап 31: крупный отдельный пункт — аналитика выполненных задач.
-        NavigationDrawerItem(
-            label = { Text(uiText("Аналитика"), style = MaterialTheme.typography.titleMedium) },
-            icon = {
-                Icon(
-                    Icons.Default.QueryStats,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            selected = false,
-            onClick = {
-                scope.launch { drawerState.close() }
-                onOpenAnalytics()
-            },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-        // Этап 38: библиотека цитат мыслителей — в боковом меню рядом с аналитикой.
         NavigationDrawerItem(
             label = { Text(uiText("Цитаты"), style = MaterialTheme.typography.titleMedium) },
             icon = {

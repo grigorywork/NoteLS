@@ -25,6 +25,9 @@ interface TagDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(tag: TagEntity): Long
 
+    @Query("UPDATE tags SET isDeleted = 0, dirty = 1, updatedAt = :updatedAt WHERE id = :id AND isDeleted = 1")
+    suspend fun revive(id: Long, updatedAt: Long)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun attachToNote(crossRef: NoteTagCrossRef)
 

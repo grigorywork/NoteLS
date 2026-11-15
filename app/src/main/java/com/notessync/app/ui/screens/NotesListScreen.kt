@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.Icons
@@ -43,6 +44,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -97,8 +99,12 @@ fun NotesListScreen(
     onOpenEditor: (Long, Boolean) -> Unit,
     deletedNoteEvents: StateFlow<NoteIdentity?>? = null,
     onDeletedEventHandled: () -> Unit = {},
-    viewModel: NotesViewModel = viewModel()
+    viewModel: NotesViewModel = viewModel(),
+    onOpenAgenda: () -> Unit = onOpenCalendar
 ) {
+    val settingsContext = androidx.compose.ui.platform.LocalContext.current
+    val settingsRepository = remember { SettingsRepository.get(settingsContext) }
+    val displaySettings by settingsRepository.state.collectAsStateWithLifecycle()
     val result by viewModel.results.collectAsStateWithLifecycle()
     val notes = result?.notes.orEmpty()
     val taskFilters by viewModel.taskFilters.collectAsStateWithLifecycle()
@@ -115,18 +121,24 @@ fun NotesListScreen(
         biometricLifecycle.addObserver(observer)
         onDispose { biometricLifecycle.removeObserver(observer); viewModel.cancelAuthentication() }
     }
-    val lockedTasks by viewModel.lockedTasks.collectAsStateWithLifecycle()
+    val lockedResult by viewModel.lockedResults.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val sort by viewModel.sort.collectAsStateWithLifecycle()
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
+    val diary = (filter as? NoteFilter.Tag)?.name == com.notessync.app.notes.diary.DiaryEntries.TAG_NAME
+    val lockedTasks = lockedResult?.takeIf {
+        it.scope.filter == filter && it.scope.archiveCompleted == displaySettings.archiveCompletedTasks &&
+            it.scope.session == listSession && it.scope.protection == protectionState
+    }?.targets.orEmpty()
 
     val sessionPending = result == null || result?.key?.session != listSession
-    val taskPending = sessionPending || (filter.isUnfinished() && (result?.key?.let {
-        it.filter != filter || it.tasks != taskFilters || it.search != query || it.sort != sort
-    } != false))
+    val taskPending = sessionPending || (result?.key?.let {
+        it.filter != filter || (filter.isUnfinished() && it.tasks != taskFilters) || it.search != query ||
+            it.sort != sort || it.archiveCompleted != displaySettings.archiveCompletedTasks
+    } != false)
     val shownNotes = remember(notes, notebooks, protectionState, filter, taskPending, taskTime, taskFilters) {
         if (taskPending) emptyList() else {
             val visible = visibleNotes(notes, notebooks, protectionState, filter == NoteFilter.Trash)
@@ -136,9 +148,6 @@ fun NotesListScreen(
     }
     TaskDeadlineClock(viewModel, filter, notes)
 
-    val settingsContext = androidx.compose.ui.platform.LocalContext.current
-    val settingsRepository = remember { SettingsRepository.get(settingsContext) }
-    val displaySettings by settingsRepository.state.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var drawerQuoteIndex by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
     androidx.compose.runtime.LaunchedEffect(drawerState.isOpen, displaySettings.drawerQuote.enabled) {
@@ -183,7 +192,7 @@ fun NotesListScreen(
     val notebookFilterId = (filter as? NoteFilter.Notebook)?.id
     val visibleLockedTasks = if (query.isBlank()) {
         lockedTasks.filter { task ->
-            filter == NoteFilter.All || filter == NoteFilter.Tasks || filter == NoteFilter.Trash ||
+            filter == NoteFilter.All || filter == NoteFilter.Tasks || filter == NoteFilter.Completed || filter == NoteFilter.Trash ||
                 (notebookFilterId != null && task.notebookId == notebookFilterId)
         }
     } else {
@@ -204,7 +213,8 @@ fun NotesListScreen(
         drawerState = drawerState,
         drawerContent = {
             NotesDrawer(viewModel, notebookUi, filter, notebooks, protectionState, biometricBindings,
-                displaySettings, drawerQuoteIndex, drawerState, scope, snackbarHostState, settingsContext, onOpenCalendar, onOpenAnalytics, onOpenQuotes)
+                displaySettings, drawerQuoteIndex, drawerState, scope, snackbarHostState, settingsContext,
+                onOpenCalendar = onOpenCalendar, onOpenQuotes = onOpenQuotes, onOpenAgenda = onOpenAgenda)
         }
     ) {
         Scaffold(
@@ -232,16 +242,21 @@ fun NotesListScreen(
                 )
             },
             floatingActionButton = {
-                if (filter != NoteFilter.Trash && selected.isEmpty()) Column(horizontalAlignment = Alignment.End) {
-                    SmallFloatingActionButton(
+                if (filter != NoteFilter.Trash && filter != NoteFilter.Completed && selected.isEmpty()) Column(horizontalAlignment = Alignment.End) {
+                    if (!diary) SmallFloatingActionButton(
                         onClick = { onOpenEditor(-1L, true) },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {
                         Icon(Icons.Default.CheckBox, contentDescription = uiText("Новая задача"))
                     }
-                    FloatingActionButton(onClick = { onOpenEditor(-1L, false) }) {
-                        Icon(Icons.Default.Add, contentDescription = uiText("Новая заметка"))
+                    FloatingActionButton(onClick = {
+                        if (diary) viewModel.createDiaryEntry({ onOpenEditor(it, false) }, {
+                            scope.launch { snackbarHostState.showSnackbar(uiText("Не удалось создать запись дневника. Повторите.")) }
+                        }) else onOpenEditor(-1L, false)
+                    }) {
+                        if (viewModel.creatingDiary) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                        else Icon(Icons.Default.Add, contentDescription = uiText(if (diary) "Новая запись дневника" else "Новая заметка"))
                     }
                 }
             }
@@ -334,11 +349,13 @@ fun NotesListScreen(
                     ) {
                         Text(
                             text = when {
-                                sessionPending -> uiText("Загрузка…")
+                                taskPending -> uiText("Загрузка…")
                                 query.isNotBlank() -> uiText("Ничего не найдено")
                                 filter == NoteFilter.Trash -> uiText("Корзина пуста")
                                 filter.isUnfinished() -> uiText(if (taskPending) "Загрузка…" else "Нет подходящих задач")
                                 filter == NoteFilter.Tasks -> uiText("Пока нет задач")
+                                filter == NoteFilter.Completed -> uiText("Нет выполненных задач")
+                                diary -> uiText("В дневнике пока нет записей")
                                 else -> uiText("Пока нет заметок")
                             },
                             style = MaterialTheme.typography.bodyLarge,

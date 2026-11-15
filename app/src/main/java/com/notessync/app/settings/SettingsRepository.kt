@@ -121,6 +121,7 @@ data class SettingsState(
     val quickTaskTime: Boolean = true,
     val advancedFormatting: Boolean = true,
     val showTaskPriorities: Boolean = true,
+    val archiveCompletedTasks: Boolean = false,
     val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val fontScale: Float = 1.0f,
@@ -187,6 +188,7 @@ class SettingsRepository private constructor(context: Context) {
         quickTaskTime = prefs.getBoolean("quick_task_time", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
+        archiveCompletedTasks = runCatching { prefs.getBoolean("archive_completed_tasks", false) }.getOrDefault(false),
         drawerQuote = runCatching { DrawerQuoteAppearance(
             prefs.getBoolean("drawer_quote_enabled", true), prefs.getString("drawer_quote_text", "").orEmpty(),
             enumPref("drawer_quote_font", AppFont.SYSTEM), prefs.getFloat("drawer_quote_size", 16f),
@@ -274,6 +276,7 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setAdvancedFormatting(value: Boolean) { prefs.edit().putBoolean("advanced_formatting", value).apply(); _state.value = read() }
     fun setShowTaskPriorities(value: Boolean) { prefs.edit().putBoolean("show_priorities", value).apply(); _state.value = read() }
+    fun setArchiveCompletedTasks(value: Boolean) { prefs.edit().putBoolean("archive_completed_tasks", value).apply(); _state.value = read() }
     fun setDrawerQuoteAppearance(value: DrawerQuoteAppearance) {
         val v = value.safe()
         prefs.edit().putBoolean("drawer_quote_enabled", v.enabled).putString("drawer_quote_text", v.customText)

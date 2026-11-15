@@ -55,9 +55,10 @@ internal fun filterTitle(filter: NoteFilter): String = when (filter) {
     NoteFilter.Trash -> uiText("Корзина")
     NoteFilter.All -> uiText("Заметки")
     NoteFilter.Tasks -> uiText("Задачи")
+    NoteFilter.Completed -> uiText("Выполненные задачи")
     NoteFilter.Unfinished -> uiText("Невыполненные")
     NoteFilter.Overdue -> uiText("Просроченные")
     NoteFilter.Favorites -> uiText("Избранное")
     is NoteFilter.Notebook -> filter.name
-    is NoteFilter.Tag -> "#" + filter.name
+    is NoteFilter.Tag -> if (filter.name == com.notessync.app.notes.diary.DiaryEntries.TAG_NAME) uiText("Дневник") else "#" + filter.name
 }

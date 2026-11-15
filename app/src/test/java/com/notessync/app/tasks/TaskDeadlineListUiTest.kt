@@ -53,7 +53,9 @@ class TaskDeadlineListUiTest {
             MaterialTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) { NotesListScreen({}, {}, {}, {}, {}, { _, _ -> }, viewModel = vm) } }
         }
         await { compose.onAllNodesWithTag("note-card-$high").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("Меню").performClick(); compose.onNodeWithText("Просроченные").performClick()
+        compose.onNodeWithContentDescription("Меню").performClick()
+        compose.onNodeWithContentDescription("Разделы заметок").performClick()
+        compose.onNodeWithText("Просроченные").performClick()
         await { !vm.results.value?.key?.filter.let { it != NoteFilter.Overdue } }
         compose.onNodeWithTag("note-card-$future").assertDoesNotExist()
         compose.onNodeWithText("Все приоритеты").performClick(); compose.onNodeWithText("Высокий").performClick()

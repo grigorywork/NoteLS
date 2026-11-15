@@ -38,6 +38,7 @@ object Routes {
     const val SCANNER = "scanner"
     const val ANALYTICS = "analytics"
     const val CALENDAR = "calendar"
+    const val AGENDA = "agenda"
     const val QUOTES = "quotes"
     const val EDITOR = "editor?noteId={noteId}&isTask={isTask}&dayKey={dayKey}"
 
@@ -80,6 +81,7 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                 onOpenSync = { navigate(Routes.SYNC) },
                 onOpenAnalytics = { navigate(Routes.ANALYTICS) },
                 onOpenCalendar = { navigate(Routes.CALENDAR) },
+                onOpenAgenda = { navigate(Routes.AGENDA) },
                 onOpenQuotes = { navigate(Routes.QUOTES) },
                 onOpenEditor = { noteId, isTask ->
                     navigate(Routes.editor(noteId, isTask))
@@ -125,6 +127,11 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                     navigate(Routes.editor(-1L, isTask, dayKey))
                 }
             )
+        }
+        composable(Routes.AGENDA) {
+            CalendarScreen(onBack = { back() }, agendaMode = true,
+                onOpenNote = { id, task -> navigate(Routes.editor(id, task)) },
+                onAddEntry = { day, task -> navigate(Routes.editor(-1L, task, day)) })
         }
         composable(Routes.QUOTES) {
             QuotesScreen(onBack = { back() })

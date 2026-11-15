@@ -31,11 +31,11 @@ class SettingsGroupsUiTest {
     @Before fun before() {
         settings.apply { setUiLanguage(UiLanguage.RUSSIAN); setThemeMode(ThemeMode.LIGHT)
             setFontScale(SettingsRepository.FONT_NORMAL); setEditorHistory(true); setAudioRecording(true)
-            setBackupFrequency(BackupFrequency.MANUAL); setAiEnabled(false) }
+            setBackupFrequency(BackupFrequency.MANUAL); setAiEnabled(false); setArchiveCompletedTasks(false) }
     }
     @After fun after() {
         settings.apply { setUiLanguage(UiLanguage.RUSSIAN); setThemeMode(ThemeMode.SYSTEM)
-            setFontScale(SettingsRepository.FONT_NORMAL); setEditorHistory(true); setAudioRecording(true) }
+            setFontScale(SettingsRepository.FONT_NORMAL); setEditorHistory(true); setAudioRecording(true); setArchiveCompletedTasks(false) }
     }
     private fun group(id: String) = compose.onNodeWithTag("settings-group-$id")
     private fun open(id: String) { group(id).performScrollTo().performClick() }
@@ -46,6 +46,8 @@ class SettingsGroupsUiTest {
         compose.onNodeWithText("API-ключ не настроен").assertDoesNotExist()
         open("editor")
         group("editor").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Развёрнуто"))
+        compose.onNodeWithText("Выполненные — в отдельный раздел").performScrollTo().assertIsOff().performClick().assertIsOn()
+        assertTrue(settings.state.value.archiveCompletedTasks)
         compose.onNodeWithText("История изменений").performScrollTo().assertIsOn().performClick().assertIsOff()
         assertFalse(settings.state.value.editorHistory)
         open("voice")

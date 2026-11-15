@@ -4,7 +4,7 @@
 
 ## Текущее выполнение
 
-Пользователь утвердил последний макет и разрешил автономное выполнение очереди. **71 и70 закрыты в1.10.38/code61/Room17**: полныйCI680/0fail/0ignored/lint0error, подписанныйAPK43690896800/artifact14152792633 независимо проверен поZIP/API/APK/source/version/non-debuggable/actualcertificate. [Отчёт](editor-1.10.38.md), [эталон](design/editor-approved-1.10.38.png). Следующий69, затем72–82;68/iPhone отложен.
+Пользователь утвердил последний макет и разрешил автономное выполнение очереди. **71 и70 закрыты в1.10.38/code61/Room17**: полныйCI680/0fail/0ignored/lint0error, подписанныйAPK43690896800/artifact14152792633 независимо проверен поZIP/API/APK/source/version/non-debuggable/actualcertificate. [Отчёт](editor-1.10.38.md), [эталон](design/editor-approved-1.10.38.png). Выполняется69 в1.10.39/code62, проверки ещё ожидаются; [отчёт39](navigation-1.10.39.md). Затем72–82;68/iPhone отложен.
 
 ## Что уже есть
 

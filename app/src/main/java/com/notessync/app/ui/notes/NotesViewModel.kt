@@ -6,6 +6,7 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.room.withTransaction
 import com.notessync.app.notes.actions.NoteActions
 import androidx.lifecycle.AndroidViewModel
@@ -50,6 +51,7 @@ sealed interface NoteFilter {
     data object Trash : NoteFilter
     data object All : NoteFilter
     data object Tasks : NoteFilter
+    data object Completed : NoteFilter
     data object Unfinished : NoteFilter
     data object Overdue : NoteFilter
     data object Favorites : NoteFilter
@@ -65,9 +67,13 @@ internal data class NotesQueryKey(
     val tasks: TaskFilters = TaskFilters(),
     val clock: Long = 0,
     val zone: String = ZoneId.systemDefault().id,
-    val session: Long = 0
+    val session: Long = 0,
+    val archiveCompleted: Boolean = false
 )
 internal data class NotesResult(val key: NotesQueryKey, val notes: List<NoteCardEntry>)
+internal data class LockedTasksScope(val filter: NoteFilter, val archiveCompleted: Boolean,
+    val session: Long, val protection: ProtectionState)
+internal data class LockedTasksResult(val scope: LockedTasksScope, val targets: List<TaskUnlockTarget>)
 internal fun NoteFilter.isUnfinished() = this == NoteFilter.Unfinished || this == NoteFilter.Overdue
 
 @OptIn(ExperimentalCoroutinesApi::class, kotlinx.coroutines.FlowPreview::class)
@@ -77,6 +83,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private val noteDao = db.noteDao()
     private val notebookDao = db.notebookDao()
     private val tagDao = db.tagDao()
+    private val archiveSetting = com.notessync.app.settings.SettingsRepository.get(application).state
+        .map { it.archiveCompletedTasks }.distinctUntilChanged()
     val biometrics = com.notessync.app.security.biometrics.NotebookBiometricController(viewModelScope, db,
         com.notessync.app.security.biometrics.AndroidNotebookBiometricVault(application))
 
@@ -116,16 +124,17 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private val queryKeys = combine(
         combine(_query, _filter, _sort, ProtectionSession.state) { search, filter, sort, protection ->
             NotesQueryKey(search, filter, sort, protection)
-        }, _taskFilters, _taskClock, _listSession
-    ) { key, tasks, clock, session -> key.copy(tasks = if (key.filter.isUnfinished()) tasks else TaskFilters(),
-        clock = if (key.filter.isUnfinished()) clock else 0, zone = ZoneId.systemDefault().id, session = session) }
+        }, _taskFilters, _taskClock, _listSession, archiveSetting
+    ) { key, tasks, clock, session, archive -> key.copy(tasks = if (key.filter.isUnfinished()) tasks else TaskFilters(),
+        clock = if (key.filter.isUnfinished()) clock else 0, zone = ZoneId.systemDefault().id, session = session,
+        archiveCompleted = archive) }
         .distinctUntilChanged()
 
     internal val results: StateFlow<NotesResult?> = queryKeys
         .debounce(300)
         .flatMapLatest { key ->
             noteDao.rawCards(buildCardQuery(key.search, key.filter, key.sort, key.protection.notebookIds,
-                key.protection.taskSyncIds, key.tasks, key.clock, ZoneId.of(key.zone))).map { NotesResult(key, it) }
+                key.protection.taskSyncIds, key.tasks, key.clock, ZoneId.of(key.zone), key.archiveCompleted)).map { NotesResult(key, it) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), null)
     val notes: StateFlow<List<NoteCardEntry>> = results.map { it?.notes.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), emptyList())
@@ -144,13 +153,40 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), emptyMap())
 
-    val lockedTasks: StateFlow<List<TaskUnlockTarget>> = combine(ProtectionSession.state, _filter) { protection, filter -> protection to filter }
-        .flatMapLatest { (protection, filter) ->
+    internal val lockedResults: StateFlow<LockedTasksResult?> = combine(ProtectionSession.state, _filter, archiveSetting, _listSession) {
+            protection, filter, archive, session -> LockedTasksScope(filter, archive, session, protection)
+        }.flatMapLatest { key ->
+            val completed = when (key.filter) {
+                NoteFilter.Completed -> true
+                NoteFilter.Trash -> null
+                else -> if (key.archiveCompleted) false else null
+            }
             noteDao.rawLockedTaskTargets(
-                buildLockedTaskTargetsQuery(protection.notebookIds, protection.taskSyncIds, filter == NoteFilter.Trash)
-            )
+                buildLockedTaskTargetsQuery(key.protection.notebookIds, key.protection.taskSyncIds, key.filter == NoteFilter.Trash, completed)
+            ).map { LockedTasksResult(key, it) }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), null)
+    val lockedTasks: StateFlow<List<TaskUnlockTarget>> = lockedResults.map { it?.targets.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), emptyList())
+
+    var creatingDiary by mutableStateOf(false)
+        private set
+    fun createDiaryEntry(onReady: (Long) -> Unit, onError: () -> Unit) {
+        if (creatingDiary) return
+        creatingDiary = true
+        viewModelScope.launch {
+            try {
+                val note = com.notessync.app.notes.diary.DiaryEntries.create(db)
+                com.notessync.app.data.backup.BackupManager.noteChanged()
+                runCatching { com.notessync.app.data.backup.BackupManager.requestAutoBackup(getApplication(), afterNote = true) }
+                runCatching { CalendarWidgetProvider.refreshAll(getApplication()) }
+                onReady(note.id)
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                onError()
+            } finally { creatingDiary = false }
+        }
+    }
 
     fun onQueryChange(value: String) { _query.value = value }
     fun selectFilter(value: NoteFilter) { refreshTaskClock(); _filter.value = value }
@@ -291,22 +327,24 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             raw.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
         fun buildLockedTasksQuery(unlockedNotebookIds: Set<Long> = emptySet(), unlockedTaskIds: Set<String> = emptySet(),
-            trash: Boolean = false): SupportSQLiteQuery = buildLockedTasksQueryInternal(unlockedNotebookIds, unlockedTaskIds, trash)
+            trash: Boolean = false, completed: Boolean? = null): SupportSQLiteQuery =
+            buildLockedTasksQueryInternal(unlockedNotebookIds, unlockedTaskIds, trash, completed = completed)
 
         fun buildLockedTaskTargetsQuery(unlockedNotebookIds: Set<Long> = emptySet(), unlockedTaskIds: Set<String> = emptySet(),
-            trash: Boolean = false): SupportSQLiteQuery = buildLockedTasksQueryInternal(unlockedNotebookIds, unlockedTaskIds, trash,
-                "notes.id, notes.syncId, notes.notebookId, notes.isDeleted")
+            trash: Boolean = false, completed: Boolean? = null): SupportSQLiteQuery = buildLockedTasksQueryInternal(unlockedNotebookIds, unlockedTaskIds, trash,
+                "notes.id, notes.syncId, notes.notebookId, notes.isDeleted", completed)
 
         private fun buildLockedTasksQueryInternal(
             unlockedNotebookIds: Set<Long> = emptySet(),
             unlockedTaskIds: Set<String> = emptySet(),
-            trash: Boolean = false, projection: String = "notes.*"
+            trash: Boolean = false, projection: String = "notes.*", completed: Boolean? = null
         ): SupportSQLiteQuery {
             val sql = StringBuilder(
                 "SELECT $projection FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (trash) 1 else 0}" +
                     " AND notes.isTask = 1 AND notes.isProtected = 1"
             )
             val args = mutableListOf<Any>()
+            completed?.let { sql.append(" AND notes.isCompleted = ?"); args.add(if (it) 1 else 0) }
             if (unlockedTaskIds.isNotEmpty()) {
                 sql.append(" AND notes.syncId NOT IN (${unlockedTaskIds.joinToString(",") { "?" }})")
                 args.addAll(unlockedTaskIds)
@@ -326,13 +364,15 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         /** Один SQL-запрос под фильтр + поиск + сортировку. Параметры только связанные. */
         fun buildQuery(search: String, filter: NoteFilter, sort: NoteSort,
             unlockedNotebookIds: Set<Long> = emptySet(), unlockedTaskIds: Set<String> = emptySet(),
-            tasks: TaskFilters = TaskFilters(), now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()
-        ): SupportSQLiteQuery = buildQueryInternal(search, filter, sort, unlockedNotebookIds, unlockedTaskIds, tasks, now, zone, false)
+            tasks: TaskFilters = TaskFilters(), now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault(),
+            archiveCompleted: Boolean = false
+        ): SupportSQLiteQuery = buildQueryInternal(search, filter, sort, unlockedNotebookIds, unlockedTaskIds, tasks, now, zone, false, archiveCompleted = archiveCompleted)
 
         fun buildCardQuery(search: String, filter: NoteFilter, sort: NoteSort,
             unlockedNotebookIds: Set<Long> = emptySet(), unlockedTaskIds: Set<String> = emptySet(),
-            tasks: TaskFilters = TaskFilters(), now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()
-        ): SupportSQLiteQuery = buildQueryInternal(search, filter, sort, unlockedNotebookIds, unlockedTaskIds, tasks, now, zone, false, true)
+            tasks: TaskFilters = TaskFilters(), now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault(),
+            archiveCompleted: Boolean = false
+        ): SupportSQLiteQuery = buildQueryInternal(search, filter, sort, unlockedNotebookIds, unlockedTaskIds, tasks, now, zone, false, true, archiveCompleted)
 
         fun buildNextTaskDueQuery(search: String, unlockedNotebookIds: Set<Long> = emptySet(),
             unlockedTaskIds: Set<String> = emptySet(), tasks: TaskFilters = TaskFilters(),
@@ -345,7 +385,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             filter: NoteFilter,
             sort: NoteSort,
             unlockedNotebookIds: Set<Long> = emptySet(),
-            unlockedTaskIds: Set<String>, tasks: TaskFilters, now: Long, zone: ZoneId, minimum: Boolean, cards: Boolean = false
+            unlockedTaskIds: Set<String>, tasks: TaskFilters, now: Long, zone: ZoneId, minimum: Boolean, cards: Boolean = false,
+            archiveCompleted: Boolean = false
         ): SupportSQLiteQuery {
             val projection = if (minimum) "MIN(notes.taskDueAt)" else if (cards) NOTE_CARD_COLUMNS else "notes.*"
             val sql = StringBuilder("SELECT $projection FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (filter == NoteFilter.Trash) 1 else 0}")
@@ -353,6 +394,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             when (filter) {
                 NoteFilter.All, NoteFilter.Trash -> Unit
                 NoteFilter.Tasks -> sql.append(" AND notes.isTask = 1")
+                NoteFilter.Completed -> sql.append(" AND notes.isTask = 1 AND notes.isCompleted = 1")
                 NoteFilter.Unfinished, NoteFilter.Overdue -> {
                     sql.append(" AND notes.isTask = 1 AND notes.isCompleted = 0")
                     val choices = tasks.normalized()
@@ -389,6 +431,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                     args.add(filter.name)
                 }
             }
+            if (archiveCompleted && filter != NoteFilter.Trash && filter != NoteFilter.Completed && !filter.isUnfinished())
+                sql.append(" AND (notes.isTask = 0 OR notes.isCompleted = 0)")
             sql.append(" AND (notes.isProtected = 0")
             if (unlockedTaskIds.isNotEmpty()) {
                 sql.append(" OR (notes.syncId != '' AND notes.syncId IN (${unlockedTaskIds.joinToString(",") { "?" }}))")

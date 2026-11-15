@@ -51,6 +51,7 @@ class HomeActionsTest {
     }
     private fun trash() {
         compose.onNodeWithContentDescription("Меню").performClick()
+        compose.onNodeWithContentDescription("Разделы заметок").performClick()
         compose.onNodeWithText("Корзина").performClick()
     }
     @Test fun `home long press selects multiple notes search focuses and trash restores all`() {
