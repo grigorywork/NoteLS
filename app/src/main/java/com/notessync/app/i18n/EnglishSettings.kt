@@ -161,4 +161,5 @@ internal fun MutableMap<String, String>.addSettingsEnglish() {
     put("Микрофон", "Microphone")
     put("О диктовке", "About dictation")
     put("Об аудиовложениях", "About audio attachments")
+    put("Заметки и идеи — 0123456789", "Notes and ideas — 0123456789")
 }

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.uiText
 import com.notessync.app.settings.*
@@ -30,8 +31,9 @@ internal fun AppearanceSettings(state: SettingsState, settings: SettingsReposito
         SettingsDropdown("accent", uiText("Цвет и обводка"), state.accentColor, AccentColor.entries, settings::setAccentColor, { it.label })
         SettingsDropdown("font", uiText("Шрифт"), state.appFont, AppFont.entries, settings::setAppFont, { it.label })
         // Render only the selected font; opening the menu does not load all font families.
-        Text(uiText("Съешь ещё этих мягких французских булок, да выпей чаю.\nЗаметки, задачи и идеи — 0123456789"),
+        Text(uiText("Заметки и идеи — 0123456789"),
             fontFamily = appFontFamily(state.appFont), style = MaterialTheme.typography.bodyLarge,
+            maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
         SettingsHelp("fonts", uiText("О шрифтах")) {
             Text(uiText("Популярные шрифты") + " · " + uiText("Системные семейства"), style = MaterialTheme.typography.bodySmall)
