@@ -1528,3 +1528,6 @@ quotes44-deadline-compat.log SUCCESS4m6s:2/2безfail/errors/skipped,lint0error
 
 
 2026-11-15T22:55:14.109718+00:00:76/45/code68/Room18 локально36/36/0fail/errors/skipped glass45-checks3.log SUCCESS7m40s; финальные4 UI на320×640 EN/largefont glass45-ui-final.log SUCCESS4m12s, пересекаются с36, не40. lint0error/15warnings/2info/assembleDebug. Контрастный отказ4.28 исправлен ослаблением тёмных пятен без понижения4.5/assertions; prefs singleton/PixelCopy harness/ComponentDialog Back исправлены без увеличения таймаутов. Два NativePNG осмотрены/сохранены. ВсеWIP включаются вmain для полногоCI765 ожидаемого и autoSigned. ПокаНЕполныйCI/НЕinstallable45/76НЕзакрыт; последнийverified44. Room18/data2/security3/постояннаяподпись прежние, физическогоGPU/телефона/AIвызовов нет. Main/test заморожены до проверок.
+
+
+76 runtime d3aed90a2dee41f8d684948d5be12938518667c5 уже main, полный pushCI43771941590/job132989559112 in_progress. Локального Gradle нет, дерево чистое, все checkpoint включены. Main/test заморожены, не начинать77 до CI/Signed/независимой проверки45. Последний verified44.

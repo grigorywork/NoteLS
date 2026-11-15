@@ -39,3 +39,5 @@ Checkpoint f0f8fc5 сохранён в codex/glass-1.10.45. Новый GlassAppe
   "dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8"
 }
 ```
+
+Полный pushCI43771941590/job132989559112 запущен для runtime source d3aed90a2dee41f8d684948d5be12938518667c5. Все checkpoint включены в main. Исходники заморожены до полногоCI+autoSigned+независимой верификации. Пока45 не проверенный installable.
