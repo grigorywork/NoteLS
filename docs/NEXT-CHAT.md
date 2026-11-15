@@ -2,7 +2,7 @@
 
 ## Текущий74: Qwen в кандидате1.10.43/code66/Room17
 
-42 полностью проверен ниже. Дополнение Qwen применено в43; [отчёт](qwen-1.10.43.md).18новых оффлайнкейсов плюс старыеAI/EditorTransform/SettingsGroups/UiCatalog/lint/assemble готовятся к запуску. Пока43неCIpass/неinstallable. Исходныйdraft.patch уже применён и удалён, не применятьповторно. Веткаcheckpointcodex/qwen-1.10.43 сохраняется перед запуском. Приживойпроверке main/testне менять/второйGradleне запускать. РеальныхплатныхAPIвызововнет. После полногоCI/Signed43/независимойпроверки закрыть74 и затем75–82 безновыхэтапов.
+42 полностью проверен ниже. Дополнение Qwen применено в43; [отчёт](qwen-1.10.43.md).WIP32e853b сохранён в codex/qwen-1.10.43, локальнаяmainсодержитего/originmain802bdf4verified42. Первый qwen43-checks.log:50/1fail (49pass),6m59s; Groq malformedUTF8 ошибочно NETWORK, исправлено PROVIDERбезослабленияassertion. Все4QwenUI/3vault/2session/1persistпрошли; NativePNGимеетпрозрачныйфоноболочки, замененаSurface. Выполняется qwen43-checks2.log/session8988:теже50AI/EditorTransform/SettingsGroups/UiCatalog+lint/assemble. Пока43неCIpass/неinstallable. Исходныйdraft.patch уже применён и удалён, не применятьповторно. Веткаcheckpointcodex/qwen-1.10.43 сохраняется перед запуском. Приживойпроверке main/testне менять/второйGradleне запускать. РеальныхплатныхAPIвызововнет. После полногоCI/Signed43/независимойпроверки закрыть74 и затем75–82 безновыхэтапов.
 
 ## Проверенный выпуск 1.10.42/code65/Room17 — компактная часть74
 
