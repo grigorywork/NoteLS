@@ -9,3 +9,6 @@ Freeусловия видны: бесплатен только аккаунт н
 Прежние INPUT16000/OUTPUT32000/RESPONSE65536/error8192/2048outputbudget/таймауты/отмена/явныйpreviewApply/свежийдоступ/сохранностьоригинала. Groq reasoningnone; принимается только stop/assistanttext, partial/refusal/tools/ошибочныйJSON/UTF8 отвергаются. Presentedconfig передаётся при привязке провайдера, поэтому смена конфигурации до/во время чтенияключа/ответа не перенаправляет черновик другому сервису. Неотправленный APIключ очищается при смене провайдера/ON_STOP.
 
 18новых meaningful оффлайнкейсов:8HTTP,3vault,2session,1settingspersist,4NativeUI(RU/EN/recipient/SendApply/переключениеключей/очисткаGroq/ошибкаквоты). Старые AI/EditorTransform/SettingsGroups/UiCatalog будут проверены вместе. Никакой реальной генерации/платныхвызовов/физическоготелефона. План/официальныеисточники:qwen-1.10.43-plan.md,ai-free-options.md.
+
+
+Первый qwen43-checks.log завершился6m59s:50тестов/1fail,49pass/0errors/skipped. GroqSecrets3/3,GroqSession2/2,GroqSettings1/1,QwenNativeUI4/4; GroqHTTP7/8. MalformedUTF8 классифицировалсяNETWORK, исправленнаPROVIDER безослабленияassertion. NativePNGбылс прозрачнымфоном тестовогоMaterialTheme; подтвержденоalpha212216/230400нулевыхпикселей. ОболочкаNativeснимказамененаSurface,продуктовыйфоннеизменялся. Требуетсяповтор50/lint/assemble и просмотрopaquePNG; пока43неполныйCI/неinstallable.

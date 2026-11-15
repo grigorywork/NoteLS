@@ -69,7 +69,7 @@ class QwenUiTest {
         compose.setContent { MaterialTheme {
             drawingView = LocalView.current
             val state by settings.state.collectAsState()
-            Box(Modifier.requiredSize(320.dp, 720.dp).testTag("qwen-settings-viewport")) {
+            androidx.compose.material3.Surface(Modifier.requiredSize(320.dp, 720.dp).testTag("qwen-settings-viewport")) {
                 Column(Modifier.verticalScroll(rememberScrollState())) { TransformSettingsSection(state, settings) }
             }
         } }

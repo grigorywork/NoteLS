@@ -1477,3 +1477,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T17:42UTC: после независимойпроверки42 применено дополнение74/QwenчерезGroq в кандидат43/code66/Room17;18новыхофлайнкейсов/RUEN, fixedorigin/model, separatevaultAAD, configsnapshotguard. ПокаНЕpass/НЕinstallable43. Черновикpatchприменён/удалён,не применятьещёраз. Checkpointcodex/qwen-1.10.43 передцелевымиAI/EditorTransform/SettingsGroups/UiCatalog+lint/assemble. Отчётdocs/qwen-1.10.43.md. РеальныхpaidAPIнет/ключиsigningпрежние.
+
+
+Первый qwen43-checks.log завершился6m59s:50тестов/1fail,49pass/0errors/skipped. GroqSecrets3/3,GroqSession2/2,GroqSettings1/1,QwenNativeUI4/4; GroqHTTP7/8. MalformedUTF8 классифицировалсяNETWORK, исправленнаPROVIDER безослабленияassertion. NativePNGбылс прозрачнымфоном тестовогоMaterialTheme; подтвержденоalpha212216/230400нулевыхпикселей. ОболочкаNativeснимказамененаSurface,продуктовыйфоннеизменялся. Требуетсяповтор50/lint/assemble и просмотрopaquePNG; пока43неполныйCI/неinstallable.

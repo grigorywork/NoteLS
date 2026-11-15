@@ -100,8 +100,12 @@ class GroqQwenTransport(private val connection: () -> HttpsURLConnection = {
             else -> fallback
         }
     }
-    private fun decode(bytes: ByteArray) = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-        .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
+    private fun decode(bytes: ByteArray): String = try {
+        Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
+    } catch (_: java.nio.charset.CharacterCodingException) {
+        throw TransformException(TransformProblem.PROVIDER)
+    }
     private fun boundedRead(input: InputStream, limit: Int): ByteArray {
         val out = ByteArrayOutputStream(); val buffer = ByteArray(4096)
         while (true) {
