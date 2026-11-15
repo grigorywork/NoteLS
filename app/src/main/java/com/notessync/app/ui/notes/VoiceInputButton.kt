@@ -1,5 +1,7 @@
 package com.notessync.app.ui.notes
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -57,6 +59,6 @@ internal fun VoiceInputButton(control: VoiceControl, state: VoiceState,
                 VoiceState.IDLE -> if (control == VoiceControl.HOLD) uiText("Диктовка: удерживайте микрофон") else uiText("Начать диктовку")
                 VoiceState.PROCESSING -> uiText("Отменить распознавание")
                 else -> uiText("Завершить диктовку")
-            }, tint = if (state == VoiceState.IDLE) LocalContentColor.current else MaterialTheme.colorScheme.error)
+            }, modifier = Modifier.size(20.dp), tint = if (state == VoiceState.IDLE) LocalContentColor.current else MaterialTheme.colorScheme.error)
     }
 }

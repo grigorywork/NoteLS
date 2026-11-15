@@ -42,6 +42,7 @@ import org.robolectric.shadows.ShadowSystemClock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w320dp-h800dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)

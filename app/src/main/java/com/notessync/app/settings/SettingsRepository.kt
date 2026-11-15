@@ -32,7 +32,7 @@ enum class AccentColor(private val labelRu: String) {
 
 // Этап 32: голосовой ввод — движок распознавания и структуризация речи.
 enum class VoiceEngine(private val labelRu: String) {
-    ONLINE("Онлайн (точнее, нужен интернет)"),
+    ONLINE("Онлайн (системный сервис)"),
     LOCAL("На устройстве (без интернета)");
     val label: String get() = uiText(labelRu)
 }

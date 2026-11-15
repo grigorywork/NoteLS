@@ -263,4 +263,14 @@ class NoteEditorHistoryTest {
         assertEquals("kept", saved.content)
         assertEquals("", saved.textFormat)
     }
+    @Test fun `dictation inserts at the caret without joining the following word and restores body history`() = runTest(dispatcher) {
+        text("НачалоКонец")
+        vm.onContentChange(TextFieldValue("НачалоКонец", TextRange(6)))
+        vm.onEditorFocus(com.notessync.app.notes.history.EditorField.TITLE)
+        vm.insertVoiceText("Фраза.", VoiceStructure.RAW)
+        assertEquals("Начало Фраза. Конец", vm.contentField.text)
+        assertEquals(com.notessync.app.notes.history.EditorField.CONTENT, vm.editorField)
+        vm.undo(); assertEquals("НачалоКонец", vm.contentField.text); assertEquals(TextRange(6), vm.contentField.selection)
+        vm.redo(); assertEquals("Начало Фраза. Конец", vm.contentField.text)
+    }
 }

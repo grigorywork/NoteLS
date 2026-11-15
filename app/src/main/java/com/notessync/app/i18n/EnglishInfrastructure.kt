@@ -52,7 +52,7 @@ internal fun MutableMap<String, String>.addInfrastructureEnglish() {
     put("Оранжевый", "Orange")
     put("Розовый", "Pink")
     put("Бирюзовый", "Teal")
-    put("Онлайн (точнее, нужен интернет)", "Online (more accurate, needs internet)")
+    put("Онлайн (системный сервис)", "Online (system service)")
     put("На устройстве (без интернета)", "On device (offline)")
     put("Как есть", "As spoken")
     put("По пунктам", "Bullet points")
