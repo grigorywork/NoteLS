@@ -52,7 +52,10 @@ fun AddTableDialog(onDismiss: () -> Unit, remainingCells: Int = NoteTables.MAX_C
     var rows by remember { mutableStateOf("3") }
     var columns by remember { mutableStateOf("3") }
     val r = rows.toIntOrNull(); val c = columns.toIntOrNull()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(uiText("Новая таблица")) }, text = {
+    AlertDialog(onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth().padding(horizontal = 16.dp),
+        title = { Text(uiText("Новая таблица")) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (remainingTables > 0) uiText("Доступно ячеек: %1\$s", (remainingCells)) else uiText("Достигнут предел: 8 таблиц"),
                 style = MaterialTheme.typography.bodySmall)

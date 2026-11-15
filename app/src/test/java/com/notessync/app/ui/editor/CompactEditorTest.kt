@@ -153,4 +153,23 @@ class CompactEditorTest {
         compose.waitForIdle(); assertNull(vm.activeFormatting[com.notessync.app.notes.text.FormatKind.ALIGN])
         saveScreenshot("note-320")
     }
+    // API28's native Magnifier requires a device SurfaceSession root absent in Robolectric.
+    // Exercise the real selection gesture on supported API27, which has no platform magnifier.
+    @Config(sdk = [27])
+    @Test fun `long press opens contextual formatting without duplicating the dock`() {
+        val vm = editor(task = false, text = "Выделяемый текст")
+        compose.onNodeWithTag("editor-body").performTouchInput {
+            longClick(androidx.compose.ui.geometry.Offset(40 * density, 24 * density))
+        }
+        compose.onNodeWithContentDescription("Копировать").assertIsDisplayed()
+        assertFalse(vm.contentField.selection.collapsed)
+        compose.onNodeWithContentDescription("Таблица").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Оформление выделения").performClick()
+        compose.onNodeWithText("Цвет текста").performClick()
+        compose.onNodeWithText("Красный").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Таблица").assertDoesNotExist()
+        compose.onNodeWithText("Красный").performClick()
+        compose.waitForIdle()
+        assertEquals("FFE53935", vm.activeFormatting[com.notessync.app.notes.text.FormatKind.COLOR])
+    }
 }

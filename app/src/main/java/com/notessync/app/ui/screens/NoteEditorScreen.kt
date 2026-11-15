@@ -337,7 +337,9 @@ fun NoteEditorScreen(
                 onCamera = { if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                     else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() },
                 voiceIdle = voiceState == com.notessync.app.voice.VoiceState.IDLE,
-                showFormatting = selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown || viewModel.contentField.selection.collapsed)
+                showFormatting = viewModel.contentField.selection.collapsed ||
+                    (selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown &&
+                        ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT))
         }
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {

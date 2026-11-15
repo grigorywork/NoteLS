@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
@@ -70,7 +72,8 @@ internal fun EditorSelectionMenu(toolbar: EditorSelectionToolbar, viewModel: Not
                     toolbar.all?.let { action -> IconButton(onClick = action, modifier = Modifier.size(44.dp)) { Icon(Icons.Default.SelectAll, uiText("Весь текст"), Modifier.size(18.dp)) } }
                     if (!viewModel.contentField.selection.collapsed) {
                     Box {
-                        IconButton(onClick = { open(FormatMenu.FULL) }, modifier = Modifier.size(44.dp)) { Text("Aa", style = MaterialTheme.typography.bodyMedium) }
+                        IconButton(onClick = { open(FormatMenu.FULL) }, modifier = Modifier.size(44.dp)
+                            .semantics { contentDescription = uiText("Оформление выделения") }) { Text("Aa", style = MaterialTheme.typography.bodyMedium) }
                         FormattingPopup(ui.formatPopup, FormatAnchor.CONTEXT, { ui.formatPopup = it }, viewModel.activeFormatting,
                             settings.advancedFormatting, activeEditorList(viewModel), editorFormattingActions(viewModel))
                     }
