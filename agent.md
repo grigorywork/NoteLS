@@ -1432,3 +1432,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: source87f65add7bad85414f9da83344c54012b32935b7 отправлен fast-forward вmain, Android checks43712089734/job132805662061 in_progress. ВсеWIPветкиvoice уже включены, дерево чистое; локальныхGradle нет. Исходникиmain/test заморожены. ПолныйCI701 ожидается, не объявляетсяpass; послеуспеха автоматическийSigned проверить поactualsource/pin/ZIP/API/SUMS/APK/package/version/nondebug. Следующие73–82 после закрытия72.
+
+
+2026-11-15: полныйCI72 43712089734/132805662061SUCCESS, source87f65add7bad85414f9da83344c54012b32935b7. Build23m37s; HTML701/0fail/0ignored, lintXML0error/16warnings/2info. Artifact14160944000 ZIP411080bytes SHA256a5aab21b96f94c05cebb1d4ef2a714626e030e03a70cc02d11c79c0bd4b9a4ea=API.7PNGвотчёте; voiceCIснимокпустой, НЕиспользоватькаквизуальное доказательство; локальныйNativeCanvasреальный/просмотрен, CIsemantics/геометрияпрошли. AutoSigned43714199063/identity132812083366success/release132812117580in_progress, existingSecret/pinchecksуспех. РеальныйsourceAPKдолжен87f65ad,runheadcd13ccbdocs-only. Installable40ещёнет, ждатьнезависимойпроверки; исходникине менять.
