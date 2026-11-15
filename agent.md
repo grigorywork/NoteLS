@@ -1450,3 +1450,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T13:04UTC:73 source8d2074a709683d059ac4937e780986eed2ea8ba1 уже вmain, полныйCI43716992091/job132820552853 in_progress. Checkpoint6f7a6b9 включён, не повторять73 по старому40. ЛокальныхGradleнет; main/testне менятьприпроверке, второйGradleне запускать. Локальные32/32успехне заменяетполный709(ожидаемый)/Signed. Последнийпроверенныйinstallable40, ключ/pinпрежние.
+
+
+2026-11-15T13:24UTC: полныйCI73 43716992091/job132820552853 SUCCESS/source8d2074a709683d059ac4937e780986eed2ea8ba1, build18m45s. Скачанreportartifact14163332799 ZIP413915bytes SHA2569f208c046a42aa28c5bacf0fefdf80cc062dace10ad1aea24ff6305d53769ef1=API; HTML709/0fail/0ignored/lintXML0error/16warnings/2info подтверждены. AutoSigned43718750157/identity132825891371success/release132825930921in_progress, существующиеSecret/pinchecksуспех. Runhead6798474docs-only, actualAPKsourceдолжен8d2074a. Installable41ещёнет,debugневыдавать; main/testне менятьдоокончанияSigned.

@@ -1,5 +1,5 @@
 <!-- CURRENT-GPT-41 -->
-> **73 выполняется:1.10.41/code64/Room17.** Диагностика HTTPошибок/APIквоты/модели/региона/доступа, preflight/shortcutнастройки. Локальные32/32/lint0error/assembleDebugSUCCESS8m12s; [ПолныйCI43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853/source8d2074a in_progress; установочный41 пока не подтверждён. [Отчёт73](gpt-1.10.41.md), [свежее продолжение](NEXT-CHAT.md). Последний проверенныйinstallable40 ниже. НикакихреальныхплатныхAIвызовов/новойподписи.
+> **73 выполняется:1.10.41/code64/Room17.** Диагностика HTTPошибок/APIквоты/модели/региона/доступа, preflight/shortcutнастройки. Локальные32/32/lint0error/assembleDebugSUCCESS8m12s; [ПолныйCI43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853/source8d2074a SUCCESS:709/0fail/0ignored/lint0error, reportZIP/API сверен. Signed43718750157/identity132825891371success/release132825930921in_progress; установочный41 ещё не подтверждён. [Отчёт73](gpt-1.10.41.md), [свежее продолжение](NEXT-CHAT.md). Последний проверенныйinstallable40 ниже. НикакихреальныхплатныхAIвызовов/новойподписи.
 <!-- END-CURRENT-GPT-41 -->
 
 <!-- CURRENT-VOICE-40 -->

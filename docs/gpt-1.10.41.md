@@ -25,3 +25,9 @@ Incomplete max_output_tokens объясняется отдельно; части
 Нормальный pushmain запускает полный Android checks (709 ожидается, но пока неpass). После полного успеха проверить автоматическийSigned и скачанный установочныйAPK с прежнимpin. До этого последний проверенныйinstallable40.
 
 Полный [Android checks43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853 реальноin_progress наsource `8d2074a709683d059ac4937e780986eed2ea8ba1`. Предыдущийcheckpoint6f7a6b9 включён вmain. ЛокальныхGradleнет/деревочистое; main/testзаморожены до окончанияпроверки.
+
+## Полный CI подтверждён, Signed ожидается
+
+[CI43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853 SUCCESS наsource8d2074a709683d059ac4937e780986eed2ea8ba1, build18m45s. Reportartifact14163332799:413915bytes, скачанныйZIP SHA256 `9f208c046a42aa28c5bacf0fefdf80cc062dace10ad1aea24ff6305d53769ef1`=API. HTML709/0failures/0ignored; lintXML0error/16warnings/2info. В отчёте прежние7NativeCanvas-превью; новаядиагностикаGPT проверена HTTPfixtures/Compose/Room иобщимрегрессионнымнабором.
+
+AutoSigned43718750157:identity132825891371SUCCESS/release132825930921in_progress; существующиеSecret/pinchecksуспех. РеальныйAPKsource должен8d2074a, runhead6798474 — последующийdocs-onlyworkflow_run. Установочный41ещёне подтверждён; не выдаватьdebugartifact14163572101.
