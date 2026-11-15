@@ -51,3 +51,6 @@ Room17/data2/security3 без изменений. ПоддержаныRU/EN, п�
 
 
 Адаптированные AudioEditorUiTest3/3 (7.684s) и TableEditorTest3/3 (9.395s) прошли вместе безfailures/errors/skipped:6/6, весь прогон2m51s, `editor38-audio-table-paths2.log`. Для настоящего закрытияDropdownMenu используетсяBack вpopup; при воспроизведении проверяется доступ к аудио после прокрутки. Код приложения, версия61 и pin послеf858 неизменны. Тестовые изменения отправляются в новый полный pushCI;680/0 ещё не подтверждено.
+
+
+Повторный полный push [CI43689688187](https://github.com/grigorywork/NoteLS/actions/runs/43689688187), verify132737492213:in_progress, sourceebc0c0147048923f7db1fe652377f4562ada6300. Старый Signed43689168080 корректноskipped послеfailure, новый installable38 ещё не выдан.

@@ -1393,3 +1393,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: маршруты AudioEditorUiTest3/3 и TableEditorTest3/3 фактически прошли вместе6/6,0failures/errors/skipped,2m51s (`editor38-audio-table-paths2.log`). Компиляции понадобился явныйExperimentalTestApi opt-in только для нового тестовогоBack ввода. Старые10s/данные/permission/release/Back/микрофон проверки сохранены; закрытиеDropdownMenu реальнымBack и прокрутка до аудио подтверждены. App tree/build.gradle/pin послеf858 без изменений. Отправляется новый полныйCI, пока не считать680/0.
+
+
+2026-11-15T07:22:59Z: main ebc0c0147048923f7db1fe652377f4562ada6300 отправлен fast-forward, полныйCI43689688187/job132737492213 in_progress. Предыдущий signed43689168080 корректноskipped. App tree послеf858 неизменён; новые6/6 Audio/Table paths подтверждены, полный680/0 покаожидается. Prompt существующейautomation09:15UTC обновлён на этотCI/свежие документы, расписание не менялось и дублей не создавалось.
