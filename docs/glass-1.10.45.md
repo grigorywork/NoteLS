@@ -23,3 +23,19 @@ Checkpoint f0f8fc5 сохранён в codex/glass-1.10.45. Новый GlassAppe
 Второй glass45-checks2.log: **36тестов/5отказов/0errors/skipped**, не успех. Обнаружен реальный запас контраста4.28<4.5 при консервативном наложении всех четырёх пиков в тёмной синей палитре: альфы тёмных пятен уменьшены, порог4.5 сохранён. Ещё4 отказа — тестовый harness: singleton SettingsRepository между разными Application теперь сбрасывается как в существующих GroqSettingsTest, добавлено реальное повторное чтение prefs; PixelCopy callback не работает в Native Robolectric, заменён рисунком реального Dialog decorView через NativeCanvas; Back вызывается через настоящий ComponentDialog dispatcher вместо клавиши в Compose child. Assertions данных, Cancel/Back и доступности сохранены, таймауты не увеличены. Повторяются те же36/lint/assemble.
 
 Третий glass45-checks3.log: **36/36/0fail/errors/skipped**, lint0error/15warnings/2info, assembleDebug SUCCESS,7m40s. Все5 pure/3prefs/4UI/9старыхGlassTheme/5Compact/4Groups/6UiCatalog подтверждены. Реальный prefs reload после сброса repository проверен. Два NativeCanvas снимка осмотрены: текст чёткий, ползунки/выборы/Save/Cancel доступны. Для дополнительной проверки ограниченной высоты тёмный EN/largefont кейс уточнён на дисплей320×640, запускаются4 UI повторно. Это не новые4 случая поверх36, а пересечение; полный CI/Signed пока не выполнены,45 НЕinstallable.
+
+## Локальное завершение и аудит
+
+Финальный glass45-ui-final.log **4/4/0fail/errors/skipped**, lint0error/15warnings/2info, assembleDebug SUCCESS4m12s. Это те же4 UI из36, итого36 разных целевых случаев, не40. Тёмный EN/largefont Native снимок получен на реальном тестовом окне320×640; Save/Cancel находятся в окне, помощь/сброс прокручиваются. Светлый draft и тёмный снимки осмотрены, сохранены docs/design/glass-1.10.45.
+
+Аудит: диалог не сохраняет поля доSave; reset меняет толькоdraft; Cancel и Android ComponentDialog Back сохраняют прежние prefs. Сохранение4полей однимeditor, неверные типы/enum/NaN/Infinity читаются независимо и безопасно, повторное создание repository сохраняет результат; CLASSIC не удаляетglassprefs. Preview обособлен, текст находится вне слоя blur. В API<31 нет попыток RenderEffect, SOLID/безсобственногофона эффект не создаётся. Alpha и контраст проверены, Primary/textslot не подменяются. DrawWithCache кэширует геометрию/кисти; нет таймеров/анимаций/listeners/снимковфона/фоновыхзадач. Все остальные параметры/7групп/initialGroup/Back сохранены. Room18/schemas/data/sync/backup/AI/signingcode не менялись. Физические GPU/телефон/батарея не измерены; SDK28 Native не доказывает аппаратныйblurAPI31.
+
+ПолныйCI765ожидаемый и autoSigned ещё не подтверждены.45 не выдавать до независимой проверки;76 не закрыт.
+
+Локальные PNG SHA256:
+```json
+{
+  "light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+  "dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8"
+}
+```
