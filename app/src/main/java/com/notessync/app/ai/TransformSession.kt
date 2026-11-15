@@ -13,14 +13,14 @@ class TransformSession(
     private val transport: TransformTransport,
     private val current: suspend () -> Boolean,
     private val apply: suspend (String) -> Boolean,
-    dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate
+    dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+    private val presented: TransformConfig = config()
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val mutable = MutableStateFlow(TransformState())
     val state: StateFlow<TransformState> = mutable.asStateFlow()
     private var work: Job? = null
     private var generation = 0L
-    private val presented = config()
     fun generate(input: String, mode: TransformMode) {
         if (mutable.value.phase == TransformPhase.CLOSED || mutable.value.phase == TransformPhase.WORKING || mutable.value.phase == TransformPhase.APPLYING) return
         val stamp = ++generation

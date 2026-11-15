@@ -4,12 +4,14 @@ import com.notessync.app.i18n.uiText
 import com.notessync.app.voice.TextStructurer
 
 enum class AiProvider(private val text: String) {
-    LOCAL_RULES("Без сети (правила)"), OPENAI("OpenAI"); val label get() = uiText(text)
+    LOCAL_RULES("Без сети (правила)"), OPENAI("OpenAI"), GROQ_QWEN("Qwen · Groq");
+    val label get() = uiText(text)
+    val isNetwork get() = this != LOCAL_RULES
 }
 enum class TransformMode(private val text: String) {
     TEXT("Связный текст"), LIST("Список"); val label get() = uiText(text)
 }
-data class TransformConfig(val enabled: Boolean = false, val provider: AiProvider = AiProvider.LOCAL_RULES, val model: String = "")
+data class TransformConfig(val enabled: Boolean = false, val provider: AiProvider = AiProvider.LOCAL_RULES, val model: String = if (provider == AiProvider.GROQ_QWEN) GroqQwenTransport.MODEL else "")
 enum class TransformProblem { DISABLED, EMPTY, TOO_LARGE, KEY_MISSING, KEY_UNAVAILABLE, MODEL_MISSING, STALE, ACCESS,
     NETWORK, TIMEOUT, UNAUTHORIZED, RATE_LIMIT, BILLING, MODEL_UNAVAILABLE, FORBIDDEN, REGION, BAD_REQUEST,
     SERVICE_UNAVAILABLE, OUTPUT_LIMIT, PROVIDER, INCOMPLETE, REFUSED, SAVE }

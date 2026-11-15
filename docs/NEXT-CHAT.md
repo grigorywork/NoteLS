@@ -1,5 +1,9 @@
 # NoteLS: продолжение разработки
 
+## Текущий74: Qwen в кандидате1.10.43/code66/Room17
+
+42 полностью проверен ниже. Дополнение Qwen применено в43; [отчёт](qwen-1.10.43.md).18новых оффлайнкейсов плюс старыеAI/EditorTransform/SettingsGroups/UiCatalog/lint/assemble готовятся к запуску. Пока43неCIpass/неinstallable. Исходныйdraft.patch уже применён и удалён, не применятьповторно. Веткаcheckpointcodex/qwen-1.10.43 сохраняется перед запуском. Приживойпроверке main/testне менять/второйGradleне запускать. РеальныхплатныхAPIвызововнет. После полногоCI/Signed43/независимойпроверки закрыть74 и затем75–82 безновыхэтапов.
+
 ## Проверенный выпуск 1.10.42/code65/Room17 — компактная часть74
 
 Полный [CI43731374968](https://github.com/grigorywork/NoteLS/actions/runs/43731374968), job132864325436, runtime source`1b5504518314cb178306d87e31a8782374548090`: **714 тестов,0 отказов/пропусков**, lint0error/16warnings/2info, build20m20s. Report14169058870 ZIP SHA256`47030231b02b7c1fd712b16719ff1f74a0df8d40b773779e49a56c5ea181590e`=API; HTML/XML сверены,3NativeCanvasPNG побайтово равны локальным.
