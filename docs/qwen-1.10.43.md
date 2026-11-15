@@ -23,3 +23,6 @@ Freeусловия видны: бесплатен только аккаунт н
 
 
 [Инструкция настройки Qwen RU/EN](ai-qwen-setup.md) сверена с фактическими UIстроками/источником редактора: вход через нижний + (не ⋮), выделение либо весьтекст, фиксированная модель/Freeусловия/явныеSendиApply.
+
+
+2026-11-15T18:19UTC: полныйCI43744048331/job132903324579/sourceaf01d51ee59756bcdf060123a9b4584c1541c789 SUCCESS:732/0fail/0ignored/lint0error16warnings2info/build19m9s. Скачанныйreport14173967928 ZIP567029bytes SHA256b8acae7369ad1c470fe6f63cd30984d717495e98ef4afd171baf0630cd3ba0c0=API; HTML/XMLсверены. Все4settings-previewPNG побайтоворавнылокальным, QwenPNGf58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1. АвтоSigned43746004909:identity132909328311SUCCESS/release132909360292in_progress(Buildandlintrelease). Пока43НЕпроверенныйinstallable/74НЕзакрыт;дождатьсяSignedи независимойпроверкиAPK. Последнийverified42. Main/testне менять/второйGradleне запускать. Ключ/Secretпрежние.

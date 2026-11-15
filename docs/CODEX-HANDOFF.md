@@ -1,5 +1,5 @@
 <!-- CURRENT-QWEN-43 -->
-> **74/Qwen:1.10.43/code66/Room17**, локально50/50/lint0error/assembleSUCCESS8m8s, NativeCanvasпроверен. ОтправляетсяmainдляполногоCI732ожидаемого/autoSigned; покаНЕinstallable43. [Отчёт](qwen-1.10.43.md), [продолжение](NEXT-CHAT.md). Не менятьmain/testприживойпроверке/не запускать второйGradle. FreeусловияGroq/account/keyявноописаны, реальныхAIвызововнет. Последнийпроверенныйinstallable42ниже. ВсеWIPвmain/draftpatchприменён/удалён.
+> **74/Qwen1.10.43/code66/Room17**: полныйCI43744048331/sourceaf01d51=732/0fail/0ignored/lint0error/build19m9s, ZIPreport/API/4PNGсверены. Signed43746004909/identity132909328311SUCCESS/release132909360292in_progress. Пока43НЕinstallable/74НЕзакрыт. [Отчёт](qwen-1.10.43.md), [продолжение](NEXT-CHAT.md). Не менятьmain/test/не запускать второйGradle при проверке. Последнийпроверенныйinstallable42ниже; платныхAIвызововнет.
 <!-- END-CURRENT-QWEN-43 -->
 
 <!-- CURRENT-SETTINGS-42 -->
