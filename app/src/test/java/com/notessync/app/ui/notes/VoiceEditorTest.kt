@@ -227,6 +227,7 @@ class VoiceEditorTest {
             assertTrue(recognizer.isDestroyed); recognizer.triggerOnResults(result("Old owner text"))
             assertEquals("Original", first.contentField.text); assertEquals("Second original", second.contentField.text)
             assertSame(old, ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+            second.onContentChange(androidx.compose.ui.text.input.TextFieldValue("Second original", androidx.compose.ui.text.TextRange(0)))
         }
         compose.onNodeWithContentDescription("Действия").performClick()
         compose.onNodeWithText("Голосовой ввод").performClick()
@@ -259,7 +260,7 @@ class VoiceEditorTest {
         compose.runOnIdle {
             val bitmap = android.graphics.Bitmap.createBitmap(drawingView.width, drawingView.height, android.graphics.Bitmap.Config.ARGB_8888)
             drawingView.draw(android.graphics.Canvas(bitmap))
-            val output = java.io.File("build/reports/voice-preview/panel-ime.png").apply { parentFile.mkdirs() }
+            val output = java.io.File("build/reports/voice-preview/panel-ime.png").apply { parentFile?.mkdirs() }
             output.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
         }
     }

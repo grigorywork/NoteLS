@@ -1426,3 +1426,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: после выдачи проверенного39 начат72/1.10.40/code63/Room17. Подготовлена панель диктовки вне popup/scroll с режимом/языком, preview guard/cancel, owner-keyedmanager/state, корректный непустой кандидат/защита malformedBundle. Новые регрессии и адаптация старых Voice/AudioUI без ослабления assertions/caps. Выполняется `/workspace/tools/voice40-checks.log`; пока неpass/не полныйCI/неinstallable40. Резервная тажеautomation после доставки в активнуюработу обновлена на14:06:02UTC/is_enabledtrue, подтвержденоAPI. Дублейисполнителя/Gradleнет. Следующие73–82послезакрытия72;ключ/Roomпрежние.
+
+
+2026-11-15:72 локально подтверждён63 разными целевымикейсами.63-прогон62pass/1ошибка новогоownerfixture (ожиданиевставкивначало приdefaultкурсоре вконце); явныйTextRange(0) сохранён с прежнимassertion, повторные8/8VoiceEditor0fail/errors/skipped. LintDebug0error/15warnings/2info/assembleDebugSUCCESS4m26s, voice40-ui-final.log. NativeCanvas panel-ime.png просмотрен, курсорвиденнадIME, управлениевнеscroll/popup. Checkpointcodex/voice-1.10.40; нормальныйfast-forwardmainдляполногоCI701ожидается,ноегоещёнеpass/неinstallable40. Ключ/Room17не менялись.
