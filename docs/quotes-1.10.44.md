@@ -19,3 +19,6 @@
 
 
 К проверке подготовлены21новыйкейс:7parser/6NativeRoom/3encryptedbackup/5NativeUI. Добавлена проверкаполей/идентичностей/счётчика quoteDBsnapshotдоизмененийliveприrestore, отложенныйотчётsnackbarне держитbusy, отменаfileIOзакрываетInputStream. NativeCanvasожидаютсяbuild/reports/quotes-preview, включенывCIartifact. Запускаетсяquotes44-checks.log, schema18jsonдолжнабытьсохраненапослеKSP. ПокаНЕpass/НЕinstallable.
+
+
+2026-11-15:quotes44-checks.log main/test Kotlin compilation SUCCESS, выполняются целевые тесты. fun import вKotlinдопустимкакsoftkeyword, переименовыватьбезнуждыне требуется. KSPсоздалschema18(7таблиц), онасохраняетсявcheckpoint. ПокаНЕtestPASS/неCI/неinstallable44. ЗапущенровноодинGradle/session68586, исходникиmain/testзаморожены.

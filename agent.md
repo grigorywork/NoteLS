@@ -1495,3 +1495,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15:75вкандидате44/code67/Room18подготовлен:2Roomтаблицы+17→18migration/backuprestoreallowlist, UTF8JSON/TXTbounded/cancelledstream/depth/500/2MiB/2000/duplicates/atomictransactions/staleguard; pinnedfooterseparatescroll/boundedheight/largefont/navigation96dp; CRUD/SAF/preview/ownfilter/менюpin/delete/старыеbuiltins; manualcustomsettingsfontpreservesDBpin/textchangeclears. ПокаНЕскомпилирован/НЕпроверен/неinstallable44. Исходникисохраняютсявcodex/quotes-1.10.44;UIрегрессииещёготовятся, Gradleещёне запущен, схема18jsonпоявитсяпослеKSPинеобходимакоммиту. Последнийverified43.
+
+
+2026-11-15:quotes44-checks.log main/test Kotlin compilation SUCCESS, выполняются целевые тесты. fun import вKotlinдопустимкакsoftkeyword, переименовыватьбезнуждыне требуется. KSPсоздалschema18(7таблиц), онасохраняетсявcheckpoint. ПокаНЕtestPASS/неCI/неinstallable44. ЗапущенровноодинGradle/session68586, исходникиmain/testзаморожены.
