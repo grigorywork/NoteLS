@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import org.robolectric.shadows.ShadowDialog
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
@@ -90,7 +89,8 @@ class GlassSettingsUiTest {
         compose.onNodeWithTag("glass-cancel").performClick()
         compose.runOnIdle { assertEquals(original, settings.state.value.glassAppearance) }
     }
-    @Test fun `English dark large text keeps actions help and draft on restoration`() {
+    @Test @Config(qualifiers = "ru-w320dp-h640dp")
+    fun `English dark large text keeps actions help and draft on restoration`() {
         settings.apply { setUiLanguage(UiLanguage.ENGLISH); setThemeMode(ThemeMode.DARK); setFontScale(SettingsRepository.FONT_LARGE) }
         val restoration = StateRestorationTester(compose)
         restoration.setContent {
