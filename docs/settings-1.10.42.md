@@ -29,3 +29,6 @@
 Финальныйsettings42-preview-final.log SUCCESS5m49s:11/11 (5CompactSettingsUI+6UiCatalog),0fail/errors/skipped, lintDebug0error/15warnings/2info/assembleDebugsuccess. Остальные15неизменённыхкейсовпрошлиранее: всего26разныхцелевыхподтверждены.3NativeCanvasPNGпросмотрены; overview7группполностьюв320×640/48dp, Appearanceкороткийfontpreview/всевыборы, Voice4настройки/краткаяprivacy/help.
 
 ВсеWIPc28c0cc/75e8947/d19dfddсохраненывcodex/settings-1.10.42. Отправляетсяобычныйfast-forwardmainдляполногоCI714(ожидается, покаНЕpass) и последующегоавтоSigned. ДополнениепоQwen/DeepSeekпо-прежнемуожидаетответа, ниодногоновогопровайдера/платноговызова/подменымоделинет.
+
+
+2026-11-15T15:50UTC: Полный pushCI43731374968/job132864325436 выполняется для runtime source1b5504518314cb178306d87e31a8782374548090. Исходники заморожены до результатаCI/автоSigned, локальногоGradleнет. Пока42неустановочный.

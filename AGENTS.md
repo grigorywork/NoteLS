@@ -68,3 +68,6 @@
 
 
 2026-11-15:74/1.10.42/code65/Room17 локально26разныхцелевыхкейсовподтверждены: settings42-checks2.log26/26success7m23s; финальныйкороткийfontpreview settings42-preview-final.log11/11success5m49s/lint0error/15warnings/2info/assembleDebug.3NativeCanvasпросмотрены,7группв320×640/48dp, выбранныйfontpreviewоднакороткаястрока. ВсеWIPc28c0cc/75e8947/d19dfddвcodex/settings-1.10.42, отправляютсяfast-forwardmainдляполногоCI714ожидаемого(НЕpassпока) иautoSigned. Qwen/DeepSeekответнеполучен,провайдерыне добавлены/платныхвызововнет. Ключ/Secret/Room/data/securityпрежние;последнийinstallable41.
+
+
+2026-11-15T15:50UTC: Полный pushCI43731374968/job132864325436 выполняется для runtime source1b5504518314cb178306d87e31a8782374548090. Исходники заморожены до результатаCI/автоSigned, локальногоGradleнет. Пока42неустановочный.
