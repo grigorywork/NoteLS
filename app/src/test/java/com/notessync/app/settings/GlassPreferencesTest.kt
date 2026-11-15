@@ -15,14 +15,17 @@ class GlassPreferencesTest {
     private val app: Application get() = RuntimeEnvironment.getApplication()
     private val settings get() = SettingsRepository.get(app)
     private val prefs get() = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    @Before fun before() { settings.setGlassAppearance(GlassAppearance()) }
-    @After fun after() { settings.setGlassAppearance(GlassAppearance()); settings.setInterfaceStyle(InterfaceStyle.CLASSIC) }
+    private fun reset() { SettingsRepository::class.java.getDeclaredField("instance").apply { isAccessible = true; set(null, null) } }
+    @Before fun before() { reset(); prefs.edit().clear().commit(); settings.setGlassAppearance(GlassAppearance()) }
+    @After fun after() { settings.setGlassAppearance(GlassAppearance()); settings.setInterfaceStyle(InterfaceStyle.CLASSIC); reset() }
     @Test fun `whole appearance survives style toggles without changing unrelated preferences`() {
         val old = settings.state.value
         val custom = GlassAppearance(0.9f, 0.7f, GlassTint.TEAL, GlassBackdrop.BANDS)
         settings.setGlassAppearance(custom)
         settings.setInterfaceStyle(InterfaceStyle.CLASSIC); settings.setInterfaceStyle(InterfaceStyle.GLASS)
         assertEquals(custom, settings.state.value.glassAppearance)
+        assertEquals(old.copy(glassAppearance = custom, interfaceStyle = InterfaceStyle.GLASS), settings.state.value)
+        reset()
         assertEquals(old.copy(glassAppearance = custom, interfaceStyle = InterfaceStyle.GLASS), settings.state.value)
     }
     @Test fun `corrupt individual preferences do not discard other valid fields`() {

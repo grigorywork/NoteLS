@@ -61,8 +61,8 @@ fun glassTintColor(tint: GlassTint, dark: Boolean): Color = when (tint) {
 }
 
 fun auroraBlobColors(dark: Boolean, accent: Color): List<Color> = if (dark) listOf(
-    accent.copy(alpha = 0.20f), Color(0xFF4A6CF7).copy(alpha = 0.18f),
-    Color(0xFF9D4EDD).copy(alpha = 0.16f), Color(0xFF2DD4BF).copy(alpha = 0.12f)
+    accent.copy(alpha = 0.16f), Color(0xFF4A6CF7).copy(alpha = 0.14f),
+    Color(0xFF9D4EDD).copy(alpha = 0.12f), Color(0xFF2DD4BF).copy(alpha = 0.10f)
 ) else listOf(
     accent.copy(alpha = 0.30f), Color(0xFFA5C8FF).copy(alpha = 0.55f),
     Color(0xFFF3C1E8).copy(alpha = 0.50f), Color(0xFFBFEFE0).copy(alpha = 0.50f)

@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import org.robolectric.shadows.ShadowDialog
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
@@ -32,7 +34,9 @@ import java.io.File
 class GlassSettingsUiTest {
     @get:Rule val compose = createComposeRule()
     private val settings get() = SettingsRepository.get(RuntimeEnvironment.getApplication())
-    @Before fun before() { settings.apply {
+    @Before fun before() {
+        SettingsRepository::class.java.getDeclaredField("instance").apply { isAccessible = true; set(null, null) }
+        settings.apply {
         setUiLanguage(UiLanguage.RUSSIAN); setThemeMode(ThemeMode.LIGHT); setFontScale(1f)
         setGlassAppearance(GlassAppearance()); setInterfaceStyle(InterfaceStyle.GLASS)
     } }
@@ -57,9 +61,16 @@ class GlassSettingsUiTest {
         compose.onNode(hasText(label) and hasAnyAncestor(isPopup())).performScrollTo().performClick()
     }
     private fun screenshot(name: String) {
-        val bitmap = compose.onNode(isDialog()).captureToImage().asAndroidBitmap()
-        val file = File("build/reports/glass-preview/$name.png").apply { parentFile.mkdirs() }
-        file.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        compose.onNode(isDialog()).assertIsDisplayed()
+        compose.runOnIdle {
+            // NativeCanvas draws the actual dialog view. PixelCopy's redraw callback is not simulated.
+            val view = requireNotNull(ShadowDialog.getLatestDialog().window).decorView
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            view.draw(Canvas(bitmap))
+            val file = File("build/reports/glass-preview/$name.png").apply { parentFile?.mkdirs() }
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
     }
     @Test fun `draft preview does not persist until Save and solid disables only frost`() {
         dialog(); progress("transparency", 0.9f); progress("frost", 0.7f)
@@ -109,7 +120,8 @@ class GlassSettingsUiTest {
         compose.runOnIdle { settings.setInterfaceStyle(InterfaceStyle.GLASS) }
         compose.onNodeWithTag("settings-glass-open").performScrollTo().performClick()
         progress("transparency", 1f)
-        compose.onNode(isDialog()).performKeyInput { pressKey(Key.Back) }
+        // Exercise Android's real dialog Back dispatcher, rather than a key sent to the Compose child.
+        compose.runOnIdle { (ShadowDialog.getLatestDialog() as androidx.activity.ComponentDialog).onBackPressedDispatcher.onBackPressed() }
         compose.onNode(isDialog()).assertDoesNotExist()
         compose.runOnIdle { assertEquals(GlassAppearance(), settings.state.value.glassAppearance) }
         compose.onNodeWithTag("settings-glass-open").assertIsDisplayed()
