@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
 import com.notessync.app.ui.notes.text.FormatPopup
 
-internal enum class EditorPopup { INSERT, NOTEBOOK, REMINDER, COUNTDOWN, TASK, MORE, TABLES, FORMAT }
+internal enum class EditorPopup { INSERT, NOTEBOOK, REMINDER, COUNTDOWN, TASK, MORE, TABLES, FORMAT, VOICE_OPTIONS }
 
 @Stable
 internal class EditorUiState {
@@ -56,6 +56,7 @@ internal class EditorUiState {
     var showTimePickerFor by mutableStateOf<Long?>(null)
     var showPriorityMenu by mutableStateOf(false)
     var showDeadlinePicker by mutableStateOf(false)
+    var showVoice by mutableStateOf(false)
     var showMedia by mutableStateOf(false)
     var selectionRect by mutableStateOf<androidx.compose.ui.geometry.Rect?>(null)
     val modalOpen: Boolean get() = showAddTable || openTable != null || openPhoto != null || showDeleteDialog || showTagDialog ||

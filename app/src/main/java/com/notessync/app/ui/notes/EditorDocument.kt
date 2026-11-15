@@ -268,6 +268,7 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
             else -> ""
         }
         val inserted = prefix + processed + suffix
+        onEditorFocus(EditorField.CONTENT)
         edit { updateContent(TextFieldValue(
             before + inserted + after,
             TextRange((before + inserted).length)

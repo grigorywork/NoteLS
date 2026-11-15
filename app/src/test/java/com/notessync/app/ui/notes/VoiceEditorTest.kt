@@ -64,7 +64,7 @@ class VoiceEditorTest {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ShadowSpeechRecognizer.reset()
         SettingsRepository.get(app).apply {
             setUiLanguage(UiLanguage.RUSSIAN); setVoiceEngine(VoiceEngine.ONLINE)
-            setVoiceControl(VoiceControl.HOLD); setVoiceStructure(VoiceStructure.RAW); setBackupFrequency(BackupFrequency.MANUAL)
+            setVoiceLanguage(VoiceLanguage.SYSTEM); setVoiceControl(VoiceControl.HOLD); setVoiceStructure(VoiceStructure.RAW); setBackupFrequency(BackupFrequency.MANUAL)
         }
         shadowOf(app.packageManager).addResolveInfoForIntent(Intent(RecognitionService.SERVICE_INTERFACE), ResolveInfo().apply {
             serviceInfo = ServiceInfo().apply { name = "TestSpeechService"; packageName = "test.speech" }
@@ -88,6 +88,7 @@ class VoiceEditorTest {
         } }
         compose.waitUntil(10_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); editor.isReady }
         compose.onNodeWithContentDescription("Действия").performClick()
+        compose.onNodeWithText("Голосовой ввод").performClick()
         return editor
     }
     private fun result(value: String) = Bundle().apply { putStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION, arrayListOf(value)) }
@@ -138,4 +139,67 @@ class VoiceEditorTest {
         }
     }
 
+    @Test fun `tap dictation stays visible outside popup inserts once at selection and supports undo`() {
+        shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        val editor = content()
+        compose.onNodeWithText("Удерживайте микрофон и говорите").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Параметры диктовки").performClick()
+        compose.onNodeWithText(VoiceControl.TAP.label).performClick()
+        compose.onNodeWithContentDescription("Параметры диктовки").performClick()
+        compose.onNodeWithText("Русский").performClick()
+        compose.runOnIdle {
+            editor.updateContent(androidx.compose.ui.text.input.TextFieldValue("Original", androidx.compose.ui.text.TextRange(0, 8)))
+        }
+        compose.onNodeWithTag("voice-input").performClick()
+        val recognizer = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+        compose.runOnIdle {
+            assertEquals("ru-RU", recognizer.lastRecognizerIntent.getStringExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE))
+            recognizer.triggerOnReadyForSpeech(Bundle())
+            recognizer.triggerOnPartialResults(result("Проверка"))
+        }
+        compose.onNodeWithText("Проверка").assertIsDisplayed()
+        compose.onNodeWithTag("voice-input").performClick()
+        compose.runOnIdle {
+            recognizer.triggerOnResults(result("Готовый текст")); recognizer.triggerOnResults(result("Дубль"))
+            assertEquals("Готовый текст", editor.contentField.text)
+            assertEquals(com.notessync.app.notes.history.EditorField.CONTENT, editor.editorField)
+            assertTrue(recognizer.isDestroyed)
+        }
+        compose.onNodeWithTag("voice-panel").assertDoesNotExist()
+        compose.runOnIdle { editor.undo(); assertEquals("Original", editor.contentField.text) }
+    }
+    @Test fun `preview cancels active recognition and rejects direct and late insertion`() {
+        shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        val editor = content()
+        compose.onNodeWithTag("voice-input").performClick()
+        val recognizer = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+        compose.runOnIdle { recognizer.triggerOnReadyForSpeech(Bundle()); editor.previewMode = true }
+        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        compose.runOnIdle {
+            assertTrue(recognizer.isDestroyed)
+            recognizer.triggerOnResults(result("Late preview"))
+            editor.insertVoiceText("Direct preview", VoiceStructure.RAW)
+            assertEquals("Original", editor.contentField.text)
+            editor.previewMode = false
+        }
+        compose.onNodeWithTag("voice-input").assertIsEnabled()
+        compose.runOnIdle { assertTrue(recognizer.isDestroyed) }
+    }
+    @Test fun `closing panel cancels without accepting partial or late final text`() {
+        shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        val editor = content()
+        compose.onNodeWithTag("voice-input").performClick()
+        val raw = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        val recognizer = shadowOf(raw)
+        compose.runOnIdle { recognizer.triggerOnReadyForSpeech(Bundle()); recognizer.triggerOnPartialResults(result("Do not save")) }
+        compose.onNodeWithContentDescription("Закрыть диктовку").performClick()
+        compose.onNodeWithTag("voice-panel").assertDoesNotExist()
+        compose.runOnIdle {
+            assertTrue(recognizer.isDestroyed); recognizer.triggerOnResults(result("Late final"))
+            assertEquals("Original", editor.contentField.text)
+        }
+        compose.onNodeWithContentDescription("Действия").performClick()
+        compose.onNodeWithText("Голосовой ввод").performClick()
+        compose.runOnIdle { assertSame(raw, ShadowSpeechRecognizer.getLatestSpeechRecognizer()) }
+    }
 }

@@ -42,6 +42,12 @@ enum class VoiceControl(private val labelRu: String) {
     val label: String get() = uiText(labelRu)
 }
 
+enum class VoiceLanguage(private val labelRu: String, private val tag: String?) {
+    SYSTEM("Язык устройства", null), RUSSIAN("Русский", "ru-RU"), ENGLISH("English", "en-US");
+    val label: String get() = uiText(labelRu)
+    fun languageTag(): String = tag ?: java.util.Locale.getDefault().toLanguageTag()
+}
+
 enum class VoiceStructure(private val labelRu: String) {
     RAW("Как есть"),
     POINTS("По пунктам"),
@@ -131,6 +137,7 @@ data class SettingsState(
     val accentColor: AccentColor = AccentColor.DYNAMIC,
     val voiceEngine: VoiceEngine = VoiceEngine.ONLINE,
     val voiceControl: VoiceControl = VoiceControl.HOLD,
+    val voiceLanguage: VoiceLanguage = VoiceLanguage.SYSTEM,
     val voiceStructure: VoiceStructure = VoiceStructure.POINTS,
     // Этап 33: цветная подсветка задач в виджете (чтобы не сливались).
     val widgetColoredTasks: Boolean = false,
@@ -201,6 +208,7 @@ class SettingsRepository private constructor(context: Context) {
         accentColor = enumPref(KEY_ACCENT_COLOR, AccentColor.DYNAMIC),
         voiceEngine = enumPref(KEY_VOICE_ENGINE, VoiceEngine.ONLINE),
         voiceControl = enumPref("voice_control", VoiceControl.HOLD),
+        voiceLanguage = enumPref("voice_language", VoiceLanguage.SYSTEM),
         voiceStructure = enumPref(KEY_VOICE_STRUCTURE, VoiceStructure.POINTS),
         widgetColoredTasks = prefs.getBoolean(KEY_WIDGET_COLORED_TASKS, false),
         appFont = enumPref(KEY_APP_FONT, AppFont.SYSTEM),
@@ -244,6 +252,8 @@ class SettingsRepository private constructor(context: Context) {
     fun setVoiceEngine(engine: VoiceEngine) {
         prefs.edit().putString(KEY_VOICE_ENGINE, engine.name).apply()
     }
+
+    fun setVoiceLanguage(language: VoiceLanguage) { prefs.edit().putString("voice_language", language.name).apply(); _state.value = read() }
 
     fun setVoiceControl(control: VoiceControl) { prefs.edit().putString("voice_control", control.name).apply(); _state.value = read() }
 

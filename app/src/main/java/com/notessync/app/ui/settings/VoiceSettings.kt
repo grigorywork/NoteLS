@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.notessync.app.settings.SettingsRepository
 import com.notessync.app.settings.VoiceControl
 import com.notessync.app.settings.VoiceEngine
+import com.notessync.app.settings.VoiceLanguage
 import com.notessync.app.settings.VoiceStructure
 import com.notessync.app.settings.SettingsState
 
@@ -50,6 +51,14 @@ internal fun VoiceSettings(state: SettingsState, settings: SettingsRepository) {
             Text(uiText("Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет."),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp))
+            Text(uiText("Язык распознавания"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)) {
+                VoiceLanguage.entries.forEach { language ->
+                    SettingsChoice(selected = state.voiceLanguage == language, onClick = { settings.setVoiceLanguage(language) },
+                        label = { Text(language.label) })
+                }
+            }
             Text(uiText("Управление микрофоном"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)) {

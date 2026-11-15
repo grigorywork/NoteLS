@@ -442,7 +442,10 @@ class NoteEditorViewModel @JvmOverloads constructor(
     fun onTableCellChange(ref: TableCellRef, before: TextFieldValue, next: TextFieldValue) = document.onTableCellChange(ref, before, next)
     fun resizeTableColumn(id: String, column: Int, width: Int) = document.resizeTableColumn(id, column, width)
     fun resizeTableRow(id: String, row: Int, height: Int) = document.resizeTableRow(id, row, height)
-    fun insertVoiceText(raw: String, structure: com.notessync.app.settings.VoiceStructure) = document.insertVoiceText(raw, structure)
+    fun insertVoiceText(raw: String, structure: com.notessync.app.settings.VoiceStructure) {
+        if (!isReady || isClosing || accessDenied || previewMode) return
+        document.insertVoiceText(raw, structure)
+    }
     val activeFormatting: Map<FormatKind, String?> get() = document.activeFormatting
     val focusedTableCell: TableCellRef? get() = document.focusedTableCell
     val focusedTableSelection: EditorSelection? get() = document.focusedTableSelection

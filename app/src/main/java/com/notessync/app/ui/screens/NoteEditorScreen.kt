@@ -92,7 +92,7 @@ fun NoteEditorScreen(
     imeInsets: WindowInsets = WindowInsets.ime
 ) {
     val scope = rememberCoroutineScope()
-    val ui = remember { EditorUiState() }
+    val ui = remember(viewModel) { EditorUiState() }
     val selectionToolbar = ui.selectionToolbar
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -115,15 +115,16 @@ fun NoteEditorScreen(
     val settingsState by remember { SettingsRepository.get(context).state }.collectAsStateWithLifecycle()
 
     // Этап 32: голосовой ввод.
-    var voiceState by remember { mutableStateOf(com.notessync.app.voice.VoiceState.IDLE) }
-    var voiceClosing by remember { mutableStateOf(false) }
-    var voicePartial by remember { mutableStateOf("") }
-    var voiceStructureAtStart by remember { mutableStateOf(settingsState.voiceStructure) }
-    var permissionPending by remember { mutableStateOf(false) }
+    var voiceState by remember(viewModel) { mutableStateOf(com.notessync.app.voice.VoiceState.IDLE) }
+    var voiceClosing by remember(viewModel) { mutableStateOf(false) }
+    var voicePartial by remember(viewModel) { mutableStateOf("") }
+    var voiceStructureAtStart by remember(viewModel) { mutableStateOf(settingsState.voiceStructure) }
+    var permissionPending by remember(viewModel) { mutableStateOf(false) }
     val currentVoiceEngine = rememberUpdatedState(settingsState.voiceEngine)
     val currentVoiceControl = rememberUpdatedState(settingsState.voiceControl)
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
-    val voiceManager = remember {
+    val currentVoiceLanguage = rememberUpdatedState(settingsState.voiceLanguage)
+    val voiceManager = remember(viewModel, context, lifecycle) {
         com.notessync.app.voice.VoiceInputManager(context,
             object : com.notessync.app.voice.VoiceInputManager.Listener {
                 override fun onState(state: com.notessync.app.voice.VoiceState) {
@@ -132,12 +133,18 @@ fun NoteEditorScreen(
                 }
                 override fun onPartial(text: String) { voicePartial = text }
                 override fun onFinal(text: String) {
-                    viewModel.insertVoiceText(text, voiceStructureAtStart)
+                    if (!voiceClosing && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        viewModel.insertVoiceText(text, voiceStructureAtStart)
+                        if (!viewModel.previewMode && !viewModel.accessDenied && !viewModel.isClosing) {
+                            ui.showVoice = false
+                            scope.launch { contentFocus.requestFocus() }
+                        }
+                    }
                 }
                 override fun onError(message: String) {
                     scope.launch { snackbarHostState.showSnackbar(message) }
                 }
-            })
+            }, languageTag = { currentVoiceLanguage.value.languageTag() })
     }
     DisposableEffect(voiceManager) { onDispose {
         voiceManager.cancel(); viewModel.audioCapture.finish(); viewModel.audioPlayback.stop()
@@ -165,7 +172,7 @@ fun NoteEditorScreen(
         }
     }
     fun startVoiceInput() {
-        if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || voiceClosing || captureState.busy || audioPlaying) return
+        if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || viewModel.previewMode || voiceClosing || captureState.busy || audioPlaying) return
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || permissionPending) return
         val engine = currentVoiceEngine.value
         if (!voiceManager.isAvailable(engine)) {
@@ -179,6 +186,10 @@ fun NoteEditorScreen(
             permissionPending = true
             micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
+    }
+
+    LaunchedEffect(viewModel.previewMode, viewModel.accessDenied, viewModel.isClosing, ui.modalOpen) {
+        if (viewModel.previewMode || viewModel.accessDenied || viewModel.isClosing || ui.modalOpen) voiceManager.cancel()
     }
 
     var audioPermissionPending by remember { mutableStateOf(false) }
@@ -298,6 +309,7 @@ fun NoteEditorScreen(
     BackHandler {
         if (ui.popup != null) ui.dismissMenus()
         else if (selectionToolbar.status == androidx.compose.ui.platform.TextToolbarStatus.Shown) selectionToolbar.hide()
+        else if (ui.showVoice) { voiceManager.cancel(); ui.showVoice = false }
         else exit()
     }
     LaunchedEffect(ui.popup) {
@@ -322,13 +334,17 @@ fun NoteEditorScreen(
         imeInsets = imeInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            EditorTopBar(viewModel, ui, settingsState, onExit = { exit() }, onCalendar = {
-                scope.launch { if (viewModel.saveNow(force = true)) onOpenCalendar() }
-            }, voice = {
-                com.notessync.app.ui.notes.VoiceInputButton(settingsState.voiceControl, voiceState,
-                    onStart = { startVoiceInput() }, onFinish = voiceManager::finish, onCancel = voiceManager::cancel,
-                    enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !voiceClosing && !captureState.busy && !audioPlaying)
-            })
+            Column {
+                val voiceEnabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied &&
+                    !viewModel.previewMode && !voiceClosing && !captureState.busy && !audioPlaying
+                EditorTopBar(viewModel, ui, settingsState, onExit = { exit() }, onCalendar = {
+                    voiceManager.cancel()
+                    scope.launch { if (viewModel.saveNow(force = true)) onOpenCalendar() }
+                }, voiceEnabled = voiceEnabled, onVoice = { ui.showVoice = true })
+                if (ui.showVoice) EditorVoicePanel(ui, settingsState, SettingsRepository.get(context), voiceState,
+                    voicePartial, voiceEnabled, onStart = { startVoiceInput() }, onFinish = voiceManager::finish,
+                    onCancel = voiceManager::cancel, onClose = { voiceManager.cancel(); ui.showVoice = false })
+            }
         },
         bottomBar = {
             EditorBottomBar(viewModel, ui, settingsState, notebooks, captureState.busy, voiceClosing,
@@ -337,44 +353,15 @@ fun NoteEditorScreen(
                 onCamera = { if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                     else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() },
                 voiceIdle = voiceState == com.notessync.app.voice.VoiceState.IDLE,
-                showFormatting = viewModel.contentField.selection.collapsed ||
+                showFormatting = !ui.showVoice && (viewModel.contentField.selection.collapsed ||
                     (selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown &&
-                        ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT))
+                        ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT)))
         }
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
         val viewportHeight = maxHeight
         val inputMinHeight = (viewportHeight - 120.dp).coerceAtLeast(160.dp)
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            // Listening and waiting for the final result are distinct; partial text is never inserted.
-            if (voiceState != com.notessync.app.voice.VoiceState.IDLE) {
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Mic,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                        Text(
-                            when (voiceState) {
-                                com.notessync.app.voice.VoiceState.STARTING -> uiText("Запуск микрофона…")
-                                com.notessync.app.voice.VoiceState.PROCESSING -> uiText("Распознаю…")
-                                else -> voicePartial.ifBlank { uiText("Слушаю… Говорите.") }
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
             if (!ui.showMedia) {
             AudioRecordingPanel(viewModel.audioCapture, captureState)
             AudioAttachmentList(audios, viewModel.audioPlayback, viewModel::removeAttachment) { message ->

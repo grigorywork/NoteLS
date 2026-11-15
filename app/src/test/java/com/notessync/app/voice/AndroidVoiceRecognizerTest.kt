@@ -80,4 +80,21 @@ class AndroidVoiceRecognizerTest {
         }
         manager.cancel()
     }
+    @Test fun `explicit language and first nonblank result are forwarded without duplicate insertion`() {
+        val results = Results(); val manager = VoiceInputManager(app, results) { "ru-RU" }
+        manager.start(VoiceEngine.ONLINE); shadowOf(Looper.getMainLooper()).idle()
+        val recognizer = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+        assertEquals("ru-RU", recognizer.lastRecognizerIntent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE))
+        recognizer.triggerOnResults(Bundle().apply { putStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION, arrayListOf("  ", "Речь")) })
+        recognizer.triggerOnResults(text("Duplicate"))
+        assertEquals(listOf("Речь"), results.finals); assertTrue(results.errors.isEmpty()); assertTrue(recognizer.isDestroyed)
+    }
+    @Test fun `malformed result bundle becomes a recoverable no match and releases recognizer`() {
+        val results = Results(); val manager = VoiceInputManager(app, results)
+        manager.start(VoiceEngine.ONLINE); shadowOf(Looper.getMainLooper()).idle()
+        val recognizer = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+        recognizer.triggerOnResults(Bundle().apply { putInt(SpeechRecognizer.RESULTS_RECOGNITION, 42) })
+        assertTrue(results.finals.isEmpty()); assertEquals(1, results.errors.size)
+        assertTrue(recognizer.isDestroyed); assertEquals(VoiceState.IDLE, results.state)
+    }
 }

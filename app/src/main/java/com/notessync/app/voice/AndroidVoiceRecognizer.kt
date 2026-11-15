@@ -10,7 +10,7 @@ import android.speech.SpeechRecognizer
 import com.notessync.app.settings.VoiceEngine
 import java.util.Locale
 
-internal class AndroidVoiceRecognizerFactory(context: Context) : VoiceRecognizerFactory {
+internal class AndroidVoiceRecognizerFactory(context: Context, private val languageTag: () -> String = { Locale.getDefault().toLanguageTag() }) : VoiceRecognizerFactory {
     private val app = context.applicationContext
     override fun available(engine: VoiceEngine): Boolean = when (engine) {
         VoiceEngine.ONLINE -> SpeechRecognizer.isRecognitionAvailable(app)
@@ -42,7 +42,7 @@ internal class AndroidVoiceRecognizerFactory(context: Context) : VoiceRecognizer
         }
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag())
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
             if (engine == VoiceEngine.LOCAL) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
@@ -54,7 +54,9 @@ internal class AndroidVoiceRecognizerFactory(context: Context) : VoiceRecognizer
             override fun destroy() = recognizer.destroy()
         }
     }
-    private fun text(bundle: Bundle?): String = bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
+    private fun text(bundle: Bundle?): String = runCatching {
+        bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull { !it.isNullOrBlank() }.orEmpty()
+    }.getOrDefault("")
 
     private fun failure(error: Int): VoiceFailure = when (error) {
         SpeechRecognizer.ERROR_AUDIO -> VoiceFailure.AUDIO

@@ -109,7 +109,7 @@ class AudioEditorUiTest {
     @OptIn(ExperimentalTestApi::class)
     private fun assertVoiceDisabled() {
         compose.onNodeWithContentDescription("Действия").performClick()
-        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        compose.onNodeWithText("Голосовой ввод").assertIsNotEnabled()
         compose.onNode(isPopup()).performKeyInput { pressKey(Key.Back) }
     }
     private fun record(vm: NoteEditorViewModel) {

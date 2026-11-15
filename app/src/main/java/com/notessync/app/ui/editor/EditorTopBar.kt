@@ -19,7 +19,7 @@ import com.notessync.app.ui.notes.text.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, settings: SettingsState,
-    onExit: () -> Unit, onCalendar: () -> Unit, voice: @Composable () -> Unit) {
+    onExit: () -> Unit, onCalendar: () -> Unit, voiceEnabled: Boolean, onVoice: () -> Unit) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
         TopAppBar(title = { Text(uiText(if (viewModel.isTask) "Задача" else "Заметка"),
             style = MaterialTheme.typography.titleMedium, maxLines = 1) },
@@ -47,10 +47,9 @@ internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, set
                         Icon(Icons.Default.MoreVert, uiText("Действия"), Modifier.size(20.dp))
                     }
                     DropdownMenu(ui.popup == EditorPopup.MORE, { ui.dismissMenus() }) {
-                        Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            voice()
-                            Text(uiText("Голосовой ввод"), style = MaterialTheme.typography.bodyMedium)
-                        }
+                        DropdownMenuItem(text = { Text(uiText("Голосовой ввод")) },
+                            leadingIcon = { Icon(Icons.Default.Mic, null) }, enabled = voiceEnabled,
+                            onClick = { ui.dismissMenus(); onVoice() })
                         DropdownMenuItem(text = { Text(uiText("Избранное")) },
                             leadingIcon = { Icon(if (viewModel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder, null) },
                             onClick = { viewModel.toggleFavorite(); ui.dismissMenus() })

@@ -218,4 +218,10 @@ internal fun MutableMap<String, String>.addEditorEnglish() {
     put("Заметки", "Notes")
     put("Все заметки", "All notes")
     put("Задачи", "Tasks")
+    put("Язык устройства", "Device language")
+    put("Язык распознавания", "Recognition language")
+    put("Удерживайте микрофон и говорите", "Hold the microphone and speak")
+    put("Нажмите микрофон, затем ещё раз для остановки", "Tap the microphone, then tap again to stop")
+    put("Параметры диктовки", "Dictation options")
+    put("Закрыть диктовку", "Close dictation")
 }

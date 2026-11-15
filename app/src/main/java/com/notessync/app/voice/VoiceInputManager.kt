@@ -8,7 +8,7 @@ import com.notessync.app.settings.VoiceEngine
 
 /** Android adapter. Created and used on Main; no service, model download or automatic restart. */
 @androidx.annotation.MainThread
-class VoiceInputManager(context: Context, listener: Listener) {
+class VoiceInputManager(context: Context, listener: Listener, languageTag: () -> String = { java.util.Locale.getDefault().toLanguageTag() }) {
     interface Listener {
         fun onState(state: VoiceState)
         fun onPartial(text: String)
@@ -16,7 +16,7 @@ class VoiceInputManager(context: Context, listener: Listener) {
         fun onError(message: String)
     }
     private val handler = Handler(Looper.getMainLooper())
-    private val session = VoiceSession(AndroidVoiceRecognizerFactory(context), VoiceDeadline { delay, action ->
+    private val session = VoiceSession(AndroidVoiceRecognizerFactory(context, languageTag), VoiceDeadline { delay, action ->
         val task = Runnable(action)
         handler.postDelayed(task, delay)
         val cancel: () -> Unit = { handler.removeCallbacks(task) }

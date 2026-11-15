@@ -32,4 +32,15 @@ class VoiceSettingsTest {
         val state = SettingsRepository.get(app).state.value
         assertEquals(VoiceControl.HOLD, state.voiceControl); assertEquals(VoiceEngine.LOCAL, state.voiceEngine)
     }
+    @Test fun `language defaults to device persists explicit choice and rejects unknown preference`() {
+        val settings = SettingsRepository.get(app)
+        assertEquals(VoiceLanguage.SYSTEM, settings.state.value.voiceLanguage)
+        settings.setVoiceLanguage(VoiceLanguage.RUSSIAN)
+        shadowOf(Looper.getMainLooper()).idle(); resetInstance()
+        assertEquals("ru-RU", SettingsRepository.get(app).state.value.voiceLanguage.languageTag())
+        app.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putString("voice_language", "broken").commit()
+        resetInstance()
+        assertEquals(VoiceLanguage.SYSTEM, SettingsRepository.get(app).state.value.voiceLanguage)
+        assertEquals(java.util.Locale.getDefault().toLanguageTag(), VoiceLanguage.SYSTEM.languageTag())
+    }
 }
