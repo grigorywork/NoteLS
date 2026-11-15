@@ -1,8 +1,10 @@
 # NoteLS: продолжение разработки
 
-## Текущий75 — кандидат1.10.44/code67/Room18, проверки запускаются
+## Текущий75 — кандидат1.10.44/code67/Room18, повтор проверок
 
-[Отчёт/решения](quotes-1.10.44.md). Локальнаяmain содержит WIP1525aab и последующиеизменения, remotecheckpointcodex/quotes-1.10.44; originmainbf80faaпокаverified43+план. ВновойсредеполучитьСВЕЖИЙcheckpoint, не начинать75со старого43. Реализованы2таблицыRoom/17→18migration/backuprestorevalidation/JSONTXTboundedcancelableimport/duplicate-capacity-staleatomicguards/прикреплённыйfooter/CRUD/SAF/preview/ownfilter/oldquoteappearanceсогласование.21новыйкейс:7parser,6NativeRoom,3encryptedbackup,5NativeUI(RUEN/фиксированныйfooter320dp320height+font2/CRUD+pin/delete/cancel/importpreview/manualsettings). ПокаНЕpass/НЕinstallable44. Выполняется quotes44-checks.log (quoteData/UI+BackupManager/EncryptedBackup/LegacyMigration/UiCatalog/SettingsGroups+lint/assemble). Не менятьmain/testи не запускатьвторойGradleприпроверке. ПослеKSPпроверить/закоммитить app/schemas/.../18.json; полныйCI753ожидаемыйНЕpassпока. Последнийустановочный43 ниже;75закрыватьпослеCI/Signed/независимойпроверкиAPK.
+[Отчёт](quotes-1.10.44.md). Локальнаяmain содержит WIP17262ef (ранние1525aab/70b0c9a/5ae23b3), сохранён вremote codex/quotes-1.10.44; originmainbf80faaпокаverified43+план. Вновойсредеfetchсвежийcheckpointпередпродолжением. Schema18с7таблицамиУЖЕсохранена/закоммичена. Первыйquotes44-checks.log6m52s:50/2fail(48pass)/0errors/skipped; capacityseedбылнаMain(исправленнаRoomwithTransaction,безallowMainThread)/нехваталEN«Редактировать»(добавленEdit), assertionsнеослаблялись. Все5NativeUI/7parser/3quoteencryptedBackup/17→18migration/legacy1→18прошли;3NativePNGосмотрены(framefixed/ellipsis/largefont/navigation). Краткийexecdisconnectразрешилсястатусомrunningconnected/повторнымread, исправленияпримененытолькопослеэтого.
+
+Сейчасвыполняется **quotes44-checks2.log/session41823**, теже50+lint/assemble. Пока44НЕtestPASS/НЕполныйCI/НЕinstallable. Main/testне менять/второйGradleне запускатьприпроверке. funimportдопустимкакKotlinsoftkeyword, ошибоккомпиляциииз-занегонет. Приуспехеаудит/проверкаNativePNG/затемобычныйpushmainдляполногоCI753ожидаемого(неpassбезфактов),autoSigned/независимаяверификация;75закрыватьтолькопослеэтого,затем76–82. Не повторять74/73/72/69/71/70,68iPhoneотложен. Последнийinstallable43 ниже.
 
 ## Проверенный выпуск1.10.43/code66/Room17 —74 закрыт
 
