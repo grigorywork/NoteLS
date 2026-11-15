@@ -24,6 +24,7 @@ import com.notessync.app.i18n.uiText
 internal fun <T> SettingsDropdown(id: String, title: String, value: T, options: List<T>,
     onSelect: (T) -> Unit, label: (T) -> String, enabled: Boolean = true) {
     var expanded by remember { mutableStateOf(false) }
+    LaunchedEffect(enabled) { if (!enabled) expanded = false }
     Box {
         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("settings-choice-$id")
             .semantics(mergeDescendants = true) { stateDescription = label(value) }

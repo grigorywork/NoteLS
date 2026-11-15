@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import com.notessync.app.ui.settings.BackupSettings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -92,7 +95,7 @@ class CompactSettingsUiTest {
     @Test fun `compact voice choices update real preferences and retain local privacy help`() {
         content(); open("voice")
         choice("voice-engine").performScrollTo().performClick(); compose.onNodeWithText("На устройстве").performClick()
-        choice("voice-language").performScrollTo().performClick(); compose.onNodeWithText("Русский").performClick()
+        choice("voice-language").performScrollTo().performClick(); compose.onNode(hasText("Русский") and hasAnyAncestor(isPopup())).performClick()
         choice("voice-control").performScrollTo().performClick(); compose.onNodeWithText(VoiceControl.TAP.label).performClick()
         choice("voice-structure").performScrollTo().performClick(); compose.onNodeWithText("Как есть").performClick()
         compose.runOnIdle {
@@ -127,5 +130,27 @@ class CompactSettingsUiTest {
         compose.onNodeWithContentDescription("Назад").performClick(); open("editor")
         compose.onNodeWithText("Выполненные — в отдельный раздел").performScrollTo()
             .assert(if (settings.state.value.archiveCompletedTasks) isOn() else isOff())
+    }
+    @Test fun `backup frequency retains its warning and busy state dismisses menus without reopening`() {
+        var busy by mutableStateOf(false)
+        compose.setContent {
+            val state by settings.state.collectAsState()
+            NoteSyncTheme { Column(Modifier.requiredSize(320.dp, 640.dp).verticalScroll(rememberScrollState())) {
+                BackupSettings(state, settings, busy, 0, {}, {}, {}, configured = false)
+            } }
+        }
+        choice("backup-frequency").performScrollTo().performClick()
+        compose.onNodeWithText(BackupFrequency.DAILY.label).performClick()
+        compose.runOnIdle { assertEquals(BackupFrequency.DAILY, settings.state.value.backupFrequency) }
+        choice("backup-frequency").performScrollTo().performClick()
+        compose.onNode(isPopup()).assertExists()
+        compose.runOnIdle { busy = true }
+        compose.onNode(isPopup()).assertDoesNotExist()
+        choice("backup-frequency").assertIsNotEnabled()
+        compose.runOnIdle { busy = false }
+        compose.onNode(isPopup()).assertDoesNotExist()
+        choice("backup-frequency").assertIsEnabled()
+        compose.onNodeWithText("локальные копии тоже удаляются", substring = true).performScrollTo().assertIsDisplayed()
+        compose.runOnIdle { assertEquals(BackupFrequency.DAILY, settings.state.value.backupFrequency) }
     }
 }

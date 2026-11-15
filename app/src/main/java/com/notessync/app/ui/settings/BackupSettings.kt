@@ -75,21 +75,8 @@ internal fun BackupSettings(state: SettingsState, settings: SettingsRepository, 
             modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { onCopies() }
         )
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(uiText("Автоматические копии"), style = MaterialTheme.typography.titleSmall)
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 8.dp)
-            ) {
-                BackupFrequency.entries.forEach { frequency ->
-                    SettingsChoice(
-                        selected = state.backupFrequency == frequency,
-                        onClick = { settings.setBackupFrequency(frequency) },
-                        enabled = !busy,
-                        label = { Text(frequency.label) }
-                    )
-                }
-            }
+            SettingsDropdown("backup-frequency", uiText("Автоматические копии"), state.backupFrequency,
+                BackupFrequency.entries, settings::setBackupFrequency, { it.label }, enabled = !busy)
             Text(
                 if (state.lastBackupAt > 0) {
                     uiText("Последний бэкап: %1\$s", (formatDateTime(state.lastBackupAt)))

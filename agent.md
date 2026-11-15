@@ -1462,3 +1462,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T15:16UTC: automationдоставлена, средаstartingдождалисьready безперезапуска, fetchedmainc66c917/деревочистое/живыхGradleиCIнет. Начат74/1.10.42/code65/Room17: компактныеdropdownязык/внешнийвид/голос,7групп/48dpSwitchRows, groupededitor/help; старыефункции/Back/initialGrouptransform/платёжныеиbackupсведениясохранены.4новыхNativeComposeкейса+3снимка, адаптированпутьLanguageUIбезослабленияasserts. Выполняетсяsettings42-checks.log;поканетpass/полногоCI/установочного42. ВыборQwen/DeepSeekожидаетответа, провайдеры/цены/ключи не менялись. Последнийподтверждённыйinstallable41/709, новыйключне создавался.
+
+
+2026-11-15: первый74/settings42-checks.log6m36s:25tests/1failure,24pass0errors/skipped. CompactSettingsUI3/4; Voice-случайнашёл2узла«Русский»(глобальныйязык+popup),поискограниченisPopup,assertionsнеослаблялись. СтарыеSettingsGroups4/Language3/UiCatalog6/VoiceSettings3/TransformUI4/TransformSettings1прошли. Аудитдобавилcompactbackupfrequency(6прежнихзначений)/busyзакрытиеpopupбезсамовозврата;5-йNativeUIкейснаbusy/частоту/сохранностьпредупреждения. Выполняетсяповторныйsettings42-checks2.log26кейсов/lint/assemble. Резервнаятажеautomationобновленана17:40:53UTC/is_enabledtrue,APIподтвердил. Пока42неCIpass/неinstallable,ключ/Roomпрежние.
