@@ -1,0 +1,65 @@
+{
+  "source": "1b5504518314cb178306d87e31a8782374548090",
+  "version": "1.10.42",
+  "code": 65,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "zip_sha256": "8ecdbbde7b73e4bdb91289202297ce3e44d4a5c65540ea31c22c6e55885ae7f0",
+  "apk_sha256": "264323350e94f19edf8bd73ce562bc009cf70c9f4d59144c62c77680218b9b09",
+  "apk_bytes": 27517639,
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "apk_path": "/workspace/library-files/NoteLS-1.10.42-code65-permanent-signature.apk",
+  "dex_sha256": {
+    "classes.dex": "e78e7eee5f5642064aef9fc35ce48a217a9d1cce305c019f423c6d83e1c37c4b"
+  },
+  "compiled_settings_markers": [
+    "settings-choice-",
+    "settings-help-",
+    "backup-frequency",
+    "Notes and ideas"
+  ],
+  "verified_at_utc": "2026-11-15T17:39:04.962699+00:00",
+  "room_schema": 17,
+  "data_format": 2,
+  "security_format": 3,
+  "physical_device_installation_tested": false,
+  "real_paid_api_requests_made": false,
+  "new_network_provider_included": false,
+  "ci": {
+    "run_id": 43731374968,
+    "job_id": 132864325436,
+    "source": "1b5504518314cb178306d87e31a8782374548090",
+    "tests": 714,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "20m20s",
+    "reports_artifact_id": 14169058870,
+    "reports_zip_sha256": "47030231b02b7c1fd712b16719ff1f74a0df8d40b773779e49a56c5ea181590e",
+    "settings_previews_sha256": {
+      "settings-preview/appearance-320.png": "78be3f3ee5754b8a70d693da265fe47c6c62a61901ae6f2eba97cb5d528a98f9",
+      "settings-preview/overview-320.png": "9236a9f6ba93b92f35cc09d831cb0a5a741687e4d1a0c80a4517a92831c5c134",
+      "settings-preview/voice-320.png": "fe7ac748c42b112d49b90f8d1f5f4fb27fdbe23406215d0d0ede90698c9a37ae"
+    }
+  },
+  "signed_release": {
+    "run_id": 43733357193,
+    "identity_job_id": 132870485696,
+    "release_job_id": 132870526879,
+    "artifact_id": 14169334476,
+    "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43733357193/artifacts/14169334476",
+    "build_lint_duration": "8m2s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "signing_contract_duration_seconds": 8.625,
+    "zip_bytes": 15412156,
+    "actual_checkout_source": "1b5504518314cb178306d87e31a8782374548090"
+  }
+}

@@ -1,5 +1,5 @@
 <!-- CURRENT-SETTINGS-42 -->
-> **74 выполняется:1.10.42/code65/Room17.** Компактные меню/пояснения/группы и все прежние настройки сохранены. Локальные26разныхцелевыхкейсов подтверждены, final11/11/lint0error/assembleDebugSUCCESS5m49s. Полный pushCI43731374968/job132864325436 выполняется для runtime source1b5504518314cb178306d87e31a8782374548090. Исходники заморожены до результатаCI/автоSigned, локальногоGradleнет. Пока42неустановочный. Полный714ожидается, не объявлятьpass. [Отчёт74](settings-1.10.42.md), [продолжение](NEXT-CHAT.md). Последнийпроверенныйinstallable41 ниже. ДополнениеQwen/DeepSeek ожидаетответа, новыхпровайдеров/платныхAPIвызововнет.
+> **Проверен1.10.42/code65/Room17:** компактные настройки, полныйCI43731374968/source1b55045=714/0fail/0ignored/lint0error. [Установочный APK42 вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43733357193/artifacts/14169334476) независимо проверен поZIP/API/SUMS/source/package/version/nondebug/actualapksigner/certpin. [Доказательства](settings-1.10.42-verification.json).74 открыт только для дополнения Qwen через Groq Free в следующей43; затем75–82. Новых этапов нет/68iPhoneотложен.
 <!-- END-CURRENT-SETTINGS-42 -->
 
 <!-- CURRENT-GPT-41 -->

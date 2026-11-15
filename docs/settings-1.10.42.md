@@ -1,6 +1,6 @@
 # Компактные настройки74 —1.10.42/code65/Room17
 
-Работа продолжается. Последний проверенный установочный выпуск —1.10.41/code64,709/0fail/0ignored/lint0error и подписанныйAPK проверен. Подпись/Room17/data2/security3 не меняются.
+Компактная часть74 проверена в1.10.42/code65:714/0fail/0ignored/lint0error и установочный подписанныйAPK независимо проверен. ДополнениеQwen продолжается в следующем43 в рамках74. Подпись/Room17/data2/security3 не меняются.
 
 ## Подготовленная компоновка
 
@@ -32,3 +32,17 @@
 
 
 2026-11-15T15:50UTC: Полный pushCI43731374968/job132864325436 выполняется для runtime source1b5504518314cb178306d87e31a8782374548090. Исходники заморожены до результатаCI/автоSigned, локальногоGradleнет. Пока42неустановочный.
+
+
+## Итог независимой проверки42
+
+## Проверенный выпуск 1.10.42/code65/Room17 — компактная часть74
+
+Полный [CI43731374968](https://github.com/grigorywork/NoteLS/actions/runs/43731374968), job132864325436, runtime source`1b5504518314cb178306d87e31a8782374548090`: **714 тестов,0 отказов/пропусков**, lint0error/16warnings/2info, build20m20s. Report14169058870 ZIP SHA256`47030231b02b7c1fd712b16719ff1f74a0df8d40b773779e49a56c5ea181590e`=API; HTML/XML сверены,3NativeCanvasPNG побайтово равны локальным.
+
+[Проверенный установочный APK42 вZIP14169334476](https://github.com/grigorywork/NoteLS/actions/runs/43733357193/artifacts/14169334476). Signed43733357193/identity132870485696/release132870526879 success; actualcheckout/READMEsource1b55045, runhead9facad8docs-only. Build/lint8m2s,13signingcontracts/0fail/8.625s. ZIP15412156bytes SHA256`8ecdbbde7b73e4bdb91289202297ce3e44d4a5c65540ea31c22c6e55885ae7f0`=API; ровно3APK/README/SUMS. APK27517639bytes SHA256`264323350e94f19edf8bd73ce562bc009cf70c9f4d59144c62c77680218b9b09`=SUMS/CI. Actualapksigner v2/v3/1signer/certpin, aapt2package/version/nondebug/min26/target35 проверены; DEXновый сsettings-marker. [Доказательства](settings-1.10.42-verification.json), [отчёт](settings-1.10.42.md). Room17/data2/security3/ключ/Secret прежние. Физического телефона/платныхAIзапросовнет.
+
+74 ещё открыт только для дополнения пользователя: Qwen через Groq Free. Следующая кандидатная версия43/code66 в рамках того же74, потом75–82. Сначала свежиеmain/дерево/проверки; не повторять компактность42/73/72/69/71/70. [ПланQwen](qwen-1.10.43-plan.md), черновикdocs/design/qwen-1.10.43-draft.patch пока не применён. Подтверждены официальные FreeусловияGroq/Qwen, отдельныйключ вприложении; никакой молчаливой оплаты/другоймодели. Приложение не проверяет тарифGroq: Freeбесплатенвквоте, Developerплатный. Ожидание старого asyncответа не считать согласием на платныйAPI.
+
+При выдаче использовать свежуюHTTPSZIPdownloadURL изGitHubartifacttool и постояннуюссылку выше: localworkspaceссылка у клиента не скачивается. BearerURL не коммитить. Подготовленный локальныйAPK `/workspace/library-files/NoteLS-1.10.42-code65-permanent-signature.apk`.
+
