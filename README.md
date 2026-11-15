@@ -1,3 +1,7 @@
+<!-- CURRENT-GPT-41 -->
+> **73 закрыт:1.10.41/code64/Room17.** [Проверенный установочныйAPK вZIP14164360720](https://github.com/grigorywork/NoteLS/actions/runs/43718750157/artifacts/14164360720), source8d2074a. ПолныйCI43716992091:709/0fail/0ignored/lint0error; Signed43718750157SUCCESS. ZIP/API/SUMS/APK/source/package/version/nondebug/actualapksigner certificate по прежнемуpin сверены. [Отчёт73](docs/gpt-1.10.41.md), [продолжение](docs/NEXT-CHAT.md). Следующий74, затем75–82 автономно;68/iPhone отложен. РеальныхплатныхAPIзапросовне выполнялось.
+<!-- END-CURRENT-GPT-41 -->
+
 <!-- CURRENT-VOICE-40 -->
 > **72 закрыт: 1.10.40/code63/Room17.** [Проверенный установочный APK14161866812](https://github.com/grigorywork/NoteLS/actions/runs/43714199063/artifacts/14161866812), source87f65ad. ПолныйCI43712089734:701/0fail/0ignored/lint0error; signed43714199063SUCCESS. ZIP/API/SUMS/APK/source/version/nondebug/actualapksigner certificate по прежнемуpin сверены. [Отчёт72](docs/voice-1.10.40.md), [продолжение](docs/NEXT-CHAT.md). Следующий73, затем74–82 автономно;68/iPhone отложен.
 <!-- END-CURRENT-VOICE-40 -->

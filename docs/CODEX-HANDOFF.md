@@ -1,5 +1,5 @@
 <!-- CURRENT-GPT-41 -->
-> **73 выполняется:1.10.41/code64/Room17.** Диагностика HTTPошибок/APIквоты/модели/региона/доступа, preflight/shortcutнастройки. Локальные32/32/lint0error/assembleDebugSUCCESS8m12s; [ПолныйCI43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853/source8d2074a SUCCESS:709/0fail/0ignored/lint0error, reportZIP/API сверен. Signed43718750157/identity132825891371success/release132825930921in_progress; установочный41 ещё не подтверждён. [Отчёт73](gpt-1.10.41.md), [свежее продолжение](NEXT-CHAT.md). Последний проверенныйinstallable40 ниже. НикакихреальныхплатныхAIвызовов/новойподписи.
+> **73 закрыт:1.10.41/code64/Room17.** [Проверенный установочныйAPK вZIP14164360720](https://github.com/grigorywork/NoteLS/actions/runs/43718750157/artifacts/14164360720), source8d2074a. ПолныйCI43716992091:709/0fail/0ignored/lint0error; Signed43718750157SUCCESS. ZIP/API/SUMS/APK/source/package/version/nondebug/actualapksigner certificate по прежнемуpin сверены. [Отчёт73](gpt-1.10.41.md), [продолжение](NEXT-CHAT.md). Следующий74, затем75–82 автономно;68/iPhone отложен. РеальныхплатныхAPIзапросовне выполнялось.
 <!-- END-CURRENT-GPT-41 -->
 
 <!-- CURRENT-VOICE-40 -->

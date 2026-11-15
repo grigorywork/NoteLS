@@ -1,6 +1,6 @@
 # GPT73 —1.10.41/code64/Room17
 
-Работа продолжается. Последний проверенный установочный выпуск —1.10.40/code63, полныйCI701/0; proof voice-1.10.40-verification.json. Постоянный ключ/Room17/data2/security3 не меняются.
+Этап73 закрыт:1.10.41/code64, полныйCI709/0 и независимо проверенный установочныйAPK с прежним сертификатом. Ниже сохранена история диагностики и проверок. Постоянный ключ/Room17/data2/security3 не меняются.
 
 ## Диагностика и подготовленные изменения
 
@@ -31,3 +31,13 @@ Incomplete max_output_tokens объясняется отдельно; части
 [CI43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853 SUCCESS наsource8d2074a709683d059ac4937e780986eed2ea8ba1, build18m45s. Reportartifact14163332799:413915bytes, скачанныйZIP SHA256 `9f208c046a42aa28c5bacf0fefdf80cc062dace10ad1aea24ff6305d53769ef1`=API. HTML709/0failures/0ignored; lintXML0error/16warnings/2info. В отчёте прежние7NativeCanvas-превью; новаядиагностикаGPT проверена HTTPfixtures/Compose/Room иобщимрегрессионнымнабором.
 
 AutoSigned43718750157:identity132825891371SUCCESS/release132825930921in_progress; существующиеSecret/pinchecksуспех. РеальныйAPKsource должен8d2074a, runhead6798474 — последующийdocs-onlyworkflow_run. Установочный41ещёне подтверждён; не выдаватьdebugartifact14163572101.
+
+## Закрытие73
+
+[УстановочныйAPK41 в ZIP](https://github.com/grigorywork/NoteLS/actions/runs/43718750157/artifacts/14164360720). Signed43718750157/identity132825891371/release132825930921 SUCCESS; actualcheckout8d2074a709683d059ac4937e780986eed2ea8ba1, build/lint12m15s,13signing contracts0fail11.711s. APIrunhead6798474 — последующая документация; checkout/READMEsource8d2074a.
+
+Скачанный ZIP15411387bytes SHA256 `1d8d1bdb15ff963a5acd39f58c5823fc64e72755e223f4a7c782568a5b1bed8b`=API. Ровно3 уникальныхфайла APK/README/SHA256SUMS. APK27517639bytes SHA256 `e8ddd2f34a1ae2f204ddcd3662af5c4bc0faee22dd8dee00d44c8f7fe759e786`=SUMS/CI. Actualapksigner v2/v3true/1signer/certificate строго прежнийpin; aapt2com.notessync.app/1.10.41/64/nondebug/min26/target35. DEX изменён относительно40 и содержит billing_hard_limit_reached/Transformer settings/OUTPUT_LIMIT. [Машиночитаемаяпроверка](gpt-1.10.41-verification.json).
+
+После всех проверок APK помещён в `/workspace/library-files/NoteLS-1.10.41-code64-permanent-signature.apk`. Пользователю выдавать реальную HTTPSссылку на ZIP (внутри APK), поскольку абсолютныйworkspaceпуть уего клиента не скачивается; отдельногоAPKuploadинструмента нет. Обновлять временнуюссылку через GitHubartifacttool при выдаче, не коммитить её bearerURL.
+
+Ключ/Secret/Room17/data2/security3 прежние. При закрытии73 дерево приложения совпадало с провереннымsource8d2074a. РеальныеплатныеOpenAIзапросы/телефон не проверялись; диагностика подтверждена оффлайнHTTP/UI/Room/общимнабором. Следующий74 — компактные настройки, затем75–82 автономно; новыхэтаповне добавлять/68iPhoneне начинать.
