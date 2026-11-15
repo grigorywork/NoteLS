@@ -21,7 +21,14 @@ class OpenAiTransport(private val connection: () -> HttpsURLConnection = {
         if (!TransformLimits.validKey(key)) throw TransformException(TransformProblem.KEY_MISSING)
         if (!TransformLimits.validModel(model)) throw TransformException(TransformProblem.MODEL_MISSING)
         suspendCancellableCoroutine { continuation ->
-            val call = connection()
+            val call = try { connection() } catch (error: Exception) {
+                continuation.resumeWithException(TransformException(when (error) {
+                    is java.net.SocketTimeoutException -> TransformProblem.TIMEOUT
+                    is java.io.IOException -> TransformProblem.NETWORK
+                    else -> TransformProblem.PROVIDER
+                }))
+                return@suspendCancellableCoroutine
+            }
             continuation.invokeOnCancellation { CoroutineScope(Dispatchers.IO).launch { runCatching { call.disconnect() } } }
             try {
                 call.requestMethod = "POST"; call.instanceFollowRedirects = false; call.useCaches = false
@@ -39,12 +46,17 @@ class OpenAiTransport(private val connection: () -> HttpsURLConnection = {
                 if (!continuation.isActive) return@suspendCancellableCoroutine
                 call.outputStream.use { it.write(payload) }
                 val code = call.responseCode
-                if (code !in 200..299) throw TransformException(when (code) {
-                    401, 403 -> TransformProblem.UNAUTHORIZED; 429 -> TransformProblem.RATE_LIMIT; else -> TransformProblem.PROVIDER
-                })
+                if (code !in 200..299) throw TransformException(httpFailure(call, code))
                 val bytes = call.inputStream.use(::boundedRead)
                 val json = JSONObject(Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString())
+                if (json.optString("status") == "incomplete") {
+                    throw TransformException(when (json.optJSONObject("incomplete_details")?.optString("reason")) {
+                        "max_output_tokens" -> TransformProblem.OUTPUT_LIMIT
+                        "content_filter" -> TransformProblem.REFUSED
+                        else -> TransformProblem.INCOMPLETE
+                    })
+                }
                 if (json.optString("status") != "completed" || !json.isNull("incomplete_details") || !json.isNull("error")) throw TransformException(TransformProblem.INCOMPLETE)
                 val output = json.optJSONArray("output") ?: throw TransformException(TransformProblem.PROVIDER)
                 val text = buildString {
@@ -71,12 +83,42 @@ class OpenAiTransport(private val connection: () -> HttpsURLConnection = {
             } finally { runCatching { call.disconnect() } }
         }
     }
-    private fun boundedRead(input: InputStream): ByteArray {
+    /** Never display provider messages: they may repeat draft text or credentials. No retries. */
+    private fun httpFailure(call: HttpsURLConnection, status: Int): TransformProblem {
+        val fallback = when (status) {
+            401 -> TransformProblem.UNAUTHORIZED
+            402 -> TransformProblem.BILLING
+            403 -> TransformProblem.FORBIDDEN
+            408, 504 -> TransformProblem.TIMEOUT
+            429 -> TransformProblem.RATE_LIMIT
+            in 500..599 -> TransformProblem.SERVICE_UNAVAILABLE
+            400, 422 -> TransformProblem.BAD_REQUEST
+            else -> TransformProblem.PROVIDER
+        }
+        if (status !in 400..499 || status == 401) return fallback
+        val error = runCatching {
+            call.errorStream?.use { stream ->
+                val bytes = boundedRead(stream, 8192)
+                val text = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
+                JSONObject(text).optJSONObject("error")
+            }
+        }.getOrNull() ?: return fallback
+        val codes = listOf(error.opt("code") as? String, error.opt("type") as? String)
+        return when {
+            codes.any { it in setOf("insufficient_quota", "billing_hard_limit_reached", "billing_not_active", "usage_limit_reached") } -> TransformProblem.BILLING
+            codes.any { it in setOf("model_not_found", "invalid_model", "unsupported_model", "model_not_available", "model_access_denied") } -> TransformProblem.MODEL_UNAVAILABLE
+            codes.any { it == "unsupported_country_region_territory" || it == "unsupported_country" } -> TransformProblem.REGION
+            else -> fallback
+        }
+    }
+
+    private fun boundedRead(input: InputStream, limit: Int = TransformLimits.RESPONSE_BYTES): ByteArray {
         val out = ByteArrayOutputStream(); val buffer = ByteArray(4096)
         while (true) {
-            val count = input.read(buffer)
+            val count = input.read(buffer, 0, minOf(buffer.size, limit - out.size() + 1))
             if (count < 0) break
-            if (out.size() + count > TransformLimits.RESPONSE_BYTES) throw TransformException(TransformProblem.TOO_LARGE)
+            if (out.size() + count > limit) throw TransformException(TransformProblem.TOO_LARGE)
             out.write(buffer, 0, count)
         }
         return out.toByteArray()

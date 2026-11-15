@@ -82,4 +82,20 @@ class SettingsGroupsUiTest {
         compose.onNodeWithContentDescription("Назад").performClick()
         assertEquals(1, back.get())
     }
+    @Test fun `transform settings entry opens just that group and retains normal Back behavior`() {
+        settings.apply { setAiEnabled(true); setAiProvider(com.notessync.app.ai.AiProvider.OPENAI) }
+        val back = AtomicInteger()
+        compose.setContent { NoteSyncTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) {
+            SettingsScreen({ back.incrementAndGet() }, {}, initialGroup = "transform")
+        } } }
+        compose.onNodeWithTag("settings-content-transform").assertExists()
+        compose.onNodeWithTag("settings-content-editor").assertDoesNotExist()
+        compose.onNodeWithText("Подписка ChatGPT не включает API. Нужны API-ключ, доступная модель и отдельный баланс API-проекта.")
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Назад").performClick()
+        compose.onNodeWithTag("settings-content-transform").assertDoesNotExist()
+        assertEquals(0, back.get())
+        compose.onNodeWithContentDescription("Назад").performClick(); assertEquals(1, back.get())
+        settings.setAiEnabled(false)
+    }
 }

@@ -44,4 +44,27 @@ class TransformUiTest {
         compose.onNodeWithText("Отменить").performClick()
         compose.runOnIdle { assertTrue(dismissed); assertEquals(0, actions) }
     }
+    @Test fun `missing model is explained before sending and settings are reachable without a request`() {
+        var sent = 0; var settings = 0
+        compose.setContent { MaterialTheme {
+            TransformPreview("Original", TransformConfig(true, AiProvider.OPENAI), TransformState(),
+                { _, _ -> sent++ }, {}, {}, onSettings = { settings++ })
+        } }
+        compose.onNodeWithText("Отправить в OpenAI").assertIsNotEnabled()
+        compose.onNodeWithText(TransformProblem.MODEL_MISSING.label()).assertExists()
+        compose.onNodeWithText("Настройки преобразователя").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(0, sent); assertEquals(1, settings) }
+    }
+    @Test fun `billing failure keeps original editable offers settings and never applies a replacement`() {
+        var applied = 0; var settings = 0
+        compose.setContent { MaterialTheme {
+            TransformPreview("Keep this original", TransformConfig(true, AiProvider.OPENAI, "fixture-model"),
+                TransformState(problem = TransformProblem.BILLING), { _, _ -> }, { applied++ }, {}, onSettings = { settings++ })
+        } }
+        compose.onNode(hasSetTextAction()).assertTextContains("Keep this original")
+        compose.onNodeWithText(TransformProblem.BILLING.label()).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Заменить текст").assertDoesNotExist()
+        compose.onNodeWithText("Настройки преобразователя").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(0, applied); assertEquals(1, settings) }
+    }
 }

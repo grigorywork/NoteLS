@@ -103,6 +103,7 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
             NoteEditorScreen(
                 onBack = { back() },
                 onOpenCalendar = { navigate(Routes.CALENDAR) },
+                onOpenTransformSettings = { navigate("${Routes.SETTINGS}?section=transform") },
                 onDeleted = { event -> activity.runOnUiThread {
                     if (!activity.isDestroyed) {
                         if (event.id > 0) navController.previousBackStackEntry?.savedStateHandle?.set("deleted_note_event", event)
@@ -136,10 +137,13 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
         composable(Routes.QUOTES) {
             QuotesScreen(onBack = { back() })
         }
-        composable(Routes.SETTINGS) {
+        composable("${Routes.SETTINGS}?section={section}", arguments = listOf(
+            navArgument("section") { type = NavType.StringType; nullable = true; defaultValue = null }
+        )) { entry ->
             SettingsScreen(
                 onBack = { back() },
-                onOpenSync = { navigate(Routes.SYNC) }
+                onOpenSync = { navigate(Routes.SYNC) },
+                initialGroup = entry.arguments?.getString("section")
             )
         }
         composable(Routes.SYNC) {

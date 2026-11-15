@@ -11,7 +11,8 @@ enum class TransformMode(private val text: String) {
 }
 data class TransformConfig(val enabled: Boolean = false, val provider: AiProvider = AiProvider.LOCAL_RULES, val model: String = "")
 enum class TransformProblem { DISABLED, EMPTY, TOO_LARGE, KEY_MISSING, KEY_UNAVAILABLE, MODEL_MISSING, STALE, ACCESS,
-    NETWORK, TIMEOUT, UNAUTHORIZED, RATE_LIMIT, PROVIDER, INCOMPLETE, REFUSED, SAVE }
+    NETWORK, TIMEOUT, UNAUTHORIZED, RATE_LIMIT, BILLING, MODEL_UNAVAILABLE, FORBIDDEN, REGION, BAD_REQUEST,
+    SERVICE_UNAVAILABLE, OUTPUT_LIMIT, PROVIDER, INCOMPLETE, REFUSED, SAVE }
 class TransformException(val problem: TransformProblem) : Exception(problem.name)
 object TransformLimits {
     const val INPUT = 16_000

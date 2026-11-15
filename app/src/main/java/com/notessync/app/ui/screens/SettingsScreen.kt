@@ -53,7 +53,7 @@ import com.notessync.app.settings.SettingsRepository
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit, initialGroup: String? = null) {
     val context = LocalContext.current
     val settings = remember { SettingsRepository.get(context) }
     val state by settings.state.collectAsStateWithLifecycle()
@@ -61,7 +61,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit) {
 
     val backup = rememberBackupCoordinator(settings, snackbarHostState)
     val busy = backup.busy
-    var expandedGroup by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedGroup by rememberSaveable(initialGroup) { mutableStateOf(initialGroup?.takeIf { it == "transform" }) }
     var showDrawerQuote by remember { mutableStateOf(false) }
     var showFontLicenses by remember { mutableStateOf(false) }
     BackHandler(enabled = busy) { /* Finish the database operation before navigating away. */ }

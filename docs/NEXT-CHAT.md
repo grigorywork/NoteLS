@@ -1,5 +1,11 @@
 # NoteLS: продолжение разработки
 
+## Текущий73 —1.10.41/code64/Room17, незавершён
+
+[Отчёт GPT73](gpt-1.10.41.md). Подготовлены bounded whitelistHTTPдиагностика API-квоты/модели/доступа/региона/сервиса, outputlimit без увеличения2048budget, объяснение отдельного APIбаланса, переход preview→настройки группыtransform,8новых регрессий. Выполняется `/workspace/tools/transform41-checks.log`: все ai.*Test/SettingsGroupsUi/UiCatalog +lint/assemble. НЕсчитатьpass без фактов; не менять main/test и не запускать второйGradle при живой проверке. Проверенный installable пока40 ниже,72/69/71/70 не повторять. После закрытия73 автономно74–82.
+
+Выдача APK: абсолютная ссылка workspace у пользователя не открылась. В чат выдан свежийHTTPSdownloadZIP от GitHubartifacttool и постоянная резервная ссылка https://github.com/grigorywork/NoteLS/actions/runs/43714199063/artifacts/14161866812 . ZIP содержит проверенныйAPK40/README/SUMS. Доступные инструменты не прикрепляют отдельный APK; не утверждать, что локальный путь — вложение. При необходимости обновить временную downloadURL через github_download_workflow_artifact, не сохранять её токен вGit.
+
 ## Проверенный выпуск1.10.40/code63/Room17 —72 закрыт
 
 Диктовка: компактная панель внеpopup/scroll, режимы удержания/нажатия и выбор языка SYSTEM/RU/EN, отмена при preview/modal/смене владельца, защита поздней вставки, корректные кандидаты/Bundle/пробелы между словами/история. [Отчёт72](voice-1.10.40.md), [проверкаJSON](voice-1.10.40-verification.json), [NativeCanvas из CI с имитированнойIME](design/voice-panel-ime-1.10.40.png).

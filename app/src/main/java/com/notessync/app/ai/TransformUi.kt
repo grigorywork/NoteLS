@@ -35,8 +35,15 @@ fun TransformProblem.label(): String = uiText(when (this) {
     TransformProblem.STALE, TransformProblem.ACCESS -> "Запись или доступ изменились. Откройте предпросмотр заново."
     TransformProblem.NETWORK -> "Не удалось связаться с провайдером."
     TransformProblem.TIMEOUT -> "Провайдер не ответил вовремя."
-    TransformProblem.UNAUTHORIZED -> "Провайдер не принял ключ или доступ к модели."
-    TransformProblem.RATE_LIMIT -> "Достигнут лимит провайдера. Повторите позже."
+    TransformProblem.UNAUTHORIZED -> "API-ключ отклонён. Проверьте ключ и проект в настройках."
+    TransformProblem.RATE_LIMIT -> "Временный лимит запросов API. Повторите позже."
+    TransformProblem.BILLING -> "Недостаточно API-квоты. Проверьте баланс и лимиты API-проекта. Подписка ChatGPT не включает оплату API."
+    TransformProblem.MODEL_UNAVAILABLE -> "Модель не найдена или недоступна вашему API-проекту. Укажите доступный API-идентификатор модели."
+    TransformProblem.FORBIDDEN -> "Нет доступа к API. Проверьте разрешения ключа, проект и доступность сервиса."
+    TransformProblem.REGION -> "OpenAI API недоступен для региона этого подключения."
+    TransformProblem.BAD_REQUEST -> "Провайдер не принял запрос. Проверьте поддержку выбранной модели в Responses API."
+    TransformProblem.SERVICE_UNAVAILABLE -> "Сервис OpenAI временно недоступен. Повторите позже."
+    TransformProblem.OUTPUT_LIMIT -> "Модель исчерпала лимит ответа. Сократите текст или выберите другую модель."
     TransformProblem.INCOMPLETE -> "Ответ неполный. Сократите текст или выберите другую модель."
     TransformProblem.REFUSED -> "Провайдер отказался преобразовывать этот текст."
     TransformProblem.SAVE -> "Не удалось сохранить. Текст оставлен в редакторе."
@@ -75,7 +82,10 @@ fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository,
             if (state.aiProvider == AiProvider.LOCAL_RULES) Text(uiText("Локальные правила без ИИ и сети. Модели не скачиваются."), style = MaterialTheme.typography.bodySmall)
             else {
                 Text(uiText("Только выбранный текст отправляется в OpenAI после нажатия отправки. Условия хранения и стоимость зависят от сервиса и модели."), style = MaterialTheme.typography.bodySmall)
-                OutlinedTextField(model, { if (it.length <= 160) model = it }, label = { Text(uiText("Модель OpenAI")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Text(uiText("Подписка ChatGPT не включает API. Нужны API-ключ, доступная модель и отдельный баланс API-проекта."), style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(model, { if (it.length <= 160) model = it }, label = { Text(uiText("Модель OpenAI")) },
+                    supportingText = { Text(uiText("Идентификатор модели с доступом к Responses API")) },
+                    singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedButton(onClick = { settings.setAiModel(model) }, enabled = TransformLimits.validModel(model.trim()) && model.trim() != state.aiModel) { Text(uiText("Сохранить модель")) }
                 Text(if (present) uiText("Ключ сохранён на этом устройстве") else uiText("API-ключ не настроен"), style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(key, { if (it.length <= 4096) key = it }, label = { Text(uiText("Новый API-ключ OpenAI")) },
@@ -110,7 +120,7 @@ private fun ProviderLinks() {
 }
 
 @Composable
-fun EditorTransformDialog(viewModel: NoteEditorViewModel, settings: SettingsRepository, onDismiss: () -> Unit) {
+fun EditorTransformDialog(viewModel: NoteEditorViewModel, settings: SettingsRepository, onOpenSettings: (() -> Unit)? = null, onDismiss: () -> Unit) {
     val state by settings.state.collectAsStateWithLifecycle()
     val context = LocalContext.current.applicationContext
     var source by remember { mutableStateOf<EditorTransformSource?>(null) }
@@ -141,19 +151,21 @@ fun EditorTransformDialog(viewModel: NoteEditorViewModel, settings: SettingsRepo
                 access == captured.access && access?.allowed(protection) == true
             }.collect { allowed -> if (!allowed && session.state.value.phase != TransformPhase.APPLYING) { session.close(); onDismiss() } }
         }
-        TransformPreview(captured.text, state.transformConfig(), sessionState, session::generate, session::replace, { session.close(); onDismiss() })
+        TransformPreview(captured.text, state.transformConfig(), sessionState, session::generate, session::replace, { session.close(); onDismiss() },
+            onSettings = onOpenSettings?.let { open -> { session.close(); onDismiss(); open() } })
         LaunchedEffect(sessionState.phase) { if (sessionState.phase == TransformPhase.CLOSED) onDismiss() }
     }
 }
 
 @Composable
 internal fun TransformPreview(input: String, config: TransformConfig, state: TransformState,
-    onGenerate: (String, TransformMode) -> Unit, onApply: (String) -> Unit, onDismiss: () -> Unit) {
+    onGenerate: (String, TransformMode) -> Unit, onApply: (String) -> Unit, onDismiss: () -> Unit, onSettings: (() -> Unit)? = null) {
     var draft by remember(input) { mutableStateOf(input) }
     var result by remember(state.result) { mutableStateOf(state.result) }
     var mode by remember { mutableStateOf(TransformMode.TEXT) }
     val working = state.phase == TransformPhase.WORKING || state.phase == TransformPhase.APPLYING
     val preview = state.phase == TransformPhase.RESULT || state.phase == TransformPhase.APPLYING
+    val configProblem = if (config.provider == AiProvider.OPENAI && !TransformLimits.validModel(config.model)) TransformProblem.MODEL_MISSING else null
     AlertDialog(onDismissRequest = onDismiss, title = { Text(uiText(if (preview) "Результат преобразования" else "Преобразователь текста")) },
         text = { Column(Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(config.provider.label + if (config.provider == AiProvider.OPENAI) " · ${config.model}" else "", style = MaterialTheme.typography.bodySmall)
@@ -170,10 +182,13 @@ internal fun TransformPreview(input: String, config: TransformConfig, state: Tra
                 }
             }
             if (working) LinearProgressIndicator(Modifier.fillMaxWidth())
-            state.problem?.let { Text(it.label(), color = MaterialTheme.colorScheme.error) }
+            (state.problem ?: configProblem)?.let { Text(it.label(), color = MaterialTheme.colorScheme.error) }
+            if (config.provider == AiProvider.OPENAI && onSettings != null) {
+                TextButton(onClick = onSettings, enabled = !working) { Text(uiText("Настройки преобразователя")) }
+            }
         } }, confirmButton = {
             TextButton(onClick = { if (preview) onApply(result) else onGenerate(draft, mode) },
-                enabled = !working && (if (preview) result.isNotBlank() && result.length <= TransformLimits.OUTPUT else draft.isNotBlank() && config.enabled)) {
+                enabled = !working && (if (preview) result.isNotBlank() && result.length <= TransformLimits.OUTPUT else draft.isNotBlank() && config.enabled && configProblem == null)) {
                 Text(uiText(if (preview) "Заменить текст" else if (config.provider == AiProvider.OPENAI) "Отправить в OpenAI" else "Преобразовать"))
             }
         }, dismissButton = { TextButton(onClick = onDismiss) { Text(uiText(if (working) "Отменить" else "Закрыть")) } })

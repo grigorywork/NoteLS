@@ -29,6 +29,7 @@ class OpenAiTransportTest {
         override fun getOutputStream(): OutputStream = sent
         override fun getInputStream(): InputStream = ByteArrayInputStream(body)
         override fun getResponseCode() = status
+        override fun getErrorStream(): InputStream = ByteArrayInputStream(body)
         override fun getCipherSuite() = "fixture"
         override fun getLocalCertificates(): Array<Certificate>? = null
         override fun getServerCertificates(): Array<Certificate> = emptyArray()
@@ -70,5 +71,63 @@ class OpenAiTransportTest {
         val work = async { OpenAiTransport { call }.transform("fixture", "model", "Input", TransformMode.TEXT) }
         yield(); assertTrue(started.await(5, TimeUnit.SECONDS)); work.cancel()
         withTimeout(5_000) { work.join() }; assertTrue(call.closed.get()); assertTrue(work.isCancelled)
+    }
+    private fun failure(code: Int, body: ByteArray): TransformException = runBlocking {
+        runCatching { OpenAiTransport { Connection(code, body) }.transform("fixture-key", "fixture-model", "Private draft", TransformMode.TEXT) }
+            .exceptionOrNull() as TransformException
+    }
+    private fun providerError(code: String?, type: String? = null) = JSONObject().put("error", JSONObject()
+        .put("code", code ?: JSONObject.NULL).put("type", type ?: JSONObject.NULL)
+        .put("message", "Do not expose fixture-key or Private draft")).toString().toByteArray()
+    @Test fun `billing exhaustion is distinct from rate limiting including a type-only provider response`() {
+        assertEquals(TransformProblem.BILLING, failure(429, providerError("insufficient_quota")).problem)
+        assertEquals(TransformProblem.BILLING, failure(429, providerError(null, "insufficient_quota")).problem)
+        assertEquals(TransformProblem.BILLING, failure(400, providerError("billing_hard_limit_reached")).problem)
+        assertEquals(TransformProblem.RATE_LIMIT, failure(429, providerError("rate_limit_exceeded")).problem)
+        assertEquals(TransformProblem.BILLING, failure(402, byteArrayOf()).problem)
+    }
+    @Test fun `model permissions region and service errors use safe actionable classifications`() {
+        val cases = listOf(
+            Triple(401, providerError("invalid_api_key"), TransformProblem.UNAUTHORIZED),
+            Triple(403, providerError("insufficient_permissions"), TransformProblem.FORBIDDEN),
+            Triple(403, providerError("unsupported_country_region_territory"), TransformProblem.REGION),
+            Triple(404, providerError("model_not_found"), TransformProblem.MODEL_UNAVAILABLE),
+            Triple(400, providerError("unsupported_model"), TransformProblem.MODEL_UNAVAILABLE),
+            Triple(400, providerError(null, "invalid_request_error"), TransformProblem.BAD_REQUEST),
+            Triple(503, providerError("server_error"), TransformProblem.SERVICE_UNAVAILABLE),
+            Triple(504, byteArrayOf(), TransformProblem.TIMEOUT))
+        for ((status, body, problem) in cases) {
+            val error = failure(status, body)
+            assertEquals(problem, error.problem)
+            assertFalse(error.toString().contains("fixture-key")); assertFalse(error.toString().contains("Private draft"))
+        }
+    }
+    @Test fun `malformed and oversized HTTP error bodies retain status fallback and close within a strict bound`() = runBlocking {
+        for (body in listOf("<html>Private draft</html>".toByteArray(), byteArrayOf(0xc3.toByte(), 0x28))) {
+            assertEquals(TransformProblem.RATE_LIMIT, failure(429, body).problem)
+        }
+        var read = 0; var released = false
+        val call = object : Connection(429, byteArrayOf()) {
+            override fun getErrorStream(): InputStream = object : InputStream() {
+                override fun read(): Int { read++; return 32 }
+                override fun close() { released = true }
+            }
+        }
+        val error = runCatching { OpenAiTransport { call }.transform("fixture", "model", "Draft", TransformMode.TEXT) }.exceptionOrNull() as TransformException
+        assertEquals(TransformProblem.RATE_LIMIT, error.problem)
+        assertTrue(read <= 8193); assertTrue(released); assertTrue(call.closed.get())
+    }
+    @Test fun `reasoning output exhaustion never returns partial text or silently increases the token budget`() {
+        val body = JSONObject(String(response())).put("status", "incomplete")
+            .put("incomplete_details", JSONObject().put("reason", "max_output_tokens")).toString().toByteArray()
+        val call = Connection(200, body)
+        val error = runBlocking { runCatching { OpenAiTransport { call }.transform("fixture", "model", "Draft", TransformMode.TEXT) }.exceptionOrNull() as TransformException }
+        assertEquals(TransformProblem.OUTPUT_LIMIT, error.problem)
+        assertEquals(2048, JSONObject(call.sent.toString("UTF-8")).getInt("max_output_tokens")); assertTrue(call.closed.get())
+    }
+    @Test fun `connection setup failures map to network without echoing exception details`() = runBlocking {
+        val error = runCatching { OpenAiTransport { throw IOException("fixture-key Private draft") }.transform("fixture", "model", "Draft", TransformMode.TEXT) }.exceptionOrNull() as TransformException
+        assertEquals(TransformProblem.NETWORK, error.problem)
+        assertFalse(error.toString().contains("Private draft")); assertFalse(error.toString().contains("fixture-key"))
     }
 }

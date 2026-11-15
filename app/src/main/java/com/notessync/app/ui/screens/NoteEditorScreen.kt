@@ -89,7 +89,8 @@ fun NoteEditorScreen(
     onDeleted: (com.notessync.app.data.local.model.NoteIdentity) -> Unit,
     viewModel: NoteEditorViewModel = viewModel(),
     onOpenCalendar: () -> Unit = {},
-    imeInsets: WindowInsets = WindowInsets.ime
+    imeInsets: WindowInsets = WindowInsets.ime,
+    onOpenTransformSettings: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val ui = remember(viewModel) { EditorUiState() }
@@ -328,7 +329,9 @@ fun NoteEditorScreen(
 
 
     if (ui.showTransform && settingsState.aiEnabled && !viewModel.accessDenied) {
-        com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context)) { ui.showTransform = false }
+        com.notessync.app.ai.EditorTransformDialog(viewModel, SettingsRepository.get(context), onOpenSettings = {
+            scope.launch { if (viewModel.saveNow(force = true)) onOpenTransformSettings() }
+        }) { ui.showTransform = false }
     }
     EditorScaffold(
         imeInsets = imeInsets,
