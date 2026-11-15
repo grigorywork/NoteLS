@@ -1,5 +1,6 @@
 package com.notessync.app.data.quotes
 
+import androidx.room.withTransaction
 import android.app.Application
 import android.database.sqlite.SQLiteDatabase
 import com.notessync.app.data.local.AppDatabase
@@ -72,7 +73,7 @@ class QuoteLibraryTest {
     }
     @Test fun `capacity changed after preview rolls back the whole import and preserves current selection`() = runBlocking {
         val keep = library.save(null, QuoteDraft("Keep")); library.pin(db.customQuoteDao().get(keep)!!)
-        db.runInTransaction {
+        db.withTransaction {
             repeat(1997) { i -> db.openHelper.writableDatabase.execSQL("INSERT INTO custom_quotes(text,author,source,fingerprint) VALUES(?,?,?,?)", arrayOf("Seed $i", "", "", "seed-$i")) }
         }
         val preview = library.preview(listOf(QuoteDraft("First"), QuoteDraft("Second")))

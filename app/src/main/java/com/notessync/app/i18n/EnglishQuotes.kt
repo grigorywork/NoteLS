@@ -35,4 +35,5 @@ internal fun MutableMap<String, String>.addQuotesEnglish() {
     put("Мой цитатник", "My quote library")
     put("Добавьте свою цитату или загрузите подборку из файла.", "Add your own quote or import a collection from a file.")
     put("Некорректный цитатник в резервной копии", "Invalid quote library in the backup")
+    put("Редактировать", "Edit")
 }

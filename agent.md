@@ -1498,3 +1498,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15:quotes44-checks.log main/test Kotlin compilation SUCCESS, выполняются целевые тесты. fun import вKotlinдопустимкакsoftkeyword, переименовыватьбезнуждыне требуется. KSPсоздалschema18(7таблиц), онасохраняетсявcheckpoint. ПокаНЕtestPASS/неCI/неinstallable44. ЗапущенровноодинGradle/session68586, исходникиmain/testзаморожены.
+
+
+Первыйquotes44-checks.log6m52s:50тестов/2fail(48pass)/0errors/skipped. Все5NativeUI/7parser/3encryptedquoteBackup/17→18migration/legacy1→18/старыеencryptedBackup7/BackupManager3/SettingsGroups4прошли. Отказы:capacitytestseedсинхронныйrunInTransactionнаMain,заменёнsuspendwithTransactionбезallowMainThread;UiCatalogнехваталEN«Редактировать»,добавленEdit. Assertions/timeoutнеослаблялись.3NativePNGосмотрены:footerне движется/крупныйшрифтсellipsis/навигациядоступна/свойцитатникCRUD. Передправкойбылкраткийexectransportdisconnect,исходникинеизменились;statusrunning/connected,повторныйreadработает. Повтор50/lint/assemble. Пока44НЕполныйCI/неinstallable.
