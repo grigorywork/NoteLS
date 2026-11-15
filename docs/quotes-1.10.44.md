@@ -25,3 +25,6 @@
 
 
 Первыйquotes44-checks.log6m52s:50тестов/2fail(48pass)/0errors/skipped. Все5NativeUI/7parser/3encryptedquoteBackup/17→18migration/legacy1→18/старыеencryptedBackup7/BackupManager3/SettingsGroups4прошли. Отказы:capacitytestseedсинхронныйrunInTransactionнаMain,заменёнsuspendwithTransactionбезallowMainThread;UiCatalogнехваталEN«Редактировать»,добавленEdit. Assertions/timeoutнеослаблялись.3NativePNGосмотрены:footerне движется/крупныйшрифтсellipsis/навигациядоступна/свойцитатникCRUD. Передправкойбылкраткийexectransportdisconnect,исходникинеизменились;statusrunning/connected,повторныйreadработает. Повтор50/lint/assemble. Пока44НЕполныйCI/неinstallable.
+
+
+Аудит совместимости нашёл старый assertEquals(17, db.openHelper.readableDatabase.version) в app/src/test/java/com/notessync/app/tasks/TaskDeadlinePersistenceTest.kt:61 (миграция16→текущая). После окончания живого quotes44-checks2 его нужно обновить на ожидаемую18, сохраниввсепроверкиreminder/timer/day/content/implicitdeadline; проверитьэтотклассдополнительно. Пока main/testНЕменять, TaskDeadlinePersistenceне входилвпервые50. ДругихжёсткихassertDBversion17/addMigrationsвтестахне найдено. Не отправлять753fullCIдoadaptэтогопроверочногоожидания.

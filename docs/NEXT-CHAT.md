@@ -6,6 +6,8 @@
 
 Сейчасвыполняется **quotes44-checks2.log/session41823**, теже50+lint/assemble. Пока44НЕtestPASS/НЕполныйCI/НЕinstallable. Main/testне менять/второйGradleне запускатьприпроверке. funimportдопустимкакKotlinsoftkeyword, ошибоккомпиляциииз-занегонет. Приуспехеаудит/проверкаNativePNG/затемобычныйpushmainдляполногоCI753ожидаемого(неpassбезфактов),autoSigned/независимаяверификация;75закрыватьтолькопослеэтого,затем76–82. Не повторять74/73/72/69/71/70,68iPhoneотложен. Последнийinstallable43 ниже.
 
+Аудит совместимости нашёл старый assertEquals(17, db.openHelper.readableDatabase.version) в app/src/test/java/com/notessync/app/tasks/TaskDeadlinePersistenceTest.kt:61 (миграция16→текущая). После окончания живого quotes44-checks2 его нужно обновить на ожидаемую18, сохраниввсепроверкиreminder/timer/day/content/implicitdeadline; проверитьэтотклассдополнительно. Пока main/testНЕменять, TaskDeadlinePersistenceне входилвпервые50. ДругихжёсткихassertDBversion17/addMigrationsвтестахне найдено. Не отправлять753fullCIдoadaptэтогопроверочногоожидания.
+
 ## Проверенный выпуск1.10.43/code66/Room17 —74 закрыт
 
 Qwen добавлен через **Groq** рядом с прежними LOCAL_RULES/OpenAI: компактный выбор, отдельные ключи/vault, fixedмодель, явныеSend/preview/Apply, без автоматической смены тарифа/модели/сервиса. Бесплатно только на аккаунтеGroqFree в квоте; Developerможет тарифицироваться, приложение не проверяет тариф. [Инструкция RU/EN](ai-qwen-setup.md), [отчёт74/Qwen](qwen-1.10.43.md), [машиночитаемые доказательства](qwen-1.10.43-verification.json).
