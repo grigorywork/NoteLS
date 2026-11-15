@@ -95,17 +95,19 @@ class TableEditorTest {
                 vm = remember { NoteEditorViewModel(app, SavedStateHandle()).also { store.put("e", it) } }
                 MaterialTheme { NoteEditorScreen(onBack = {}, onDeleted = {}, viewModel = vm) }
             }
-            compose.onNodeWithText("Таблица").performClick()
+            compose.waitUntil(10_000) { compose.waitForIdle(); vm.isReady }
+            compose.onNodeWithContentDescription("Таблица").performClick()
             compose.onNodeWithText("Строки: 1–20").performTextReplacement("2")
             compose.onNodeWithText("Столбцы: 1–10").performTextReplacement("2")
             compose.onNodeWithText("Добавить").performClick()
             compose.onNodeWithTag("cell-0-0").performTextInput("Сохранить")
             compose.onNodeWithContentDescription("Закрыть таблицу").performClick()
-            compose.onNodeWithText("1: 2 × 2").performClick()
+            compose.onNodeWithContentDescription("Таблица").performClick()
+            compose.onNodeWithText("Таблица 2 × 2 · 1").performClick()
             compose.onNodeWithTag("cell-0-0").assertTextEquals("Сохранить")
             compose.onNodeWithContentDescription("Закрыть таблицу").performClick()
             compose.runOnIdle { SettingsRepository.get(app).setShowTables(false) }
-            compose.onNodeWithText("1: 2 × 2").assertDoesNotExist()
+            compose.onNodeWithContentDescription("Таблица").assertDoesNotExist()
             assertEquals("Сохранить", vm.tables!!.blocks[0].cells[0][0])
         } finally { store.clear(); AppDatabase.closeInstance() }
     }

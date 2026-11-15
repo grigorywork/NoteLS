@@ -1387,3 +1387,9 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T07:01:16Z: main f858f3d46749c9febcf3a78ba1494465d4a65c75 отправлен fast-forward; Android checks43687997788/verify132732414380 реальноin_progress (push). Новых параллельныхGradle нет, исходникиmain/test во времяCI не меняются. Та же одноразоваяautomation обновлена черезAPI на2026-11-15T09:15:00Z как резерв продолжения после ожидаемой паузы лимита, is_enabledtrue; prompt читает свежие документы/main и проверяет живую работу. Не дублировать её и не принимать local40 за полныйCI680. Следом проверить autoSigned и артефакт.
+
+
+2026-11-15T07:15:38Z: первый полныйCI43687997788/132732414380 завершился680/4fail (676passed,14m17s). Signed выпуск не выполняется послеfailure.4 причины подтверждены HTMLartifact14151298342 ZIP SHA2564bc31772be8275ac90df944006e9040b32ffddebfc5d1c3bd624931f66223162=API:AudioEditorUiTest3×старый «Файлы», TableEditorTestстарыйtext «Таблица»/плашка вместо новойcontentDescription и меню. Адаптированы пути +/⋮/Back popup и выбор таблицы; сохранены проверки аудиоресурсов/permission/cancel/pause/Back/медиа и данных таблицы, приclosing весьMore disabled. App tree послеf858 не менялся. Целевые6 кейсов выполняются; не принимать676/680 за успех.
+
+
+2026-11-15: маршруты AudioEditorUiTest3/3 и TableEditorTest3/3 фактически прошли вместе6/6,0failures/errors/skipped,2m51s (`editor38-audio-table-paths2.log`). Компиляции понадобился явныйExperimentalTestApi opt-in только для нового тестовогоBack ввода. Старые10s/данные/permission/release/Back/микрофон проверки сохранены; закрытиеDropdownMenu реальнымBack и прокрутка до аудио подтверждены. App tree/build.gradle/pin послеf858 без изменений. Отправляется новый полныйCI, пока не считать680/0.

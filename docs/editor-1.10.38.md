@@ -44,4 +44,10 @@ Room17/data2/security3 без изменений. ПоддержаныRU/EN, п�
 
 ### Полный CI
 
-Источникmain `f858f3d46749c9febcf3a78ba1494465d4a65c75`, [Android checks43687997788](https://github.com/grigorywork/NoteLS/actions/runs/43687997788), verifyjob132732414380: in_progress. После успеха workflow_run запускает Signed NoteLS APK с тем же sourceSHA и сохранённым Secret. Пока нет подтверждённого полного результата/установочного38.
+Источникmain `f858f3d46749c9febcf3a78ba1494465d4a65c75`, [Android checks43687997788](https://github.com/grigorywork/NoteLS/actions/runs/43687997788), verifyjob132732414380: failure,680 tests/4failed,14m17s. После успеха workflow_run запускает Signed NoteLS APK с тем же sourceSHA и сохранённым Secret. Пока нет подтверждённого полного результата/установочного38.
+
+
+Первый полныйCI:676/680 прошли.4 отказа из-за старых UI-селекторов:AudioEditorUiTest3×ищет удалённую кнопку «Файлы», TableEditorTest ищет текст «Таблица» (на320dp теперь доступная сетка без обрезанной подписи), далее старую плашку «1:2×2». Проверен скачанный artifact14151298342, ZIP SHA2564bc31772be8275ac90df944006e9040b32ffddebfc5d1c3bd624931f66223162 равен API digest; отчёты подтверждают причины. Обновлены маршруты тестов на +/⋮/меню таблиц и ожидание готовности нового редактора. Проверки микрофона, аудио/permission/cancel/pause/Back/сохранности таблицы остаются; при закрытии проверяется отключённость всего меню действий с микрофоном. Целевой прогон AudioEditorUiTest+TableEditorTest выполняется. Приложение послеf858 не менялось; полныйCI нужно повторить после фактического успеха.
+
+
+Адаптированные AudioEditorUiTest3/3 (7.684s) и TableEditorTest3/3 (9.395s) прошли вместе безfailures/errors/skipped:6/6, весь прогон2m51s, `editor38-audio-table-paths2.log`. Для настоящего закрытияDropdownMenu используетсяBack вpopup; при воспроизведении проверяется доступ к аудио после прокрутки. Код приложения, версия61 и pin послеf858 неизменны. Тестовые изменения отправляются в новый полный pushCI;680/0 ещё не подтверждено.

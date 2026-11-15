@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -101,22 +102,32 @@ class AudioEditorUiTest {
         } }
         await { vm.isReady }; return vm
     }
+    private fun chooseRecording() {
+        compose.onNodeWithContentDescription("Вставить").performClick()
+        compose.onNodeWithText("Записать аудио").performClick()
+    }
+    @OptIn(ExperimentalTestApi::class)
+    private fun assertVoiceDisabled() {
+        compose.onNodeWithContentDescription("Действия").performClick()
+        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        compose.onNode(isPopup()).performKeyInput { pressKey(Key.Back) }
+    }
     private fun record(vm: NoteEditorViewModel) {
-        compose.onNodeWithText("Файлы").performClick(); compose.onNodeWithText("Записать аудио").performClick()
+        chooseRecording()
         await { vm.audioCapture.state.value.phase == AudioCapturePhase.RECORDING }
     }
     @Test fun `audio has its own controls never enters photo previews and playback stops on pause`() {
         shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
         val vm = content(); record(vm)
-        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        assertVoiceDisabled()
         compose.onNodeWithContentDescription("Сохранить аудио").performClick()
         await { !vm.audioCapture.state.value.busy && vm.attachments.value.size == 1 }
         val row = vm.attachments.value.single()
         compose.onNodeWithTag("audio-${row.syncId}").assertExists()
         compose.onAllNodesWithContentDescription("Фото заметки").assertCountEquals(0)
-        compose.onNodeWithContentDescription("Воспроизвести аудио").performClick(); await { players.isNotEmpty() }
+        compose.onNodeWithContentDescription("Воспроизвести аудио").performScrollTo().performClick(); await { players.isNotEmpty() }
         compose.runOnIdle { players.single().callbacks.prepared() }; await { vm.audioPlayback.state.value.phase == AudioPlaybackPhase.PLAYING }
-        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        assertVoiceDisabled()
         compose.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
         await { vm.audioPlayback.state.value.phase == AudioPlaybackPhase.IDLE }
         compose.runOnIdle { assertEquals(1, players.single().releases); players.single().callbacks.prepared(); owner.registry.currentState = Lifecycle.State.RESUMED }
@@ -125,7 +136,7 @@ class AudioEditorUiTest {
     @Test fun `permission answer never records until another explicit selection and cancellation leaves no attachment`() {
         shadowOf(app).denyPermissions(Manifest.permission.RECORD_AUDIO)
         val vm = content()
-        compose.onNodeWithText("Файлы").performClick(); compose.onNodeWithText("Записать аудио").performClick()
+        chooseRecording()
         compose.runOnIdle {
             assertNotNull(registry.code); assertTrue(captures.isEmpty())
             owner.registry.currentState = Lifecycle.State.CREATED
@@ -146,7 +157,7 @@ class AudioEditorUiTest {
         compose.runOnIdle { assertEquals(1, captures.size) }
         record(vm); compose.onNodeWithContentDescription("Назад").performClick()
         await { back.get() && !vm.audioCapture.state.value.busy && vm.attachments.value.size == 2 }
-        compose.onNodeWithTag("voice-input").assertIsNotEnabled()
+        compose.onNodeWithContentDescription("Действия").assertIsNotEnabled()
         compose.runOnIdle { assertEquals(2, captures.size); assertTrue(captures.all { it.releases == 1 && !File(it.path).exists() }); assertEquals("Original", vm.contentField.text) }
     }
 }
