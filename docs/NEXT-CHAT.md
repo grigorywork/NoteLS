@@ -1,5 +1,9 @@
 # NoteLS: продолжение разработки
 
+## Текущий76 — стекло1.10.45/code68/Room18, план до реализации
+
+[Решения/отчёт](glass-1.10.45.md). Свежийmain60cb93b/деревочистое/активныхGradleиCIнет. Собственныйфон/alphaразделить, trueblurтолькофонAndroid12+/bounded18dp/default0; старыйAndroidsoftgradientсчестнымпояснением. Локальныйdraftpreview/reset/save/cancel, themeadaptiveпалитры/3фона, noanimations/polling. Покаappsource45ещёнеизменён/НЕinstallable. Последнийverified44ниже.
+
 ## Проверенный выпуск1.10.44/code67/Room18 —75 закрыт
 
 Цитатник: своицитаты/автор/источник/CRUD/закрепление, boundedUTF8JSON/TXTимпорт сpreview/дубликатами/атомарностью; нижняяцитатаотдельноотпрокрутки/ограничениевысоты/крупныйшрифт. Прежние5Roomentitiesточноравны17, новые2таблицыдобавлены17→18миграцией;зашифрованныйbackup/restore/legacy/stale/capacity/rollbackпроверены. [Инструкция/примеры](quote-library-guide.md), [отчёт75](quotes-1.10.44.md), [машиночитаемыедоказательства](quotes-1.10.44-verification.json). Своябиблиотекапокалокальная+backup,WiFiсинхронизациюцитатнеобъявлять.
