@@ -40,7 +40,7 @@ object BackupManager {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val revision = AtomicLong(0)
     private var backedUpRevision = 0L
-    private val tables = listOf("notebooks", "tags", "notes", "note_tag_cross_ref", "attachments")
+    private val tables = listOf("notebooks", "tags", "notes", "note_tag_cross_ref", "attachments", "custom_quotes", "quote_library_state")
 
     fun noteChanged() { revision.incrementAndGet() }
 

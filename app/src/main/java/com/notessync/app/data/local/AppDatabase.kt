@@ -1,6 +1,9 @@
 package com.notessync.app.data.local
 
 import android.content.Context
+import com.notessync.app.data.local.entity.CustomQuoteEntity
+import com.notessync.app.data.local.entity.QuoteLibraryState
+import com.notessync.app.data.local.dao.CustomQuoteDao
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -24,20 +27,23 @@ import com.notessync.app.data.backup.BackupManager
         NotebookEntity::class,
         TagEntity::class,
         NoteTagCrossRef::class,
-        AttachmentEntity::class
+        AttachmentEntity::class,
+        CustomQuoteEntity::class,
+        QuoteLibraryState::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
+    abstract fun customQuoteDao(): CustomQuoteDao
     abstract fun noteDao(): NoteDao
     abstract fun notebookDao(): NotebookDao
     abstract fun tagDao(): TagDao
     abstract fun attachmentDao(): AttachmentDao
 
     companion object {
-        const val VERSION = 17
+        const val VERSION = 18
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -174,12 +180,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS custom_quotes (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, text TEXT NOT NULL, author TEXT NOT NULL, source TEXT NOT NULL, fingerprint TEXT NOT NULL)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_custom_quotes_fingerprint ON custom_quotes (fingerprint)")
+                db.execSQL("CREATE TABLE IF NOT EXISTS quote_library_state (id INTEGER NOT NULL, pinnedQuoteId INTEGER, PRIMARY KEY(id), FOREIGN KEY(pinnedQuoteId) REFERENCES custom_quotes(id) ON UPDATE NO ACTION ON DELETE SET NULL)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_quote_library_state_pinnedQuoteId ON quote_library_state (pinnedQuoteId)")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: build(context, "notessync.db").also { database ->
                     // A notification after actual DB changes, with no polling or service.
                     database.invalidationTracker.addObserver(object : InvalidationTracker.Observer(
-                        "notes", "notebooks", "tags", "note_tag_cross_ref", "attachments"
+                        "notes", "notebooks", "tags", "note_tag_cross_ref", "attachments", "custom_quotes", "quote_library_state"
                     ) {
                         override fun onInvalidated(tables: Set<String>) { BackupManager.noteChanged() }
                     })
@@ -196,7 +211,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ).addMigrations(
                         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17
+                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18
                     ).addCallback(LegacyIdentityRepair).build()
 
         // Этап 39: закрыть и сбросить синглтон перед подменой файла БД

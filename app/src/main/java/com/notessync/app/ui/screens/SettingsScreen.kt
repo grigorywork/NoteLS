@@ -66,8 +66,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit, initialGroup: Str
     var showFontLicenses by remember { mutableStateOf(false) }
     BackHandler(enabled = busy) { /* Finish the database operation before navigating away. */ }
     BackHandler(enabled = !busy && expandedGroup != null) { expandedGroup = null }
-    if (showDrawerQuote) com.notessync.app.ui.quotes.DrawerQuoteDialog(state.drawerQuote,
-        onSave = { settings.setDrawerQuoteAppearance(it); showDrawerQuote = false }, onDismiss = { showDrawerQuote = false })
+    if (showDrawerQuote) com.notessync.app.ui.quotes.DrawerQuoteSettingsDialog(state.drawerQuote, settings,
+        onDismiss = { showDrawerQuote = false })
     if (showFontLicenses) FontLicensesDialog(onDismiss = { showFontLicenses = false })
 
     LaunchedEffect(state.lastAutoBackupAt, backup.showCopies, expandedGroup) {

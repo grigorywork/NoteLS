@@ -9,6 +9,7 @@ object UiCatalog {
             addNavigationEnglish()
             addSettingsEnglish()
             addFeaturesEnglish()
+            addQuotesEnglish()
             addBackupSecurityEnglish()
         }
     }

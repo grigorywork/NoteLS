@@ -2,6 +2,14 @@ package com.notessync.app.ui.screens
 
 import com.notessync.app.i18n.uiText
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material3.*
+import com.notessync.app.ui.quotes.*
+import com.notessync.app.data.quotes.QuoteDraft
 import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +77,11 @@ fun QuotesScreen(onBack: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val library = rememberQuoteLibraryUi(snackbarHostState)
+    val customQuotes by library.quotes.collectAsStateWithLifecycle(initialValue = emptyList())
+    val pinned by library.pinned.collectAsStateWithLifecycle(initialValue = null)
+    val importFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) library.load(uri) }
+    var showFormat by remember { mutableStateOf(false) }
 
     var selectedAuthor by rememberSaveable { mutableStateOf<String?>(null) }
     var today by remember { mutableStateOf(LocalDate.now().toEpochDay()) }
@@ -84,6 +97,10 @@ fun QuotesScreen(onBack: () -> Unit) {
     val visibleQuotes = remember(selectedAuthor) { QuotesData.ofAuthor(selectedAuthor) }
     var saving by remember { mutableStateOf(false) }
 
+    fun shareText(text: String) {
+        val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }
+        context.startActivity(Intent.createChooser(send, uiText("Поделиться цитатой")))
+    }
     fun shareQuote(quote: Quote) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -92,15 +109,15 @@ fun QuotesScreen(onBack: () -> Unit) {
         context.startActivity(Intent.createChooser(send, uiText("Поделиться цитатой")))
     }
 
-    fun saveQuoteAsNote(quote: Quote) {
+    fun saveTextAsNote(draft: QuoteDraft) {
         if (saving) return
         saving = true
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     AppDatabase.get(context).noteDao().upsert(
-                        NoteEntity(title = uiText("Цитата: %1\$s", (QuotesData.author(quote.authorId).name)),
-                            content = QuotesData.formatted(quote))
+                        NoteEntity(title = uiText("Цитата: %1\$s", draft.author.ifBlank { uiText("Без автора") }),
+                            content = draft.formatted())
                     )
                 }
                 BackupManager.noteChanged()
@@ -115,11 +132,23 @@ fun QuotesScreen(onBack: () -> Unit) {
         }
     }
 
+    fun saveQuoteAsNote(quote: Quote) = saveTextAsNote(QuoteDraft(quote.text, QuotesData.author(quote.authorId).name, quote.source.orEmpty()))
+    QuoteLibraryDialogs(library, onUpdated = { selectedAuthor = "mine" })
+    if (showFormat) AlertDialog(onDismissRequest = { showFormat = false }, title = { Text(uiText("Формат файла цитат")) }, text = {
+        Column {
+            Text(uiText("UTF-8, до 2 МиБ и 500 цитат. JSON: массив с text, author, source. TXT: одна цитата в строке; автор и источник — через табуляцию."))
+            Text("[{\"text\":\"…\",\"author\":\"…\",\"source\":\"…\"}]")
+        }
+    }, confirmButton = { TextButton(onClick = { showFormat = false }) { Text(uiText("Закрыть")) } })
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(uiText("Цитаты")) },
+                actions = {
+                    IconButton(onClick = { library.edit() }, enabled = !library.busy && !saving) { Icon(Icons.Default.Add, uiText("Добавить цитату")) }
+                    IconButton(onClick = { importFile.launch(arrayOf("application/json", "text/plain", "text/tab-separated-values", "application/octet-stream")) }, enabled = !library.busy && !saving) { Icon(Icons.Default.FileOpen, uiText("Загрузить цитаты")) }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = uiText("Назад"))
@@ -137,7 +166,7 @@ fun QuotesScreen(onBack: () -> Unit) {
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item(key = "quote-of-day") {
+            if (selectedAuthor != "mine") item(key = "quote-of-day") {
                 QuoteCard(
                     quoteOfDay,
                     onCopy = {
@@ -162,6 +191,7 @@ fun QuotesScreen(onBack: () -> Unit) {
                         onClick = { selectedAuthor = null },
                         label = { Text(uiText("Все")) }
                     )
+                    FilterChip(selected = selectedAuthor == "mine", onClick = { selectedAuthor = "mine" }, label = { Text(uiText("Мои")) })
                     QuotesData.authors.forEach { author ->
                         FilterChip(
                             selected = selectedAuthor == author.id,
@@ -173,7 +203,24 @@ fun QuotesScreen(onBack: () -> Unit) {
                     }
                 }
             }
-            items(visibleQuotes, key = { it.authorId + ":" + it.text }) { quote ->
+            if (selectedAuthor == "mine" || selectedAuthor == null) {
+                item(key = "my-quotes-info") {
+                    Column {
+                        Text(uiText("Мой цитатник"), style = MaterialTheme.typography.titleSmall)
+                        if (customQuotes.isEmpty()) Text(uiText("Добавьте свою цитату или загрузите подборку из файла."), style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = { showFormat = true }) { Text(uiText("Формат файла цитат")) }
+                        if (library.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
+                }
+                items(customQuotes, key = { "custom:${it.id}" }) { quote ->
+                    CustomQuoteCard(quote, pinned?.id == quote.id, library.busy || saving,
+                        onCopy = { clipboard.setText(AnnotatedString(quote.draft().formatted())); scope.launch { snackbarHostState.showSnackbar(uiText("Скопировано")) } },
+                        onShare = { shareText(quote.draft().formatted()) }, onSaveToNote = { saveTextAsNote(quote.draft()) },
+                        onPin = { library.pin(quote, pinned?.id == quote.id) }, onEdit = { library.edit(quote) },
+                        onDelete = { library.problem = null; library.deleting = quote })
+                }
+            }
+            if (selectedAuthor != "mine") items(visibleQuotes, key = { it.authorId + ":" + it.text }) { quote ->
                 QuoteCard(
                     quote = quote,
                     onCopy = {

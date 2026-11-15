@@ -34,6 +34,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.map
+import com.notessync.app.data.local.AppDatabase
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +67,14 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
     snackbarHostState: SnackbarHostState, settingsContext: android.content.Context,
     onOpenCalendar: () -> Unit, onOpenQuotes: () -> Unit, onOpenAgenda: () -> Unit = onOpenCalendar) {
     ModalDrawerSheet {
-        Column(Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+        // Collect the one-row selection only while the open drawer is displayed.
+        val pin = if (drawerState.isOpen && displaySettings.drawerQuote.enabled) {
+            val pinnedFlow = remember(settingsContext) { AppDatabase.get(settingsContext).customQuoteDao().observePinned().map { PinValue(it?.draft()?.formatted()) } }
+            val value by pinnedFlow.collectAsStateWithLifecycle(initialValue = null)
+            value
+        } else null
+        com.notessync.app.ui.quotes.PinnedDrawerContent(displaySettings.drawerQuote, drawerQuoteIndex, pin?.text,
+            showQuote = drawerState.isOpen && pin != null, onQuote = { scope.launch { drawerState.close() }; onOpenQuotes() }) {
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(uiText("Заметки"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             NotesSectionsMenu(filter, onSelect = {
@@ -238,9 +248,8 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
         }
-        if (displaySettings.drawerQuote.enabled && drawerState.isOpen) {
-            com.notessync.app.ui.quotes.DrawerQuoteCard(displaySettings.drawerQuote, drawerQuoteIndex)
-        }
         }
     }
 }
+
+private data class PinValue(val text: String?)
