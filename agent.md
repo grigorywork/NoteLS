@@ -1465,3 +1465,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: первый74/settings42-checks.log6m36s:25tests/1failure,24pass0errors/skipped. CompactSettingsUI3/4; Voice-случайнашёл2узла«Русский»(глобальныйязык+popup),поискограниченisPopup,assertionsнеослаблялись. СтарыеSettingsGroups4/Language3/UiCatalog6/VoiceSettings3/TransformUI4/TransformSettings1прошли. Аудитдобавилcompactbackupfrequency(6прежнихзначений)/busyзакрытиеpopupбезсамовозврата;5-йNativeUIкейснаbusy/частоту/сохранностьпредупреждения. Выполняетсяповторныйsettings42-checks2.log26кейсов/lint/assemble. Резервнаятажеautomationобновленана17:40:53UTC/is_enabledtrue,APIподтвердил. Пока42неCIpass/неinstallable,ключ/Roomпрежние.
+
+
+2026-11-15:74/1.10.42/code65/Room17 локально26разныхцелевыхкейсовподтверждены: settings42-checks2.log26/26success7m23s; финальныйкороткийfontpreview settings42-preview-final.log11/11success5m49s/lint0error/15warnings/2info/assembleDebug.3NativeCanvasпросмотрены,7группв320×640/48dp, выбранныйfontpreviewоднакороткаястрока. ВсеWIPc28c0cc/75e8947/d19dfddвcodex/settings-1.10.42, отправляютсяfast-forwardmainдляполногоCI714ожидаемого(НЕpassпока) иautoSigned. Qwen/DeepSeekответнеполучен,провайдерыне добавлены/платныхвызововнет. Ключ/Secret/Room/data/securityпрежние;последнийinstallable41.

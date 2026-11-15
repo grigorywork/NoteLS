@@ -1,3 +1,7 @@
+<!-- CURRENT-SETTINGS-42 -->
+> **74 выполняется:1.10.42/code65/Room17.** Компактные меню/пояснения/группы и все прежние настройки сохранены. Локальные26разныхцелевыхкейсов подтверждены, final11/11/lint0error/assembleDebugSUCCESS5m49s. ПолныйCI714/установочный42 пока не проверены. [Отчёт74](settings-1.10.42.md), [продолжение](NEXT-CHAT.md). Последнийпроверенныйinstallable41 ниже. ДополнениеQwen/DeepSeek ожидаетответа, новыхпровайдеров/платныхAPIвызововнет.
+<!-- END-CURRENT-SETTINGS-42 -->
+
 <!-- CURRENT-GPT-41 -->
 > **73 закрыт:1.10.41/code64/Room17.** [Проверенный установочныйAPK вZIP14164360720](https://github.com/grigorywork/NoteLS/actions/runs/43718750157/artifacts/14164360720), source8d2074a. ПолныйCI43716992091:709/0fail/0ignored/lint0error; Signed43718750157SUCCESS. ZIP/API/SUMS/APK/source/package/version/nondebug/actualapksigner certificate по прежнемуpin сверены. [Отчёт73](gpt-1.10.41.md), [продолжение](NEXT-CHAT.md). Следующий74, затем75–82 автономно;68/iPhone отложен. РеальныхплатныхAPIзапросовне выполнялось.
 <!-- END-CURRENT-GPT-41 -->
