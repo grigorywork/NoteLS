@@ -1,3 +1,7 @@
+<!-- CURRENT-VOICE-40 -->
+> **72 закрыт: 1.10.40/code63/Room17.** [Проверенный установочный APK14161866812](https://github.com/grigorywork/NoteLS/actions/runs/43714199063/artifacts/14161866812), source87f65ad. ПолныйCI43712089734:701/0fail/0ignored/lint0error; signed43714199063SUCCESS. ZIP/API/SUMS/APK/source/version/nondebug/actualapksigner certificate по прежнемуpin сверены. [Отчёт72](docs/voice-1.10.40.md), [продолжение](docs/NEXT-CHAT.md). Следующий73, затем74–82 автономно;68/iPhone отложен.
+<!-- END-CURRENT-VOICE-40 -->
+
 <!-- CURRENT-NAVIGATION-39 -->
 > **69 закрыт:1.10.39/code62/Room17.** [ПроверенныйустановочныйAPK14154919194](https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194), source3e16a94. ПолныйCI43696196924:690/0fail/0ignored/lint0error; signed43698349185SUCCESS, ZIP/API/APK/source/version/nondebug и настоящийapksigner/certificate по прежнемуpin сверены. Следующий72, затем73–82 автономно. [Отчёт39](docs/navigation-1.10.39.md), [продолжение](docs/NEXT-CHAT.md).68/iPhone отложен.
 <!-- END-CURRENT-NAVIGATION-39 -->

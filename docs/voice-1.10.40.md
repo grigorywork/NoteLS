@@ -1,6 +1,6 @@
 # Диктовка72 — 1.10.40/code63
 
-Работа продолжается. Последний проверенный установочный выпуск —1.10.39/code62, полныйCI690/0, постоянная подпись подтверждена. Room17/data2/security3 и NOTELS_SIGNING_MATERIAL не меняются.
+Этап72 закрыт:1.10.40/code63, полныйCI701/0 и независимо проверенный установочныйAPK с прежним сертификатом. Ниже сохранена история диагностики и проверок. Room17/data2/security3 и NOTELS_SIGNING_MATERIAL не меняются.
 
 ## Диагностика
 
@@ -43,3 +43,11 @@ CI43712089734/job132805662061 SUCCESS на source87f65add7bad85414f9da83344c5401
 В отчёте7PNG:3редактора/3навигации/1диктовки. CI-снимки заметки, выполненных и диктовки просмотрены. При первом просмотре voicePNG в чате отобразился пустым; прежний вывод о пустом файле был ошибочным. Проверка пикселей/alpha и повторное открытие подтвердили настоящий редактор/панель/курсор. CI и локальный PNG побайтово совпали: SHA256 `72a386ddfe063c6a20de6bf7437f0c15f0f61eea7b895e9bef06108755c46b96`, 320×760,585 цветов; верхние500px содержат интерфейс, нижняя область прозрачна и моделирует IME. [Исходный PNG из проверенного CI](design/voice-panel-ime-1.10.40.png) сохранён без изменения байтов. CIsemantics/геометрия также прошли. Физического телефона нет.
 
 AutoSigned43714199063:identity132812083366SUCCESS,release132812117580in_progress; существующиеSecret/pin checks прошли, build/lint release ещё идёт. Runheadcd13ccb — docs-onlyworkflow_run, реальный checkout/READMEsource должен быть87f65ad. Installable40 пока не подтверждён.
+
+## Закрытие72
+
+[УстановочныйAPK40](https://github.com/grigorywork/NoteLS/actions/runs/43714199063/artifacts/14161866812). Signed43714199063/identity132812083366/release132812117580 SUCCESS; actualcheckout87f65add7bad85414f9da83344c54012b32935b7, build/lint9m58s,13signing contracts0fail10.653s. APIrunheadcd13ccb — последующая документация, реальный checkout/READMEsource87f65ad.
+
+Скачанный ZIP15409084bytes SHA256 `64f8e41e529da08670f4e69de57cc149afee31c511ef12f5c0c9d4f99533c8d4`=APIdigest. Ровно3 уникальных файла:APK/README/SHA256SUMS. APK27517639bytes SHA256 `52764f93a946e0f86e05a8af4678a065db2a255e92388082b35e4d3b064accbe`=SUMS/CI. Actualapksigner v2/v3true/1signer/certificate по прежнемуpin; actualaapt2com.notessync.app/1.10.40/63/nondebuggable/min26/target35. DEX изменён относительно39 и содержит voice-panel/voice_language/Dictation options. [Машиночитаемая проверка](voice-1.10.40-verification.json).
+
+После всех проверок APK скопирован в `/workspace/library-files/NoteLS-1.10.40-code63-permanent-signature.apk`. КлючNOTELS_SIGNING_MATERIAL/Room17/data2/security3 прежние. На закрытие дерево приложения совпадало с провереннымsource87f65ad. Реальный микрофон и телефон не проверялись; исправления подтверждены облачными платформенными/UI/данными проверками и7NativeCanvas-снимками. Следующий73(GPT), затем74–82 автономно; платныхAI-запросов без отдельногоразрешения не выполнять.

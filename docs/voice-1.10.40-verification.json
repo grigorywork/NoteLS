@@ -1,0 +1,63 @@
+{
+  "source": "87f65add7bad85414f9da83344c54012b32935b7",
+  "version": "1.10.40",
+  "code": 63,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "zip_sha256": "64f8e41e529da08670f4e69de57cc149afee31c511ef12f5c0c9d4f99533c8d4",
+  "apk_sha256": "52764f93a946e0f86e05a8af4678a065db2a255e92388082b35e4d3b064accbe",
+  "apk_bytes": 27517639,
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "apk_path": "/workspace/library-files/NoteLS-1.10.40-code63-permanent-signature.apk",
+  "dex_sha256": {
+    "classes.dex": "9d09258b79619e50958a12abcf6396bea75843a0b0da4cb3eb2a28d611777ec6"
+  },
+  "compiled_voice_markers": [
+    "voice-panel",
+    "voice_language",
+    "Dictation options"
+  ],
+  "verified_at_utc": "2026-11-15T12:44:14.159147+00:00",
+  "room_schema": 17,
+  "data_format": 2,
+  "security_format": 3,
+  "physical_device_installation_tested": false,
+  "physical_microphone_tested": false,
+  "ci": {
+    "run_id": 43712089734,
+    "job_id": 132805662061,
+    "source": "87f65add7bad85414f9da83344c54012b32935b7",
+    "tests": 701,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "23m37s",
+    "reports_artifact_id": 14160944000,
+    "reports_zip_sha256": "a5aab21b96f94c05cebb1d4ef2a714626e030e03a70cc02d11c79c0bd4b9a4ea"
+  },
+  "signed_release": {
+    "run_id": 43714199063,
+    "identity_job_id": 132812083366,
+    "release_job_id": 132812117580,
+    "artifact_id": 14161866812,
+    "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43714199063/artifacts/14161866812",
+    "build_lint_duration": "9m58s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "signing_contract_duration_seconds": 10.653
+  },
+  "ci_voice_preview": {
+    "path": "docs/design/voice-panel-ime-1.10.40.png",
+    "sha256": "72a386ddfe063c6a20de6bf7437f0c15f0f61eea7b895e9bef06108755c46b96",
+    "identical_to_local_native_canvas": true,
+    "simulated_ime": true,
+    "visual_inspection_passed": true
+  }
+}

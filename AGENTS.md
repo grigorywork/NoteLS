@@ -53,3 +53,6 @@
 
 
 72: source1.10.40/code63 уже вmain87f65ad, предыдущиеWIP включены. ПолныйCI43712089734/job132805662061 in_progress; локальные63 целевых кейса подтверждены, lint0error/assembleDebug success. Не редактироватьmain/test при живой проверке/не запускать второйGradle. Последний installable39;40 только после полногоCI и независимой проверкиSigned. Свежие NEXT-CHAT.md/voice-1.10.40.md.
+
+
+2026-11-15:72закрыт в1.10.40/code63/Room17/data2/security3. CI43712089734/source87f65ad=701/0fail/0ignored/lint0error/build23m37s; Signed43714199063/identity132812083366/release132812117580SUCCESS, artifact14161866812 независимо проверен поZIP/API/ровно3файла/SUMS/APK/source/package/version/nondebug/actualapksigner v2/v3/1signer/certificatepin. ZIP64f8e41e529da08670f4e69de57cc149afee31c511ef12f5c0c9d4f99533c8d4; APK52764f93a946e0f86e05a8af4678a065db2a255e92388082b35e4d3b064accbe=CI. DEXновый, voice-markerподтверждены. CIvoicePNGпобайтовосовпалслокальным/визуальнопроверен, сохранён docs/design/voice-panel-ime-1.10.40.png. Proof docs/voice-1.10.40-verification.json. APK после всех проверок вlibrary-files подготовлен квыдаче. Ключ/Secretне менялись, физическогомикрофона/телефонанет. Следующий73(GPT),потом74–82 автономно;68iPhoneне начинать/новыхэтаповне добавлять. ПлатныхAI-вызововбезотдельногоразрешенияне делать.
