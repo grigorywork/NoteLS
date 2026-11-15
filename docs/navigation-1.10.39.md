@@ -30,3 +30,8 @@ CalendarViewModel сохранял TaskCompletion.toggle старой NoteEntity
 ## Полный CI39
 
 [CI43696196924](https://github.com/grigorywork/NoteLS/actions/runs/43696196924), job132757148859: in_progress, source`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`. Ожидается690 тестов (680 исходных +10 новых). После успеха подписанный workflow должен использовать тот же исходник и прежний NOTELS_SIGNING_MATERIAL. Пока общий успех и установочныйAPK39 не подтверждены.
+
+
+ПолныйCI43696196924/job132757148859 завершился SUCCESS наsource`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`:690 тестов/0failures/0ignored, lint0error/16warnings/2info, assembleDebug success,25m59s. Скачан reportartifact14155640520, ZIP SHA256`e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd` строго равенAPI digest; HTML/XML и6снимков (editor-preview3/navigation-preview3) сверены.
+
+Автоматический [Signed43698349185](https://github.com/grigorywork/NoteLS/actions/runs/43698349185):identity132763740508success, release132763765265in_progress, проверка наличияexistingSecret/pin прошла. Buildsourceдолженбыть3e16a94, хотяhead_shaworkflow_run2a66a05 — документы. ПодписанныйAPK39 пока не скачан/не сверен;69 окончательно не закрывать до независимой проверки.

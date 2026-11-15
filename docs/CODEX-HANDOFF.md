@@ -1,5 +1,5 @@
 <!-- CURRENT-NAVIGATION-39 -->
-> **69 вработе:1.10.39/code62/Room17.** Локальные последние9UI/0fail/lint0error/assembleDebug прошли, предыдущие28 проверокданных/SQL прошли; полныйCI/подписанный39 ещё ожидаются. [Продолжение](NEXT-CHAT.md), [отчёт39](navigation-1.10.39.md). Последний проверенныйinstallable38 ниже; новыеэтапынедобавлять,68/iPhoneотложен.
+> **69 вработе:1.10.39/code62/Room17.** Локальные последние9UI/0fail/lint0error/assembleDebug прошли, предыдущие28 проверокданных/SQL прошли; полныйCI43696196924 подтвердил690/0fail/0ignored/lint0error; подписанный39 ещё ожидается. [Продолжение](NEXT-CHAT.md), [отчёт39](navigation-1.10.39.md). Последний проверенныйinstallable38 ниже; новыеэтапынедобавлять,68/iPhoneотложен.
 <!-- END-CURRENT-NAVIGATION-39 -->
 
 <!-- CURRENT-EDITOR-38 -->

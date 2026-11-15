@@ -1417,3 +1417,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T09:13:29Z: сообщениеautomation09:15UTC доставлено в ужеактивнуюкорневуюработу; новыйисполнитель/Gradle не запускался. Свежийoriginmain2a66a05/деревочистое, локальныхGradleнет; CI43696196924/132757148859 всёещёin_progress (jobstart08:48:16,checkstep08:48:36). APIжурналещёнедоступен до завершения (BlobNotFound), это не ошибкаSecret. Тажеодноразоваяautomation перенесена на11:45UTC/is_enabledtrue, APIподтвердил; текущаяработа продолжается, дублейнет.
+
+
+2026-11-15: полныйCI39 43696196924/job132757148859 SUCCESS (build25m59s) наsource3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942. Скачанныйreportartifact14155640520 ZIP388565bytes SHA256e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd=API; HTML690/0failures/0ignored, lintXML0error/16warnings/2info и6NativeCanvas-снимков проверены. AutoSigned43698349185/identity132763740508success/release132763765265in_progress:existingSecret/pinchecks прошли. ФактическийsourceAPK3e16a94,runhead2a66a05docs-only. Installable39пока не подтверждён; закрыть69только после скачивания/ZIP/API/hash/source/version/nondebug/actualapksignerpin. Никакихsourceправок во времяпроверки, следующий72после закрытия69.
