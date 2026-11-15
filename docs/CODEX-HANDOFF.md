@@ -1,5 +1,5 @@
 <!-- CURRENT-EDITOR-38 -->
-> **1.10.38/code61/Room17,71→70: полныйCI подтверждён.** [43689688187](https://github.com/grigorywork/NoteLS/actions/runs/43689688187)/ebc0c01:680 без отказов/пропусков, lint0error/16warnings/2info, build15m24s; отчёт ZIP/API digest совпал. Авто[Signed43690896800](https://github.com/grigorywork/NoteLS/actions/runs/43690896800) ещё выполняется; APK38 пока не проверен/не выдан. Затем автономно69,72–82,68/iPhone отложен. [Продолжение](NEXT-CHAT.md), [отчёт](editor-1.10.38.md), [очередь](improvements-after-1.10.37.md). КлючNOTELS_SIGNING_MATERIAL/pin прежние. Ниже исторические границы старой очереди.
+> **71 и70 закрыты:1.10.38/code61/Room17.** [ПроверенныйAPK14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633), источникebc0c01, полныйCI43689688187:680/0fail/0ignored/lint0error. Подписанный43690896800 SUCCESS, ZIP/APK/source/version/non-debuggable и actualapksigner v2/v3/certificate сверены по прежнемуpin. Следующий69, затем72–82 автономно. [Продолжение](NEXT-CHAT.md), [отчёт](editor-1.10.38.md), [очередь](improvements-after-1.10.37.md).68/iPhone отложен. Ниже исторические границы старой очереди.
 <!-- END-CURRENT-EDITOR-38 -->
 
 <!-- CURRENT-SIGNING-TRANSITION -->

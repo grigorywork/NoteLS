@@ -61,3 +61,19 @@ Room17/data2/security3 без изменений. ПоддержаныRU/EN, п�
 [CI43689688187/job132737492213](https://github.com/grigorywork/NoteLS/actions/runs/43689688187) SUCCESS наsource`ebc0c0147048923f7db1fe652377f4562ada6300`:680 тестов/0failures/0ignored, lint0error/16warnings/2info, assembleDebug success,15m24s. Скачан artifact14152581241, ZIP SHA256`e9124315a0bd98d601110bf6b249f700252f59515e723f02d8626be0b627fc33` строго равен API digest. Проверены итоговые HTML680/0/0 и lintXML;3 NativeCanvas-снимка присутствуют в том же артефакте.
 
 Автоматический [Signed43690896800](https://github.com/grigorywork/NoteLS/actions/runs/43690896800):identity132741133723success, release132741157017 выполняет build/lint, проверка наличияexistingSecret/pin прошла. Фактический sourceAPK должен бытьebc0c01, несмотря на head_sha workflow_run048c9f7 (последующие docs-only). Пока installable38 не скачан/не сверен,71/70 не объявлять окончательно закрытыми.
+
+
+### Проверенный установочныйAPK:71 и70 закрыты
+
+[Signed43690896800/artifact14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633) SUCCESS:release132741157017 checkoutsource`ebc0c0147048923f7db1fe652377f4562ada6300`, lintRelease/assembleRelease12m37s,13 signing contracts0fail11.594s.
+
+Независимая проверка скачанного архива:
+
+- ZIP SHA256`8b9c984b700081e056b3f38cad3eabedcf82ee1cc299bdb238c3734479021686` совпал сAPI digest; внутри ровноAPK/README.txt/SHA256SUMS.
+- APK`NoteLS-1.10.38-code61-permanent-signature.apk`,27501255bytes, SHA256`330f6fb61d7a233c0bd5d09b626b42509bdf2f0fd4eb4a345a88e0d91d8f7c57` совпал сSHA256SUMS иCI signing output. README sourceSHA и public pin совпали.
+- НастоящийBuildTools35 apksigner: v2/v3 true,1 signer, actual certificate SHA256`c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c` строго равен `.github/signing-certificate.sha256`.
+- aapt2:com.notessync.app/1.10.38/code61/non-debuggable/min26/target35. DEX отличается от37; в нём найдены новые идентификаторы компактного редактора/контекстного оформления. Room17/data2/security3 прежние.
+
+[Машиночитаемое доказательство](editor-1.10.38-verification.json). App tree текущегоmain совпадает с прошедшимCIsourceebc0c01; последующие коммиты — документация. ПроверенныйAPK подготовлен к выдаче; версия37 с этой постоянной подписью обновляется поверх. Физической установки/настоящейIME/батарейных/биометрических измерений нет; облачнаяCompose/NativeCanvas проверка описана выше. Ключ/Secrets не менялись и повторный вход не запрашивался.
+
+Этапы71 и70 закрыты. Следующий согласованный69 — компактная навигация и опциональный раздел выполненных, затем72–82;68/iPhone отложен.

@@ -1,5 +1,5 @@
 <!-- CURRENT-EDITOR-38 -->
-> **1.10.38/code61/Room17:** утверждённый компактный редактор71 и свободное поле ввода70. [ПолныйCI43689688187](https://github.com/grigorywork/NoteLS/actions/runs/43689688187) подтвердил680 тестов без отказов/пропусков, lint0error, build success. ПодписанныйAPK38 пока ожидается/не выдан. [Отчёт](docs/editor-1.10.38.md), [продолжение](docs/NEXT-CHAT.md), [очередь](docs/improvements-after-1.10.37.md). Постоянная подпись сохранена. Ниже исторические выпуски.
+> **Готов установочный1.10.38/code61/Room17:** [APK14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633).680 тестов без отказов/пропусков, lint0error; ZIP/APK/source/version/non-debuggable и настоящийapksigner certificate проверены, постоянная подпись прежняя.71 и70 закрыты, далее69 и72–82. [Отчёт](docs/editor-1.10.38.md), [продолжение](docs/NEXT-CHAT.md), [очередь](docs/improvements-after-1.10.37.md). Ниже исторические выпуски.
 <!-- END-CURRENT-EDITOR-38 -->
 
 <!-- CURRENT-SIGNING-TRANSITION -->
