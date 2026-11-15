@@ -17,3 +17,6 @@ Freeусловия видны: бесплатен только аккаунт н
 ## Итог локального аудита и повторных проверок
 
 Повторный qwen43-checks2.log завершился BUILD SUCCESSFUL8m8s:50тестов/13классов/0fail/errors/skipped, lint0error/15warnings/2info, assembleDebug.18новыхкейсов+32прежних подтверждены. NativeCanvas320×720полностьюopaque(230400alpha255), визуально проверен: provider/Freeусловия/model/key/actionsпомещаются. PNGf58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1 сохранён docs/design/qwen-settings-1.10.43.png. Аудит: fixedorigin/model, redirectsfalse/noSDK/noauto/inference, отдельныеvault/prefs/alias/AAD и закрытаяbackupallowlistDB/attachments; старыеOpenAIsettings/keys/preview/Backпроверены. Source43 готовится кобычномуfast-forwardmain/полныйCI732ожидается(покаНЕpass)/autoSigned. Последнийinstallable42. Не менятьmain/test/не запускать второйGradle во времяпроверки. РеальныхAIвызововнет.
+
+
+2026-11-15T17:58UTC: runtime sourceaf01d51ee59756bcdf060123a9b4584c1541c789 уже вmain. Полный pushCI43744048331/job132903324579 in_progress. Пока732ожидаемыйНЕpass/неinstallable43. ВсеWIPcodex/qwen-1.10.43включены, дерево чистое; локальногоGradleнет. main/testзаморожены доCI/Signed/проверкиAPK.
