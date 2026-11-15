@@ -1,6 +1,6 @@
 # Этап75: цитатник — кандидат1.10.44/code67/Room18
 
-Начато после полностью проверенного43/code66/Room17 (732/0/Signed43746004909). Свежийmainc4b8489, дерево чистое, Gradle/CI/других исполнителей нет. Ключ/Secret/data2/security3 не меняются.44 пока не реализован/не проверен/не установочный. Новый номер этапа не добавляется.
+Начато после полностью проверенного43/code66/Room17 (732/0/Signed43746004909). Свежийmainc4b8489, дерево чистое, Gradle/CI/других исполнителей нет. Ключ/Secret/data2/security3 не меняются.44 реализован и локально проверен, но пока не подтверждён полнымCI/подписаннымAPK. Новый номер этапа не добавляется.
 
 Решения до реализации:
 
@@ -37,3 +37,8 @@ quotes44-deadline-compat.log SUCCESS4m6s:2/2безfail/errors/skipped,lint0error
 
 
 [Инструкция и примеры JSON/TXT](quote-library-guide.md) описывают фактический формат/поля/лимиты/отмену/своюобластьдедупликации/backuprestore/локальность.
+
+
+## Итог локального аудита
+
+Локальные проверки подтверждены: quotes44-checks2.log50/50/7m45s (lint0error16warnings2info), quotes44-deadline-compat.log2/2/4m6s, финальныйquotes44-ui-final.log14/14/6m54s/lint0error15warnings2info/assembleDebug.14финальныхперекрываютсяспредыдущими: **52разныхцелевыхкейса**, не66.21новыйкейс, старыеasserts/таймаутынеослаблены. НовыйModifierParameterwarningисправленпорядкомoptionalparam, NativePNGпобайтовонеизменились/осмотрены. Schema18identityb1c6c07627d80657a69a8afd3c98f6aa/SHA256f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973; все5прежнихRoomentitiesпобайтовоструктурноравныschema17, добавленытолько2таблицы. Новыеданныеbackuprestore/legacy/stale/rollback/capacity/UI/RUENпроверены, реальноготелефонанет. ОтправляетсяmainдляполногоCI753ожидаемого/autoSigned; покаНЕpass/НЕinstallable44,75не закрыт. Последнийverified43. Не менятьmain/test/не запускать второйGradleво времяпроверки.
