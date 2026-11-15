@@ -42,3 +42,6 @@ quotes44-deadline-compat.log SUCCESS4m6s:2/2безfail/errors/skipped,lint0error
 ## Итог локального аудита
 
 Локальные проверки подтверждены: quotes44-checks2.log50/50/7m45s (lint0error16warnings2info), quotes44-deadline-compat.log2/2/4m6s, финальныйquotes44-ui-final.log14/14/6m54s/lint0error15warnings2info/assembleDebug.14финальныхперекрываютсяспредыдущими: **52разныхцелевыхкейса**, не66.21новыйкейс, старыеasserts/таймаутынеослаблены. НовыйModifierParameterwarningисправленпорядкомoptionalparam, NativePNGпобайтовонеизменились/осмотрены. Schema18identityb1c6c07627d80657a69a8afd3c98f6aa/SHA256f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973; все5прежнихRoomentitiesпобайтовоструктурноравныschema17, добавленытолько2таблицы. Новыеданныеbackuprestore/legacy/stale/rollback/capacity/UI/RUENпроверены, реальноготелефонанет. ОтправляетсяmainдляполногоCI753ожидаемого/autoSigned; покаНЕpass/НЕinstallable44,75не закрыт. Последнийverified43. Не менятьmain/test/не запускать второйGradleво времяпроверки.
+
+
+2026-11-15T20:37UTC:75runtime source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 УЖЕmain. Полный pushCI43759092671/job132949595069 in_progress. ВсеWIPcodex/quotes-1.10.44 включены. LocalGradleнет/дерево чистое/main/testзамороженыдоCI+Signed+независимойверификацииAPK.753ожидаемыйНЕpassпока/44НЕinstallable. Последнийverified43.
