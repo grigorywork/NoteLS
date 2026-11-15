@@ -1,3 +1,9 @@
+## 76: полный CI765/0 подтверждён; Signed выполняется
+
+Кандидат1.10.45/code68/Room18/data2/security3, runtime `d3aed90a2dee41f8d684948d5be12938518667c5`. ПолныйCI43771941590/job132989559112 SUCCESS: **765/0fail/0ignored**, lint0error/16warnings/2info, build28m52s. Report14185766665:704069bytes, ZIP SHA256 `04f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e`=API; GradleHTML/XML проверены. Два glass NativePNG побайтово равны локальным.
+
+АвтоSigned **43774701037**, identity132998241930 SUCCESS, release132998276354 in_progress. API runhead51b7718 — docs-only; при проверке нужен actualcheckout/README runtime d3aed90. Пока45 НЕ проверенный установочный,76 НЕ закрыт; последний verified44. Не менять main/test/не запускать второйGradle. После Signed независимо проверить APK/ZIP/API/SUMS/source/version/nondebug/actualapksignerpin/newDEX и только затем закрыть76/перейти77. [Отчёт](glass-1.10.45.md).
+
 ## 76: полный CI запущен, исходники заморожены
 
 Runtime source `d3aed90a2dee41f8d684948d5be12938518667c5` уже в main. Полный pushCI **43771941590/job132989559112 — in_progress**, не подтверждённые765 не считать успехом. Локальные36/36 и финальные4 UI/4 (пересечение) успешны, lint0error/assembleDebug. Локальных Gradle нет, дерево чистое; все WIP codex/glass-1.10.45 включены в main. Не менять main/test и не запускать второй Gradle при CI/Signed. После полного успеха дождаться autoSigned того же runtime source, независимо проверить APK и только тогда закрыть76/перейти77. Последний проверенный installable44,45 пока не выдавать. [Отчёт76](glass-1.10.45.md).

@@ -41,3 +41,7 @@ Checkpoint f0f8fc5 сохранён в codex/glass-1.10.45. Новый GlassAppe
 ```
 
 Полный pushCI43771941590/job132989559112 запущен для runtime source d3aed90a2dee41f8d684948d5be12938518667c5. Все checkpoint включены в main. Исходники заморожены до полногоCI+autoSigned+независимой верификации. Пока45 не проверенный installable.
+
+## Полный CI подтверждён, Signed ещё выполняется
+
+CI43771941590/job132989559112/source d3aed90a2dee41f8d684948d5be12938518667c5 SUCCESS:765/0fail/0ignored/lint0error16warnings2info/build28m52s. Скачан и независимо проверен report14185766665:704069bytes, SHA25604f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e=API. Helper сверил GradleHTML/XML, два glass PNG побайтово равны локальным ранее осмотренным. АвтоSigned43774701037/identity132998241930SUCCESS/release132998276354in_progress. До его завершения и независимогоAPKcheck45НЕinstallable/76НЕзакрыт, source заморожен. API runhead51b7718 docs-only, actualcheckout/README ожидается d3aed90.

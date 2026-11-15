@@ -1531,3 +1531,6 @@ quotes44-deadline-compat.log SUCCESS4m6s:2/2безfail/errors/skipped,lint0error
 
 
 76 runtime d3aed90a2dee41f8d684948d5be12938518667c5 уже main, полный pushCI43771941590/job132989559112 in_progress. Локального Gradle нет, дерево чистое, все checkpoint включены. Main/test заморожены, не начинать77 до CI/Signed/независимой проверки45. Последний verified44.
+
+
+76: полныйCI43771941590/job132989559112/source d3aed90a2dee41f8d684948d5be12938518667c5 SUCCESS=765/0fail/0ignored/lint0error16warnings2info/build28m52s. Report14185766665 ZIP704069bytes SHA25604f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e=API/HTMLXMLсверены,2NativeglassPNGравнылокальным. АвтоSigned43774701037/identity132998241930SUCCESS/release132998276354in_progress. Пока45НЕverifiedinstallable/76НЕзакрыт; main/testзаморожены. Следующий77толькопослеSigned/независимойAPKверификации.
