@@ -1,5 +1,5 @@
 <!-- CURRENT-NAVIGATION-39 -->
-> **Текущая работа69:1.10.39/code62/Room17.** Компактные меню, опциональный раздел выполненных, дневник и ежедневник. Локальные проверки/lint/assembleDebug прошли; полныйCI43696196924 подтвердил690/0fail/0ignored/lint0error; подписанный39 ещё ожидается. [Отчёт](docs/navigation-1.10.39.md). Последний проверенныйAPK38 ниже.
+> **69 закрыт:1.10.39/code62/Room17.** [ПроверенныйустановочныйAPK14154919194](https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194), source3e16a94. ПолныйCI43696196924:690/0fail/0ignored/lint0error; signed43698349185SUCCESS, ZIP/API/APK/source/version/nondebug и настоящийapksigner/certificate по прежнемуpin сверены. Следующий72, затем73–82 автономно. [Отчёт39](docs/navigation-1.10.39.md), [продолжение](docs/NEXT-CHAT.md).68/iPhone отложен.
 <!-- END-CURRENT-NAVIGATION-39 -->
 
 <!-- CURRENT-EDITOR-38 -->

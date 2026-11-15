@@ -1,0 +1,56 @@
+{
+  "source": "3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942",
+  "version": "1.10.39",
+  "code": 62,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "zip_sha256": "d79c35a657eee9697bfeae5b075cbdb62212fe542f4ba27d10a24fc291511807",
+  "apk_sha256": "6a17ce64878b472302b406961c02fe4836d91df78585b4aab5fdd401b8779e24",
+  "apk_bytes": 27517639,
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "apk_path": "/workspace/library-files/NoteLS-1.10.39-code62-permanent-signature.apk",
+  "verified_at_utc": "2026-11-15T09:28:32.409563+00:00",
+  "ci": {
+    "run_id": 43696196924,
+    "job_id": 132757148859,
+    "source": "3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942",
+    "tests": 690,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "25m59s",
+    "reports_artifact_id": 14155640520,
+    "reports_zip_sha256": "e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd"
+  },
+  "signed_release": {
+    "run_id": 43698349185,
+    "identity_job_id": 132763740508,
+    "release_job_id": 132763765265,
+    "artifact_id": 14154919194,
+    "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194",
+    "build_lint_duration": "9m56s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "signing_contract_duration_seconds": 9.86
+  },
+  "compiled_navigation_markers": [
+    "archive_completed_tasks",
+    "Новая запись дневника",
+    "List actions",
+    "Daily planner"
+  ],
+  "dex_sha256": {
+    "classes.dex": "7ab13bb8b9da55a545698ceaea90cebf4b7bc4dea362521f821cc4d414cb3969"
+  },
+  "room_schema": 17,
+  "data_format": 2,
+  "security_format": 3,
+  "physical_device_installation_tested": false
+}

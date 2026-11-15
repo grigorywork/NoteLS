@@ -1,8 +1,16 @@
 # NoteLS: продолжение разработки
 
-## Текущая работа69 —1.10.39/code62, локально проверена
+## Проверенный выпуск1.10.39/code62/Room17 —69 закрыт
 
-Начаты компактная навигация, опциональныйразделвыполненных, дневник/ежедневник. [Отчёт39](navigation-1.10.39.md). Работа сохранена checkpoint169a710→d78d7cf в удалённой `codex/navigation-1.10.39` и отправлена вmain source`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`. Полный [CI43696196924](https://github.com/grigorywork/NoteLS/actions/runs/43696196924)/job132757148859 SUCCESS:690/0fail/0ignored, lint0error/16warnings/2info, build25m59s. Reportartifact14155640520 ZIP SHA256e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd=API, HTML/XML/6NativeCanvas-снимков проверены. Авто[Signed43698349185](https://github.com/grigorywork/NoteLS/actions/runs/43698349185):identity132763740508success, release132763765265 выполняется; existingSecret/pin checks прошли. Дождаться подписанногоAPK39 и независимо сверить source3e16a94/версию39/code62/nondebuggable/certpin/ZIP/APKhash. Локально послеаудита последние9/9 UI, lint0error/15warnings/2info иassembleDebug прошли7m19s; ранее прошли28 неизменённыхпроверокданных/SQL. ПолныйCI39 подтверждён; подписанныйAPK39 ещё ожидается. При новойсреде получить свежийmain и эту ветку/последующиеcheckpoint, не делать69 заново и не терять дерево. Проверенныйустановочный выпуск пока38 ниже; новыйmain39 долженпройтиполныйCI/автоподпись/независимуюпроверкуAPK до закрытия69. АктивныеGradle/CI проверять передправкой; не редактировать main/test во времяпроверки.
+Компактные⋮, выполненные с настройкой defaultfalse без физических копий/переноса/удаления, дневник/ежедневник реализованы. Исправлено сохранение старойCalendarNoteEntity пригалочке; свежиеUUID/состояние/доступ проверяются втранзакции, свежийдокумент/даты/вложения сохраняются. [Отчёт39](navigation-1.10.39.md), [проверкаJSON](navigation-1.10.39-verification.json).
+
+[ПолныйCI43696196924](https://github.com/grigorywork/NoteLS/actions/runs/43696196924)/job132757148859, source`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`:690/0fail/0ignored, lint0error/16warnings/2info, build25m59s. Reportartifact14155640520 ZIP SHA256`e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd`=API; HTML/XML и6NativeCanvas-снимков проверены.
+
+[УстановочныйAPK39:Signed43698349185/artifact14154919194](https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194), identity132763740508/release132763765265SUCCESS:actualcheckout3e16a94, build/lint9m56s,13signing contracts0fail9.860s. Runhead2a66a05 — docs-onlyworkflow_run. НезависимыйZIP SHA256`d79c35a657eee9697bfeae5b075cbdb62212fe542f4ba27d10a24fc291511807`=API; внутри ровноAPK/README/SHA256SUMS. APK27517639bytes SHA256`6a17ce64878b472302b406961c02fe4836d91df78585b4aab5fdd401b8779e24`=SHA256SUMS/CI. Actualapksigner v2/v3/1signer/certificate по прежнемуpin, aapt2com.notessync.app/1.10.39/62/non-debuggable/min26/target35. DEX содержит новуюнавигацию.
+
+ЛокальныйпроверенныйAPK `/workspace/library-files/NoteLS-1.10.39-code62-permanent-signature.apk`. СхемаRoom17/data2/security3 прежняя, ключне менялся. На закрытие69 дерево приложенияmain совпадало сsource3e16a94. ВсеWIP169a710/d78d7cf уже включены вmain —69/редакторзаново не начинать.
+
+Следующий72, затем73–82 автономно. Версию увеличивать при новом изменении приложения. Проверить свежийmain/дерево/живыеGradle/CI передправкой; не reset/clean/force-push, не терять дерево и не запускать второйGradle/не редактироватьmain/test при проверке.
 
 ## Проверенный выпуск1.10.38/code61/Room17 —71 и70 закрыты
 
@@ -14,9 +22,9 @@
 
 Независимая проверка:ZIP SHA256`8b9c984b700081e056b3f38cad3eabedcf82ee1cc299bdb238c3734479021686`=API digest, внутри ровноAPK/README/SHA256SUMS. APK27501255bytes SHA256`330f6fb61d7a233c0bd5d09b626b42509bdf2f0fd4eb4a345a88e0d91d8f7c57`=SHA256SUMS/CI. aapt2com.notessync.app/1.10.38/61/non-debuggable/min26/target35; actualapksigner v2/v3/1signer/certificate строго по pin ниже. DEX содержит новый редактор. На закрытие38 (dcb960e) дерево приложения main совпадало сsourceebc0c01; текущие изменения39 описаны выше. Room17/data2/security3 прежние. Локальный проверенныйAPK `/workspace/library-files/NoteLS-1.10.38-code61-permanent-signature.apk`.
 
-## Следующий69, затем72–82
+## Следующие72–82
 
-Пользователь разрешил автономно идти по согласованной очереди без вопросов, пока он спит. [План69–82](improvements-after-1.10.37.md).71→70 закрыты, следующий69: компактное всплывающее меню корзины/невыполненных/просроченных/выполненных, аналитика только сверху; «Дневник»/«Ежедневник» в⋮. Рабочая трактовка для самостоятельной реализации: дневник — обычные датированные записи, ежедневник — вид дел выбранного дня.
+Пользователь разрешил автономно идти по согласованной очереди без вопросов, пока он спит. [План69–82](improvements-after-1.10.37.md).71→70→69 закрыты. Дальше72(голос),73(GPT),74(настройки),75(цитаты),76(стекло),77(оформлениетаблиц),78(аналитика),79(календарьпоблокноту),80(GoogleSheetsфайлы),81(EvernoteENEX),82(Wi-Fiаудит). Новыхэтаповне добавлять,68/iPhoneне начинать.
 
 Дополнение69: настройка автоматического ухода отмеченных галочкой записей в «Выполненные задачи». Default сохраняет прежнее поведение; без физических копий/переноса/удаления; сохраняются блокнот, даты и вложения; снятие галочки возвращает в рабочие списки. После каждого этапа аудит, исправления, подходящие тесты/lint/APK, журнал и сохранение вmain, затем следующий этап. Новых этапов не добавлять,68/iPhone не начинать.
 

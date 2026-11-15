@@ -35,3 +35,19 @@ CalendarViewModel сохранял TaskCompletion.toggle старой NoteEntity
 ПолныйCI43696196924/job132757148859 завершился SUCCESS наsource`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`:690 тестов/0failures/0ignored, lint0error/16warnings/2info, assembleDebug success,25m59s. Скачан reportartifact14155640520, ZIP SHA256`e375c4201776770771ff045f355201e70b243b0626949bbc98bca13929fb20bd` строго равенAPI digest; HTML/XML и6снимков (editor-preview3/navigation-preview3) сверены.
 
 Автоматический [Signed43698349185](https://github.com/grigorywork/NoteLS/actions/runs/43698349185):identity132763740508success, release132763765265in_progress, проверка наличияexistingSecret/pin прошла. Buildsourceдолженбыть3e16a94, хотяhead_shaworkflow_run2a66a05 — документы. ПодписанныйAPK39 пока не скачан/не сверен;69 окончательно не закрывать до независимой проверки.
+
+
+## Проверенный установочныйAPK39 —69 закрыт
+
+[Signed43698349185/artifact14154919194](https://github.com/grigorywork/NoteLS/actions/runs/43698349185/artifacts/14154919194) SUCCESS:identity132763740508/release132763765265, checkout`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`, lintRelease/assembleRelease9m56s,13 signing contracts0fail9.860s.
+
+Независимая проверка:
+
+- ZIP SHA256`d79c35a657eee9697bfeae5b075cbdb62212fe542f4ba27d10a24fc291511807` строго равенAPI digest; внутри ровноAPK/README.txt/SHA256SUMS.
+- APK`NoteLS-1.10.39-code62-permanent-signature.apk`,27517639bytes, SHA256`6a17ce64878b472302b406961c02fe4836d91df78585b4aab5fdd401b8779e24`=SHA256SUMS/CI; READMEsource/pin совпали.
+- НастоящийBuildTools35 apksigner:v2/v3true,1signer, actual certificate SHA256`c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c` строго равен закреплённому.
+- aapt2:com.notessync.app/1.10.39/code62/non-debuggable/min26/target35. ВDEX присутствуют новые completed/journal/list-actions/agenda строки. Room17/data2/security3 прежние.
+
+[Машиночитаемая проверка](navigation-1.10.39-verification.json). На закрытие69 дерево приложения main совпадало с прошедшимCIsource3e16a94; последующие коммиты были документацией. APK подготовлен квыдаче, подписан темже постоянным ключом и обновляет38 поверх. Физической установки/батарейных измерений нет; описанные UI проверки — Compose/Robolectric/NativeCanvas.
+
+69 закрыт. Следующий72 — диагностика и исправления диктовки, затем73–82;68/iPhone отложен.
