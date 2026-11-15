@@ -22,8 +22,8 @@ internal fun PinnedDrawerContent(appearance: DrawerQuoteAppearance, index: Int, 
         Column(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
                 .testTag("drawer-navigation"), content = content)
-            if (showQuote && appearance.enabled) DrawerQuoteCard(appearance, index,
-                Modifier.heightIn(max = footerHeight).testTag("drawer-pinned-quote"), text, 4, onQuote)
+            if (showQuote && appearance.enabled) DrawerQuoteCard(appearance, modifier = Modifier.heightIn(max = footerHeight).testTag("drawer-pinned-quote"),
+                index = index, textOverride = text, maxLines = 4, onClick = onQuote)
         }
     }
 }

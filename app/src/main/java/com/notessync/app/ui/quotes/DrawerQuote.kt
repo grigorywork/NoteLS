@@ -25,7 +25,7 @@ fun drawerQuoteText(custom: String, index: Int): String = custom.takeIf { it.isN
     ?: QuotesData.formatted(QuotesData.quotes.getOrNull(index) ?: QuotesData.quotes.first())
 
 @Composable
-fun DrawerQuoteCard(appearance: DrawerQuoteAppearance, index: Int = 0, modifier: Modifier = Modifier,
+fun DrawerQuoteCard(appearance: DrawerQuoteAppearance, modifier: Modifier = Modifier, index: Int = 0,
     textOverride: String? = null, maxLines: Int = Int.MAX_VALUE, onClick: (() -> Unit)? = null) {
     val style = appearance.safe()
     Card(colors = CardDefaults.cardColors(containerColor = if (style.backgroundColor == 0L)
