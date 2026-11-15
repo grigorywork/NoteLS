@@ -3,7 +3,8 @@ package com.notessync.app.ui.settings
 import com.notessync.app.i18n.uiText
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.ExpandLess
@@ -39,7 +40,7 @@ internal fun SectionTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
     )
 }
 
@@ -47,7 +48,7 @@ internal fun SectionTitle(text: String) {
 /** One visible contour per group, with space between neighbouring groups in either interface style. */
 @Composable
 internal fun SettingsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    OutlinedCard(modifier = modifier.padding(bottom = 12.dp), shape = MaterialTheme.shapes.large,
+    OutlinedCard(modifier = modifier.padding(bottom = 8.dp), shape = MaterialTheme.shapes.large,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         content = content)
@@ -82,12 +83,15 @@ internal fun SettingsGroup(id: String, title: String, icon: ImageVector, expande
     onToggle: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val description = uiText(if (expanded) "Развёрнуто" else "Свёрнуто")
     SettingsCard(Modifier.fillMaxWidth()) {
-        SettingsItem(headlineContent = { Text(title, style = MaterialTheme.typography.titleMedium) },
-            leadingContent = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null) },
-            modifier = Modifier.fillMaxWidth().testTag("settings-group-$id")
-                .semantics { heading(); stateDescription = description }
-                .clickable(enabled = enabled, role = Role.Button, onClick = onToggle))
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("settings-group-$id")
+            .semantics(mergeDescendants = true) { heading(); stateDescription = description }
+            .clickable(enabled = enabled, role = Role.Button, onClick = onToggle)
+            .padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(icon, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
+            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+            Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, Modifier.size(20.dp))
+        }
     }
     if (expanded) Column(Modifier.fillMaxWidth().testTag("settings-content-$id"), content = content)
 }
@@ -97,7 +101,7 @@ internal fun SettingsToggle(label: String, checked: Boolean, onChange: (Boolean)
     modifier: Modifier = Modifier, padded: Boolean = true) {
     Row(modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
         .toggleable(checked, role = Role.Switch, onValueChange = onChange)
-        .padding(if (padded) 16.dp else 0.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        .padding(horizontal = if (padded) 12.dp else 0.dp, vertical = if (padded) 4.dp else 0.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
         Text(label, Modifier.weight(1f).padding(end = 12.dp))
         androidx.compose.material3.Switch(checked, onCheckedChange = null)
     }

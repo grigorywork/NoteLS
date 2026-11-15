@@ -67,10 +67,12 @@ class LanguageUiTest {
             }
         }
         val initial = activity.get()
+        compose.onNodeWithTag("settings-choice-language").performClick()
         compose.onNodeWithText("English").performClick()
         compose.onNodeWithText("Settings").assertIsDisplayed()
         compose.onNodeWithText("Interface language").assertIsDisplayed()
         compose.runOnIdle { assertEquals("en", resourcesLocale.get()); assertSame(initial, activity.get()) }
+        compose.onNodeWithTag("settings-choice-language").performClick()
         compose.onNodeWithText("Русский").performClick()
         compose.onNodeWithText("Настройки").assertIsDisplayed()
         compose.runOnIdle { assertEquals("ru", resourcesLocale.get()); assertSame(initial, activity.get()) }
