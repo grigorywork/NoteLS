@@ -1,5 +1,5 @@
 <!-- CURRENT-EDITOR-38 -->
-> **Текущая разработка:1.10.38/code61/Room17,71→70.** Пользователь утвердил макет и разрешил автономно продолжать69,72–82 после закрытия редактора.39 расширенных тестов/lintDebug/assembleDebug прошли, дополнительный контекстный gestureAPI27 прошёл1/1; финальные lintDebug/assembleDebug прошли (0error/15warnings/2info,1m26s); полныйCI/подписанный38 пока не подтверждены. [Актуальное продолжение](NEXT-CHAT.md), [отчёт](editor-1.10.38.md), [очередь](improvements-after-1.10.37.md). Ниже — исторические завершённые выпуски/границы старой очереди; они не отменяют новое разрешение. КлючNOTELS_SIGNING_MATERIAL/pin неизменны,68/iPhone отложен.
+> **1.10.38/code61/Room17,71→70: полныйCI подтверждён.** [43689688187](https://github.com/grigorywork/NoteLS/actions/runs/43689688187)/ebc0c01:680 без отказов/пропусков, lint0error/16warnings/2info, build15m24s; отчёт ZIP/API digest совпал. Авто[Signed43690896800](https://github.com/grigorywork/NoteLS/actions/runs/43690896800) ещё выполняется; APK38 пока не проверен/не выдан. Затем автономно69,72–82,68/iPhone отложен. [Продолжение](NEXT-CHAT.md), [отчёт](editor-1.10.38.md), [очередь](improvements-after-1.10.37.md). КлючNOTELS_SIGNING_MATERIAL/pin прежние. Ниже исторические границы старой очереди.
 <!-- END-CURRENT-EDITOR-38 -->
 
 <!-- CURRENT-SIGNING-TRANSITION -->

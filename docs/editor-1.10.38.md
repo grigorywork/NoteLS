@@ -54,3 +54,10 @@ Room17/data2/security3 без изменений. ПоддержаныRU/EN, п�
 
 
 Повторный полный push [CI43689688187](https://github.com/grigorywork/NoteLS/actions/runs/43689688187), verify132737492213:in_progress, sourceebc0c0147048923f7db1fe652377f4562ada6300. Старый Signed43689168080 корректноskipped послеfailure, новый installable38 ещё не выдан.
+
+
+### Подтверждённый полныйCI38
+
+[CI43689688187/job132737492213](https://github.com/grigorywork/NoteLS/actions/runs/43689688187) SUCCESS наsource`ebc0c0147048923f7db1fe652377f4562ada6300`:680 тестов/0failures/0ignored, lint0error/16warnings/2info, assembleDebug success,15m24s. Скачан artifact14152581241, ZIP SHA256`e9124315a0bd98d601110bf6b249f700252f59515e723f02d8626be0b627fc33` строго равен API digest. Проверены итоговые HTML680/0/0 и lintXML;3 NativeCanvas-снимка присутствуют в том же артефакте.
+
+Автоматический [Signed43690896800](https://github.com/grigorywork/NoteLS/actions/runs/43690896800):identity132741133723success, release132741157017 выполняет build/lint, проверка наличияexistingSecret/pin прошла. Фактический sourceAPK должен бытьebc0c01, несмотря на head_sha workflow_run048c9f7 (последующие docs-only). Пока installable38 не скачан/не сверен,71/70 не объявлять окончательно закрытыми.
