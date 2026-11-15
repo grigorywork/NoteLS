@@ -1,12 +1,10 @@
 # NoteLS: продолжение разработки
 
-## Текущий75 —1.10.44/code67/Room18, полныйCI выполняется
+## Текущий75 —1.10.44/code67/Room18, полныйCI прошёл
 
-2026-11-15T20:37UTC:75runtime source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 УЖЕmain. Полный pushCI43759092671/job132949595069 in_progress. ВсеWIPcodex/quotes-1.10.44 включены. LocalGradleнет/дерево чистое/main/testзамороженыдоCI+Signed+независимойверификацииAPK.753ожидаемыйНЕpassпока/44НЕinstallable. Последнийverified43.
+2026-11-15T21:00UTC: полныйCI43759092671/job132949595069/source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 SUCCESS=753/0fail/0ignored/lint0error16warnings2info/build21m7s. Скачанreport14180141775 ZIP613136bytes SHA256d8b9fa6149ae31900712f0ddb8760579e79142a44a5c7d27b5d5815a7ec78bc0=API/HTMLXMLсверены;3quoteNativePNGпобайтоворавнылокальным. АвтоSigned43761100021/identity132955891683SUCCESS/release132955925460in_progress. Пока44НЕпроверенныйinstallable/75НЕзакрыт;дождатьсяSignedи независимойпроверкиAPK. Main/testне менять/второйGradleне запускать. Последнийverified43,ключ/Secretпрежние.
 
-[Отчёт](quotes-1.10.44.md), [инструкция/JSON-TXTпримеры](quote-library-guide.md). Локальные проверки подтверждены: quotes44-checks2.log50/50/7m45s (lint0error16warnings2info), quotes44-deadline-compat.log2/2/4m6s, финальныйquotes44-ui-final.log14/14/6m54s/lint0error15warnings2info/assembleDebug.14финальныхперекрываютсяспредыдущими: **52разныхцелевыхкейса**, не66.21новыйкейс, старыеasserts/таймаутынеослаблены. НовыйModifierParameterwarningисправленпорядкомoptionalparam, NativePNGпобайтовонеизменились/осмотрены. Schema18identityb1c6c07627d80657a69a8afd3c98f6aa/SHA256f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973; все5прежнихRoomentitiesпобайтовоструктурноравныschema17, добавленытолько2таблицы. Новыеданныеbackuprestore/legacy/stale/rollback/capacity/UI/RUENпроверены, реальноготелефонанет. ОтправляетсяmainдляполногоCI753ожидаемого/autoSigned; покаНЕpass/НЕinstallable44,75не закрыт. Последнийverified43. Не менятьmain/test/не запускать второйGradleво времяпроверки.
-
-ВсеWIP1525aab/70b0c9a/5ae23b3/17262ef/333962d/59c1e3d/f7f03bd/1e7e102/1c0873eизcodex/quotes-1.10.44 включаютсявmain, не начинать75заново. МиграционноеожиданиеTaskDeadlinePersistenceуже18, schema18закоммичена. ПослеCI/Signed/независимойверификациизакрыть75,потом76–82;не68iPhone/не новыеэтапы.
+[Отчёт](quotes-1.10.44.md), [инструкция/примеры](quote-library-guide.md). Локально52разныхкейса подтверждены:50(7m45s)+2TaskDeadline(4m6s), финальные14UI/Catalog(6m54s)/lint0error15warn2info/assemble. ВсеWIPвmain/schema18закоммичена/TaskDeadlineexpected18адаптирован/5старыхRoomentitiesточноравныschema17. ПослеSigned/независимойверификации44 закрыть75,затем76–82;доэтогонеделать76. Реальныхтелефонных/платныхAIизмеренийнет.
 
 ## Проверенный выпуск1.10.43/code66/Room17 —74 закрыт
 

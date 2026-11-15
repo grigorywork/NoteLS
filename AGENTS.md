@@ -101,3 +101,6 @@
 
 
 2026-11-15T20:37UTC:75runtime source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 УЖЕmain. Полный pushCI43759092671/job132949595069 in_progress. ВсеWIPcodex/quotes-1.10.44 включены. LocalGradleнет/дерево чистое/main/testзамороженыдоCI+Signed+независимойверификацииAPK.753ожидаемыйНЕpassпока/44НЕinstallable. Последнийverified43.
+
+
+2026-11-15T21:00UTC: полныйCI43759092671/job132949595069/source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 SUCCESS=753/0fail/0ignored/lint0error16warnings2info/build21m7s. Скачанreport14180141775 ZIP613136bytes SHA256d8b9fa6149ae31900712f0ddb8760579e79142a44a5c7d27b5d5815a7ec78bc0=API/HTMLXMLсверены;3quoteNativePNGпобайтоворавнылокальным. АвтоSigned43761100021/identity132955891683SUCCESS/release132955925460in_progress. Пока44НЕпроверенныйinstallable/75НЕзакрыт;дождатьсяSignedи независимойпроверкиAPK. Main/testне менять/второйGradleне запускать. Последнийverified43,ключ/Secretпрежние.

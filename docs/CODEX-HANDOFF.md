@@ -1,5 +1,5 @@
 <!-- CURRENT-QUOTES-44 -->
-> **75:1.10.44/code67/Room18/data2/security3** реализован/локально52разныхцелевыхподтверждены, финальные14/14/lint0error15warnings2info/assembleDebugSUCCESS6m54s. ОтправляетсяmainдляполногоCI753ожидаемого/autoSigned, покаНЕinstallable44. [Отчёт](quotes-1.10.44.md), [продолжение](NEXT-CHAT.md). ВсеWIPвmain/schema18закоммичена/староеdeadlineожиданиеобновлено18. Main/testне менятьприживойпроверке/второйGradleне запускать. Последнийverified43ниже.
+> **75:1.10.44/code67/Room18/data2/security3**: полныйCI43759092671/source70b5a4e=753/0fail/0ignored/lint0error/build21m7s. СкачанныйreportZIP/API/HTMLXML/3NativePNGсверены. Signed43761100021/identity132955891683SUCCESS/release132955925460in_progress. Пока44НЕinstallable/75НЕзакрыт. [Отчёт](quotes-1.10.44.md), [продолжение](NEXT-CHAT.md). Main/testне менять/второйGradleне запускатьпри проверке. Последнийverified43ниже.
 <!-- END-CURRENT-QUOTES-44 -->
 
 <!-- CURRENT-QWEN-43 -->
