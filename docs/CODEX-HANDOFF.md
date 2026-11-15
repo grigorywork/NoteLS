@@ -1,5 +1,5 @@
 <!-- CURRENT-QUOTES-44 -->
-> **75:1.10.44/code67/Room18/data2/security3**: полныйCI43759092671/source70b5a4e=753/0fail/0ignored/lint0error/build21m7s. СкачанныйreportZIP/API/HTMLXML/3NativePNGсверены. Signed43761100021/identity132955891683SUCCESS/release132955925460in_progress. Пока44НЕinstallable/75НЕзакрыт. [Отчёт](quotes-1.10.44.md), [продолжение](NEXT-CHAT.md). Main/testне менять/второйGradleне запускатьпри проверке. Последнийverified43ниже.
+> **75закрыт:1.10.44/code67/Room18/data2/security3.** Свойцитатник/JSON-TXTимпорт/backuprestore/неподвижнаяцитатавменю. [Проверенный установочныйAPK44вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43761100021/artifacts/14180464095), runtime70b5a4e. ПолныйCI43759092671=753/0fail/0ignored/lint0error; Signed43761100021SUCCESS. ZIP/API/SUMS/source/package/version/nondebug/actualapksignerpin/compiledschema18сверены. [Доказательства](quotes-1.10.44-verification.json), [инструкция](quote-library-guide.md). Следующий76(стекло), затем77–82;76НЕначат/45ещёнет/68iPhoneотложен. Телефонных/реальныхAIпроверокнет.
 <!-- END-CURRENT-QUOTES-44 -->
 
 <!-- CURRENT-QWEN-43 -->

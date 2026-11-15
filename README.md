@@ -1,3 +1,7 @@
+<!-- CURRENT-QUOTES-44 -->
+> **75закрыт:1.10.44/code67/Room18/data2/security3.** Свойцитатник/JSON-TXTимпорт/backuprestore/неподвижнаяцитатавменю. [Проверенный установочныйAPK44вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43761100021/artifacts/14180464095), runtime70b5a4e. ПолныйCI43759092671=753/0fail/0ignored/lint0error; Signed43761100021SUCCESS. ZIP/API/SUMS/source/package/version/nondebug/actualapksignerpin/compiledschema18сверены. [Доказательства](docs/quotes-1.10.44-verification.json), [инструкция](docs/quote-library-guide.md). Следующий76(стекло), затем77–82;76НЕначат/45ещёнет/68iPhoneотложен. Телефонных/реальныхAIпроверокнет.
+<!-- END-CURRENT-QUOTES-44 -->
+
 <!-- CURRENT-QWEN-43 -->
 > **74 закрыт:1.10.43/code66/Room17.** QwenчерезGroqFree(квота/свойключ/тарифаккаунта) добавлен рядомсOpenAI. [Проверенный установочныйAPK43 вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43746004909/artifacts/14174757856), runtimeaf01d51. ПолныйCI43744048331=732/0fail/0ignored/lint0error; Signed43746004909SUCCESS. ZIP/API/SUMS/APK/source/package/version/nondebug/actualapksignerpin проверены. [Доказательства](docs/qwen-1.10.43-verification.json), [настройка](docs/ai-qwen-setup.md). РеальныхAIгенераций/платныхвызововнет. Следующий75(цитатник), затем76–82;75НЕначат/44ещёнет/68iPhoneотложен.
 <!-- END-CURRENT-QWEN-43 -->

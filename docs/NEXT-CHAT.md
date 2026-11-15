@@ -1,10 +1,18 @@
 # NoteLS: продолжение разработки
 
-## Текущий75 —1.10.44/code67/Room18, полныйCI прошёл
+## Проверенный выпуск1.10.44/code67/Room18 —75 закрыт
 
-2026-11-15T21:00UTC: полныйCI43759092671/job132949595069/source70b5a4ebb26888a769e2c85f3f258caa6de7a3a0 SUCCESS=753/0fail/0ignored/lint0error16warnings2info/build21m7s. Скачанreport14180141775 ZIP613136bytes SHA256d8b9fa6149ae31900712f0ddb8760579e79142a44a5c7d27b5d5815a7ec78bc0=API/HTMLXMLсверены;3quoteNativePNGпобайтоворавнылокальным. АвтоSigned43761100021/identity132955891683SUCCESS/release132955925460in_progress. Пока44НЕпроверенныйinstallable/75НЕзакрыт;дождатьсяSignedи независимойпроверкиAPK. Main/testне менять/второйGradleне запускать. Последнийverified43,ключ/Secretпрежние.
+Цитатник: своицитаты/автор/источник/CRUD/закрепление, boundedUTF8JSON/TXTимпорт сpreview/дубликатами/атомарностью; нижняяцитатаотдельноотпрокрутки/ограничениевысоты/крупныйшрифт. Прежние5Roomentitiesточноравны17, новые2таблицыдобавлены17→18миграцией;зашифрованныйbackup/restore/legacy/stale/capacity/rollbackпроверены. [Инструкция/примеры](quote-library-guide.md), [отчёт75](quotes-1.10.44.md), [машиночитаемыедоказательства](quotes-1.10.44-verification.json). Своябиблиотекапокалокальная+backup,WiFiсинхронизациюцитатнеобъявлять.
 
-[Отчёт](quotes-1.10.44.md), [инструкция/примеры](quote-library-guide.md). Локально52разныхкейса подтверждены:50(7m45s)+2TaskDeadline(4m6s), финальные14UI/Catalog(6m54s)/lint0error15warn2info/assemble. ВсеWIPвmain/schema18закоммичена/TaskDeadlineexpected18адаптирован/5старыхRoomentitiesточноравныschema17. ПослеSigned/независимойверификации44 закрыть75,затем76–82;доэтогонеделать76. Реальныхтелефонных/платныхAIизмеренийнет.
+Полный [CI43759092671](https://github.com/grigorywork/NoteLS/actions/runs/43759092671)/job132949595069, runtime source`70b5a4ebb26888a769e2c85f3f258caa6de7a3a0`: **753теста/0fail/0ignored**, lint0error/16warnings/2info, build21m7s. Скачанreport14180141775 ZIP613136bytes SHA256`d8b9fa6149ae31900712f0ddb8760579e79142a44a5c7d27b5d5815a7ec78bc0`=API; HTML/XMLсверены;3quoteNativePNGпобайтоворавнылокальным.
+
+[Проверенный установочный APK44 в ZIP14180464095](https://github.com/grigorywork/NoteLS/actions/runs/43761100021/artifacts/14180464095). Signed43761100021/identity132955891683/release132955925460SUCCESS; actualcheckout/READMEsource70b5a4e, runhead8615297docs-only. Build/lint13m55s,13signingcontracts0fail12.106s. ZIP15444377bytes SHA256`3e1a0703964fd3e0951f68ad1a984bcc8c98bea53d19625ab24680c67a907bc8`=API; ровно3уникальныхAPK/README/SUMS. APK27550407bytes SHA256`0354745524cc2106e57ca14e6dfb8b5f365573c25d8f7bad6755ceaeee9ad68f`=SUMS/CI. Actualapksigner v2/v3/1signer/certpin и aapt2com.notessync.app/1.10.44/67/nondebug/min26/target35проверены. DEXновыйсcustom_quotes/quote_library_state/UIиactualRoom18identity`b1c6c07627d80657a69a8afd3c98f6aa`. Schema18JSONSHA256`f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973`.
+
+Room18/data2/security3, постоянныйключ/Secretпрежние. Физическойустановки/телефонных/батарейных/реальныхAIгенерацийнет. ЛокальныйAPK `/workspace/library-files/NoteLS-1.10.44-code67-permanent-signature.apk`. ПроверятьвесьAPKпередкаждойвыдачей; debug/unsignedневыдавать.
+
+75закрыт, следующие **76 — настраиваемое матовое стекло, затем77–82**.76ещёНЕначат/source45/code68ЕЩЁнет. ВсеWIPcodex/quotes-1.10.44вmain, не повторять75/74/73/72/69/71/70. Свежийmain/дерево/ветки/Gradle/CI/активнуюработупроверитьпередправкой;не reset/clean/force-push/не терятьизменения/не запускатьвторогоисполнителя/Gradle/не редактироватьmain/testпри проверке. Послеэтапааудит/исправления/тесты/lint/APK/полныйCI/Signed/независимаяверификация/журнал/main.68iPhone/новыхномеровэтаповненачинать.
+
+Выдача: freshHTTPSdownloadZIPизGitHubartifacttoolвФИНАЛЕ +постояннаяссылканадартефактвыше. Абсолютныйworkspaceпутьуклиентанескачивается/инструментаотдельногоAPKuploadнет;не называтьlocalpathвложением. Архивраспаковать/установить.apk. BearerURLживётминуты/не сохранятьвGit. Тажеautomationразрешенадляпродолженияследующейочередибездублей.
 
 ## Проверенный выпуск1.10.43/code66/Room17 —74 закрыт
 

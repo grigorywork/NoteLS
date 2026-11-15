@@ -1,0 +1,72 @@
+{
+  "source": "70b5a4ebb26888a769e2c85f3f258caa6de7a3a0",
+  "version": "1.10.44",
+  "code": 67,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "zip_sha256": "3e1a0703964fd3e0951f68ad1a984bcc8c98bea53d19625ab24680c67a907bc8",
+  "apk_sha256": "0354745524cc2106e57ca14e6dfb8b5f365573c25d8f7bad6755ceaeee9ad68f",
+  "apk_bytes": 27550407,
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "apk_path": "/workspace/library-files/NoteLS-1.10.44-code67-permanent-signature.apk",
+  "dex_sha256": {
+    "classes.dex": "1342790c11d8e37e3bd2bf98b71546809ed97e0bc1461861f50eaab1587ebe70"
+  },
+  "compiled_quote_markers": [
+    "custom_quotes",
+    "quote_library_state",
+    "b1c6c07627d80657a69a8afd3c98f6aa",
+    "My quote library",
+    "Quote preview"
+  ],
+  "verified_at_utc": "2026-11-15T21:16:12.558798+00:00",
+  "room_schema": 18,
+  "data_format": 2,
+  "security_format": 3,
+  "room_identity_hash": "b1c6c07627d80657a69a8afd3c98f6aa",
+  "room_schema_json_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+  "existing_room_entities_unchanged_from_17": true,
+  "physical_device_installation_tested": false,
+  "real_paid_api_requests_made": false,
+  "real_provider_generation_tested": false,
+  "ci": {
+    "run_id": 43759092671,
+    "job_id": 132949595069,
+    "source": "70b5a4ebb26888a769e2c85f3f258caa6de7a3a0",
+    "tests": 753,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "21m7s",
+    "reports_artifact_id": 14180141775,
+    "reports_zip_bytes": 613136,
+    "reports_zip_sha256": "d8b9fa6149ae31900712f0ddb8760579e79142a44a5c7d27b5d5815a7ec78bc0",
+    "quote_previews_sha256": {
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6"
+    },
+    "quote_previews_match_local": true
+  },
+  "signed_release": {
+    "run_id": 43761100021,
+    "identity_job_id": 132955891683,
+    "release_job_id": 132955925460,
+    "artifact_id": 14180464095,
+    "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43761100021/artifacts/14180464095",
+    "zip_bytes": 15444377,
+    "build_lint_duration": "13m55s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "signing_contract_duration_seconds": 12.106,
+    "actual_checkout_source": "70b5a4ebb26888a769e2c85f3f258caa6de7a3a0",
+    "workflow_run_head_is_docs_only": true
+  }
+}
