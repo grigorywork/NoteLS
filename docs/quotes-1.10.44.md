@@ -28,3 +28,6 @@
 
 
 Аудит совместимости нашёл старый assertEquals(17, db.openHelper.readableDatabase.version) в app/src/test/java/com/notessync/app/tasks/TaskDeadlinePersistenceTest.kt:61 (миграция16→текущая). После окончания живого quotes44-checks2 его нужно обновить на ожидаемую18, сохраниввсепроверкиreminder/timer/day/content/implicitdeadline; проверитьэтотклассдополнительно. Пока main/testНЕменять, TaskDeadlinePersistenceне входилвпервые50. ДругихжёсткихassertDBversion17/addMigrationsвтестахне найдено. Не отправлять753fullCIдoadaptэтогопроверочногоожидания.
+
+
+quotes44-checks2.log BUILD SUCCESSFUL7m45s:50/50/0fail/errors/skipped,lint0error/15warnings/2info/assembleDebug.21новыхкейсовподтверждены,3NativePNGосмотрены. АдаптированстарыйTaskDeadlinePersistence schemaexpected17→18безпотериassertsметаданных,запускаетсяотдельнаяпроверкаэтогокласса. ПокаНЕполныйCI/НЕinstallable44.
