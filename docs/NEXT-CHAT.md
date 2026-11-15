@@ -1,3 +1,17 @@
+## 76 закрыт — проверенный NoteLS1.10.45/code68/Room18
+
+Runtime source `d3aed90a2dee41f8d684948d5be12938518667c5`, Room18/data2/security3. Стекло: прозрачность/матовость/8 цветов/3 фона, draft preview/сброс/Save/Cancel/Back. Android12+ blur только собственного фона≤18dp; Android8–11 — мягкий градиент, не системное размытие. Контраст/непрозрачность меню, чёткий текст, статичный фон без таймеров. Main/QuickNote/WidgetSettings подключены, остальные настройки сохранены.
+
+ПолныйCI43771941590/job132989559112: **765/0fail/0ignored**, lint0error/16warnings/2info/build28m52s. Report14185766665 ZIP704069bytes SHA25604f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e=API/GradleHTML/lintXML; оба NativePNG равны осмотренным локальным.
+
+Signed43774701037/identity132998241930/release132998276354 SUCCESS, build10m1s,13 signing contracts/0fail/10.174s. Actualcheckout/README source d3aed90; runhead51b7718 docs-only. Artifact14185219770 ZIP15454533bytes SHA2561ca7c3c3b5bce002db5d5f05f68ad11e4cf69ac7c80539f49bceabd36da0f8a2=API; APK27566791bytes SHA256a56777399b0eafdac9e44b03c9a4d18de06db1aab78ad27a6e3129ac27b14e13=SUMS/CI. Ровно3файла/source/package/version/nondebug/actualapksigner v2/v3/1signer/pin проверены. НовыйDEX с glass-pref/UI/BlurEffect markers; R8 переименовывает/inline обычные имена Kotlinметодов. Room18identity/schema прежние.
+
+[Доказательства](glass-1.10.45-verification.json), [отчёт](glass-1.10.45.md), [инструкция](glass-settings-guide.md). Постоянныйключ/Secret не менялись. Нет физических GPU/телефонных/батарейных измерений и реальных платныхAI запросов.
+
+Следующий **77 — оформление текста в таблицах**, затем78–82.77 ЕЩЁ НЕ начат,46/code69 ещё нет. Если main уже продвинулся, смотреть свежие факты. Не повторять76/75/74/73/72/69/71/70 и не применять старые WIP поверх main.68/iPhone не начинать, новых номеров этапов не добавлять.
+
+APK: `/workspace/library-files/NoteLS-1.10.45-code68-permanent-signature.apk` — локальный проверенный файл, НЕ скачиваемое вложение для клиента. Постоянная ссылка https://github.com/grigorywork/NoteLS/actions/runs/43774701037/artifacts/14185219770 . В финале выдавать свежую HTTPS ZIPdownloadURL из github_download_workflow_artifact + постоянную ссылку; распаковать ZIP и установить.apk. Временный bearerURL не сохранять в Git.
+
 ## 76: полный CI765/0 подтверждён; Signed выполняется
 
 Кандидат1.10.45/code68/Room18/data2/security3, runtime `d3aed90a2dee41f8d684948d5be12938518667c5`. ПолныйCI43771941590/job132989559112 SUCCESS: **765/0fail/0ignored**, lint0error/16warnings/2info, build28m52s. Report14185766665:704069bytes, ZIP SHA256 `04f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e`=API; GradleHTML/XML проверены. Два glass NativePNG побайтово равны локальным.

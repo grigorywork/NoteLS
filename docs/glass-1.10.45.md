@@ -1,4 +1,4 @@
-# Этап76: настраиваемое стекло — кандидат1.10.45/code68/Room18
+# Этап76: настраиваемое стекло — закрыт1.10.45/code68/Room18
 
 Начато после полностью проверенного44/code67/Room18 (753/0/Signed43761100021/artifact14180464095). Свежийmain60cb93b, дерево чистое, активныхGradle/CI/другогоисполнителя нет. Постоянныйключ/Secret/Room18/data2/security3 не меняются.45 пока не реализован/непроверен/неустановочный.76 существующий этап, не новый номер.
 
@@ -45,3 +45,9 @@ Checkpoint f0f8fc5 сохранён в codex/glass-1.10.45. Новый GlassAppe
 ## Полный CI подтверждён, Signed ещё выполняется
 
 CI43771941590/job132989559112/source d3aed90a2dee41f8d684948d5be12938518667c5 SUCCESS:765/0fail/0ignored/lint0error16warnings2info/build28m52s. Скачан и независимо проверен report14185766665:704069bytes, SHA25604f2cbfc91f3e5e75850e42c34b18c965a827c533ef6f0e6d5d253c6a7af328e=API. Helper сверил GradleHTML/XML, два glass PNG побайтово равны локальным ранее осмотренным. АвтоSigned43774701037/identity132998241930SUCCESS/release132998276354in_progress. До его завершения и независимогоAPKcheck45НЕinstallable/76НЕзакрыт, source заморожен. API runhead51b7718 docs-only, actualcheckout/README ожидается d3aed90.
+
+## Закрытие — 2026-11-15T23:40:17.419700+00:00
+
+Независимая проверка завершена. Signed43774701037/identity132998241930/release132998276354 SUCCESS, build/lint10m1s;13 signing contracts/0fail/10.174s. Artifact14185219770:15454533bytes/SHA2561ca7c3c3b5bce002db5d5f05f68ad11e4cf69ac7c80539f49bceabd36da0f8a2=API, ровно3уникальныхAPK/README/SUMS. APK27566791bytes/SHA256a56777399b0eafdac9e44b03c9a4d18de06db1aab78ad27a6e3129ac27b14e13=SUMS/CI. Actualcheckout/README source d3aed90a2dee41f8d684948d5be12938518667c5; APIrunhead51b7718 docs-only. Package/version45/code68/nondebug/min26/target35/настоящийapksigner v2/v3/1signer/certpin подтверждены. НовыйDEX9092331f4ea89b4715c333fbb31d67c102fd7d974ccec40d88c7dc09b59140e7, четыреglass-prefkeys/GlassAppearance/Customizeglass/BlurEffect/Room18identity присутствуют. Дополнительный поиск по исходному имени glassBlurRadius сначала закономерно не прошёл: release использует R8 minify/inline, проверять по исходным именам методов неправильно. Исходник APK/подпись/хеши проверены независимо, код тестов и приложения из-за этого не менялся. Schema18 SHA256f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973 и identityb1c6c07627d80657a69a8afd3c98f6aa прежние.
+
+Доказательства [glass-1.10.45-verification.json](glass-1.10.45-verification.json). Проверенный установочный45 подготовлен вlibrary-files; клиенту выдаётся HTTPS ZIP, не абсолютный workspace путь. Ключ/Secret прежние, physicalGPU/phone/battery не измерены, реальныхAI запросов не было.76 закрыт. Следующий77, затем78–82 без новых этапов/68iPhone.
