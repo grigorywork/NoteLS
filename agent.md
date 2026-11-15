@@ -1411,3 +1411,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15T08:45:38Z: повторный39 локальный navigation39-ui-final.log SUCCESS7m19s.9/9UI безfailures/errors/skipped (NavigationSections3,HomeActions2,TaskDeadlineList1,SettingsGroups3), lintDebug0error/15warnings/2info иassembleDebug success, metadata1.10.39/62. NativeCanvas completed.png проверен:заголовокоднострочный, Analytics/Sync/⋮, сортировка/настройки действуютчерез⋮. Ранее28 неизменённыхNativeданных/SQL/CalendarMath прошли; ключ/Roomне менялись. НормальныйpushmainдляновогополногоCI, ожидается690 (680+10), но0fail/установочный39поканеподтверждены. ПоследнийготовыйAPK38выдансохраняется.
+
+
+2026-11-15T08:52:34Z: main source3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942 отправлен fast-forward, полныйCI43696196924/job132757148859 in_progress. НовыхGradle локально нет, исходникиmain/test не меняются. ПредыдущиеWIP169a710/d78d7cf включены вmain, веткаcodex/navigation-1.10.39 сохранена какcheckpoint. Автопродолжение09:15UTC остаётся включённым; перед продолжением проверять свежий результатCI/подпись, а не повторять69. Подтверждённыйinstallableпока38/680.

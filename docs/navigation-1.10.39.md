@@ -25,3 +25,8 @@ CalendarViewModel сохранял TaskCompletion.toggle старой NoteEntity
 
 
 Последний локальный прогон navigation39-ui-final.log: NavigationSectionsUiTest3/3, HomeActionsTest2/2, TaskDeadlineListUiTest1/1, SettingsGroupsUiTest3/3;0failures/errors/skipped, lint0error/15warnings/2info, assembleDebug success,7m19s. Дополнительно проверены сортировка по имени и переход в настройки через верхнее⋮. Снимок completed.png после исправления показывает однострочный заголовок и3 действия; drawer.png/agenda.png сохранены. Старые backend/SQL проверки не ослаблялись. В1.10.39 добавлено10 тестов к680 исходным; полныйCI ещё не подтверждён.
+
+
+## Полный CI39
+
+[CI43696196924](https://github.com/grigorywork/NoteLS/actions/runs/43696196924), job132757148859: in_progress, source`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`. Ожидается690 тестов (680 исходных +10 новых). После успеха подписанный workflow должен использовать тот же исходник и прежний NOTELS_SIGNING_MATERIAL. Пока общий успех и установочныйAPK39 не подтверждены.

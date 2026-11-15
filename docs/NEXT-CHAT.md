@@ -2,7 +2,7 @@
 
 ## Текущая работа69 —1.10.39/code62, локально проверена
 
-Начаты компактная навигация, опциональныйразделвыполненных, дневник/ежедневник. [Отчёт39](navigation-1.10.39.md). Работа сохранена checkpoint169a710→d78d7cf в удалённой `codex/navigation-1.10.39` и отправляется вmain для полногоCI. Локально послеаудита последние9/9 UI, lint0error/15warnings/2info иassembleDebug прошли7m19s; ранее прошли28 неизменённыхпроверокданных/SQL. ПолныйCI/подписанный39 ещё ожидаются. При новойсреде получить свежийmain и эту ветку/последующиеcheckpoint, не делать69 заново и не терять дерево. Проверенныйустановочный выпуск пока38 ниже; новыйmain39 долженпройтиполныйCI/автоподпись/независимуюпроверкуAPK до закрытия69. АктивныеGradle/CI проверять передправкой; не редактировать main/test во времяпроверки.
+Начаты компактная навигация, опциональныйразделвыполненных, дневник/ежедневник. [Отчёт39](navigation-1.10.39.md). Работа сохранена checkpoint169a710→d78d7cf в удалённой `codex/navigation-1.10.39` и отправлена вmain source`3e16a942b4b3f9aaa355520fb5eaf9c3b6d80942`. Полный [CI43696196924](https://github.com/grigorywork/NoteLS/actions/runs/43696196924)/job132757148859 выполняется. Локально послеаудита последние9/9 UI, lint0error/15warnings/2info иassembleDebug прошли7m19s; ранее прошли28 неизменённыхпроверокданных/SQL. ПолныйCI/подписанный39 ещё ожидаются. При новойсреде получить свежийmain и эту ветку/последующиеcheckpoint, не делать69 заново и не терять дерево. Проверенныйустановочный выпуск пока38 ниже; новыйmain39 долженпройтиполныйCI/автоподпись/независимуюпроверкуAPK до закрытия69. АктивныеGradle/CI проверять передправкой; не редактировать main/test во времяпроверки.
 
 ## Проверенный выпуск1.10.38/code61/Room17 —71 и70 закрыты
 
@@ -12,7 +12,7 @@
 
 [УстановочныйAPK:Signed43690896800/artifact14152792633](https://github.com/grigorywork/NoteLS/actions/runs/43690896800/artifacts/14152792633). Identity132741133723/release132741157017 SUCCESS; build/lint12m37s,13signing contracts0fail11.594s. Реальныйcheckout иREADMEsourceebc0c01; runhead048c9f7 — последующая документация workflow_run.
 
-Независимая проверка:ZIP SHA256`8b9c984b700081e056b3f38cad3eabedcf82ee1cc299bdb238c3734479021686`=API digest, внутри ровноAPK/README/SHA256SUMS. APK27501255bytes SHA256`330f6fb61d7a233c0bd5d09b626b42509bdf2f0fd4eb4a345a88e0d91d8f7c57`=SHA256SUMS/CI. aapt2com.notessync.app/1.10.38/61/non-debuggable/min26/target35; actualapksigner v2/v3/1signer/certificate строго по pin ниже. DEX содержит новый редактор. App tree текущегоmain совпадает сsourceebc0c01; после него менялись только документы. Room17/data2/security3 прежние. Локальный проверенныйAPK `/workspace/library-files/NoteLS-1.10.38-code61-permanent-signature.apk`.
+Независимая проверка:ZIP SHA256`8b9c984b700081e056b3f38cad3eabedcf82ee1cc299bdb238c3734479021686`=API digest, внутри ровноAPK/README/SHA256SUMS. APK27501255bytes SHA256`330f6fb61d7a233c0bd5d09b626b42509bdf2f0fd4eb4a345a88e0d91d8f7c57`=SHA256SUMS/CI. aapt2com.notessync.app/1.10.38/61/non-debuggable/min26/target35; actualapksigner v2/v3/1signer/certificate строго по pin ниже. DEX содержит новый редактор. На закрытие38 (dcb960e) дерево приложения main совпадало сsourceebc0c01; текущие изменения39 описаны выше. Room17/data2/security3 прежние. Локальный проверенныйAPK `/workspace/library-files/NoteLS-1.10.38-code61-permanent-signature.apk`.
 
 ## Следующий69, затем72–82
 
