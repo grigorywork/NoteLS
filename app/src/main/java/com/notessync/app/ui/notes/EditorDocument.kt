@@ -265,6 +265,7 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
         val suffix = when {
             after.isEmpty() -> ""
             isList && !after.startsWith("\n") -> "\n"
+            !isList && after.first().isLetterOrDigit() && processed.last().isLetterOrDigit() -> " "
             else -> ""
         }
         val inserted = prefix + processed + suffix

@@ -17,6 +17,13 @@ internal class AndroidVoiceRecognizerFactory(context: Context, private val langu
         VoiceEngine.LOCAL -> Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(app)
     }
     override fun create(engine: VoiceEngine, callbacks: VoiceCallbacks): VoiceRecognizer {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag())
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            if (engine == VoiceEngine.LOCAL) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        }
         // EXTRA_PREFER_OFFLINE alone is only a hint; it must never implement the strict LOCAL mode.
         val recognizer = if (engine == VoiceEngine.LOCAL) {
             if (Build.VERSION.SDK_INT >= 31) {
@@ -39,13 +46,6 @@ internal class AndroidVoiceRecognizerFactory(context: Context, private val langu
         } catch (error: Exception) {
             runCatching { recognizer.destroy() }
             throw error
-        }
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag())
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            if (engine == VoiceEngine.LOCAL) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
         }
         return object : VoiceRecognizer {
             override fun start() = recognizer.startListening(intent)

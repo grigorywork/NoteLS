@@ -64,7 +64,7 @@ class VoiceEditorTest {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ShadowSpeechRecognizer.reset()
         SettingsRepository.get(app).apply {
             setUiLanguage(UiLanguage.RUSSIAN); setVoiceEngine(VoiceEngine.ONLINE)
-            setVoiceLanguage(VoiceLanguage.SYSTEM); setVoiceControl(VoiceControl.HOLD); setVoiceStructure(VoiceStructure.RAW); setBackupFrequency(BackupFrequency.MANUAL)
+            setEditorHistory(true); setVoiceLanguage(VoiceLanguage.SYSTEM); setVoiceControl(VoiceControl.HOLD); setVoiceStructure(VoiceStructure.RAW); setBackupFrequency(BackupFrequency.MANUAL)
         }
         shadowOf(app.packageManager).addResolveInfoForIntent(Intent(RecognitionService.SERVICE_INTERFACE), ResolveInfo().apply {
             serviceInfo = ServiceInfo().apply { name = "TestSpeechService"; packageName = "test.speech" }
@@ -80,11 +80,19 @@ class VoiceEditorTest {
         }
         AppDatabase.closeInstance()
     }
-    private fun content(): NoteEditorViewModel {
-        val id = runBlocking { AppDatabase.get(app).noteDao().upsert(NoteEntity(title = "Voice", content = "Original")) }
+    private val editorSlot = androidx.compose.runtime.mutableStateOf<NoteEditorViewModel?>(null)
+    private val inset = androidx.compose.runtime.mutableIntStateOf(0)
+    private var density = 1f
+    private lateinit var drawingView: android.view.View
+    private fun content(initialContent: String = "Original"): NoteEditorViewModel {
+        val id = runBlocking { AppDatabase.get(app).noteDao().upsert(NoteEntity(title = "Voice", content = initialContent)) }
         val editor = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to id))).also { store.put("editor", it); vm = it }
-        compose.setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalActivityResultRegistryOwner provides registry) {
-            NoteSyncTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) { NoteEditorScreen({}, {}, viewModel = editor) } }
+        editorSlot.value = editor
+        compose.setContent {
+            density = androidx.compose.ui.platform.LocalDensity.current.density
+            drawingView = androidx.compose.ui.platform.LocalView.current
+            CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalActivityResultRegistryOwner provides registry) {
+            NoteSyncTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) { NoteEditorScreen({}, {}, viewModel = editorSlot.value!!, imeInsets = androidx.compose.foundation.layout.WindowInsets(bottom = inset.intValue)) } }
         } }
         compose.waitUntil(10_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); editor.isReady }
         compose.onNodeWithContentDescription("Действия").performClick()
@@ -148,7 +156,8 @@ class VoiceEditorTest {
         compose.onNodeWithContentDescription("Параметры диктовки").performClick()
         compose.onNodeWithText("Русский").performClick()
         compose.runOnIdle {
-            editor.updateContent(androidx.compose.ui.text.input.TextFieldValue("Original", androidx.compose.ui.text.TextRange(0, 8)))
+            editor.onContentChange(androidx.compose.ui.text.input.TextFieldValue("Original", androidx.compose.ui.text.TextRange(0, 8)))
+            editor.onEditorFocus(com.notessync.app.notes.history.EditorField.TITLE)
         }
         compose.onNodeWithTag("voice-input").performClick()
         val recognizer = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer())
@@ -201,5 +210,56 @@ class VoiceEditorTest {
         compose.onNodeWithContentDescription("Действия").performClick()
         compose.onNodeWithText("Голосовой ввод").performClick()
         compose.runOnIdle { assertSame(raw, ShadowSpeechRecognizer.getLatestSpeechRecognizer()) }
+    }
+    @Test fun `changing editor owner destroys old session and requires a new explicit start`() {
+        shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        val first = content()
+        compose.onNodeWithTag("voice-input").performClick()
+        val old = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        val recognizer = shadowOf(old)
+        val id = runBlocking { AppDatabase.get(app).noteDao().upsert(NoteEntity(title = "Second", content = "Second original")) }
+        val second = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to id))).also { store.put("second", it) }
+        compose.runOnIdle { recognizer.triggerOnReadyForSpeech(Bundle()); editorSlot.value = second; vm = second }
+        compose.waitUntil(10_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); second.isReady }
+        compose.onNodeWithTag("voice-panel").assertDoesNotExist()
+        compose.runOnIdle {
+            assertTrue(recognizer.isDestroyed); recognizer.triggerOnResults(result("Old owner text"))
+            assertEquals("Original", first.contentField.text); assertEquals("Second original", second.contentField.text)
+            assertSame(old, ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+        }
+        compose.onNodeWithContentDescription("Действия").performClick()
+        compose.onNodeWithText("Голосовой ввод").performClick()
+        compose.onNodeWithTag("voice-input").performClick()
+        compose.runOnIdle {
+            val fresh = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+            assertNotSame(old, fresh)
+            shadowOf(fresh).triggerOnResults(result("New owner text"))
+            assertEquals("Original", first.contentField.text)
+            assertEquals("New owner text Second original", second.contentField.text)
+        }
+    }
+    @Test fun `voice controls and document caret remain visible with long text and simulated keyboard`() {
+        val editor = content((1..30).joinToString("\n") { "Строка $it" })
+        compose.onNodeWithTag("voice-input").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Таблица").assertDoesNotExist()
+        compose.runOnIdle { inset.intValue = (260 * density).toInt() }
+        compose.onNodeWithTag("editor-body").performTextInputSelection(androidx.compose.ui.text.TextRange(editor.contentField.text.length))
+        compose.onNodeWithTag("editor-body").performTextInput("!")
+        val panel = compose.onNodeWithTag("voice-panel").fetchSemanticsNode().boundsInRoot
+        val node = compose.onNodeWithTag("editor-body").fetchSemanticsNode()
+        val layout = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+        node.config[androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult].action!!.invoke(layout)
+        val cursor = layout.single().getCursorRect(editor.contentField.selection.end)
+        val cursorTop = node.positionInRoot.y + cursor.top
+        val cursorBottom = node.positionInRoot.y + cursor.bottom
+        assertTrue("caret=$cursorTop panel=$panel", cursorTop >= panel.bottom)
+        assertTrue("caret=$cursorBottom", cursorBottom < (760 - 260) * density)
+        compose.onNodeWithContentDescription("Закрыть диктовку").assertIsDisplayed()
+        compose.runOnIdle {
+            val bitmap = android.graphics.Bitmap.createBitmap(drawingView.width, drawingView.height, android.graphics.Bitmap.Config.ARGB_8888)
+            drawingView.draw(android.graphics.Canvas(bitmap))
+            val output = java.io.File("build/reports/voice-preview/panel-ime.png").apply { parentFile.mkdirs() }
+            output.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        }
     }
 }

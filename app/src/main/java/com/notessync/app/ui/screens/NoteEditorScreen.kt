@@ -133,7 +133,7 @@ fun NoteEditorScreen(
                 }
                 override fun onPartial(text: String) { voicePartial = text }
                 override fun onFinal(text: String) {
-                    if (!voiceClosing && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    if (!voiceClosing && !ui.modalOpen && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                         viewModel.insertVoiceText(text, voiceStructureAtStart)
                         if (!viewModel.previewMode && !viewModel.accessDenied && !viewModel.isClosing) {
                             ui.showVoice = false
