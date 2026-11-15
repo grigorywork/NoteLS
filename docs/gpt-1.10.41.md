@@ -23,3 +23,5 @@ Incomplete max_output_tokens объясняется отдельно; части
 `transform41-checks.log`:32/32tests,0failures/errors/skipped,8m12s. OpenAiTransport8/TransformSession4/TransformSecrets2/TransformSettings1/EditorTransform3/TransformUi4/SettingsGroups4/UiCatalog6. LintDebug0error/15warnings/2info иassembleDebugSUCCESS, metadata1.10.41/code64. Все8 новых кейсов прошли с первого исполнения; старые assertions/caps не менялись. Аудит: providererror не выводит rawmessage/ключ/черновик, чтение ошибки≤8193байт/close, 2048budget не растёт; source/access/session guards/explicitApply сохранены.
 
 Нормальный pushmain запускает полный Android checks (709 ожидается, но пока неpass). После полного успеха проверить автоматическийSigned и скачанный установочныйAPK с прежнимpin. До этого последний проверенныйinstallable40.
+
+Полный [Android checks43716992091](https://github.com/grigorywork/NoteLS/actions/runs/43716992091)/job132820552853 реальноin_progress наsource `8d2074a709683d059ac4937e780986eed2ea8ba1`. Предыдущийcheckpoint6f7a6b9 включён вmain. ЛокальныхGradleнет/деревочистое; main/testзаморожены до окончанияпроверки.

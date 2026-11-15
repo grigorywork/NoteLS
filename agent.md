@@ -1447,3 +1447,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15:73/1.10.41/code64/Room17 локально32/32tests0fail/errors/skipped, lint0error/15warnings/2info/assembleDebugSUCCESS8m12s, transform41-checks.log. Checkpoint6f7a6b9вcodex/transform-1.10.41, отправляетсяобычныйfast-forwardmainдляполногоCI709ожидаемого(НЕpassпока). Бюджет2048не увеличен, rawprovidererror/ключ/черновикневключаютсявдиагностику. UserAPIключотдельныйлокальный, signingSecret/pinне трогались. Последнийinstallable40/701; следующий74толькопосле полногоCI+подписанного41. Резервтажеautomation15:16:41UTC/is_enabledtrueподтверждёнAPI,без дублей.
+
+
+2026-11-15T13:04UTC:73 source8d2074a709683d059ac4937e780986eed2ea8ba1 уже вmain, полныйCI43716992091/job132820552853 in_progress. Checkpoint6f7a6b9 включён, не повторять73 по старому40. ЛокальныхGradleнет; main/testне менятьприпроверке, второйGradleне запускать. Локальные32/32успехне заменяетполный709(ожидаемый)/Signed. Последнийпроверенныйinstallable40, ключ/pinпрежние.
