@@ -1,3 +1,11 @@
+## Текущий76 — кандидат1.10.45/code68/Room18, локальная проверка
+
+Исходник сохранён в удалённой `codex/glass-1.10.45`, checkpoint `f0f8fc5`; локальная main содержит его. Remote main пока30b6ea8 (документация поверх проверенного44). В новой среде получить checkpoint и актуальные последующие коммиты; не начинать76 заново.
+
+GlassAppearance: прозрачность/матовость/8 адаптивных цветов/3 фона, безопасное чтение prefs и единый Save. Диалог с локальным draft, preview/reset/Save/Cancel/Back. Android12+ — настоящий blur только собственного фона ≤18dp; старые Android — мягкий градиент, SOLID/быстрые окна без blur. Кэшированные кисти, нет таймеров/анимаций/фоновых задач. Не заявлять физически измеренную производительность или GPU-результат по NativeCanvas SDK28.
+
+Единственный Gradle `/workspace/tools/glass45-checks.log` (session47458): 36 целевых ожидается, компиляция main прошла, результаты тестов/lint/APK пока не подтверждены. Не менять main/test при проверке/не запускать второй Gradle. После фактических результатов — аудит/исправления/NativePNG, полный pushCI, autoSigned и независимая верификация. Последний verified installable44,76 НЕ закрыт. [Отчёт](glass-1.10.45.md).
+
 <!-- CURRENT-QUOTES-44 -->
 > **75закрыт:1.10.44/code67/Room18/data2/security3.** Свойцитатник/JSON-TXTимпорт/backuprestore/неподвижнаяцитатавменю. [Проверенный установочныйAPK44вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43761100021/artifacts/14180464095), runtime70b5a4e. ПолныйCI43759092671=753/0fail/0ignored/lint0error; Signed43761100021SUCCESS. ZIP/API/SUMS/source/package/version/nondebug/actualapksignerpin/compiledschema18сверены. [Доказательства](quotes-1.10.44-verification.json), [инструкция](quote-library-guide.md). Следующий76(стекло), затем77–82;76НЕначат/45ещёнет/68iPhoneотложен. Телефонных/реальныхAIпроверокнет.
 <!-- END-CURRENT-QUOTES-44 -->
