@@ -36,6 +36,7 @@ jobs:
             app/build/reports/navigation-preview/
             app/build/reports/voice-preview/
             app/build/reports/settings-preview/
+            app/build/reports/quotes-preview/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
       - name: Prepare cloud debug APK (not an installed-app update)

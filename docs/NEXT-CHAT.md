@@ -1,8 +1,8 @@
 # NoteLS: продолжение разработки
 
-## Текущий75 — цитатник1.10.44/code67/Room18, план до реализации
+## Текущий75 — кандидат1.10.44/code67/Room18, проверки запускаются
 
-[План/отчёт](quotes-1.10.44.md). Свежийmainc4b8489/деревочистое/живыхGradleиCIнет. ОпределеныформатыJSON/TXT/ограничения/Room17→18/зашифрованныйbackup/закреплённыйfooter. Покаappsource44неизменён;43ниже — последнийverifiedinstallable. Продолжить75, не начинать76до полногоCI/Signed/проверенногоAPK44.
+[Отчёт/решения](quotes-1.10.44.md). Локальнаяmain содержит WIP1525aab и последующиеизменения, remotecheckpointcodex/quotes-1.10.44; originmainbf80faaпокаverified43+план. ВновойсредеполучитьСВЕЖИЙcheckpoint, не начинать75со старого43. Реализованы2таблицыRoom/17→18migration/backuprestorevalidation/JSONTXTboundedcancelableimport/duplicate-capacity-staleatomicguards/прикреплённыйfooter/CRUD/SAF/preview/ownfilter/oldquoteappearanceсогласование.21новыйкейс:7parser,6NativeRoom,3encryptedbackup,5NativeUI(RUEN/фиксированныйfooter320dp320height+font2/CRUD+pin/delete/cancel/importpreview/manualsettings). ПокаНЕpass/НЕinstallable44. Выполняется quotes44-checks.log (quoteData/UI+BackupManager/EncryptedBackup/LegacyMigration/UiCatalog/SettingsGroups+lint/assemble). Не менятьmain/testи не запускатьвторойGradleприпроверке. ПослеKSPпроверить/закоммитить app/schemas/.../18.json; полныйCI753ожидаемыйНЕpassпока. Последнийустановочный43 ниже;75закрыватьпослеCI/Signed/независимойпроверкиAPK.
 
 ## Проверенный выпуск1.10.43/code66/Room17 —74 закрыт
 

@@ -48,4 +48,12 @@ class QuotesBackupTest {
         assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(file)).isFailure)
         assertEquals(current, db.customQuoteDao().pinned()); assertEquals("Current note", db.noteDao().getById(note)!!.title)
     }
+    @Test fun `invalid quote metadata in an archive is rejected before any live rows change`() = runBlocking {
+        val id = library.save(null, QuoteDraft("Keep")); library.pin(db.customQuoteDao().get(id)!!)
+        db.openHelper.writableDatabase.execSQL("INSERT INTO custom_quotes(text,author,source,fingerprint) VALUES('Invalid','','','wrong-identity')")
+        val file = backup()
+        db.openHelper.writableDatabase.execSQL("DELETE FROM custom_quotes WHERE fingerprint = 'wrong-identity'")
+        assertTrue(EncryptedBackupFixture.restore(app, Uri.fromFile(file)).isFailure)
+        assertEquals(1, db.customQuoteDao().count()); assertEquals(id, db.customQuoteDao().pinned()!!.id)
+    }
 }

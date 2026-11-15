@@ -174,6 +174,11 @@ object BackupManager {
                     packed.query("PRAGMA foreign_key_check").use {
                         check(!it.moveToFirst()) { uiText("Нарушены связи записей резервной копии") }
                     }
+                    try {
+                        com.notessync.app.data.quotes.validateQuoteSnapshot(packed) { job.ensureActive() }
+                    } catch (_: com.notessync.app.data.quotes.QuoteException) {
+                        error(uiText("Некорректный цитатник в резервной копии"))
+                    }
                     val count = packed.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use {
                         check(it.moveToFirst()); it.getLong(0)
                     }
