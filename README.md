@@ -1,3 +1,7 @@
+<!-- CURRENT-QWEN-43 -->
+> **74 закрыт:1.10.43/code66/Room17.** QwenчерезGroqFree(квота/свойключ/тарифаккаунта) добавлен рядомсOpenAI. [Проверенный установочныйAPK43 вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43746004909/artifacts/14174757856), runtimeaf01d51. ПолныйCI43744048331=732/0fail/0ignored/lint0error; Signed43746004909SUCCESS. ZIP/API/SUMS/APK/source/package/version/nondebug/actualapksignerpin проверены. [Доказательства](docs/qwen-1.10.43-verification.json), [настройка](docs/ai-qwen-setup.md). РеальныхAIгенераций/платныхвызововнет. Следующий75(цитатник), затем76–82;75НЕначат/44ещёнет/68iPhoneотложен.
+<!-- END-CURRENT-QWEN-43 -->
+
 <!-- CURRENT-SETTINGS-42 -->
 > **Проверен1.10.42/code65/Room17:** компактные настройки, полныйCI43731374968/source1b55045=714/0fail/0ignored/lint0error. [Установочный APK42 вZIP](https://github.com/grigorywork/NoteLS/actions/runs/43733357193/artifacts/14169334476) независимо проверен поZIP/API/SUMS/source/package/version/nondebug/actualapksigner/certpin. [Доказательства](docs/settings-1.10.42-verification.json).74 открыт только для дополнения Qwen через Groq Free в следующей43; затем75–82. Новых этапов нет/68iPhoneотложен.
 <!-- END-CURRENT-SETTINGS-42 -->
