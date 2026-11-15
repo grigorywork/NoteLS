@@ -1444,3 +1444,6 @@ UiCatalog разделён на тематические функции запо
 
 
 2026-11-15: после «Нет апк» проверено: localAPK40 существует/верифицирован, но абсолютная ссылка не открывается у клиента. В чат выданы свежийHTTPSZIPfiledownload изartifact14161866812 и постоянныйGitHubartifactURL; отдельногоAPKuploadинструмента нет. Секреты/подпись не менялись. Automation12:52доставлена в активную корневую работу, дубльне запускался. Продолжается73/1.10.41/code64: HTTPдиагностика/previewconfig/settingsroute,8новыхрегрессий; всеai.*Tests/SettingsGroups/UiCatalog/lint/assemble выполняютсявtransform41-checks.log. НЕpass/НЕполныйCI/НЕinstallable41. Платныхзапросовнет.
+
+
+2026-11-15:73/1.10.41/code64/Room17 локально32/32tests0fail/errors/skipped, lint0error/15warnings/2info/assembleDebugSUCCESS8m12s, transform41-checks.log. Checkpoint6f7a6b9вcodex/transform-1.10.41, отправляетсяобычныйfast-forwardmainдляполногоCI709ожидаемого(НЕpassпока). Бюджет2048не увеличен, rawprovidererror/ключ/черновикневключаютсявдиагностику. UserAPIключотдельныйлокальный, signingSecret/pinне трогались. Последнийinstallable40/701; следующий74толькопосле полногоCI+подписанного41. Резервтажеautomation15:16:41UTC/is_enabledtrueподтверждёнAPI,без дублей.

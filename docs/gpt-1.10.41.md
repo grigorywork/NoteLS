@@ -17,3 +17,9 @@ Incomplete max_output_tokens объясняется отдельно; части
 Запущены все ai.*Test, SettingsGroupsUiTest, UiCatalogTest +lintDebug/assembleDebug: `/workspace/tools/transform41-checks.log`. Результат ещё не подтверждён. Подготовлены5HTTP-контрактов (billing/rate,model/access/region/server,malformed/oversized+close,outputbudget,setupnetwork),2ComposeUI (модель/config иbilling/original/settings),1открытие нужной группы/Back. Старые проверки cancel/disconnect/secrets/access/предпросмотра не ослаблялись.
 
 Настоящие платные запросы не выполнялись. Ключ пользователя не запрашивался/не читался в чате. AndroidTransformSecrets — отдельный локальный API-ключ пользователя; это не ключ подписи приложения, постоянный signingSecret не затрагивается. ПолныйCI709 ожидается только после локальных проверок, пока НЕpass/НЕinstallable41.
+
+## Локальный результат
+
+`transform41-checks.log`:32/32tests,0failures/errors/skipped,8m12s. OpenAiTransport8/TransformSession4/TransformSecrets2/TransformSettings1/EditorTransform3/TransformUi4/SettingsGroups4/UiCatalog6. LintDebug0error/15warnings/2info иassembleDebugSUCCESS, metadata1.10.41/code64. Все8 новых кейсов прошли с первого исполнения; старые assertions/caps не менялись. Аудит: providererror не выводит rawmessage/ключ/черновик, чтение ошибки≤8193байт/close, 2048budget не растёт; source/access/session guards/explicitApply сохранены.
+
+Нормальный pushmain запускает полный Android checks (709 ожидается, но пока неpass). После полного успеха проверить автоматическийSigned и скачанный установочныйAPK с прежнимpin. До этого последний проверенныйinstallable40.
