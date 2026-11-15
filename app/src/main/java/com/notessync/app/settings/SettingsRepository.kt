@@ -145,6 +145,7 @@ data class SettingsState(
     val appFont: AppFont = AppFont.SYSTEM,
     // Этап 37: классика или матовое стекло.
     val interfaceStyle: InterfaceStyle = InterfaceStyle.CLASSIC,
+    val glassAppearance: GlassAppearance = GlassAppearance(),
     // Этап 36: стиль выполненных задач в виджете.
     val widgetCompletedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH,
     // Этап 39: частота автобэкапа и время последнего (0 — ещё не делался).
@@ -213,6 +214,12 @@ class SettingsRepository private constructor(context: Context) {
         widgetColoredTasks = prefs.getBoolean(KEY_WIDGET_COLORED_TASKS, false),
         appFont = enumPref(KEY_APP_FONT, AppFont.SYSTEM),
         interfaceStyle = enumPref(KEY_INTERFACE_STYLE, InterfaceStyle.CLASSIC),
+        glassAppearance = GlassAppearance(
+            transparency = runCatching { prefs.getFloat("glass_transparency", 0.5f) }.getOrDefault(0.5f),
+            frost = runCatching { prefs.getFloat("glass_frost", 0f) }.getOrDefault(0f),
+            tint = enumPref("glass_tint", GlassTint.THEME),
+            backdrop = enumPref("glass_backdrop", GlassBackdrop.AURORA)
+        ).safe(),
         widgetCompletedStyle = enumPref(KEY_WIDGET_COMPLETED_STYLE, WidgetCompletedStyle.BOTH),
         backupFrequency = enumPref(KEY_BACKUP_FREQUENCY, BackupFrequency.EVERY_10_DAYS),
         lastBackupAt = prefs.getLong(KEY_LAST_BACKUP_AT, 0L),
@@ -301,6 +308,13 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setInterfaceStyle(style: InterfaceStyle) {
         prefs.edit().putString(KEY_INTERFACE_STYLE, style.name).apply()
+    }
+
+    fun setGlassAppearance(value: GlassAppearance) {
+        val v = value.safe()
+        prefs.edit().putFloat("glass_transparency", v.transparency).putFloat("glass_frost", v.frost)
+            .putString("glass_tint", v.tint.name).putString("glass_backdrop", v.backdrop.name).apply()
+        _state.value = read()
     }
 
     fun setWidgetCompletedStyle(style: WidgetCompletedStyle) {

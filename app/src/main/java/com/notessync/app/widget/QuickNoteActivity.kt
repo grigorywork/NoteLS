@@ -108,6 +108,7 @@ class QuickNoteActivity : ComponentActivity() {
                 fontScale = accent.fontScale,
                 accentColor = accent.accentColor,
                 appFont = accent.appFont,
+                glassAppearance = accent.glassAppearance,
                 interfaceStyle = accent.interfaceStyle,
                 glassBackdrop = false
             ) {

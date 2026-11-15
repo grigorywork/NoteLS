@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.notessync.app.settings.AccentColor
 import com.notessync.app.settings.AppFont
 import com.notessync.app.settings.InterfaceStyle
+import com.notessync.app.settings.GlassAppearance
 
 // Запасная палитра для устройств без динамического цвета (Android < 12).
 private val LightColors = lightColorScheme(
@@ -117,8 +118,9 @@ fun NoteSyncTheme(
     appFont: AppFont = AppFont.SYSTEM,
     interfaceStyle: InterfaceStyle = InterfaceStyle.CLASSIC,
     // Транслучентные активности (быстрая заметка, настройки виджета) передают false:
-    // тогда сквозь стеклянную панель просвечивает сам рабочий стол — как в iOS.
+    // собственный градиент не рисуется; плотность панелей повышена для неизвестного фона.
     glassBackdrop: Boolean = true,
+    glassAppearance: GlassAppearance = GlassAppearance(),
     content: @Composable () -> Unit
 ) {
     val baseScheme = when {
@@ -134,7 +136,7 @@ fun NoteSyncTheme(
     // Этап 37: матовое стекло — палитра становится полупрозрачной,
     // под контентом рисуется аврора в цвет акцента.
     val glass = interfaceStyle == InterfaceStyle.GLASS
-    val colorScheme = if (glass) baseScheme.glassified(darkTheme) else baseScheme
+    val colorScheme = if (glass) baseScheme.glassified(darkTheme, glassAppearance, externalBackdrop = !glassBackdrop) else baseScheme
 
     LocalizedUiContent {
         MaterialTheme(
@@ -145,12 +147,14 @@ fun NoteSyncTheme(
                 LocalGlassTheme provides GlassTheme(
                     enabled = glass,
                     dark = darkTheme,
-                    borderColor = glassBorderColor(darkTheme)
+                    borderColor = glassBorderColor(darkTheme),
+                    appearance = glassAppearance.safe(),
+                    externalBackdrop = !glassBackdrop
                 )
             ) {
                 if (glass && glassBackdrop) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        AuroraBackground(dark = darkTheme, accent = colorScheme.primary)
+                        AuroraBackground(dark = darkTheme, accent = colorScheme.primary, appearance = glassAppearance)
                         content()
                     }
                 } else {

@@ -55,6 +55,7 @@ class WidgetSettingsActivity : ComponentActivity() {
                 fontScale = state.fontScale,
                 accentColor = state.accentColor,
                 appFont = state.appFont,
+                glassAppearance = state.glassAppearance,
                 interfaceStyle = state.interfaceStyle,
                 glassBackdrop = false
             ) {

@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -15,6 +17,8 @@ import com.notessync.app.ui.theme.appFontFamily
 
 @Composable
 internal fun AppearanceSettings(state: SettingsState, settings: SettingsRepository, onQuote: () -> Unit, onLicenses: () -> Unit) {
+    var showGlass by rememberSaveable { mutableStateOf(false) }
+    if (showGlass) GlassSettingsDialog(state, { showGlass = false }, settings::setGlassAppearance)
     SettingsCard(Modifier.fillMaxWidth()) {
         SettingsDropdown("theme", uiText("Тема"), state.themeMode, ThemeMode.entries, settings::setThemeMode, { mode ->
             when (mode) { ThemeMode.SYSTEM -> uiText("Системная"); ThemeMode.LIGHT -> uiText("Светлая"); ThemeMode.DARK -> uiText("Тёмная") }
@@ -24,9 +28,10 @@ internal fun AppearanceSettings(state: SettingsState, settings: SettingsReposito
             when (scale) { SettingsRepository.FONT_COMPACT -> uiText("Компактный"); SettingsRepository.FONT_LARGE -> uiText("Крупный"); else -> uiText("Обычный") }
         })
         SettingsDropdown("style", uiText("Стиль интерфейса"), state.interfaceStyle, InterfaceStyle.entries, settings::setInterfaceStyle, { it.label })
-        if (state.interfaceStyle == InterfaceStyle.GLASS) SettingsHelp("glass", uiText("О матовом стекле")) {
-            Text(uiText("Матовое стекло — полупрозрачные панели с тонкой кромкой ") + uiText("поверх мягкого градиента, как в Kimi на iPhone."),
-                style = MaterialTheme.typography.bodySmall)
+        if (state.interfaceStyle == InterfaceStyle.GLASS) {
+            SettingsItem(headlineContent = { Text(uiText("Настроить стекло")) },
+                trailingContent = { Icon(Icons.Default.ChevronRight, null) },
+                modifier = Modifier.testTag("settings-glass-open").clickable { showGlass = true })
         }
         SettingsDropdown("accent", uiText("Цвет и обводка"), state.accentColor, AccentColor.entries, settings::setAccentColor, { it.label })
         SettingsDropdown("font", uiText("Шрифт"), state.appFont, AppFont.entries, settings::setAppFont, { it.label })

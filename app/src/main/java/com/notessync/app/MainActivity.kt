@@ -42,6 +42,7 @@ class MainActivity : FragmentActivity() {
                 accentColor = state.accentColor,
                 fontScale = state.fontScale,
                 appFont = state.appFont,
+                glassAppearance = state.glassAppearance,
                 interfaceStyle = state.interfaceStyle
             ) {
                 AppNavHost(widgetRequest) { handled ->
