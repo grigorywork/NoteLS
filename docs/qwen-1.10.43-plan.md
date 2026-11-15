@@ -12,3 +12,5 @@
 - Правила disableddefault/явныйSend/редактируемыйpreview/явныйApply/cancel/доступ/оригинал остаются. Оффлайн fakeHTTPклассификация/границы/отмена/незавершённыйответ, отдельностьvault, provider-switchконфигурации, UIQwenSend+preview+settings/noautosend/selectedprovider, RU/ENкаталог. Физический/реальныйпровайдер не заявлять проверенным.
 
 Основания: [лимиты](https://console.groq.com/docs/rate-limits), [тарифы](https://console.groq.com/docs/billing-faqs), [reasoning](https://console.groq.com/docs/reasoning), [API](https://console.groq.com/docs/api-reference), [данные](https://console.groq.com/docs/your-data). В inference возможны ограниченные логи до30дней, ZDR выбирается в Groq; не обещать отсутствия хранения.
+
+Неприменённый, нескомпилированный черновик сохранён в docs/design/qwen-1.10.43-draft.patch для продолжения при смене среды. Он не меняет appsource42. git apply --check прошёл; применять только после полногоCI/проверенногоSigned42 и свежейпроверкидерева. После применения требуются аудит/целевыеUI+HTTP+vault/sessiontests/lint/APK/полныйCI/Signed, это не готовый43.
