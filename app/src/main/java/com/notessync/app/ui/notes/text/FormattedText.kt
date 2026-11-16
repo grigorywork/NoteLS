@@ -43,14 +43,7 @@ class FormattedTextTransformation(private val formatting: TextFormatting) : Visu
                     if (values[FormatKind.UNDERLINE] == "1" || (values[FormatKind.UNDERLINE] != "0" && inherited.any { it.contains(TextDecoration.Underline) })) add(TextDecoration.Underline)
                     if (values[FormatKind.STRIKE] == "1" || (values[FormatKind.STRIKE] != "0" && inherited.any { it.contains(TextDecoration.LineThrough) })) add(TextDecoration.LineThrough)
                 }) else null
-                if (a < b) builder.addStyle(SpanStyle(
-                    fontWeight = values[FormatKind.BOLD]?.let { if (it == "1") FontWeight.Bold else FontWeight.Normal },
-                    fontStyle = values[FormatKind.ITALIC]?.let { if (it == "1") FontStyle.Italic else FontStyle.Normal },
-                    fontSize = values[FormatKind.SIZE]?.toInt()?.sp ?: TextUnit.Unspecified,
-                    fontFamily = values[FormatKind.FONT]?.let { appFontFamily(AppFont.valueOf(it)) },
-                    color = values[FormatKind.COLOR]?.let { Color(it.toLong(16)) } ?: Color.Unspecified,
-                    background = values[FormatKind.HIGHLIGHT]?.let { Color(it.toLong(16)) } ?: Color.Unspecified,
-                    textDecoration = decorations), a, b)
+                if (a < b) builder.addStyle(formatSpanStyle(values, decorations), a, b)
             }
         }
         if (paragraphs.isNotEmpty()) {
@@ -67,9 +60,7 @@ class FormattedTextTransformation(private val formatting: TextFormatting) : Visu
                 }
                 if (line.isEmpty()) values.putAll(formatting.at(lineStart))
                 runIndex = cursor
-                builder.addStyle(ParagraphStyle(textAlign = when (values[FormatKind.ALIGN]) {
-                    "CENTER" -> TextAlign.Center; "END" -> TextAlign.End; "JUSTIFY" -> TextAlign.Justify; else -> TextAlign.Start
-                }, textIndent = values[FormatKind.INDENT]?.toInt()?.let { TextIndent((it * 20).sp, (it * 20).sp) }),
+                builder.addStyle(formatParagraphStyle(values),
                     base.offsetMapping.originalToTransformed(lineStart),
                     base.offsetMapping.originalToTransformed(if (end < text.length) end + 1 else end))
                 lineStart = end + 1

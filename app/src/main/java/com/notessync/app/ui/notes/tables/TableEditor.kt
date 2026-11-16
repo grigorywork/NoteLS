@@ -21,6 +21,12 @@ import com.notessync.app.notes.history.EditorField
 import com.notessync.app.notes.history.EditorSelection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.ui.graphics.Color
+import com.notessync.app.notes.text.FormatKind
+import com.notessync.app.ui.notes.text.tableCellTextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -72,10 +78,14 @@ fun AddTableDialog(onDismiss: () -> Unit, remainingCells: Int = NoteTables.MAX_C
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TableEditorDialog(id: String, viewModel: NoteEditorViewModel, snackbarHostState: SnackbarHostState, onDismiss: () -> Unit) {
+fun TableEditorDialog(id: String, viewModel: NoteEditorViewModel, snackbarHostState: SnackbarHostState, onDismiss: () -> Unit,
+    imeInsets: WindowInsets = WindowInsets.ime) {
     val table = viewModel.tables?.find(id)
     if (table == null) { LaunchedEffect(Unit) { onDismiss() }; return }
     var delete by remember { mutableStateOf(false) }
+    var more by remember { mutableStateOf(false) }
+    var geometry by remember { mutableStateOf(false) }
+    val imeVisible = imeInsets.getBottom(LocalDensity.current) > 0
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize().onPreviewKeyEvent {
             if (!viewModel.historyEnabled || !it.isCtrlPressed || it.type != KeyEventType.KeyDown) false
@@ -86,22 +96,32 @@ fun TableEditorDialog(id: String, viewModel: NoteEditorViewModel, snackbarHostSt
                 else -> false
             }
         }) {
-            EditorScaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, topBar = {
-                TopAppBar(title = { Text(uiText("Таблица %1\$s × %2\$s", (table.rowCount), (table.columnCount))) }, navigationIcon = {
-                    IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Закрыть таблицу")) }
-                }, actions = {
-                    IconButton(onClick = { delete = true }) { Icon(Icons.Default.Delete, uiText("Удалить таблицу")) }
-                })
-            }, bottomBar = {
-                Column(Modifier.navigationBarsPadding()) {
-                    if (viewModel.historyEnabled) EditorHistoryActions(viewModel.canUndo, viewModel.canRedo, viewModel::undo, viewModel::redo)
+            EditorScaffold(imeInsets = imeInsets, snackbarHost = { SnackbarHost(snackbarHostState) }, topBar = {
+                Column {
+                    TopAppBar(title = { Text(uiText("Таблица"), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
+                        IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Закрыть таблицу")) }
+                    }, actions = {
+                        if (viewModel.historyEnabled) {
+                            IconButton(onClick = viewModel::undo, enabled = viewModel.canUndo) { Icon(Icons.AutoMirrored.Filled.Undo, uiText("Отменить")) }
+                            IconButton(onClick = viewModel::redo, enabled = viewModel.canRedo) { Icon(Icons.AutoMirrored.Filled.Redo, uiText("Повторить", context = "history")) }
+                        }
+                        Box {
+                            IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, uiText("Ещё")) }
+                            DropdownMenu(more, { more = false }) {
+                                DropdownMenuItem(text = { Text(uiText("Удалить таблицу")) },
+                                    onClick = { more = false; delete = true })
+                            }
+                        }
+                    })
+                    TableFormattingBar(table, viewModel) { geometry = !geometry }
                 }
-            }) {
+            }, bottomBar = { Spacer(Modifier.navigationBarsPadding()) }) {
                 TableGrid(table, viewModel::onTableCellChange, viewModel::resizeTableColumn, viewModel::resizeTableRow,
                     onFocus = viewModel::focusTableCell, onClipboardEdit = viewModel::prepareClipboardEdit,
                     restoreVersion = viewModel.historyRestoreVersion,
                     restoreCell = viewModel.focusedTableCell.takeIf { viewModel.editorField == EditorField.TABLE },
-                    restoreSelection = viewModel.focusedTableSelection)
+                    restoreSelection = viewModel.focusedTableSelection,
+                    showControls = geometry && !imeVisible)
             }
         }
         if (delete) AlertDialog(onDismissRequest = { delete = false }, title = { Text(uiText("Удалить таблицу?")) },
@@ -123,9 +143,11 @@ fun TableGrid(
     onClipboardEdit: () -> Unit = {},
     restoreVersion: Long = 0,
     restoreCell: TableCellRef? = null,
-    restoreSelection: EditorSelection? = null
+    restoreSelection: EditorSelection? = null,
+    showControls: Boolean = true
 ) {
     val density = LocalDensity.current.density
+    val systemFontScale = LocalDensity.current.fontScale
     val horizontal = rememberScrollState()
     val vertical = rememberLazyListState()
     var selectedRow by remember(table.id) { mutableIntStateOf(0) }
@@ -136,7 +158,12 @@ fun TableGrid(
         List(table.rowCount) { List(table.columnCount) { FocusRequester() } }
     }
     fun width(column: Int): Float = columnDrag?.takeIf { it.first == column }?.second ?: table.columnWidths[column].toFloat()
-    fun height(row: Int): Float = rowDrag?.takeIf { it.first == row }?.second ?: table.rowHeights[row].toFloat()
+    val baseTextStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+    fun height(row: Int): Float {
+        val saved = rowDrag?.takeIf { it.first == row }?.second ?: table.rowHeights[row].toFloat()
+        val largest = table.columnWidths.indices.maxOf { c -> table.styleAt(row, c)[FormatKind.SIZE]?.toFloatOrNull() ?: baseTextStyle.fontSize.value }
+        return maxOf(saved, largest * systemFontScale * 1.35f + 16f)
+    }
     LaunchedEffect(restoreVersion) {
         val cell = restoreCell ?: return@LaunchedEffect
         if (restoreVersion > 0 && cell.tableId == table.id && table.contains(cell.row, cell.column)) {
@@ -149,7 +176,7 @@ fun TableGrid(
         }
     }
     Column(Modifier.fillMaxSize()) {
-        FlowRow(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.Center) {
+        if (showControls) FlowRow(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.Center) {
             Text(uiText("Столбец %1\$s", (selectedColumn + 1)), Modifier.align(Alignment.CenterVertically))
             IconButton(onClick = { onColumnWidth(table.id, selectedColumn, table.columnWidths[selectedColumn] - 16) },
                 enabled = table.columnWidths[selectedColumn] > NoteTables.MIN_WIDTH) { Icon(Icons.Default.Remove, uiText("Уже")) }
@@ -206,6 +233,7 @@ fun TableGrid(
                     table.columnWidths.indices.forEach { column ->
                         val ref = TableCellRef(table.id, row, column)
                         val savedText = table.cells[row][column]
+                        val cellStyle = table.styleAt(row, column)
                         var localValue by remember(table.id, row, column) { mutableStateOf(TextFieldValue(savedText, TextRange(savedText.length))) }
                         val displayed = if (localValue.text == savedText) localValue else TextFieldValue(savedText,
                             TextRange(localValue.selection.start.coerceIn(0, savedText.length), localValue.selection.end.coerceIn(0, savedText.length)))
@@ -220,10 +248,12 @@ fun TableGrid(
                                 if (it.text.length <= NoteTables.MAX_CELL_TEXT) localValue = it
                                 onCell(ref, displayed, it)
                             },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                                textStyle = tableCellTextStyle(baseTextStyle, cellStyle),
                                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                 modifier = Modifier.width(width(column).dp).height(height(row).dp)
-                                    .background(MaterialTheme.colorScheme.surface).border(0.5.dp, MaterialTheme.colorScheme.outline)
+                                    .background(cellStyle[FormatKind.HIGHLIGHT]?.let { Color(it.toLong(16)) } ?: MaterialTheme.colorScheme.surface)
+                                    .border(if (selectedRow == row && selectedColumn == column) 1.5.dp else 0.5.dp,
+                                        if (selectedRow == row && selectedColumn == column) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                                     .focusRequester(requesters[row][column]).onFocusChanged {
                                         if (it.isFocused) { selectedRow = row; selectedColumn = column; onFocus(ref) }
                                     }.padding(8.dp).testTag("cell-$row-$column")

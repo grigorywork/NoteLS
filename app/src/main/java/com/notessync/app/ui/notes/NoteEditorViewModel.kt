@@ -440,6 +440,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
     fun focusTableCell(ref: TableCellRef) = document.focusTableCell(ref)
     fun editTableCell(ref: TableCellRef, value: String) = document.editTableCell(ref, value)
     fun onTableCellChange(ref: TableCellRef, before: TextFieldValue, next: TextFieldValue) = document.onTableCellChange(ref, before, next)
+    fun formatTableCells(ref: TableCellRef, scope: com.notessync.app.notes.tables.TableFormatScope, kind: FormatKind, value: String?) =
+        document.formatTableCells(ref, scope, kind, value)
+    fun clearTableStyles(ref: TableCellRef, scope: com.notessync.app.notes.tables.TableFormatScope) = document.clearTableStyles(ref, scope)
     fun resizeTableColumn(id: String, column: Int, width: Int) = document.resizeTableColumn(id, column, width)
     fun resizeTableRow(id: String, row: Int, height: Int) = document.resizeTableRow(id, row, height)
     fun insertVoiceText(raw: String, structure: com.notessync.app.settings.VoiceStructure) {

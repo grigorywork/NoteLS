@@ -20,7 +20,7 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
     var formatting by mutableStateOf(TextFormatting())
     var tables by mutableStateOf<NoteTables?>(NoteTables())
     var unsupportedTables = ""
-    private var tableCell: TableCellRef? = null
+    private var tableCell by mutableStateOf<TableCellRef?>(null)
     private var tableSelection: EditorSelection? = null
     val hasTables: Boolean get() = tables?.blocks?.isNotEmpty() == true || unsupportedTables.isNotEmpty()
     private var pendingFormatting by mutableStateOf<Map<FormatKind, String?>>(emptyMap())
@@ -226,6 +226,22 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
             edit(kind) { tables = changed; tableSelection = EditorSelection(next.selection.start, next.selection.end) }
         } catch (_: TableLimitReached) { report(EditorMessage.TABLE_LIMIT) }
         if (before.composition != null && next.composition == null) history.breakGroup()
+    }
+    fun formatTableCells(ref: TableCellRef, scope: TableFormatScope, kind: FormatKind, value: String?) {
+        if (!canEdit()) return
+        val current = tables ?: return
+        try {
+            val changed = current.formatCells(ref, scope, kind, value)
+            if (changed == current) return
+            focusTableCell(ref)
+            edit { tables = changed }
+        } catch (_: TableLimitReached) { report(EditorMessage.TABLE_LIMIT) }
+    }
+    fun clearTableStyles(ref: TableCellRef, scope: TableFormatScope) {
+        if (!canEdit()) return
+        val current = tables ?: return
+        val changed = current.clearStyles(ref, scope)
+        if (changed != current) { focusTableCell(ref); edit { tables = changed } }
     }
     fun resizeTableColumn(id: String, column: Int, width: Int) {
         tables?.let { value -> edit { tables = value.resizeColumn(id, column, width) } }

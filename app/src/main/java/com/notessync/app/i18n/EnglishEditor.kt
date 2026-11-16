@@ -224,4 +224,8 @@ internal fun MutableMap<String, String>.addEditorEnglish() {
     put("Нажмите микрофон, затем ещё раз для остановки", "Tap the microphone, then tap again to stop")
     put("Параметры диктовки", "Dictation options")
     put("Закрыть диктовку", "Close dictation")
+    put("Ячейка %1$s:%2$s", "Cell %1$s:%2$s")
+    put("Вся таблица", "Whole table")
+    put("Размеры ячеек", "Cell dimensions")
+    put("Разное оформление", "Mixed formatting")
 }

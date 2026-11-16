@@ -103,4 +103,39 @@ class TablesPersistenceTest {
         assertEquals(local.tablesData, result.conflictCopy.tablesData)
         assertTrue(ConflictResolver.resolve(local, local.copy(updatedAt = 20, tablesData = null), true) is ConflictResolver.Resolution.ApplyRemote)
     }
+    @Test fun `version two styled tables survive encrypted restore and wire delivery unchanged`() = runBlocking {
+        val app=RuntimeEnvironment.getApplication();val db=AppDatabase.get(app)
+        val ref=TableCellRef("styled",0,0)
+        val tables=NoteTables().add("styled",2,2).editCell(ref,"Текст 😀")
+            .formatCells(ref,TableFormatScope.TABLE,com.notessync.app.notes.text.FormatKind.FONT,"MONO")
+            .formatCells(ref,TableFormatScope.CELL,com.notessync.app.notes.text.FormatKind.COLOR,"FF123456")
+            .formatCells(ref,TableFormatScope.CELL,com.notessync.app.notes.text.FormatKind.ALIGN,"CENTER")
+        val raw=tables.encode()
+        val id=db.noteDao().upsert(NoteEntity(title="Styled",content="Body",tablesData=raw,createdAt=123,dayKey=20261116,isFavorite=true,dirty=false))
+        val saved=db.noteDao().getById(id)!!
+        val bytes=ByteArrayOutputStream();EncryptedBackupFixture.createBackup(app,bytes)
+        val file=File(app.cacheDir,"styled-backup.nls").apply { writeBytes(bytes.toByteArray()) }
+        db.noteDao().update(saved.copy(tablesData=""))
+        assertTrue(EncryptedBackupFixture.restore(app,Uri.fromFile(file)).isSuccess)
+        assertEquals(saved,db.noteDao().getById(id))
+        val peer=RoomSyncDataSource(app,db)
+        val dto=peer.getChangesSince(0).notes.single()
+        val message=SyncMessage.decode(SyncMessage.encode(SyncMessage.Changes(ChangeSet(notes=listOf(dto.copy(syncId="styled-peer")))))) as SyncMessage.Changes
+        peer.applyChanges(message.set)
+        val received=db.noteDao().getBySyncId("styled-peer")!!
+        assertEquals(raw,received.tablesData);assertEquals(tables,NoteTables.decode(received.tablesData))
+        assertEquals(saved.content,received.content);assertEquals(saved.dayKey,received.dayKey)
+    }
+    @Test fun `style only conflicts retain full styling and legacy omissions preserve it`() = runBlocking {
+        val app=RuntimeEnvironment.getApplication();val db=AppDatabase.get(app)
+        val styled=NoteTables().add("t",1,1).formatCells(TableCellRef("t",0,0),TableFormatScope.CELL,com.notessync.app.notes.text.FormatKind.BOLD,"1").encode()
+        val id=db.noteDao().upsert(NoteEntity(syncId="styled",tablesData=styled,updatedAt=10,dirty=false))
+        val peer=RoomSyncDataSource(app,db)
+        val old=NoteDto("styled","changed","body",false,false,1,20,tablesData=null)
+        peer.applyChanges(ChangeSet(notes=listOf(old)));assertEquals(styled,db.noteDao().getById(id)!!.tablesData)
+        val local=old.copy(tablesData=styled)
+        val result=ConflictResolver.resolve(local,local.copy(updatedAt=30,tablesData=""),true) as ConflictResolver.Resolution.ApplyRemoteKeepConflictCopy
+        assertEquals(styled,result.conflictCopy.tablesData)
+    }
+
 }

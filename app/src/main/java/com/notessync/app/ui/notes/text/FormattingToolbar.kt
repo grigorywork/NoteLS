@@ -138,7 +138,8 @@ private val colors = listOf("По теме" to null, "Белый" to "FFFFFFFF",
 
 @Composable
 internal fun FormattingPopup(popup: FormatPopup?, anchor: FormatAnchor, onPopup: (FormatPopup?) -> Unit,
-    active: Map<FormatKind, String?>, advanced: Boolean, activeList: MarkdownEdit.ListKind?, actions: FormattingActions) {
+    active: Map<FormatKind, String?>, advanced: Boolean, activeList: MarkdownEdit.ListKind?, actions: FormattingActions,
+    cellMode: Boolean = false, mixedKinds: Set<FormatKind> = emptySet(), onReset: (() -> Unit)? = null) {
     DropdownMenu(expanded = popup?.anchor == anchor, onDismissRequest = { onPopup(null) }) {
         if (popup?.anchor == anchor) {
             fun close(action: () -> Unit) { action(); onPopup(null) }
@@ -157,38 +158,43 @@ internal fun FormattingPopup(popup: FormatPopup?, anchor: FormatAnchor, onPopup:
                             }
                     }
                     if (advanced) {
-                        DropdownMenuItem(text = { Text(uiText("Размер") + ": " + (active[FormatKind.SIZE] ?: uiText("По теме"))) }, onClick = { open(FormatMenu.SIZE) })
-                        DropdownMenuItem(text = { Text(uiText("Шрифт") + ": " + (AppFont.entries.firstOrNull { it.name == active[FormatKind.FONT] }?.label ?: uiText("По теме"))) }, onClick = { open(FormatMenu.FONT) })
+                        DropdownMenuItem(text = { Text(uiText("Размер") + ": " + (if (FormatKind.SIZE in mixedKinds) uiText("Разное оформление") else active[FormatKind.SIZE] ?: uiText("По теме"))) }, onClick = { open(FormatMenu.SIZE) })
+                        DropdownMenuItem(text = { Text(uiText("Шрифт") + ": " + (if (FormatKind.FONT in mixedKinds) uiText("Разное оформление") else AppFont.entries.firstOrNull { it.name == active[FormatKind.FONT] }?.label ?: uiText("По теме"))) }, onClick = { open(FormatMenu.FONT) })
                         DropdownMenuItem(text = { Text(uiText("Цвет текста")) }, onClick = { open(FormatMenu.COLOR) })
                         DropdownMenuItem(text = { Text(uiText("Подложка")) }, onClick = { open(FormatMenu.HIGHLIGHT) })
                         DropdownMenuItem(text = { Text(uiText("Выравнивание")) }, leadingIcon = { Icon(alignmentIcon(active[FormatKind.ALIGN] ?: "START"), null) }, onClick = { open(FormatMenu.ALIGN) })
                     }
-                    Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (!cellMode) Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         (1..3).forEach { level -> TextButton(onClick = { close { actions.heading(level) } }) { Text("H$level") } }
                     }
-                    DropdownMenuItem(text = { Text(uiText("Вид списка")) }, onClick = { open(FormatMenu.LIST) })
+                    if (!cellMode) DropdownMenuItem(text = { Text(uiText("Вид списка")) }, onClick = { open(FormatMenu.LIST) })
                     if (advanced) Row(Modifier.padding(horizontal = 8.dp)) {
                         IconButton(onClick = { actions.indent(-1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentDecrease, uiText("Уменьшить отступ")) }
                         IconButton(onClick = { actions.indent(1) }) { Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, uiText("Увеличить отступ")) }
-                        TextButton(onClick = { close(actions.selectAll) }) { Text(uiText("Весь текст")) }
+                        if (!cellMode) TextButton(onClick = { close(actions.selectAll) }) { Text(uiText("Весь текст")) }
+                    }
+                    if (onReset != null) DropdownMenuItem(text = { Text(uiText("Сбросить оформление")) },
+                        onClick = { close(onReset) })
+                    if (mixedKinds.isNotEmpty()) {
+                        Text(uiText("Разное оформление"), Modifier.padding(12.dp), style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 FormatMenu.SIZE -> (listOf(uiText("По теме") to null) + listOf(12,14,16,18,20,24,28,32,40,48).map { "$it" to "$it" }).forEach { (label, value) ->
-                    FormatOption(label, active[FormatKind.SIZE] == value) { close { actions.format(FormatKind.SIZE, value) } }
+                    FormatOption(label, FormatKind.SIZE !in mixedKinds && active[FormatKind.SIZE] == value) { close { actions.format(FormatKind.SIZE, value) } }
                 }
                 FormatMenu.FONT -> (listOf(uiText("По теме") to null) + AppFont.entries.map { it.label to it.name }).forEach { (label, value) ->
-                    FormatOption(label, active[FormatKind.FONT] == value) { close { actions.format(FormatKind.FONT, value) } }
+                    FormatOption(label, FormatKind.FONT !in mixedKinds && active[FormatKind.FONT] == value) { close { actions.format(FormatKind.FONT, value) } }
                 }
                 FormatMenu.COLOR, FormatMenu.HIGHLIGHT -> {
                     val kind = if (popup.menu == FormatMenu.COLOR) FormatKind.COLOR else FormatKind.HIGHLIGHT
                     colors.forEach { (label, value) -> DropdownMenuItem(text = { Text(uiText(label)) },
                         leadingIcon = { hexColor(value)?.let { Box(Modifier.size(18.dp).background(it)) } },
-                        trailingIcon = { if (active[kind] == value) Icon(Icons.Default.Check, null) },
+                        trailingIcon = { if (kind !in mixedKinds && active[kind] == value) Icon(Icons.Default.Check, null) },
                         onClick = { close { actions.format(kind, value) } }) }
                 }
                 FormatMenu.ALIGN -> alignments.forEach { (value, label) ->
                     DropdownMenuItem(text = { Text(uiText(label)) }, leadingIcon = { Icon(alignmentIcon(value), null) },
-                        trailingIcon = { if ((active[FormatKind.ALIGN] ?: "START") == value) Icon(Icons.Default.Check, null) },
+                        trailingIcon = { if (FormatKind.ALIGN !in mixedKinds && (active[FormatKind.ALIGN] ?: "START") == value) Icon(Icons.Default.Check, null) },
                         onClick = { close { actions.align(value) } })
                 }
                 FormatMenu.LIST -> listOf(MarkdownEdit.ListKind.NUMBER to "Нумерованный", MarkdownEdit.ListKind.LETTER to "Буквенный",
@@ -205,5 +211,5 @@ internal fun FormattingPopup(popup: FormatPopup?, anchor: FormatAnchor, onPopup:
 
 @Composable
 private fun FormatOption(label: String, selected: Boolean, onClick: () -> Unit) {
-    DropdownMenuItem(text = { Text(label) }, trailingIcon = { if (selected) Icon(Icons.Default.Check, null) }, onClick = onClick)
+    DropdownMenuItem(text = { Text(label) }, modifier = Modifier.semantics { this.selected = selected }, trailingIcon = { if (selected) Icon(Icons.Default.Check, null) }, onClick = onClick)
 }

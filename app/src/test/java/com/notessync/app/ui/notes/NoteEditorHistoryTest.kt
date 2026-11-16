@@ -273,4 +273,34 @@ class NoteEditorHistoryTest {
         vm.undo(); assertEquals("НачалоКонец", vm.contentField.text); assertEquals(TextRange(6), vm.contentField.selection)
         vm.redo(); assertEquals("Начало Фраза. Конец", vm.contentField.text)
     }
+    @Test fun `whole cell styles undo redo save and reopen without changing note formatting`() = runTest(dispatcher) {
+        text("Body")
+        val id=vm.addTable(2,2)!!;val ref=TableCellRef(id,0,1)
+        vm.editTableCell(ref,"Ячейка 😀")
+        val before=vm.tables
+        vm.formatTableCells(ref,TableFormatScope.ROW,FormatKind.FONT,"MONO")
+        val styled=vm.tables
+        vm.undo();assertEquals(before,vm.tables);vm.redo();assertEquals(styled,vm.tables)
+        assertTrue(vm.flushOnExit())
+        val saved=AppDatabase.get(app).noteDao().getById(vm.currentNoteId)!!
+        assertEquals(styled,NoteTables.decode(saved.tablesData));assertEquals("Body",saved.content)
+        assertEquals("",saved.textFormat)
+        val other=NoteEditorViewModel(app,SavedStateHandle(mapOf("noteId" to saved.id)))
+        store.put("other",other)
+        withContext(Dispatchers.Default) { withTimeout(5_000) { while(!other.isReady) delay(10) } }
+        assertEquals(styled,other.tables)
+    }
+    @Test fun `relocked note rejects style persistence and subsequent style actions`() = runTest(dispatcher) {
+        val id=vm.addTable(1,1)!!;val ref=TableCellRef(id,0,0)
+        vm.editTableCell(ref,"Secret");assertTrue(vm.saveNow())
+        val dao=AppDatabase.get(app).noteDao();val saved=dao.getById(vm.currentNoteId)!!
+        dao.update(saved.copy(isProtected=true))
+        vm.formatTableCells(ref,TableFormatScope.TABLE,FormatKind.COLOR,"FFE53935")
+        assertFalse(vm.saveNow());assertTrue(vm.accessDenied)
+        assertEquals(saved.tablesData,dao.getById(saved.id)!!.tablesData)
+        val denied=vm.tables
+        vm.clearTableStyles(ref,TableFormatScope.TABLE);vm.formatTableCells(ref,TableFormatScope.CELL,FormatKind.BOLD,"1")
+        assertEquals(denied,vm.tables)
+    }
+
 }
