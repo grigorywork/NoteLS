@@ -1,3 +1,13 @@
+## 77 закрыт — проверенный NoteLS1.10.46/code69/Room18
+
+Оформление текста в таблицах: whole-cell styles с областями CELL/ROW/COLUMN/TABLE, общие с заметками шрифт/размер/цвет/подложка/B/I/U/strike/выравнивание/отступы, отдельный сброс, version2 sparse только при реальном оформлении, legacy1, строгие границы, атомарная история/учёт памяти, компактная панель undo/redo/⋮, размеры за кнопкой, IME, высота строки под крупный шрифт. Room18 без миграции; `tablesData` остаётся opaque для backup/sync.
+
+Runtime source `f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67`. ПолныйCI `43872142172`/job `133315794765`=**786/0fail/0ignored**, lint0error/16warnings/2info, build27m35s; report `14230197847` ZIP726838bytes SHA256 `b3eac07adadf4d61d001c07c49fd5a8e6f685356006de2ae2ffe3201f6439c7a`, HTML/XML и оба tablePNG сверены. Signed `43877555616`/identity `133334460173`/release `133334518287` SUCCESS, build10m36s,13contracts/0fail. Artifact `14230793846` ZIP15463414bytes SHA256 `bef2e673f34fe12e6b4923bbef2e4cfea5c3b25d90cbb98ad5079c00a5e1d78c`; APK27566791bytes SHA256 `3eccc0662aa4bee0a53e19a37e2349ed927877a8fdaa7305d8c455e39d04c6be`=SUMS/CI. Source/README/version1.10.46/code69/nondebug/actualapksigner v2/v3/1signer/certpin проверены; Room18 schema/identity прежние. [Доказательства](tables-1.10.46-verification.json), [отчёт](tables-1.10.46.md).
+
+APK: постоянная ссылка https://github.com/grigorywork/NoteLS/actions/runs/43877555616/artifacts/14230793846 . В финале выдавать свежую HTTPS ZIPdownloadURL из github_download_workflow_artifact + постоянную ссылку; распаковать ZIP и установить.apk. Временный bearerURL не сохранять в Git.
+
+Следующий **78 — аналитика**, затем79 календарь по блокнотам,80 импорт Google CSV/XLSX,81 Evernote ENEX,82 аудит Wi-Fi. 68/iPhone отложен, новых номеров не добавлять, 77 не повторять. Физического телефона/клавиатуры и реальных платныхAI-вызовов нет.
+
 ## 77: кандидат1.10.46/code69/Room18, checkpoint и первый прогон
 
 Локальнаяmain содержит незавершённую реализацию; удалённый checkpoint `codex/tables-1.10.46/9beec0a`. Origin/main покаbe4dc4b (план поверх verified45). В новой среде fetch checkpoint и свежие последующие коммиты перед продолжением, не повторять77 сначала.

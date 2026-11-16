@@ -1,3 +1,11 @@
+## 77 закрыт — проверенный NoteLS1.10.46/code69/Room18
+
+Runtime source `f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67`. Whole-cell styles CELL/ROW/COLUMN/TABLE, общие с заметками шрифт/размер/цвет/подложка/B/I/U/strike/выравнивание/отступы, отдельный сброс, version2 sparse только при реальном оформлении, legacy1, строгие границы, атомарная история/учёт памяти, компактная панель undo/redo/⋮, размеры за кнопкой, IME, высота строки под крупный шрифт. Room18 без миграции; backup/sync хранят `tablesData` как opaque-строку.
+
+ПолныйCI `43872142172`/job `133315794765`=**786/0fail/0ignored** (на45 765, +21 этапа), lint0error/16warnings/2info/build27m35s; report `14230197847` ZIP726838bytes SHA256 `b3eac07adadf4d61d001c07c49fd5a8e6f685356006de2ae2ffe3201f6439c7a`, HTML/XML и оба tablePNG сверены. Ветка fast-forward в main `be4dc4bd → f7168c3e`; API-ref update не создал push-событие. Signed `43877555616` (dispatch `refs/heads/main`, head `f7168c3e`) SUCCESS, build10m36s,13contracts/0fail; artifact `14230793846` ZIP15463414bytes SHA256 `bef2e673f34fe12e6b4923bbef2e4cfea5c3b25d90cbb98ad5079c00a5e1d78c`. APK `NoteLS-1.10.46-code69-permanent-signature.apk` 27566791bytes SHA256 `3eccc0662aa4bee0a53e19a37e2349ed927877a8fdaa7305d8c455e39d04c6be`=SUMS/CI; source/README/version/code/nondebug/actualapksigner v2/v3/1signer/certpin проверены; DEX новый, Room18 schema/identity прежние. [Доказательства](tables-1.10.46-verification.json), [отчёт](tables-1.10.46.md).
+
+APK: https://github.com/grigorywork/NoteLS/actions/runs/43877555616/artifacts/14230793846 . 46 — проверенный installable,45 остаётся предыдущим. Следующий78 (аналитика), затем79–82; 68/iPhone отложен, новых номеров не добавлять, 77 не повторять. Физического телефона/клавиатуры и реальных платныхAI-вызовов нет. Ключ/Secret/Room/data/security не менялись. Более старый checkpoint-раздел ниже сохранён исторически и уже неактуален.
+
 ## 77: кандидат1.10.46/code69/Room18, checkpoint и первый прогон
 
 Локальнаяmain содержит незавершённую реализацию; удалённый checkpoint `codex/tables-1.10.46/9beec0a`. Origin/main покаbe4dc4b (план поверх verified45). В новой среде fetch checkpoint и свежие последующие коммиты перед продолжением, не повторять77 сначала.

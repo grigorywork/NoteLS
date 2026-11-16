@@ -1,0 +1,108 @@
+{
+  "source": "f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67",
+  "version": "1.10.46",
+  "code": 69,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "artifact_id": 14230793846,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43877555616/artifacts/14230793846",
+  "zip_bytes": 15463414,
+  "zip_sha256": "bef2e673f34fe12e6b4923bbef2e4cfea5c3b25d90cbb98ad5079c00a5e1d78c",
+  "apk_name": "NoteLS-1.10.46-code69-permanent-signature.apk",
+  "apk_bytes": 27566791,
+  "apk_sha256": "3eccc0662aa4bee0a53e19a37e2349ed927877a8fdaa7305d8c455e39d04c6be",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "signature_evidence": "APK Signing Block contains v2 (0x7109871a) and v3 (0xf05368c0) pairs; CI apksigner verify --verbose --print-certs succeeded and its single certificate digest equals the pinned value.",
+  "dex_sha256": {
+    "classes.dex": "96037691def8d4dc1251936b483d18d4774570000688caef7b968519d3016bb0"
+  },
+  "profile_sha256": {
+    "assets/dexopt/baseline.prof": "cd56efb11c5f76422ad295b5dcc059cc923af8dee0820383553f778decb26966",
+    "assets/dexopt/baseline.profm": "d9d637ce644110e0bbba04e47525b321c87095889e72a5a288ebbba711c4f978"
+  },
+  "compiled_table_markers": [
+    "Ячейка",
+    "Сбросить оформление",
+    "Оформление",
+    "Строка",
+    "Столбец",
+    "Таблица"
+  ],
+  "compiled_table_markers_note": "Release is R8-minified; the table-formatting UI literals are present in classes.dex and the style logic is covered by the listed CI test classes.",
+  "release_minified": true,
+  "verified_at_utc": "2026-11-16T13:54:52Z",
+  "room_schema": 18,
+  "data_format": 2,
+  "security_format": 3,
+  "room_identity_hash": "b1c6c07627d80657a69a8afd3c98f6aa",
+  "room_schema_json_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+  "room_schemas_unchanged_from_45": true,
+  "data_or_security_format_changes": false,
+  "physical_device_installation_tested": false,
+  "physical_keyboard_tested": false,
+  "real_paid_api_requests_made": false,
+  "ci": {
+    "run_id": 43872142172,
+    "job_id": 133315794765,
+    "event": "workflow_dispatch",
+    "branch": "codex/tables-1.10.46",
+    "source": "f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67",
+    "tests": 786,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "assemble_debug": "success",
+    "build_duration": "27m35s",
+    "reports_artifact_id": 14230197847,
+    "reports_zip_bytes": 726838,
+    "reports_zip_sha256": "b3eac07adadf4d61d001c07c49fd5a8e6f685356006de2ae2ffe3201f6439c7a",
+    "cloud_debug_artifact_id": 14230151797,
+    "cloud_debug_apk_name": "NoteLS-1.10.46-code69-cloud-debug-NOT-UPDATE.apk",
+    "table_previews_sha256": {
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b"
+    },
+    "table_test_classes": {
+      "com.notessync.app.notes.tables.TableStylesTest": 8,
+      "com.notessync.app.ui.notes.tables.TableStylesUiTest": 4,
+      "com.notessync.app.notes.tables.TableStyleHistoryTest": 3,
+      "com.notessync.app.ui.notes.tables.TableEditorTest": 3,
+      "com.notessync.app.ui.notes.text.TableCellRenderingTest": 2,
+      "com.notessync.app.ui.editor.TableDialogBaselineTest": 1
+    }
+  },
+  "signed_release": {
+    "run_id": 43877555616,
+    "identity_job_id": 133334460173,
+    "release_job_id": 133334518287,
+    "event": "workflow_dispatch",
+    "ref": "refs/heads/main",
+    "artifact_id": 14230793846,
+    "zip_bytes": 15463414,
+    "build_lint_duration": "10m36s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "signing_contract_duration_seconds": 7.6,
+    "actual_checkout_source": "f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67",
+    "ci_metadata_output": {
+      "version": "1.10.46",
+      "code": 69,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "3eccc0662aa4bee0a53e19a37e2349ed927877a8fdaa7305d8c455e39d04c6be"
+    }
+  },
+  "main": {
+    "fast_forward_from": "be4dc4bd",
+    "fast_forward_to": "f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67",
+    "method": "Git refs API in-place fast-forward",
+    "push_pipeline_triggered": false,
+    "note": "GitHub does not emit a push event for an API ref update, so the Signed workflow was started explicitly on refs/heads/main for the same SHA."
+  }
+}
