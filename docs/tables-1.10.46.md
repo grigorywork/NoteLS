@@ -15,3 +15,7 @@ UI: компактный верх таблицы с undo/redo/⋮, отдель�
 9beec0a сохранён в codex/tables-1.10.46; локальнаяmain содержит app46/code69, origin/main ещё проверенный45+планbe4dc4b. Первый Gradle tables46-checks.log/session97501 выполняется; результаты пока не заявлены. Исходникиmain/test заморожены.
 
 Первый tables46-checks.log остановился на compileDebugKotlin (56s): экранирование $s в новой RU/EN строке и internal TextStyle(SpanStyle,ParagraphStyle). Исправлены строка и вызов публичного конструктора с теми же общими span/paragraph значениями. Тестовые результаты не заявлены; повтор того же набора.
+
+Второй tables46-checks2.log6m51s: **81тест/1отказ/0errors/skipped**. Все model/history/renderer/NativeRoom+encryptedbackup+wire/conflict/VMrelock/save/reopen/4новыхUI/старые3TableEditor/6CompactEditor/14TextFormatting/6FormattedText прошли. Единственный отказ UiCatalog: новая «Ещё» без EN; добавлен More. Два NativeCanvas PNG осмотрены: компактная панель, красный центрированный текст, большойшрифт над смоделированнойIME240dp на320×640. Это не физическая клавиатура/телефон.
+
+Аудит: добавлено кэширование styleLookup/общихзначений/CellTextStyle по styles/ref/scope, чтобы ввод текста не сканировал всю sparseматрицу заново. Color/align меню получили selected semantics и проверку, что mixed область не отмечает «По теме» или один из её цветов как единый. NativeRoomfixture date приведён к реальному EpochDay. Assertions/таймауты сохранены. Повтор тех же81/lint/assemble; пока46НЕverified/полныйCIне запускался.

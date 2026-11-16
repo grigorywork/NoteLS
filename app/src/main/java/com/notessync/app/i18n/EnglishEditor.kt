@@ -228,4 +228,5 @@ internal fun MutableMap<String, String>.addEditorEnglish() {
     put("Вся таблица", "Whole table")
     put("Размеры ячеек", "Cell dimensions")
     put("Разное оформление", "Mixed formatting")
+    put("Ещё", "More")
 }

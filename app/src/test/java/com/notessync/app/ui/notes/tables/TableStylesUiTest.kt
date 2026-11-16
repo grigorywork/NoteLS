@@ -98,6 +98,9 @@ class TableStylesUiTest {
         }
         screenshot("cell-320")
         scope("Строка 1");menu();compose.onNodeWithText("Разное оформление").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Цвет текста").performScrollTo().performClick()
+        compose.onNodeWithText("По теме").assertIsNotSelected()
+        compose.onNodeWithText("Красный").assertIsNotSelected()
     }
     @Test fun `English large text and keyboard keep cell and history controls visible`() {
         settings.setUiLanguage(UiLanguage.ENGLISH);settings.setFontScale(SettingsRepository.FONT_LARGE)

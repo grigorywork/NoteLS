@@ -190,11 +190,13 @@ internal fun FormattingPopup(popup: FormatPopup?, anchor: FormatAnchor, onPopup:
                     colors.forEach { (label, value) -> DropdownMenuItem(text = { Text(uiText(label)) },
                         leadingIcon = { hexColor(value)?.let { Box(Modifier.size(18.dp).background(it)) } },
                         trailingIcon = { if (kind !in mixedKinds && active[kind] == value) Icon(Icons.Default.Check, null) },
+                        modifier = Modifier.semantics { selected = kind !in mixedKinds && active[kind] == value },
                         onClick = { close { actions.format(kind, value) } }) }
                 }
                 FormatMenu.ALIGN -> alignments.forEach { (value, label) ->
                     DropdownMenuItem(text = { Text(uiText(label)) }, leadingIcon = { Icon(alignmentIcon(value), null) },
                         trailingIcon = { if (FormatKind.ALIGN !in mixedKinds && (active[FormatKind.ALIGN] ?: "START") == value) Icon(Icons.Default.Check, null) },
+                        modifier = Modifier.semantics { selected = FormatKind.ALIGN !in mixedKinds && (active[FormatKind.ALIGN] ?: "START") == value },
                         onClick = { close { actions.align(value) } })
                 }
                 FormatMenu.LIST -> listOf(MarkdownEdit.ListKind.NUMBER to "Нумерованный", MarkdownEdit.ListKind.LETTER to "Буквенный",

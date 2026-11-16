@@ -158,10 +158,13 @@ fun TableGrid(
         List(table.rowCount) { List(table.columnCount) { FocusRequester() } }
     }
     fun width(column: Int): Float = columnDrag?.takeIf { it.first == column }?.second ?: table.columnWidths[column].toFloat()
+    val styleLookup = remember(table.id, table.styles) {
+        table.styles.associate { (it.row to it.column) to it.values.mapKeys { entry -> FormatKind.valueOf(entry.key) } }
+    }
     val baseTextStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
     fun height(row: Int): Float {
         val saved = rowDrag?.takeIf { it.first == row }?.second ?: table.rowHeights[row].toFloat()
-        val largest = table.columnWidths.indices.maxOf { c -> table.styleAt(row, c)[FormatKind.SIZE]?.toFloatOrNull() ?: baseTextStyle.fontSize.value }
+        val largest = table.columnWidths.indices.maxOf { c -> styleLookup[row to c]?.get(FormatKind.SIZE)?.toFloatOrNull() ?: baseTextStyle.fontSize.value }
         return maxOf(saved, largest * systemFontScale * 1.35f + 16f)
     }
     LaunchedEffect(restoreVersion) {
@@ -233,7 +236,7 @@ fun TableGrid(
                     table.columnWidths.indices.forEach { column ->
                         val ref = TableCellRef(table.id, row, column)
                         val savedText = table.cells[row][column]
-                        val cellStyle = table.styleAt(row, column)
+                        val cellStyle = styleLookup[row to column].orEmpty()
                         var localValue by remember(table.id, row, column) { mutableStateOf(TextFieldValue(savedText, TextRange(savedText.length))) }
                         val displayed = if (localValue.text == savedText) localValue else TextFieldValue(savedText,
                             TextRange(localValue.selection.start.coerceIn(0, savedText.length), localValue.selection.end.coerceIn(0, savedText.length)))
@@ -248,7 +251,7 @@ fun TableGrid(
                                 if (it.text.length <= NoteTables.MAX_CELL_TEXT) localValue = it
                                 onCell(ref, displayed, it)
                             },
-                                textStyle = tableCellTextStyle(baseTextStyle, cellStyle),
+                                textStyle = remember(baseTextStyle, cellStyle) { tableCellTextStyle(baseTextStyle, cellStyle) },
                                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                 modifier = Modifier.width(width(column).dp).height(height(row).dp)
                                     .background(cellStyle[FormatKind.HIGHLIGHT]?.let { Color(it.toLong(16)) } ?: MaterialTheme.colorScheme.surface)

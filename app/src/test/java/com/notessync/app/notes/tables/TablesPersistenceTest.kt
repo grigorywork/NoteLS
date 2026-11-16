@@ -111,7 +111,7 @@ class TablesPersistenceTest {
             .formatCells(ref,TableFormatScope.CELL,com.notessync.app.notes.text.FormatKind.COLOR,"FF123456")
             .formatCells(ref,TableFormatScope.CELL,com.notessync.app.notes.text.FormatKind.ALIGN,"CENTER")
         val raw=tables.encode()
-        val id=db.noteDao().upsert(NoteEntity(title="Styled",content="Body",tablesData=raw,createdAt=123,dayKey=20261116,isFavorite=true,dirty=false))
+        val id=db.noteDao().upsert(NoteEntity(title="Styled",content="Body",tablesData=raw,createdAt=123,dayKey=java.time.LocalDate.of(2026,11,16).toEpochDay(),isFavorite=true,dirty=false))
         val saved=db.noteDao().getById(id)!!
         val bytes=ByteArrayOutputStream();EncryptedBackupFixture.createBackup(app,bytes)
         val file=File(app.cacheDir,"styled-backup.nls").apply { writeBytes(bytes.toByteArray()) }

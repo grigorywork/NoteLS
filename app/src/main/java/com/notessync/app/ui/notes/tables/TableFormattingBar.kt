@@ -26,8 +26,8 @@ internal fun TableFormattingBar(table: NoteTable, viewModel: NoteEditorViewModel
     var scope by rememberSaveable(table.id) { mutableStateOf(TableFormatScope.CELL) }
     var chooseScope by remember(table.id) { mutableStateOf(false) }
     var popup by remember(table.id, ref, scope) { mutableStateOf<FormatPopup?>(null) }
-    val active = table.commonStyle(ref, scope)
-    val mixed = table.mixedKinds(ref, scope)
+    val active = remember(table.styles, table.rowCount, table.columnCount, ref, scope) { table.commonStyle(ref, scope) }
+    val mixed = remember(table.styles, table.rowCount, table.columnCount, ref, scope) { table.mixedKinds(ref, scope) }
     val enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied && !viewModel.previewMode
     fun label(value: TableFormatScope) = when (value) {
         TableFormatScope.CELL -> uiText("Ячейка %1\$s:%2\$s", ref.row + 1, ref.column + 1)
