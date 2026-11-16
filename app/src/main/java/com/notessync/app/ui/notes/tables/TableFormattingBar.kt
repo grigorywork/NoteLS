@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.uiText
 import com.notessync.app.notes.tables.*
@@ -44,8 +43,9 @@ internal fun TableFormattingBar(table: NoteTable, viewModel: NoteEditorViewModel
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.weight(1f)) {
+            // The visible label already reads the scope; a duplicate stateDescription made TalkBack repeat it.
             TextButton(onClick = { chooseScope = true }, enabled = enabled,
-                modifier = Modifier.testTag("table-format-scope").semantics { stateDescription = label(scope) }) {
+                modifier = Modifier.testTag("table-format-scope")) {
                 Text(label(scope), Modifier.weight(1f), maxLines = 2)
                 Icon(Icons.Default.ExpandMore, null)
             }
@@ -62,7 +62,7 @@ internal fun TableFormattingBar(table: NoteTable, viewModel: NoteEditorViewModel
             FormattingPopup(popup, FormatAnchor.TOP, { popup = it }, active, true, null, actions,
                 cellMode = true, mixedKinds = mixed, onReset = { viewModel.clearTableStyles(ref, scope) })
         }
-        IconButton(onClick = onGeometry, modifier = Modifier.testTag("table-geometry-toggle")) {
+        IconButton(onClick = onGeometry, enabled = enabled, modifier = Modifier.testTag("table-geometry-toggle")) {
             Icon(Icons.Default.AspectRatio, uiText("Размеры ячеек"))
         }
     }
