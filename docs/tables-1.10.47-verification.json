@@ -1,0 +1,100 @@
+{
+  "source": "520f0f822c66fcb6897b7a98432f36432fc79c99",
+  "version": "1.10.47",
+  "code": 70,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "patch_of_stage": 77,
+  "previous_verified": {
+    "version": "1.10.46",
+    "code": 69,
+    "source": "f7168c3e5e2a8326c7a60a0e5ff75b5bc6019d67"
+  },
+  "fixes": [
+    "table cell indent step reduced 20sp -> 12sp, notes keep 20sp",
+    "WCAG contrast correction for inherited cell text on explicit dark fill, explicit COLOR untouched",
+    "duplicate stateDescription removed from table format scope button",
+    "table geometry toggle disabled in preview/accessDenied/closing states"
+  ],
+  "artifact_id": 14236340827,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/43886294105/artifacts/14236340827",
+  "zip_bytes": 15462951,
+  "zip_sha256": "c91105d4eba42db233dee407076f21b298fdb2c8b8fc9d543705c541bbce2a24",
+  "apk_name": "NoteLS-1.10.47-code70-permanent-signature.apk",
+  "apk_bytes": 27566791,
+  "apk_sha256": "bb375fdcd2e64aa13fd59de840188161c16bed75f235a3beda89870de1b0a047",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "certificate_subject": "CN=NoteLS",
+  "certificate_not_before": "2026-11-15T00:00:00Z",
+  "certificate_not_after": "2054-04-02T00:00:00Z",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "dex_sha256": {
+    "classes.dex": "2208cdb5cf8a78c23dba8289b25dc9cbc81d6df888eb254a22c17d0a2a7c8c43"
+  },
+  "verified_at_utc": "2026-11-16T14:45:20Z",
+  "room_schema": 18,
+  "data_format": 2,
+  "security_format": 3,
+  "room_schemas_unchanged_from_46": true,
+  "data_or_security_format_changes": false,
+  "physical_device_installation_tested": false,
+  "real_paid_api_requests_made": false,
+  "ci": {
+    "run_id": 43882873610,
+    "job_id": 133353143813,
+    "event": "workflow_dispatch",
+    "branch": "codex/tables-1.10.47",
+    "source": "520f0f822c66fcb6897b7a98432f36432fc79c99",
+    "tests": 789,
+    "failures": 0,
+    "ignored": 0,
+    "previous_tests": 786,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "assemble_debug": "success",
+    "build_duration": "19m06s",
+    "reports_artifact_id": 14233869311,
+    "reports_zip_bytes": 728555,
+    "reports_zip_sha256": "8b772ac551f11c6b25fcc8ecccfb89801d77b6fcca90538127e92f1b416e3ebc",
+    "cloud_debug_artifact_id": 14235001209,
+    "cloud_debug_apk_name": "NoteLS-1.10.47-code70-cloud-debug-NOT-UPDATE.apk",
+    "table_test_classes": {
+      "com.notessync.app.notes.tables.TableStylesTest": 8,
+      "com.notessync.app.ui.notes.tables.TableStylesUiTest": 4,
+      "com.notessync.app.ui.notes.text.TableCellRenderingTest": 5,
+      "com.notessync.app.notes.tables.TableStyleHistoryTest": 3,
+      "com.notessync.app.ui.notes.tables.TableEditorTest": 3,
+      "com.notessync.app.ui.editor.TableDialogBaselineTest": 1
+    }
+  },
+  "signed_release": {
+    "run_id": 43886294105,
+    "identity_job_id": 133365246925,
+    "release_job_id": 133365331803,
+    "event": "workflow_dispatch",
+    "ref": "refs/heads/main",
+    "artifact_id": 14236340827,
+    "zip_bytes": 15462951,
+    "build_lint_duration": "12m50s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "actual_checkout_source": "520f0f822c66fcb6897b7a98432f36432fc79c99",
+    "ci_metadata_output": {
+      "version": "1.10.47",
+      "code": 70,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "bb375fdcd2e64aa13fd59de840188161c16bed75f235a3beda89870de1b0a047"
+    }
+  },
+  "main": {
+    "fast_forward_from": "3518e926",
+    "fast_forward_to": "520f0f822c66fcb6897b7a98432f36432fc79c99",
+    "method": "Git refs API in-place fast-forward",
+    "note": "Signed workflow started explicitly on refs/heads/main for the same SHA."
+  }
+}

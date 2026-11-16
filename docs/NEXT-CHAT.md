@@ -1,3 +1,11 @@
+## 77 патч — проверенный NoteLS1.10.47/code70/Room18
+
+Фиксы аудита0.46 в рамках77: отступ в ячейках12sp на уровень (заметки20sp), WCAG-контраст наследуемого текста на явной тёмной подложке (явный COLOR не переопределяется), убран дубль stateDescription у кнопки области, кнопка размеров заблокирована в preview/accessDenied. [Отчёт](tables-1.10.47.md), [доказательства](tables-1.10.47-verification.json).
+
+Runtime source `520f0f822c66fcb6897b7a98432f36432fc79c99`. ВеткаCI `43882873610`/job `133353143813`=**789/0fail/0ignored** (0.46:786,+3), lint0error/16warnings/2info, build19m06s. Main fast-forward `3518e926→520f0f8`. Signed `43886294105`/identity `133365246925`/release `133365331803` SUCCESS,13contracts/0fail, build12m50s. Artifact `14236340827` ZIP15462951bytes SHA256 `c91105d4eba42db233dee407076f21b298fdb2c8b8fc9d543705c541bbce2a24`; APK `NoteLS-1.10.47-code70-permanent-signature.apk` 27566791bytes SHA256 `bb375fdcd2e64aa13fd59de840188161c16bed75f235a3beda89870de1b0a047`=SUMS/CI. Source/README/version1.10.47/code70/nondebug/1signer/v2v3/certpin `c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c` сверены; Room18/data2/security3 без изменений.
+
+APK: постоянная ссылка https://github.com/grigorywork/NoteLS/actions/runs/43886294105/artifacts/14236340827 . 0.47 — текущий installable, 0.46 — предыдущий проверенный.
+
 ## 77 закрыт — проверенный NoteLS1.10.46/code69/Room18
 
 Оформление текста в таблицах: whole-cell styles с областями CELL/ROW/COLUMN/TABLE, общие с заметками шрифт/размер/цвет/подложка/B/I/U/strike/выравнивание/отступы, отдельный сброс, version2 sparse только при реальном оформлении, legacy1, строгие границы, атомарная история/учёт памяти, компактная панель undo/redo/⋮, размеры за кнопкой, IME, высота строки под крупный шрифт. Room18 без миграции; `tablesData` остаётся opaque для backup/sync.
