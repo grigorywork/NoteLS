@@ -31,7 +31,12 @@ internal fun tableCellTextStyle(base: TextStyle, values: Map<FormatKind, String>
         if (values[FormatKind.UNDERLINE] == "1") add(TextDecoration.Underline)
         if (values[FormatKind.STRIKE] == "1") add(TextDecoration.LineThrough)
     }) else null
-    val merged = base.merge(TextStyle(formatSpanStyle(values, decorations), formatParagraphStyle(values)))
+    val span = formatSpanStyle(values, decorations)
+    val paragraph = formatParagraphStyle(values)
+    val merged = base.merge(TextStyle(fontWeight = span.fontWeight, fontStyle = span.fontStyle,
+        fontFamily = span.fontFamily, fontSize = span.fontSize, color = span.color,
+        background = span.background, textDecoration = span.textDecoration,
+        textAlign = paragraph.textAlign, textIndent = paragraph.textIndent))
     val size = values[FormatKind.SIZE]?.toFloatOrNull()
     return if (size == null) merged else merged.copy(lineHeight = maxOf(base.lineHeight.value, size * 1.35f).sp)
 }

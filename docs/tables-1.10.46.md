@@ -13,3 +13,5 @@ UI: компактный верх таблицы с undo/redo/⋮, отдель�
 ## Первый checkpoint
 
 9beec0a сохранён в codex/tables-1.10.46; локальнаяmain содержит app46/code69, origin/main ещё проверенный45+планbe4dc4b. Первый Gradle tables46-checks.log/session97501 выполняется; результаты пока не заявлены. Исходникиmain/test заморожены.
+
+Первый tables46-checks.log остановился на compileDebugKotlin (56s): экранирование $s в новой RU/EN строке и internal TextStyle(SpanStyle,ParagraphStyle). Исправлены строка и вызов публичного конструктора с теми же общими span/paragraph значениями. Тестовые результаты не заявлены; повтор того же набора.
