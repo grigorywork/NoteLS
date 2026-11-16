@@ -9,3 +9,7 @@
 UI: компактный верх таблицы с undo/redo/⋮, отдельная48dp строка выбора области и Aa; размеры строк/столбцов раскрываются по кнопке. Старые ручки/стрелки доступны. Grid получает достаточно места/IME учитывается EditorScaffold, оформление действует на текст/подложку всей ячейки и не скрывает ввод. Прежние заметки/approved editor не переделывать.
 
 Проверки: модель/schema1→2/неподдерживаемые формы/лимиты/частичные reset/пустые/Unicode, атомарная история/доступ, реальная Room+encryptedbackup+wire+conflict/старый peer omission, UI320dp/IME/largefont/RUEN/выбор области/смешанные/selected/reset/undo/redo/reopen/NativePNG, прежние table/editor/text tests. После локальных checks/lint/assemble — полныйCI/autoSigned/независимая APKверификация, только потом закрытие77/78. Не увеличивать старые таймауты/не отключать assertions. Без новых этапов/68iPhone/реальных платныхAI/физических измерений.
+
+## Первый checkpoint
+
+9beec0a сохранён в codex/tables-1.10.46; локальнаяmain содержит app46/code69, origin/main ещё проверенный45+планbe4dc4b. Первый Gradle tables46-checks.log/session97501 выполняется; результаты пока не заявлены. Исходникиmain/test заморожены.

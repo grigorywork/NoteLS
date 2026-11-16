@@ -1,3 +1,11 @@
+## 77: кандидат1.10.46/code69/Room18, checkpoint и первый прогон
+
+Локальнаяmain содержит незавершённую реализацию; удалённый checkpoint `codex/tables-1.10.46/9beec0a`. Origin/main покаbe4dc4b (план поверх verified45). В новой среде fetch checkpoint и свежие последующие коммиты перед продолжением, не повторять77 сначала.
+
+Модель version2 sparse whole-cell styles и CELL/ROW/COLUMN/TABLE scopes, legacyversion1 без стилей, reset/removal последних стилей возвращаетversion1, strict bounds/unknown preservation. Общие FormatKind/меню/палитры/SpanStyle/ParagraphStyle с заметками. История/учёт памяти/доступ, компактная панель таблицы/undo сверху/размеры раскрываются/приIME скрываются, высота строки минимум на одну строку большого текста. Новые model/history/render/NativeRoom+backup+wire/VMfreshlock/UI320×640+IME+RUEN проверки подготовлены.
+
+Единственный Gradle `/workspace/tools/tables46-checks.log` (session97501), результаты компиляции/тестов/lint/APK пока НЕ подтверждены. Main/test заморожены до завершения/второй Gradle не запускать. После фактических отказов исправления/аудит/NativePNG, локальные checks/lint/assemble, полный CI+autoSigned+независимая верификация перед закрытием77/78. **46 НЕ installable; последний verified45**. Room18/data2/security3/ключ/Secret не менялись. [Отчёт](tables-1.10.46.md).
+
 ## Начат77 — оформление таблиц (план1.10.46/code69/Room18)
 
 Свежийmain3b6072c, Gradle/CI завершены, дерево чистое. Решение/границы в [tables-1.10.46.md](tables-1.10.46.md).45 остаётся последним проверенным installable.46 ещё не реализован/не проверен.
