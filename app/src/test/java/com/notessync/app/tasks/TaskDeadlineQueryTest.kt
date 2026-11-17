@@ -81,10 +81,10 @@ class TaskDeadlineQueryTest {
         assertEquals(setOf(watch, countdown, overdue), rows(tasks = TaskFilters(running = true)).map { it.id }.toSet())
         assertEquals(setOf(overdue), rows(tasks = TaskFilters(running = true, due = TaskDueFilter.OVERDUE)).map { it.id }.toSet())
         // Планировщик ближайшего срока не должен зависеть от фильтра «Запущенные».
-        val nextDue = AppDatabase.get(app).openHelper.readableDatabase
-            .query(androidx.sqlite.db.SimpleSQLiteQuery(NotesViewModel.buildNextTaskDueQuery("", tasks = TaskFilters(running = true), now = now, zone = zone).sql, emptyArray()))
-            .use { c -> c.moveToFirst(); if (c.isNull(0)) null else c.getLong(0) }
-        assertEquals(now - 1, nextDue)
+        dao.upsert(NoteEntity(title = "Upcoming paused", isTask = true, taskDueAt = now + 1_000))
+        val nextDue = dao.observeNextTaskDue(NotesViewModel.buildNextTaskDueQuery("",
+            tasks = TaskFilters(running = true), now = now, zone = zone)).first()
+        assertEquals(now + 1_000, nextDue)
     }
     @Test fun `cached rows drop a countdown that already ended before SQL catches up`() {
         val running = com.notessync.app.data.local.model.NoteCardEntry(id = 1, isTask = true, taskTimerStartedAt = now - 1)
