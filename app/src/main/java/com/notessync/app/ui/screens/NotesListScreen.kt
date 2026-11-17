@@ -142,8 +142,9 @@ fun NotesListScreen(
     val shownNotes = remember(notes, notebooks, protectionState, filter, taskPending, taskTime, taskFilters) {
         if (taskPending) emptyList() else {
             val visible = visibleNotes(notes, notebooks, protectionState, filter == NoteFilter.Trash)
-            if (filter.isUnfinished() && result?.key?.clock != taskTime) filterCachedDeadlines(visible,
-                if (filter == NoteFilter.Overdue) TaskDueFilter.OVERDUE else taskFilters.due, taskTime, java.time.ZoneId.systemDefault()) else visible
+            if (filter.isUnfinished() && result?.key?.clock != taskTime) filterCachedTasks(visible,
+                if (filter == NoteFilter.Overdue) TaskDueFilter.OVERDUE else taskFilters.due,
+                taskFilters.running, taskTime, java.time.ZoneId.systemDefault()) else visible
         }
     }
     TaskDeadlineClock(viewModel, filter, notes)

@@ -45,7 +45,7 @@ data class NoteEntity(
     override val taskTimerStartedAt: Long? = null,
     // Таймер обратного отсчёта (Этап 30): остаток на паузе и дедлайн при работе.
     val taskCountdownMillis: Long = 0L,
-    val taskCountdownEndAt: Long? = null,
+    override val taskCountdownEndAt: Long? = null,
     // Когда задача была выполнена (Этап 31): основа аналитики. Null у старых записей —
     // для них статистика использует updatedAt.
     val taskCompletedAt: Long? = null,

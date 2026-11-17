@@ -1,15 +1,12 @@
 package com.notessync.app.ui.editor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.uiText
@@ -37,8 +34,11 @@ internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiStat
                     uiText(if (viewModel.isCompleted) "Выполнено" else "Выполнить"), Modifier.size(20.dp),
                     tint = if (viewModel.isCompleted) MaterialTheme.colorScheme.primary else LocalContentColor.current)
             }
-            IconButton(onClick = { ui.dismissMenus(); ui.showColorDialog = true }, enabled = enabled, modifier = Modifier.size(44.dp)) {
-                Icon(Icons.Default.Circle, uiText("Цвет задачи"), Modifier.size(12.dp), tint = taskColorOption(viewModel.taskColor).accent)
+            // Этап 80: «Сделать заметкой» — маленькая квадратная галочка, одна точка входа.
+            // Цвет задачи сюда не дублируется: он остался только сверху, в меню ⋮.
+            IconButton(onClick = { ui.dismissMenus(); viewModel.toggleTask() }, enabled = enabled,
+                modifier = Modifier.size(44.dp).testTag("editor-to-note")) {
+                Icon(Icons.Default.CheckBox, uiText("Сделать заметкой"), Modifier.size(18.dp))
             }
             IconButton(onClick = viewModel::toggleTaskTimer,
                 enabled = enabled && (!viewModel.isCompleted || viewModel.taskTimerStartedAt != null),

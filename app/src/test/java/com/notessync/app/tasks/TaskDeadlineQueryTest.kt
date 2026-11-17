@@ -66,6 +66,34 @@ class TaskDeadlineQueryTest {
         db.tagDao().detachFromNote(id, tag); assertTrue(rows(tasks = filters).isEmpty())
         assertEquals(3, db.noteDao().getById(id)!!.taskPriority)
     }
+    @Test fun `running filter keeps a live stopwatch or countdown but not a paused or finished one`() = runBlocking {
+        val dao = AppDatabase.get(app).noteDao()
+        val watch = dao.upsert(NoteEntity(title = "Watch", isTask = true, taskElapsedMillis = 5_000, taskTimerStartedAt = now - 5_000))
+        val countdown = dao.upsert(NoteEntity(title = "Countdown", isTask = true, taskCountdownMillis = 60_000, taskCountdownEndAt = now + 60_000))
+        val paused = dao.upsert(NoteEntity(title = "Paused", isTask = true, taskCountdownMillis = 30_000))
+        val finished = dao.upsert(NoteEntity(title = "Finished", isTask = true, taskCountdownEndAt = now))
+        val plain = dao.upsert(NoteEntity(title = "Plain", isTask = true))
+        dao.upsert(NoteEntity(title = "Completed", isTask = true, isCompleted = true, taskTimerStartedAt = now - 1_000, taskCountdownEndAt = now + 60_000))
+        assertEquals(setOf(watch, countdown), rows(tasks = TaskFilters(running = true)).map { it.id }.toSet())
+        assertEquals(setOf(watch, paused, countdown, finished, plain), rows().map { it.id }.toSet())
+        // «Запущенные» работает вместе с остальными фильтрами, а не заменяет их.
+        val overdue = dao.upsert(NoteEntity(title = "Overdue running", isTask = true, taskDueAt = now - 1, taskTimerStartedAt = now - 100))
+        assertEquals(setOf(watch, countdown, overdue), rows(tasks = TaskFilters(running = true)).map { it.id }.toSet())
+        assertEquals(setOf(overdue), rows(tasks = TaskFilters(running = true, due = TaskDueFilter.OVERDUE)).map { it.id }.toSet())
+        // Планировщик ближайшего срока не должен зависеть от фильтра «Запущенные».
+        val nextDue = AppDatabase.get(app).openHelper.readableDatabase
+            .query(androidx.sqlite.db.SimpleSQLiteQuery(NotesViewModel.buildNextTaskDueQuery("", tasks = TaskFilters(running = true), now = now, zone = zone).sql, emptyArray()))
+            .use { c -> c.moveToFirst(); if (c.isNull(0)) null else c.getLong(0) }
+        assertEquals(now - 1, nextDue)
+    }
+    @Test fun `cached rows drop a countdown that already ended before SQL catches up`() {
+        val running = com.notessync.app.data.local.model.NoteCardEntry(id = 1, isTask = true, taskTimerStartedAt = now - 1)
+        val countdown = com.notessync.app.data.local.model.NoteCardEntry(id = 2, isTask = true, taskCountdownEndAt = now + 1)
+        val ended = com.notessync.app.data.local.model.NoteCardEntry(id = 3, isTask = true, taskCountdownEndAt = now)
+        val paused = com.notessync.app.data.local.model.NoteCardEntry(id = 4, isTask = true, taskCountdownMillis = 1_000)
+        assertEquals(listOf(1L, 2L), filterCachedTasks(listOf(running, countdown, ended, paused), TaskDueFilter.ALL, true, now, zone).map { it.id })
+        assertEquals(listOf(1L, 2L, 3L, 4L), filterCachedTasks(listOf(running, countdown, ended, paused), TaskDueFilter.ALL, false, now, zone).map { it.id })
+    }
     @Test fun `today uses local midnight bounds across a DST change without treating reminders as deadlines`() = runBlocking {
         val db = AppDatabase.get(app); val berlin = ZoneId.of("Europe/Berlin")
         val clock = Instant.parse("2024-03-31T12:00:00Z").toEpochMilli()

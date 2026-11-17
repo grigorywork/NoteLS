@@ -12,6 +12,8 @@ interface NoteListEntry {
     val isCompleted: Boolean
     val taskDueAt: Long?
     val taskTimerStartedAt: Long?
+    // Этап 80: нужен фильтру «Запущенные», чтобы кэш не показывал завершённый отсчёт.
+    val taskCountdownEndAt: Long?
     val taskColor: String
     val noteColor: String
 }
@@ -24,7 +26,7 @@ data class NoteCardEntry(
     val isPinned: Boolean = false, override val noteColor: String = "", override val taskDueAt: Long? = null,
     override val isTask: Boolean = false, override val isCompleted: Boolean = false,
     override val taskColor: String = "violet", val taskPriority: Int = 0, val taskElapsedMillis: Long = 0,
-    override val taskTimerStartedAt: Long? = null, val taskCountdownMillis: Long = 0, val taskCountdownEndAt: Long? = null,
+    override val taskTimerStartedAt: Long? = null, val taskCountdownMillis: Long = 0, override val taskCountdownEndAt: Long? = null,
     override val isProtected: Boolean = false, val updatedAt: Long = 0
 ) : NoteListEntry
 

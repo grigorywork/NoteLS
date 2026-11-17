@@ -19,6 +19,9 @@ import com.notessync.app.i18n.uiText
 internal fun TaskFiltersBar(value: TaskFilters, overdue: Boolean, notebooks: List<NotebookEntity>, tags: List<TagEntity>, onChange: (TaskFilters) -> Unit) {
     var picker by remember { mutableIntStateOf(0) }
     Row(Modifier.testTag("task-filters").fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Этап 80: один тап показывает только задачи с идущим секундомером или отсчётом.
+        FilterChip(selected = value.running, onClick = { onChange(value.copy(running = !value.running)) },
+            label = { Text(uiText("Запущенные")) })
         AssistChip(onClick = { picker = 1 }, label = { Text(if (overdue) TaskDueFilter.OVERDUE.label else value.due.label) })
         AssistChip(onClick = { picker = 2 }, label = { Text(value.priority?.let { TaskPriority.from(it).label } ?: uiText("Все приоритеты")) })
         AssistChip(onClick = { picker = 3 }, label = { Text(when (value.notebookId) {

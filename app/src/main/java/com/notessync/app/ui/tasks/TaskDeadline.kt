@@ -10,7 +10,9 @@ enum class TaskDueFilter(private val text: String) {
     val label get() = uiText(text)
 }
 data class TaskFilters(val due: TaskDueFilter = TaskDueFilter.ALL, val priority: Int? = null,
-    val notebookId: Long? = null, val tagId: Long? = null) {
+    val notebookId: Long? = null, val tagId: Long? = null,
+    // Этап 80: «Запущенные» — у задачи идёт секундомер или обратный отсчёт.
+    val running: Boolean = false) {
     fun normalized() = copy(priority = priority?.takeIf { it in 0..3 }, notebookId = notebookId?.takeIf { it >= 0 }, tagId = tagId?.takeIf { it > 0 })
 }
 object TaskDeadlines {
@@ -30,18 +32,22 @@ object TaskDeadlines {
 }
 
 /** Recheck cached rows at a clock boundary while the new SQL result is in flight. */
-internal fun <T : com.notessync.app.data.local.model.NoteListEntry> filterCachedDeadlines(notes: List<T>, filter: TaskDueFilter,
-    now: Long, zone: ZoneId): List<T> {
-    if (filter == TaskDueFilter.ALL) return notes
-    val bounds = if (filter == TaskDueFilter.TODAY) TaskDeadlines.dayBounds(now, zone) else 0L to 0L
-    return notes.filter { note ->
-        val at = note.taskDueAt
-        when (filter) {
-            TaskDueFilter.ALL -> true
-            TaskDueFilter.NONE -> at == null
-            TaskDueFilter.OVERDUE -> at != null && at < now
-            TaskDueFilter.UPCOMING -> at != null && at >= now
-            TaskDueFilter.TODAY -> at != null && at >= bounds.first && at < bounds.second
+internal fun <T : com.notessync.app.data.local.model.NoteListEntry> filterCachedTasks(notes: List<T>, filter: TaskDueFilter,
+    running: Boolean, now: Long, zone: ZoneId): List<T> {
+    val dated = if (filter == TaskDueFilter.ALL) notes else {
+        val bounds = if (filter == TaskDueFilter.TODAY) TaskDeadlines.dayBounds(now, zone) else 0L to 0L
+        notes.filter { note ->
+            val at = note.taskDueAt
+            when (filter) {
+                TaskDueFilter.ALL -> true
+                TaskDueFilter.NONE -> at == null
+                TaskDueFilter.OVERDUE -> at != null && at < now
+                TaskDueFilter.UPCOMING -> at != null && at >= now
+                TaskDueFilter.TODAY -> at != null && at >= bounds.first && at < bounds.second
+            }
         }
     }
+    if (!running) return dated
+    // Этап 80: пауза не считается запуском, поэтому смотрим только на идущий отсчёт.
+    return dated.filter { it.taskTimerStartedAt != null || (it.taskCountdownEndAt ?: 0L) > now }
 }

@@ -9,8 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
 import com.notessync.app.i18n.uiText
 import com.notessync.app.settings.SettingsState
 import com.notessync.app.settings.FormattingBarPosition
@@ -37,14 +35,6 @@ internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, set
                     }
                 }
                 Box {
-                    IconButton(onClick = { ui.formatPopup = FormatPopup(FormatAnchor.TOP, FormatMenu.FULL) },
-                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.previewMode, modifier = Modifier.size(44.dp).semantics { contentDescription = uiText("Полное оформление") }) {
-                        Text("Aa", style = MaterialTheme.typography.bodyLarge)
-                    }
-                    FormattingPopup(ui.formatPopup, FormatAnchor.TOP, { ui.formatPopup = it }, viewModel.activeFormatting,
-                        settings.advancedFormatting, activeEditorList(viewModel), editorFormattingActions(viewModel))
-                }
-                Box {
                     IconButton(onClick = { ui.popup = EditorPopup.MORE }, enabled = !viewModel.isClosing, modifier = Modifier.size(44.dp)) {
                         Icon(Icons.Default.MoreVert, uiText("Действия"), Modifier.size(20.dp))
                     }
@@ -66,9 +56,13 @@ internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, set
                                 ui.dismissMenus()
                                 onFormattingPanelChange(if (panelOnTop) FormattingBarPosition.BOTTOM else FormattingBarPosition.TOP)
                             })
-                        DropdownMenuItem(text = { Text(uiText(if (viewModel.isTask) "Сделать заметкой" else "Сделать задачей")) },
-                            enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
-                            leadingIcon = { Icon(Icons.Default.CheckBox, null) }, onClick = { ui.dismissMenus(); viewModel.toggleTask() })
+                        // Этап 80: у задачи «Сделать заметкой» уже есть компактной кнопкой в строке —
+                        // в меню пункт не повторяется. Цвет живёт только здесь, сверху.
+                        if (!viewModel.isTask) {
+                            DropdownMenuItem(text = { Text(uiText("Сделать задачей")) },
+                                enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
+                                leadingIcon = { Icon(Icons.Default.CheckBox, null) }, onClick = { ui.dismissMenus(); viewModel.toggleTask() })
+                        }
                         DropdownMenuItem(text = { Text(uiText(if (viewModel.isTask) "Цвет задачи" else "Цвет заметки")) },
                             leadingIcon = { Icon(Icons.Default.Palette, null) }, onClick = { ui.dismissMenus(); ui.showColorDialog = true })
                         DropdownMenuItem(text = { Text(uiText("Календарь")) }, leadingIcon = { Icon(Icons.Default.CalendarMonth, null) },

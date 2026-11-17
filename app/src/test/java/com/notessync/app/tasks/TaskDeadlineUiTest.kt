@@ -43,12 +43,20 @@ class TaskDeadlineUiTest {
         compose.onNodeWithText("Убрать срок").performClick()
         compose.runOnIdle { assertNull(due) }
     }
+    @Test fun `running chip toggles the start-only filter and reset clears it`() {
+        var filters by mutableStateOf(TaskFilters())
+        compose.setContent { MaterialTheme { TaskFiltersBar(filters, false, emptyList(), emptyList()) { filters = it } } }
+        compose.onNodeWithText("Запущенные").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertTrue(filters.running); assertEquals(TaskDueFilter.ALL, filters.due); assertNull(filters.priority) }
+        compose.onNodeWithText("Сбросить фильтры").performScrollTo().performClick()
+        compose.runOnIdle { assertFalse(filters.running); assertEquals(TaskFilters(), filters) }
+    }
     @Test fun `combined filters keep priority with overdue and lazily select a notebook among two thousand choices`() {
         var filters by mutableStateOf(TaskFilters(due = TaskDueFilter.OVERDUE))
         val notebooks = (1L..2_000L).map { NotebookEntity(id = it, name = "Book $it") }
         val tags = listOf(TagEntity(id = 7, name = "Удалить %1" + '$' + "s"))
         compose.setContent { MaterialTheme { TaskFiltersBar(filters, false, notebooks, tags) { filters = it } } }
-        compose.onNodeWithText("Все приоритеты").performClick(); compose.onNodeWithText("Высокий").performClick()
+        compose.onNodeWithText("Все приоритеты").performScrollTo().performClick(); compose.onNodeWithText("Высокий").performClick()
         compose.runOnIdle { assertEquals(TaskDueFilter.OVERDUE, filters.due); assertEquals(3, filters.priority) }
         compose.onNodeWithText("Все блокноты").performScrollTo().performClick()
         compose.onNode(hasScrollToIndexAction()).performScrollToIndex(2_001)

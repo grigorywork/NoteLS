@@ -58,7 +58,7 @@ class TaskDeadlineListUiTest {
         compose.onNodeWithText("Просроченные").performClick()
         await { !vm.results.value?.key?.filter.let { it != NoteFilter.Overdue } }
         compose.onNodeWithTag("note-card-$future").assertDoesNotExist()
-        compose.onNodeWithText("Все приоритеты").performClick(); compose.onNodeWithText("Высокий").performClick()
+        compose.onNodeWithText("Все приоритеты").performScrollTo().performClick(); compose.onNodeWithText("Высокий").performClick()
         await { vm.results.value?.key?.tasks?.priority == 3 }
         compose.runOnIdle { assertEquals(NoteFilter.Overdue, vm.filter.value) }
         compose.onNodeWithTag("note-card-$high").assertExists(); compose.onNodeWithTag("note-card-$low").assertDoesNotExist()

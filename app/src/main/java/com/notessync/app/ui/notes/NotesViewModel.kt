@@ -378,7 +378,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             unlockedTaskIds: Set<String> = emptySet(), tasks: TaskFilters = TaskFilters(),
             now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()
         ): SupportSQLiteQuery = buildQueryInternal(search, NoteFilter.Unfinished, NoteSort.BY_DUE,
-            unlockedNotebookIds, unlockedTaskIds, tasks.copy(due = TaskDueFilter.ALL), now, zone, true)
+            unlockedNotebookIds, unlockedTaskIds, tasks.copy(due = TaskDueFilter.ALL, running = false), now, zone, true)
 
         private fun buildQueryInternal(
             search: String,
@@ -416,6 +416,11 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     choices.tagId?.let { id ->
                         sql.append(" AND EXISTS (SELECT 1 FROM note_tag_cross_ref JOIN tags ON tags.id = note_tag_cross_ref.tagId WHERE note_tag_cross_ref.noteId = notes.id AND tags.id = ? AND tags.isDeleted = 0)"); args.add(id)
+                    }
+                    // Этап 80: «Запущенные» — идёт секундомер или обратный отсчёт (пауза не считается).
+                    if (choices.running) {
+                        sql.append(" AND (notes.taskTimerStartedAt IS NOT NULL OR (notes.taskCountdownEndAt IS NOT NULL AND notes.taskCountdownEndAt > ?))")
+                        args.add(now)
                     }
                 }
                 NoteFilter.Favorites -> sql.append(" AND notes.isFavorite = 1")
