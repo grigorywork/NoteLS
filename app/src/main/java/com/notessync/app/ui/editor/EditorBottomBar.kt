@@ -22,6 +22,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.testTag
 import com.notessync.app.ui.notes.text.EditorHistoryActions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.reminders.ReminderTime
@@ -34,9 +35,23 @@ import com.notessync.app.data.local.entity.NotebookEntity
 internal fun EditorBottomBar(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState,
     notebooks: List<NotebookEntity>, recordingBusy: Boolean, voiceClosing: Boolean,
     onRecordAudio: () -> Unit, onGallery: () -> Unit, onCamera: () -> Unit, onReminder: () -> Unit,
-    voiceIdle: Boolean = true, showFormatting: Boolean = true) {
+    voiceIdle: Boolean = true, showFormatting: Boolean = true, panelOnTop: Boolean = false) {
     Box(androidx.compose.ui.Modifier.navigationBarsPadding()) {
-        if (showFormatting) com.notessync.app.ui.notes.text.FormattingToolbar(
+        if (!panelOnTop) EditorFormattingPanel(viewModel, ui, settingsState, notebooks, "formatting-panel-bottom",
+            showFormatting, recordingBusy, voiceClosing, onRecordAudio, onGallery, onCamera, onReminder, voiceIdle)
+    }
+}
+
+/** Этап 79: панель оформления одна — она стоит либо снизу, либо сверху под заголовком. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+internal fun EditorFormattingPanel(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState,
+    notebooks: List<NotebookEntity>, testTag: String, showToolbar: Boolean = true,
+    recordingBusy: Boolean = false, voiceClosing: Boolean = false,
+    onRecordAudio: () -> Unit = {}, onGallery: () -> Unit = {}, onCamera: () -> Unit = {},
+    onReminder: () -> Unit = {}, voiceIdle: Boolean = true) {
+    Box(androidx.compose.ui.Modifier.testTag(testTag)) {
+        if (showToolbar) com.notessync.app.ui.notes.text.FormattingToolbar(
             active = viewModel.activeFormatting, advanced = settingsState.advancedFormatting,
             activeList = activeEditorList(viewModel), popup = ui.formatPopup, onPopup = { ui.formatPopup = it },
             actions = editorFormattingActions(viewModel), enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.previewMode,

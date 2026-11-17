@@ -13,13 +13,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import com.notessync.app.i18n.uiText
 import com.notessync.app.settings.SettingsState
+import com.notessync.app.settings.FormattingBarPosition
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.notes.text.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, settings: SettingsState,
-    onExit: () -> Unit, onCalendar: () -> Unit, voiceEnabled: Boolean, onVoice: () -> Unit) {
+    onExit: () -> Unit, onCalendar: () -> Unit, voiceEnabled: Boolean, onVoice: () -> Unit,
+    onFormattingPanelChange: (FormattingBarPosition) -> Unit) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
         TopAppBar(title = { Text(uiText(if (viewModel.isTask) "Задача" else "Заметка"),
             style = MaterialTheme.typography.titleMedium, maxLines = 1) },
@@ -56,6 +58,14 @@ internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, set
                         DropdownMenuItem(text = { Text(uiText("Предпросмотр")) }, leadingIcon = {
                             Icon(if (viewModel.previewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
                         }, onClick = { viewModel.previewMode = !viewModel.previewMode; ui.dismissMenus() })
+                        // Этап 79: одна панель оформления — переключаем её место прямо здесь.
+                        val panelOnTop = settings.formattingBarPosition == FormattingBarPosition.TOP
+                        DropdownMenuItem(text = { Text(uiText(if (panelOnTop) "Панель снизу" else "Панель сверху")) },
+                            leadingIcon = { Icon(if (panelOnTop) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp, null) },
+                            onClick = {
+                                ui.dismissMenus()
+                                onFormattingPanelChange(if (panelOnTop) FormattingBarPosition.BOTTOM else FormattingBarPosition.TOP)
+                            })
                         DropdownMenuItem(text = { Text(uiText(if (viewModel.isTask) "Сделать заметкой" else "Сделать задачей")) },
                             enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
                             leadingIcon = { Icon(Icons.Default.CheckBox, null) }, onClick = { ui.dismissMenus(); viewModel.toggleTask() })

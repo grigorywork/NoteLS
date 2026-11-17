@@ -76,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.reminders.ReminderScheduler
 import com.notessync.app.settings.SettingsRepository
+import com.notessync.app.settings.FormattingBarPosition
 import com.notessync.app.ui.notes.EditorMessage
 import com.notessync.app.ui.notes.EditorScaffold
 import com.notessync.app.ui.notes.NoteEditorViewModel
@@ -333,6 +334,20 @@ fun NoteEditorScreen(
             scope.launch { if (viewModel.saveNow(force = true)) onOpenTransformSettings() }
         }) { ui.showTransform = false }
     }
+    val formattingAllowed = !ui.showVoice && (viewModel.contentField.selection.collapsed ||
+        (selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown &&
+            ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT))
+    val formattingOnTop = settingsState.formattingBarPosition == FormattingBarPosition.TOP
+    val voiceIdle = voiceState == com.notessync.app.voice.VoiceState.IDLE
+    val onRecordAudioAction: () -> Unit = { startAudioRecording() }
+    val onGalleryAction: () -> Unit = {
+        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+    val onCameraAction: () -> Unit = {
+        if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
+        else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+    val onReminderAction: () -> Unit = { openReminderMenu() }
     EditorScaffold(
         imeInsets = imeInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -343,22 +358,21 @@ fun NoteEditorScreen(
                 EditorTopBar(viewModel, ui, settingsState, onExit = { exit() }, onCalendar = {
                     voiceManager.cancel()
                     scope.launch { if (viewModel.saveNow(force = true)) onOpenCalendar() }
-                }, voiceEnabled = voiceEnabled, onVoice = { ui.showVoice = true })
+                }, voiceEnabled = voiceEnabled, onVoice = { ui.showVoice = true },
+                    onFormattingPanelChange = { SettingsRepository.get(context).setFormattingBarPosition(it) })
                 if (ui.showVoice) EditorVoicePanel(ui, settingsState, SettingsRepository.get(context), voiceState,
                     voicePartial, voiceEnabled, onStart = { startVoiceInput() }, onFinish = voiceManager::finish,
                     onCancel = voiceManager::cancel, onClose = { voiceManager.cancel(); ui.showVoice = false })
+                if (formattingOnTop) EditorFormattingPanel(viewModel, ui, settingsState, notebooks, "formatting-panel-top",
+                    formattingAllowed, captureState.busy, voiceClosing, onRecordAudioAction, onGalleryAction,
+                    onCameraAction, onReminderAction, voiceIdle)
             }
         },
         bottomBar = {
             EditorBottomBar(viewModel, ui, settingsState, notebooks, captureState.busy, voiceClosing,
-                onRecordAudio = { startAudioRecording() },
-                onGallery = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                onCamera = { if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
-                    else cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }, onReminder = { openReminderMenu() },
-                voiceIdle = voiceState == com.notessync.app.voice.VoiceState.IDLE,
-                showFormatting = !ui.showVoice && (viewModel.contentField.selection.collapsed ||
-                    (selectionToolbar.status != androidx.compose.ui.platform.TextToolbarStatus.Shown &&
-                        ui.formatPopup?.anchor != com.notessync.app.ui.notes.text.FormatAnchor.CONTEXT)))
+                onRecordAudio = onRecordAudioAction, onGallery = onGalleryAction, onCamera = onCameraAction,
+                onReminder = onReminderAction, voiceIdle = voiceIdle,
+                showFormatting = formattingAllowed, panelOnTop = formattingOnTop)
         }
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {

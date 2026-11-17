@@ -18,6 +18,9 @@ enum class NotesLayout { LIST, GRID }
 // Этап 27: как выглядит выполненный пункт чек-листа.
 enum class CompletedStyle { STRIKE, HIDE }
 
+// Этап 79: где стоит единственная панель оформления текста в заметке.
+enum class FormattingBarPosition { BOTTOM, TOP }
+
 // Этап 29: акцентный цвет интерфейса (обводка, кнопки, выделение).
 enum class AccentColor(private val labelRu: String) {
     DYNAMIC("Системный"),
@@ -126,6 +129,8 @@ data class SettingsState(
     val aiModel: String = "",
     val quickTaskTime: Boolean = true,
     val advancedFormatting: Boolean = true,
+    // Этап 79: одна панель оформления — снизу (как раньше) или сверху под заголовком.
+    val formattingBarPosition: FormattingBarPosition = FormattingBarPosition.BOTTOM,
     val showTaskPriorities: Boolean = true,
     val archiveCompletedTasks: Boolean = false,
     val drawerQuote: DrawerQuoteAppearance = DrawerQuoteAppearance(),
@@ -195,6 +200,7 @@ class SettingsRepository private constructor(context: Context) {
         aiModel = runCatching { prefs.getString("ai_model", "").orEmpty().take(160) }.getOrDefault(""),
         quickTaskTime = prefs.getBoolean("quick_task_time", true),
         advancedFormatting = prefs.getBoolean("advanced_formatting", true),
+        formattingBarPosition = enumPref("formatting_bar_position", FormattingBarPosition.BOTTOM),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
         archiveCompletedTasks = runCatching { prefs.getBoolean("archive_completed_tasks", false) }.getOrDefault(false),
         drawerQuote = runCatching { DrawerQuoteAppearance(
@@ -292,6 +298,7 @@ class SettingsRepository private constructor(context: Context) {
     fun setEditorHistory(value: Boolean) { prefs.edit().putBoolean("editor_history", value).apply(); _state.value = read() }
 
     fun setAdvancedFormatting(value: Boolean) { prefs.edit().putBoolean("advanced_formatting", value).apply(); _state.value = read() }
+fun setFormattingBarPosition(value: FormattingBarPosition) { prefs.edit().putString("formatting_bar_position", value.name).apply(); _state.value = read() }
     fun setShowTaskPriorities(value: Boolean) { prefs.edit().putBoolean("show_priorities", value).apply(); _state.value = read() }
     fun setArchiveCompletedTasks(value: Boolean) { prefs.edit().putBoolean("archive_completed_tasks", value).apply(); _state.value = read() }
     fun setDrawerQuoteAppearance(value: DrawerQuoteAppearance) {
