@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -33,9 +34,9 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Этап 80: у каждой функции одна точка входа.
- * Цвет — только сверху, в меню ⋮; «Сделать заметкой» — только компактной кнопкой в строке задачи;
- * формат текста — только в одной панели оформления.
+ * Updated user choice: task colour and a persistent task-mode checkbox live in the row.
+ * The checkbox stays visible in note mode, and neither action is duplicated in More.
+ * Text formatting still has one panel.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w360dp-h800dp")
@@ -74,44 +75,43 @@ class TaskEntryDedupTest {
 
     private fun count(description: String) = compose.onAllNodesWithContentDescription(description).fetchSemanticsNodes().size
 
-    @Test fun `task row has one conversion button and no duplicate colour entry`() {
+    @Test fun `task row has one persistent checked toggle and colour with no menu duplicates`() {
         editor(task = true)
-        compose.onNodeWithTag("editor-to-note").assertExists()
-        assertEquals(1, count("Сделать заметкой"))
-        // Цвет задачи в строке больше не дублируется — он только в меню ⋮.
-        assertEquals(0, count("Цвет задачи"))
-        // Формат текста остался ровно в одной панели: верхней кнопки «Aa» больше нет.
-        assertEquals(0, count("Полное оформление"))
-        assertEquals(1, count("Оформление текста"))
-
+        compose.onNodeWithTag("editor-task-toggle").assertIsOn()
+        compose.onNodeWithTag("editor-task-color").assertExists()
+        assertEquals(1, count("Сделать заметкой")); assertEquals(1, count("Цвет задачи"))
+        assertEquals(0, count("Полное оформление")); assertEquals(1, count("Оформление текста"))
         compose.onNodeWithContentDescription("Действия").performClick()
-        compose.onNodeWithText("Цвет задачи").assertExists()
-        // «Сделать заметкой» доступно только компактной кнопкой, в меню пункта нет.
+        compose.onAllNodesWithText("Цвет задачи").assertCountEquals(0)
         compose.onAllNodesWithText("Сделать заметкой").assertCountEquals(0)
         compose.onAllNodesWithText("Сделать задачей").assertCountEquals(0)
     }
-
-    @Test fun `compact checkbox actually converts the task back into a note`() {
+    @Test fun `converting to note leaves the same checkbox visible and unchecked`() {
         val vm = editor(task = true)
-        compose.onNodeWithTag("editor-to-note").performClick()
+        compose.onNodeWithTag("editor-task-toggle").assertIsOn().performClick()
         compose.waitUntil(10_000) { compose.waitForIdle(); !vm.isTask }
         assertFalse(vm.isTask)
+        compose.onNodeWithTag("editor-task-toggle").assertIsOff().assertExists()
+        compose.onNodeWithTag("editor-task-color").assertDoesNotExist()
+        assertEquals(1, count("Сделать задачей"))
         compose.onNodeWithText("Заметка").assertExists()
         compose.onNodeWithContentDescription("Действия").performClick()
-        compose.onNodeWithText("Сделать задачей").assertExists()
         compose.onNodeWithText("Цвет заметки").assertExists()
+        compose.onAllNodesWithText("Сделать задачей").assertCountEquals(0)
         compose.onAllNodesWithText("Сделать заметкой").assertCountEquals(0)
     }
-
-    @Test fun `note has exactly one conversion and one colour entry in the menu`() {
+    @Test fun `ordinary note checkbox switches into a task without disappearing or adding menu conversion`() {
         val vm = editor(task = false)
-        assertFalse(vm.isTask)
-        // У заметки компактной кнопки превращения нет — только пункт меню.
-        compose.onAllNodesWithTag("editor-to-note").assertCountEquals(0)
+        compose.onNodeWithTag("editor-task-toggle").assertIsOff()
         compose.onNodeWithContentDescription("Действия").performClick()
-        compose.onNodeWithText("Сделать задачей").assertExists()
         compose.onNodeWithText("Цвет заметки").assertExists()
-        compose.onAllNodesWithText("Цвет задачи").assertCountEquals(0)
-        assertTrue(count("Оформление текста") == 1)
+        compose.onAllNodesWithText("Сделать задачей").assertCountEquals(0)
+        compose.onNode(isPopup()).performKeyInput { pressKey(Key.Back) }
+        compose.onNodeWithTag("editor-task-toggle").performClick()
+        compose.waitUntil(10_000) { compose.waitForIdle(); vm.isTask }
+        assertTrue(vm.isTask)
+        compose.onNodeWithTag("editor-task-toggle").assertIsOn().assertExists()
+        compose.onNodeWithTag("editor-task-color").assertExists()
+        assertEquals(1, count("Цвет задачи")); assertEquals(1, count("Оформление текста"))
     }
 }

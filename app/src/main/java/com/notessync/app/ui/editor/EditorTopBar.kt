@@ -56,15 +56,11 @@ internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, set
                                 ui.dismissMenus()
                                 onFormattingPanelChange(if (panelOnTop) FormattingBarPosition.BOTTOM else FormattingBarPosition.TOP)
                             })
-                        // Этап 80: у задачи «Сделать заметкой» уже есть компактной кнопкой в строке —
-                        // в меню пункт не повторяется. Цвет живёт только здесь, сверху.
+                        // Task mode and task colour have one visible entry in the editor row.
                         if (!viewModel.isTask) {
-                            DropdownMenuItem(text = { Text(uiText("Сделать задачей")) },
-                                enabled = !viewModel.taskProtectionBusy && !viewModel.isClosing,
-                                leadingIcon = { Icon(Icons.Default.CheckBox, null) }, onClick = { ui.dismissMenus(); viewModel.toggleTask() })
+                            DropdownMenuItem(text = { Text(uiText("Цвет заметки")) },
+                                leadingIcon = { Icon(Icons.Default.Palette, null) }, onClick = { ui.dismissMenus(); ui.showColorDialog = true })
                         }
-                        DropdownMenuItem(text = { Text(uiText(if (viewModel.isTask) "Цвет задачи" else "Цвет заметки")) },
-                            leadingIcon = { Icon(Icons.Default.Palette, null) }, onClick = { ui.dismissMenus(); ui.showColorDialog = true })
                         DropdownMenuItem(text = { Text(uiText("Календарь")) }, leadingIcon = { Icon(Icons.Default.CalendarMonth, null) },
                             onClick = { ui.dismissMenus(); onCalendar() })
                         DropdownMenuItem(text = { Text(uiText("Вложения")) }, leadingIcon = { Icon(Icons.Default.AttachFile, null) },

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.uiText
@@ -14,16 +15,22 @@ import com.notessync.app.settings.SettingsState
 import com.notessync.app.ui.common.formatDateTime
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.tasks.*
+import com.notessync.app.ui.theme.LocalGlassTheme
 
 @Composable
 internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiState, settingsState: SettingsState) {
     val enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.taskProtectionBusy
     if (!viewModel.isTask) {
-        viewModel.notebookName?.let { name -> TextButton(onClick = { ui.showNotebookMenu = true }, enabled = enabled,
-            modifier = Modifier.padding(start = 8.dp)) {
-            Icon(Icons.Default.FolderOpen, null, Modifier.size(16.dp))
-            Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
-        } }
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                TaskModeButton(viewModel, ui, enabled)
+                viewModel.notebookName?.let { name -> TextButton(onClick = { ui.showNotebookMenu = true }, enabled = enabled) {
+                    Icon(Icons.Default.FolderOpen, null, Modifier.size(16.dp))
+                    Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                } }
+            }
+        }
         return
     }
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
@@ -34,12 +41,12 @@ internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiStat
                     uiText(if (viewModel.isCompleted) "Выполнено" else "Выполнить"), Modifier.size(20.dp),
                     tint = if (viewModel.isCompleted) MaterialTheme.colorScheme.primary else LocalContentColor.current)
             }
-            // Этап 80: «Сделать заметкой» — маленькая квадратная галочка, одна точка входа.
-            // Цвет задачи сюда не дублируется: он остался только сверху, в меню ⋮.
-            IconButton(onClick = { ui.dismissMenus(); viewModel.toggleTask() }, enabled = enabled,
-                modifier = Modifier.size(44.dp).testTag("editor-to-note")) {
-                Icon(Icons.Default.CheckBox, uiText("Сделать заметкой"), Modifier.size(18.dp))
+            IconButton(onClick = { ui.dismissMenus(); ui.showColorDialog = true }, enabled = enabled,
+                modifier = Modifier.size(44.dp).testTag("editor-task-color")) {
+                Icon(Icons.Default.ChangeHistory, uiText("Цвет задачи"), Modifier.size(18.dp),
+                    tint = taskColorOption(viewModel.taskColor).accent)
             }
+            TaskModeButton(viewModel, ui, enabled)
             IconButton(onClick = viewModel::toggleTaskTimer,
                 enabled = enabled && (!viewModel.isCompleted || viewModel.taskTimerStartedAt != null),
                 modifier = Modifier.weight(1f).heightIn(min = 44.dp).testTag("editor-stopwatch")) {
@@ -87,6 +94,18 @@ internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiStat
     }
     if (ui.showDeadlinePicker) TaskDeadlineDialog(viewModel.taskDueAt, enabled, viewModel::chooseTaskDeadline,
         onDismiss = { ui.showDeadlinePicker = false })
+}
+
+/** One persistent checkbox, including ordinary notes; enabled task mode is green. */
+@Composable
+private fun TaskModeButton(viewModel: NoteEditorViewModel, ui: EditorUiState, enabled: Boolean) {
+    val green = if (LocalGlassTheme.current.dark) Color(0xFF81C784) else Color(0xFF2E7D32)
+    IconToggleButton(checked = viewModel.isTask,
+        onCheckedChange = { ui.dismissMenus(); viewModel.toggleTask() }, enabled = enabled,
+        modifier = Modifier.size(44.dp).testTag("editor-task-toggle"),
+        colors = IconButtonDefaults.iconToggleButtonColors(checkedContentColor = green)) {
+        Icon(Icons.Default.CheckBox, uiText(if (viewModel.isTask) "Сделать заметкой" else "Сделать задачей"), Modifier.size(18.dp))
+    }
 }
 
 @Composable
