@@ -77,7 +77,10 @@ internal data class LockedTasksResult(val scope: LockedTasksScope, val targets: 
 internal fun NoteFilter.isUnfinished() = this == NoteFilter.Unfinished || this == NoteFilter.Overdue
 
 @OptIn(ExperimentalCoroutinesApi::class, kotlinx.coroutines.FlowPreview::class)
-class NotesViewModel(application: Application) : AndroidViewModel(application) {
+class NotesViewModel @JvmOverloads constructor(
+    application: Application,
+    internal val taskTimeSource: () -> Long = System::currentTimeMillis
+) : AndroidViewModel(application) {
 
     private val db = AppDatabase.get(application)
     private val noteDao = db.noteDao()
@@ -109,7 +112,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _taskFilters = MutableStateFlow(TaskFilters())
     val taskFilters = _taskFilters.asStateFlow()
-    private val _taskClock = MutableStateFlow(System.currentTimeMillis())
+    private val _taskClock = MutableStateFlow(taskTimeSource())
     val taskClock = _taskClock.asStateFlow()
     private val _listSession = MutableStateFlow(0L)
     val listSession = _listSession.asStateFlow()
@@ -145,7 +148,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), null)
 
     fun chooseTaskFilters(value: TaskFilters) { _taskFilters.value = value.normalized() }
-    fun refreshTaskClock() { _taskClock.value = System.currentTimeMillis() }
+    fun refreshTaskClock() { _taskClock.value = taskTimeSource() }
 
     // One metadata query for first photos, not one query per visible card or all image bytes.
     val firstPhotos = db.attachmentDao().observeFirstPhotos()
