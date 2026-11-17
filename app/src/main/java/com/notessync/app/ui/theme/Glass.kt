@@ -1,12 +1,16 @@
 package com.notessync.app.ui.theme
 
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -118,14 +122,19 @@ fun Color.glassified(alpha: Float = 0.55f): Color {
     return if (glass.enabled) copy(alpha = glassLayerAlpha(alpha, glass.appearance, glass.externalBackdrop)) else this
 }
 
-/** Cached brushes, no animation, timer, bitmap capture or background listener. */
+/** Cached brushes with short property transitions, no continuous animation or background listener. */
 @Composable
 fun AuroraBackground(
     dark: Boolean, accent: Color, modifier: Modifier = Modifier,
     appearance: GlassAppearance = GlassAppearance()
 ) {
     val safe = appearance.safe()
-    val base = glassTintColor(safe.tint, dark)
+    // Reset on light/dark changes so intermediate backgrounds retain text contrast.
+    val base = key(dark) {
+        animateColorAsState(glassTintColor(safe.tint, dark), tween(220), label = "glass-base")
+    }
+    val fallbackFrost = animateFloatAsState(if (Build.VERSION.SDK_INT < 31) safe.frost else 0f,
+        tween(220), label = "glass-fallback-frost")
     val blobs = auroraBlobColors(dark, accent)
     val radius = glassBlurRadius(safe, Build.VERSION.SDK_INT)
     val effect = if (radius > 0f) Modifier.blur(radius.dp) else Modifier
@@ -133,7 +142,7 @@ fun AuroraBackground(
         val w = size.width
         val h = size.height
         // The pre-31 fallback only softens the gradient. It is not a system blur.
-        val softness = if (Build.VERSION.SDK_INT < 31) safe.frost else 0f
+        val softness = fallbackFrost.value
         val centers = listOf(Offset(w * 0.12f, h * 0.10f), Offset(w * 0.95f, h * 0.22f),
             Offset(w * 0.80f, h * 0.92f), Offset(w * 0.05f, h * 0.78f))
         val radii = listOf(0.85f, 0.70f, 0.75f, 0.60f).map { (w * it * (1f + softness * 0.7f)).coerceAtLeast(1f) }
@@ -144,7 +153,9 @@ fun AuroraBackground(
         val bandBrush = Brush.linearGradient(listOf(blobs[0], Color.Transparent, blobs[2]),
             start = Offset.Zero, end = Offset(w, h))
         onDrawBehind {
-            drawRect(base)
+            // Reading this state in the draw callback avoids per-frame recomposition
+            // and keeps tint changes from rebuilding the cached gradient brushes.
+            drawRect(base.value)
             when (safe.backdrop) {
                 GlassBackdrop.SOLID -> Unit
                 GlassBackdrop.AURORA -> brushes.forEachIndexed { i, brush ->

@@ -104,9 +104,16 @@ fun SettingsScreen(onBack: () -> Unit, onOpenSync: () -> Unit, initialGroup: Str
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            SettingsCard(Modifier.fillMaxWidth()) {
-                SettingsDropdown("language", uiText("Язык интерфейса"), state.uiLanguage, UiLanguage.entries,
-                    settings::setUiLanguage, { it.nativeName })
+            SectionTitle(uiText("Язык интерфейса"))
+            SettingsCard(modifier = Modifier.fillMaxWidth()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).selectableGroup()) {
+                    UiLanguage.entries.forEach { language ->
+                        SettingsChoice(selected = state.uiLanguage == language, onClick = { settings.setUiLanguage(language) }) {
+                            Text(language.nativeName)
+                        }
+                    }
+                }
             }
             SettingsGroup("appearance", uiText("Внешний вид"), Icons.Default.Palette, expandedGroup == "appearance", !busy,
                 onToggle = { expandedGroup = if (expandedGroup == "appearance") null else "appearance" }) {

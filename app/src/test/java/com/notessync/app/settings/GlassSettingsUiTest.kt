@@ -126,4 +126,39 @@ class GlassSettingsUiTest {
         compose.runOnIdle { assertEquals(GlassAppearance(), settings.state.value.glassAppearance) }
         compose.onNodeWithTag("settings-glass-open").assertIsDisplayed()
     }
+    @Test @Config(qualifiers = "en-w320dp-h640dp")
+    fun `historical style chips and glass configuration remain accessible with large English text`() {
+        settings.apply { setUiLanguage(UiLanguage.ENGLISH); setThemeMode(ThemeMode.DARK)
+            setFontScale(SettingsRepository.FONT_LARGE); setAppFont(AppFont.SYSTEM) }
+        lateinit var view: android.view.View
+        var density = 1f
+        compose.setContent {
+            val state by settings.state.collectAsState()
+            view = androidx.compose.ui.platform.LocalView.current
+            density = androidx.compose.ui.platform.LocalDensity.current.density
+            NoteSyncTheme(darkTheme = true, dynamicColor = false, fontScale = state.fontScale,
+                interfaceStyle = InterfaceStyle.GLASS, glassAppearance = state.glassAppearance) {
+                Box(Modifier.requiredSize(320.dp, 640.dp).testTag("historical-settings-host")) { SettingsScreen({}, {}) }
+            }
+        }
+        compose.onNodeWithTag("settings-group-appearance").performScrollTo().performClick()
+        compose.onNodeWithText(InterfaceStyle.CLASSIC.label).assertExists()
+        compose.onNodeWithText(InterfaceStyle.GLASS.label).performScrollTo().assertIsSelected()
+        val configure = compose.onNodeWithTag("settings-glass-open").performScrollTo().assertIsDisplayed()
+        val button = configure.fetchSemanticsNode().boundsInRoot
+        val bounds = compose.onNodeWithTag("historical-settings-host").fetchSemanticsNode().boundsInRoot
+        assertTrue("Touch target", button.height >= 48f * density - 1f)
+        assertTrue("Within narrow viewport", button.left >= bounds.left && button.right <= bounds.right)
+        compose.runOnIdle {
+            val bitmap = Bitmap.createBitmap(bounds.width.toInt(), bounds.height.toInt(), Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap); canvas.translate(-bounds.left, -bounds.top); view.draw(canvas)
+            val file = File("build/reports/settings-preview/appearance-chips-glass-large-en-320.png").apply { parentFile?.mkdirs() }
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        }
+        configure.performClick(); progress("transparency", 0.8f)
+        compose.onNodeWithTag("glass-cancel").performClick()
+        compose.onNode(isDialog()).assertDoesNotExist()
+        compose.runOnIdle { assertEquals(GlassAppearance(), settings.state.value.glassAppearance) }
+    }
+
 }

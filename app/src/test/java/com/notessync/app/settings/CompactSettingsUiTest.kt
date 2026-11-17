@@ -76,36 +76,33 @@ class CompactSettingsUiTest {
         compose.onNodeWithText("API-ключ не настроен").assertDoesNotExist()
         screenshot("overview-320")
     }
-    @Test fun `font menu retains every option selected state persistence and collapsed help`() {
+    @Test fun `font chips retain every option selected state persistence and font licences`() {
         content(); open("appearance")
-        compose.onNodeWithText("Montserrat").assertDoesNotExist()
-        compose.onNodeWithText("Лицензии шрифтов").assertDoesNotExist()
-        choice("font").performScrollTo().performClick()
+        for (font in AppFont.entries) compose.onNodeWithText(font.label).assertExists()
         compose.onNodeWithText("Montserrat").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(AppFont.MONTSERRAT, settings.state.value.appFont) }
-        choice("font").performScrollTo().performClick()
-        compose.onNode(hasText("Montserrat") and hasAnyAncestor(isPopup())).assertIsSelected()
-        compose.onNode(isPopup()).performKeyInput { pressKey(Key.Back) }
-        compose.onNodeWithTag("settings-help-fonts").performScrollTo().performClick()
-        compose.onNodeWithText("Лицензии шрифтов").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithTag("settings-help-fonts").performScrollTo().performClick()
-        compose.onNodeWithText("Лицензии шрифтов").assertDoesNotExist()
-        screenshot("appearance-320")
+        compose.onNodeWithText("Montserrat").assertIsSelected()
+        compose.onNodeWithText("Лицензии шрифтов").performScrollTo().assertIsDisplayed().performClick()
+        compose.onNode(isDialog()).assertIsDisplayed()
+        compose.onNodeWithText("Закрыть").performClick()
+        compose.onNode(isDialog()).assertDoesNotExist()
+        compose.onNodeWithText("Montserrat").performScrollTo().assertIsSelected()
+        screenshot("appearance-chips-320")
     }
     @Test fun `compact voice choices update real preferences and retain local privacy help`() {
         content(); open("voice")
-        choice("voice-engine").performScrollTo().performClick(); compose.onNodeWithText("На устройстве").performClick()
-        choice("voice-language").performScrollTo().performClick(); compose.onNode(hasText("Русский") and hasAnyAncestor(isPopup())).performClick()
-        choice("voice-control").performScrollTo().performClick(); compose.onNodeWithText(VoiceControl.TAP.label).performClick()
-        choice("voice-structure").performScrollTo().performClick(); compose.onNodeWithText("Как есть").performClick()
+        fun voice(label: String) = compose.onNode(hasText(label) and hasAnyAncestor(hasTestTag("settings-content-voice")))
+        voice("На устройстве").performScrollTo().performClick()
+        voice("Русский").performScrollTo().performClick()
+        voice(VoiceControl.TAP.label).performScrollTo().performClick()
+        voice("Как есть").performScrollTo().performClick()
         compose.runOnIdle {
             val s = settings.state.value
             assertEquals(VoiceEngine.LOCAL, s.voiceEngine); assertEquals(VoiceLanguage.RUSSIAN, s.voiceLanguage)
             assertEquals(VoiceControl.TAP, s.voiceControl); assertEquals(VoiceStructure.RAW, s.voiceStructure)
         }
-        compose.onNodeWithText("Локально: Android 12+ и модель на устройстве. Без перехода в онлайн.").performScrollTo().assertIsDisplayed()
-        screenshot("voice-320")
-        compose.onNodeWithTag("settings-help-voice").performScrollTo().performClick()
+        compose.onNodeWithText(VoiceEngine.LOCAL.label).performScrollTo().assertIsDisplayed()
+        screenshot("voice-chips-320")
         compose.onNodeWithText("Онлайн-режим использует системный сервис: звук может передаваться его провайдеру. Локальный режим требует Android 12+ и доступную модель на устройстве; автоматического перехода в онлайн нет.")
             .performScrollTo().assertIsDisplayed()
     }
@@ -114,7 +111,6 @@ class CompactSettingsUiTest {
         val switches: List<Pair<String, (SettingsState) -> Boolean>> = listOf(
             "Выполненные — в отдельный раздел" to { it.archiveCompletedTasks },
             "Сразу выбирать время быстрой задачи" to { it.quickTaskTime },
-            "Флажки приоритета" to { it.showTaskPriorities },
             "История изменений" to { it.editorHistory },
             "Расширенное оформление" to { it.advancedFormatting },
             "Показывать таблицы" to { it.showTables },
@@ -125,8 +121,12 @@ class CompactSettingsUiTest {
             compose.onNodeWithText(label).performScrollTo().performClick()
             compose.runOnIdle { assertEquals(label, !before, read(settings.state.value)) }
         }
-        choice("completed").performScrollTo().performClick(); compose.onNodeWithText("Скрывать").performClick()
+        compose.onNodeWithText("Скрывать").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CompletedStyle.HIDE, settings.state.value.completedStyle) }
+        compose.onNodeWithContentDescription("Назад").performClick(); open("appearance")
+        val priorityBefore = settings.state.value.showTaskPriorities
+        compose.onNodeWithText("Флажки приоритета").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(!priorityBefore, settings.state.value.showTaskPriorities) }
         compose.onNodeWithContentDescription("Назад").performClick(); open("editor")
         compose.onNodeWithText("Выполненные — в отдельный раздел").performScrollTo()
             .assert(if (settings.state.value.archiveCompletedTasks) isOn() else isOff())
