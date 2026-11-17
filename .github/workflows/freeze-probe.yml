@@ -1,0 +1,37 @@
+name: Isolated UI freeze audit
+on:
+  workflow_dispatch:
+    inputs:
+      active_ms:
+        type: choice
+        description: Real active-operation duration, not virtual clock
+        default: '60000'
+        options: ['60000', '7200000']
+permissions:
+  contents: read
+concurrency:
+  group: isolated-ui-freeze-audit
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 155
+    env:
+      NOTELS_AUDIT_ACTIVE_MS: ${{ inputs.active_ms }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Native UI audit on frozen application
+        run: ./gradlew :app:testDebugUnitTest --tests com.notessync.app.audit.UiFreezeProbeTest --console=plain --max-workers=2 --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: freeze-probe-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/freeze-probe/
+          if-no-files-found: error
