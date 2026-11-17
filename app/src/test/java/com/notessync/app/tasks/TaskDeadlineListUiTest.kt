@@ -42,6 +42,32 @@ class TaskDeadlineListUiTest {
     private fun await(condition: () -> Boolean) = compose.waitUntil(10_000) {
         ShadowSystemClock.advanceBy(Duration.ofMillis(350)); compose.waitForIdle(); condition()
     }
+    @Test fun `running countdown disappears at expiry without a deadline notification or database edit`() {
+        val dao = AppDatabase.get(app).noteDao()
+        val now = System.currentTimeMillis()
+        val end = now + 60_000
+        val countdown = runBlocking { dao.upsert(NoteEntity(title = "Countdown", isTask = true,
+            taskCountdownMillis = 60_000, taskCountdownEndAt = end)) }
+        val watch = runBlocking { dao.upsert(NoteEntity(title = "Watch", isTask = true, taskTimerStartedAt = now)) }
+        lateinit var vm: NotesViewModel
+        compose.setContent {
+            vm = remember { NotesViewModel(app).also {
+                models.put("home", it); it.selectFilter(NoteFilter.Unfinished)
+                it.chooseTaskFilters(TaskFilters(running = true))
+            } }
+            MaterialTheme { Box(Modifier.requiredSize(320.dp, 760.dp)) {
+                NotesListScreen({}, {}, {}, {}, {}, { _, _ -> }, viewModel = vm)
+            } }
+        }
+        await { vm.results.value?.key?.tasks?.running == true &&
+            compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("note-card-$watch").assertExists()
+        ShadowSystemClock.advanceBy(Duration.ofMinutes(2))
+        await { vm.taskClock.value > end &&
+            compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithTag("note-card-$watch").assertExists()
+        assertEquals(end, runBlocking { dao.getById(countdown) }!!.taskCountdownEndAt)
+    }
     @Test fun `real drawer overdue view combines a priority filter and returns to all unfinished without stale cards`() {
         val db = AppDatabase.get(app); val now = System.currentTimeMillis()
         val high = runBlocking { db.noteDao().upsert(NoteEntity(title = "High overdue", isTask = true, taskPriority = 3, taskDueAt = now - 1_000)) }

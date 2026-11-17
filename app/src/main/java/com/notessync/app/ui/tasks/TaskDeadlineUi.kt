@@ -77,7 +77,7 @@ internal fun TaskDeadlineLabel(at: Long?, now: Long, completed: Boolean, color: 
     }
 }
 
-/** One foreground boundary wake-up; no clock per card and no periodic/background job. */
+/** One foreground deadline/countdown boundary wake-up; no periodic/background job. */
 @Composable
 internal fun TaskDeadlineClock(viewModel: NotesViewModel, filter: NoteFilter, notes: List<NoteListEntry>) {
     val now by viewModel.taskClock.collectAsStateWithLifecycle()
@@ -96,9 +96,16 @@ internal fun TaskDeadlineClock(viewModel: NotesViewModel, filter: NoteFilter, no
         androidx.core.content.ContextCompat.registerReceiver(context, receiver, events, androidx.core.content.ContextCompat.RECEIVER_EXPORTED)
         onStopOrDispose { context.unregisterReceiver(receiver); viewModel.markListHidden() }
     }
-    val nearest = if (filter.isUnfinished()) nextDue else remember(notes, now) {
+    val deadline = if (filter.isUnfinished()) nextDue else remember(notes, now) {
         notes.asSequence().filter { it.isTask && !it.isCompleted }.mapNotNull { it.taskDueAt }.filter { it >= now }.minOrNull()
     }
+    // Countdown completion does not write to Room. Refresh the running filter even
+    // when notifications are unavailable and the task has no separate due date.
+    val countdown = remember(notes, now) {
+        notes.asSequence().filter { it.isTask && !it.isCompleted }
+            .mapNotNull { it.taskCountdownEndAt }.filter { it >= now }.minOrNull()
+    }
+    val nearest = listOfNotNull(deadline, countdown).minOrNull()
     LaunchedEffect(lifecycle, filter, now, nearest) {
         if (!filter.isUnfinished() && nearest == null) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
