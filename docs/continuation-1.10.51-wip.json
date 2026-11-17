@@ -1,0 +1,39 @@
+{
+  "base": "6cd9465aef41b54aef059acbef51671780c319b5",
+  "status": "WIP only; uncompiled; not part of signed1.10.51",
+  "82": {
+    "branch": "codex/resume82-after-1.10.51",
+    "sha": "dc103a5a1275548a0a67054d48400c7812e4b788",
+    "paths": [
+      "app/build.gradle.kts",
+      "app/src/main/res/xml/backup_rules.xml",
+      "app/src/main/res/xml/data_extraction_rules.xml",
+      "app/src/main/java/com/notessync/app/ai/TextTransform.kt",
+      "app/src/main/java/com/notessync/app/ai/FreeModelsTransport.kt",
+      "app/src/main/java/com/notessync/app/ai/AndroidTransformSecrets.kt",
+      "app/src/main/java/com/notessync/app/ai/TransformUi.kt",
+      "app/src/main/java/com/notessync/app/ai/FreeModelsUi.kt",
+      "app/src/main/java/com/notessync/app/i18n/EnglishFreeModels.kt",
+      "app/src/main/java/com/notessync/app/i18n/UiCatalog.kt",
+      "app/src/test/java/com/notessync/app/ai/FreeModelsTransportTest.kt",
+      "app/src/test/java/com/notessync/app/ai/FreeModelsUiTest.kt",
+      "app/src/test/java/com/notessync/app/ai/FreeModelsSecretsTest.kt",
+      "app/src/test/java/com/notessync/app/ai/FreeModelsSettingsTest.kt"
+    ]
+  },
+  "83": {
+    "branch": "codex/resume83-after-1.10.51",
+    "sha": "d9053117fbde84ec5062e6d5f493a6af36939971",
+    "paths": [
+      "app/src/main/java/com/notessync/app/ui/notes/PhotoAttachmentGrid.kt",
+      "app/build.gradle.kts"
+    ]
+  },
+  "automation": {
+    "id": "Automation_9bad489b952c8191be90c89cd157657d",
+    "is_enabled": true,
+    "next_run_time": "2026-11-17T10:59:24-08:00",
+    "schedule": "BEGIN:VEVENT\nDTSTART:20261117T185924Z\nEND:VEVENT",
+    "environment_selection": "inherited"
+  }
+}
