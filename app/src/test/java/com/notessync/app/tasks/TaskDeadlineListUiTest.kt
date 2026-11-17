@@ -17,7 +17,6 @@ import com.notessync.app.ui.notes.*
 import com.notessync.app.ui.screens.NotesListScreen
 import com.notessync.app.ui.tasks.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.flow.first
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -27,6 +26,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowSystemClock
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w320dp-h800dp")
@@ -47,12 +47,13 @@ class TaskDeadlineListUiTest {
         val dao = AppDatabase.get(app).noteDao()
         val now = System.currentTimeMillis()
         val end = now + 60_000
+        val wallTime = AtomicLong(now)
         val countdown = runBlocking { dao.upsert(NoteEntity(title = "Countdown", isTask = true,
             taskCountdownMillis = 60_000, taskCountdownEndAt = end)) }
         val watch = runBlocking { dao.upsert(NoteEntity(title = "Watch", isTask = true, taskTimerStartedAt = now)) }
         lateinit var vm: NotesViewModel
         compose.setContent {
-            vm = remember { NotesViewModel(app).also {
+            vm = remember { NotesViewModel(app, wallTime::get).also {
                 models.put("home", it); it.selectFilter(NoteFilter.Unfinished)
                 it.chooseTaskFilters(TaskFilters(running = true))
             } }
@@ -63,19 +64,17 @@ class TaskDeadlineListUiTest {
         await { vm.results.value?.key?.tasks?.running == true &&
             compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithTag("note-card-$watch").assertExists()
+        // JVM wall time is independent of Android uptime and Compose's scheduler.
+        // Move the injected epoch clock and both schedulers past the same boundary.
+        wallTime.set(now + Duration.ofMinutes(2).toMillis())
         ShadowSystemClock.advanceBy(Duration.ofMinutes(2))
-        // Wall time drives the SQL predicate; Compose's independent test clock
-        // drives LaunchedEffect.delay. Both clocks must reach the boundary.
         compose.mainClock.advanceTimeBy(Duration.ofMinutes(2).toMillis())
         try {
             await { vm.taskClock.value > end &&
                 compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isEmpty() }
-        } catch (error: Throwable) {
-            println("Expiry diagnostic: wall=${System.currentTimeMillis()} vm=${vm.taskClock.value} end=$end compose=${compose.mainClock.currentTime}")
-            println("Expiry query: ${vm.results.value?.key}; rows=${vm.results.value?.notes?.map { it.id to it.taskCountdownEndAt }}")
-            println("Expiry SQL now: " + runBlocking { dao.rawQuery(NotesViewModel.buildQuery("", NoteFilter.Unfinished,
-                NoteSort.BY_DUE, tasks = TaskFilters(running = true))).first() }.map { it.id })
-            throw error
+        } catch (error: Exception) {
+            throw AssertionError("Countdown expiry: epoch=${wallTime.get()}, refresh=${vm.taskClock.value}, " +
+                "end=$end, compose=${compose.mainClock.currentTime}, rows=${vm.results.value?.notes?.map { it.id }}", error)
         }
         compose.onNodeWithTag("note-card-$watch").assertExists()
         assertEquals(end, runBlocking { dao.getById(countdown) }!!.taskCountdownEndAt)

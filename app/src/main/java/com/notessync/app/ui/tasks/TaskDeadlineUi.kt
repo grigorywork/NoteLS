@@ -109,7 +109,7 @@ internal fun TaskDeadlineClock(viewModel: NotesViewModel, filter: NoteFilter, no
     LaunchedEffect(lifecycle, filter, now, nearest) {
         if (!filter.isUnfinished() && nearest == null) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            val current = System.currentTimeMillis()
+            val current = viewModel.taskTimeSource()
             val target = TaskDeadlines.nextRefresh(current, nearest, ZoneId.systemDefault(), capturedAt = now)
             delay((target - current).coerceAtLeast(1))
             viewModel.refreshTaskClock()
