@@ -32,6 +32,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 /** Isolated diagnostic only: elapsed real operations, never virtual-clock duration or idle sleep. */
 @OptIn(ExperimentalTestApi::class)
@@ -44,7 +46,7 @@ class UiFreezeProbeTest {
     private val store = ViewModelStore()
     @After fun cleanup() { store.clear(); AppDatabase.closeInstance() }
 
-    @Test fun `real editor settings and list repeatedly respond under sustained native load`() {
+    @Test(timeout = 8_100_000) fun `real editor settings and list repeatedly respond under sustained native load`() {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db")
         val settings = SettingsRepository.get(app).apply {
             setUiLanguage(UiLanguage.RUSSIAN); setBackupFrequency(BackupFrequency.MANUAL)
@@ -138,17 +140,27 @@ class UiFreezeProbeTest {
                     compose.onNodeWithText(font.label).performScrollTo().performClick()
                     compose.runOnIdle { assertEquals(font, settings.state.value.appFont) }
                     if (cycles % 3L == 0L) {
+                        val transparency = if (cycles % 2L == 0L) 0.7f else 0.3f
+                        val frost = if (cycles % 2L == 0L) 0.5f else 0f
                         compose.onNodeWithTag("settings-glass-open").performScrollTo().performClick()
                         compose.onNodeWithTag("glass-transparency").performScrollTo()
-                            .performSemanticsAction(SemanticsActions.SetProgress) { it(0.7f) }
+                            .performSemanticsAction(SemanticsActions.SetProgress) { it(transparency) }
+                        compose.onNodeWithTag("glass-frost").performScrollTo()
+                            .performSemanticsAction(SemanticsActions.SetProgress) { it(frost) }
                         compose.onNodeWithTag("glass-save").performClick()
-                        compose.runOnIdle { assertEquals(0.7f, settings.state.value.glassAppearance.transparency, 0.001f) }
+                        compose.runOnIdle {
+                            assertEquals(transparency, settings.state.value.glassAppearance.transparency, 0.001f)
+                            assertEquals(frost, settings.state.value.glassAppearance.frost, 0.001f)
+                        }
                     }
                     compose.onNodeWithContentDescription("Назад").performClick()
                 }
                 operation(3) {
                     compose.runOnIdle { screen = 2; settings.setNotesLayout(if (cycles % 2L == 0L) NotesLayout.GRID else NotesLayout.LIST) }
                     compose.waitUntil(15_000) {
+                        // Room's debounced query uses Android uptime, not real time or Compose's clock.
+                        // This virtual advancement is deliberately excluded from the duration counter.
+                        ShadowSystemClock.advanceBy(Duration.ofMillis(350))
                         compose.waitForIdle(); compose.onAllNodesWithTag("notes-cards").fetchSemanticsNodes().isNotEmpty()
                     }
                     compose.onNodeWithTag("notes-cards").performTouchInput { swipeUp() }
