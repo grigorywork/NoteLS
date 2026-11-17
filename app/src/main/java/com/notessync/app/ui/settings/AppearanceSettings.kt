@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
@@ -96,7 +97,7 @@ internal fun AppearanceSettings(state: SettingsState, settings: SettingsReposito
                 modifier = Modifier.padding(top = 8.dp)
             )
             if (state.interfaceStyle == InterfaceStyle.GLASS) {
-                TextButton(onClick = { showGlass = true }, modifier = Modifier.testTag("settings-glass-open")) {
+                TextButton(onClick = { showGlass = true }, modifier = Modifier.heightIn(min = 48.dp).testTag("settings-glass-open")) {
                     Text(uiText("Настроить стекло"))
                 }
             }
