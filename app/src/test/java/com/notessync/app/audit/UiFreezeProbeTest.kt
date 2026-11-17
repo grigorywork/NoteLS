@@ -89,10 +89,13 @@ class UiFreezeProbeTest {
         val counts = LongArray(4)
         val maximum = LongArray(4)
         val total = LongArray(4)
+        val detailCounts = LongArray(7)
+        val detailTotal = LongArray(7)
+        val detailMaximum = LongArray(7)
         val report = File("build/reports/freeze-probe/progress.json").apply { parentFile?.mkdirs() }
         fun checkpoint(status: String) {
             val heap = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-            report.writeText("""{"status":"$status","started":"$started","observed":"${Instant.now()}","target_ms":$targetMs,"active_ms":${activeNanos / 1_000_000},"cycles":$cycles,"counts":${counts.contentToString()},"operation_total_ns":${total.contentToString()},"operation_max_ns":${maximum.contentToString()},"heap_bytes":$heap,"groups":["editor_history","task_mode","settings","list_scroll"],"sdk":28,"native_canvas":true,"physical_phone":false}""")
+            report.writeText("""{"status":"$status","started":"$started","observed":"${Instant.now()}","target_ms":$targetMs,"active_ms":${activeNanos / 1_000_000},"cycles":$cycles,"counts":${counts.contentToString()},"operation_total_ns":${total.contentToString()},"operation_max_ns":${maximum.contentToString()},"heap_bytes":$heap,"groups":["editor_history","task_mode","settings","list_scroll"],"settings_detail_counts":${detailCounts.contentToString()},"settings_detail_total_ns":${detailTotal.contentToString()},"settings_detail_max_ns":${detailMaximum.contentToString()},"settings_detail_groups":["theme_scale","editor_section","appearance_section","font_change","glass_save","language_roundtrip","close_section"],"sdk":28,"native_canvas":true,"physical_phone":false}""")
         }
         fun operation(group: Int, block: () -> Unit) {
             val begin = System.nanoTime()
@@ -100,6 +103,15 @@ class UiFreezeProbeTest {
                 val elapsed = System.nanoTime() - begin
                 activeNanos += elapsed; counts[group]++; total[group] += elapsed
                 maximum[group] = maxOf(maximum[group], elapsed)
+            }
+        }
+        // Nested detail timings do not add to activeNanos: no double-counting.
+        fun detail(group: Int, block: () -> Unit) {
+            val begin = System.nanoTime()
+            try { block() } finally {
+                val elapsed = System.nanoTime() - begin
+                detailCounts[group]++; detailTotal[group] += elapsed
+                detailMaximum[group] = maxOf(detailMaximum[group], elapsed)
             }
         }
         try {
@@ -126,20 +138,29 @@ class UiFreezeProbeTest {
                     compose.onNodeWithTag("editor-task-toggle").assertIsOff().assertIsDisplayed()
                 }
                 operation(2) {
+                    detail(0) {
                     compose.runOnIdle {
                         screen = 1
                         settings.setThemeMode(if (cycles % 2L == 0L) ThemeMode.DARK else ThemeMode.LIGHT)
                         settings.setInterfaceStyle(if (cycles % 3L == 0L) InterfaceStyle.GLASS else InterfaceStyle.CLASSIC)
                         settings.setFontScale(if (cycles % 4L == 0L) SettingsRepository.FONT_LARGE else 1f)
                     }
+                    }
+                    detail(1) {
                     compose.onNodeWithTag("settings-group-editor").performScrollTo().performClick()
                     compose.onNodeWithText("История изменений").performScrollTo().assertIsDisplayed()
+                    }
+                    detail(2) {
                     compose.onNodeWithContentDescription("Назад").performClick()
                     compose.onNodeWithTag("settings-group-appearance").performScrollTo().performClick()
+                    }
+                    detail(3) {
                     val font = AppFont.entries[(cycles % AppFont.entries.size).toInt()]
                     compose.onNodeWithText(font.label).performScrollTo().performClick()
                     compose.runOnIdle { assertEquals(font, settings.state.value.appFont) }
+                    }
                     if (cycles % 3L == 0L) {
+                        detail(4) {
                         val transparency = if (cycles % 2L == 0L) 0.7f else 0.3f
                         val frost = if (cycles % 2L == 0L) 0.5f else 0f
                         compose.onNodeWithTag("settings-glass-open").performScrollTo().performClick()
@@ -152,8 +173,17 @@ class UiFreezeProbeTest {
                             assertEquals(transparency, settings.state.value.glassAppearance.transparency, 0.001f)
                             assertEquals(frost, settings.state.value.glassAppearance.frost, 0.001f)
                         }
+                        }
                     }
+                    detail(5) {
+                        compose.onNodeWithText("English").performScrollTo().performClick()
+                        compose.onNodeWithText("Settings").assertIsDisplayed()
+                        compose.onNodeWithText("Русский").performScrollTo().performClick()
+                        compose.onNodeWithText("Настройки").assertIsDisplayed()
+                    }
+                    detail(6) {
                     compose.onNodeWithContentDescription("Назад").performClick()
+                    }
                 }
                 operation(3) {
                     compose.runOnIdle { screen = 2; settings.setNotesLayout(if (cycles % 2L == 0L) NotesLayout.GRID else NotesLayout.LIST) }
