@@ -1,0 +1,85 @@
+{
+  "stage": 78,
+  "source": "f108421968abce41413009ea0eb6512c4fb36800",
+  "version": "1.10.48",
+  "code": 71,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "previous_verified": { "version": "1.10.47", "code": 70, "source": "520f0f822c66fcb6897b7a98432f36432fc79c99" },
+  "fixes": [
+    "month widget: autosave no longer rebuilds RemoteViews and rebinds the adapter every 2s on the caller thread; coalesced render on a dedicated background thread",
+    "month widget: render signature dedupe (month, selected day, alpha, language, colored tasks, completed style, date) and 1.5s data-notify throttle",
+    "month widget service: DB load bounded to 2s with fallback to the previous snapshot instead of an empty grid",
+    "theme: dynamic color scheme and typography memoized so unrelated settings changes no longer rebuild and repaint the whole tree"
+  ],
+  "known_limitations": [
+    "single recomposition on classic->glass switch remains; further fixes need device logcat/ANR trace",
+    "periodic app freezes cannot be reproduced without device logs; the largest known source of main-thread Binder churn was removed"
+  ],
+  "artifact_id": 14306326544,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/44032480703/artifacts/14306326544",
+  "zip_bytes": 15463443,
+  "zip_sha256": "5130b8d52dfaf75b8e1d62b6df2d389ab96437078c285ac26f8b9a093f3dfdf3",
+  "apk_name": "NoteLS-1.10.48-code71-permanent-signature.apk",
+  "apk_bytes": 27566791,
+  "apk_sha256": "921be1a6a2496695d68e3286d882de5327d6e7c4fc9671dad2cfa428e78bb32e",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signers": 1,
+  "dex_sha256": { "classes.dex": "f515050cb5f601dca702a5cafbc33d0438a7f75b18b48c6304f1f322a1fdc6eb" },
+  "profile_sha256": {
+    "assets/dexopt/baseline.prof": "24efa7f9b19b74580e43c8efe888051b5dbeb580a608a4471c62e4094dd4c85e",
+    "assets/dexopt/baseline.profm": "20026eab49224f83f0be2546d12c93273ed6df3cee6ce33ec895bb321e3ee8ea"
+  },
+  "room_schema": 18,
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "physical_device_installation_tested": false,
+  "real_paid_api_requests_made": false,
+  "ci": {
+    "run_id": 44029753094,
+    "job_id": 133858684383,
+    "event": "workflow_dispatch",
+    "branch": "codex/stage78-freezes",
+    "tests": 789,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "21m16s",
+    "reports_artifact_id": 14305662775,
+    "reports_zip_bytes": 729111,
+    "reports_zip_sha256": "f6f776ff7a430bf208ef4e9e4b31dd0d3a3a978cb41fc6f97237cd8441c5075d",
+    "cloud_debug_artifact_id": 14305383440,
+    "cloud_debug_apk_name": "NoteLS-1.10.48-code71-cloud-debug-NOT-UPDATE.apk"
+  },
+  "signed_release": {
+    "run_id": 44032480703,
+    "identity_job_id": 133867452865,
+    "release_job_id": 133867497055,
+    "event": "workflow_dispatch",
+    "ref": "refs/heads/main",
+    "artifact_id": 14306326544,
+    "zip_bytes": 15463443,
+    "build_lint_duration": "8m18s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "actual_checkout_source": "f108421968abce41413009ea0eb6512c4fb36800",
+    "ci_metadata_output": {
+      "version": "1.10.48",
+      "code": 71,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "921be1a6a2496695d68e3286d882de5327d6e7c4fc9671dad2cfa428e78bb32e"
+    }
+  },
+  "main": {
+    "fast_forward_from": "eb27620ef1d16432670e625eee12f7a01165cfae",
+    "fast_forward_to": "f108421968abce41413009ea0eb6512c4fb36800",
+    "method": "Git refs API in-place fast-forward"
+  }
+}
