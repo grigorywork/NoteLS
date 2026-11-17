@@ -124,6 +124,7 @@ fun NoteSyncTheme(
     glassAppearance: GlassAppearance = GlassAppearance(),
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     // Палитра и типографика пересобираются только при реальной смене темы:
     // раньше любое изменение настроек (прозрачность виджета, цитата) заново
     // строило динамическую схему и перекрашивало всё дерево — на стекле это
@@ -132,7 +133,6 @@ fun NoteSyncTheme(
         when {
             accentColor != AccentColor.DYNAMIC -> accentScheme(accentColor, darkTheme)
             dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val context = LocalContext.current
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
             darkTheme -> DarkColors
