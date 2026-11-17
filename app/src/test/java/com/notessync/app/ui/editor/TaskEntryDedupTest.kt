@@ -38,6 +38,7 @@ import org.robolectric.annotation.GraphicsMode
  * The checkbox stays visible in note mode, and neither action is duplicated in More.
  * Text formatting still has one panel.
  */
+@OptIn(ExperimentalTestApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w360dp-h800dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
