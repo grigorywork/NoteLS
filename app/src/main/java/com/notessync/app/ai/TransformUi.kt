@@ -24,8 +24,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-fun SettingsState.transformConfig() = TransformConfig(aiEnabled, aiProvider, if (aiProvider == AiProvider.GROQ_QWEN) GroqQwenTransport.MODEL else aiModel)
+fun SettingsState.transformConfig() = TransformConfig(aiEnabled, aiProvider, aiProvider.fixedModel ?: aiModel)
 fun TransformProblem.label(provider: AiProvider = AiProvider.OPENAI): String {
+    if (provider.isAdditionalFreeModel) additionalFreeProblemLabel(this)?.let { return it }
     if (provider == AiProvider.GROQ_QWEN) return uiText(when (this) {
         TransformProblem.BILLING -> "Groq отклонил запрос по квоте аккаунта. Проверьте тариф Free и его лимиты в Groq. Автоматического платного перехода нет."
         TransformProblem.REGION -> "Groq API недоступен для региона этого подключения."
@@ -65,7 +66,7 @@ fun TransformProblem.label(provider: AiProvider = AiProvider.OPENAI): String {
 @Composable
 fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository, secretStore: TransformSecrets? = null) {
     val context = LocalContext.current.applicationContext
-    val credentialProvider = if (state.aiProvider == AiProvider.GROQ_QWEN) AiProvider.GROQ_QWEN else AiProvider.OPENAI
+    val credentialProvider = if (state.aiProvider.isNetwork) state.aiProvider else AiProvider.OPENAI
     val vault = secretStore ?: remember(context, credentialProvider) { AndroidTransformSecrets(context, provider = credentialProvider) }
     val scope = rememberCoroutineScope()
     var key by remember(state.aiProvider) { mutableStateOf("") }
@@ -100,6 +101,8 @@ fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository,
                         ProviderLinks(state.aiProvider)
                     }
                     Text(uiText("Только выбранный текст отправляется в Groq после нажатия отправки. Условия хранения определяет Groq."), style = MaterialTheme.typography.bodySmall)
+                } else if (state.aiProvider.isAdditionalFreeModel) {
+                    FreeModelSettingsInfo(state.aiProvider)
                 } else {
                     Text(uiText("Только выбранный текст отправляется в OpenAI после нажатия отправки. Условия хранения и стоимость зависят от сервиса и модели."), style = MaterialTheme.typography.bodySmall)
                     Text(uiText("Подписка ChatGPT не включает API. Нужны API-ключ, доступная модель и отдельный баланс API-проекта."), style = MaterialTheme.typography.bodySmall)
@@ -110,7 +113,7 @@ fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository,
                     ProviderLinks(state.aiProvider)
                 }
                 Text(if (present) uiText("Ключ сохранён на этом устройстве") else uiText("API-ключ не настроен"), style = MaterialTheme.typography.bodySmall)
-                OutlinedTextField(key, { if (it.length <= 4096) key = it }, label = { Text(uiText(if (state.aiProvider == AiProvider.GROQ_QWEN) "Новый API-ключ Groq" else "Новый API-ключ OpenAI")) },
+                OutlinedTextField(key, { if (it.length <= 4096) key = it }, label = { Text(newTransformKeyLabel(state.aiProvider)) },
                     visualTransformation = PasswordVisualTransformation(), keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, autoCorrectEnabled = false), singleLine = true, modifier = Modifier.fillMaxWidth(), enabled = !busy)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { busy = true; problem = null; scope.launch {
@@ -133,6 +136,7 @@ fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository,
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProviderLinks(provider: AiProvider) {
+    if (provider.isAdditionalFreeModel) { FreeModelProviderLinks(provider); return }
     val uri = androidx.compose.ui.platform.LocalUriHandler.current
     val groq = provider == AiProvider.GROQ_QWEN
     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -165,8 +169,8 @@ fun EditorTransformDialog(viewModel: NoteEditorViewModel, settings: SettingsRepo
             val presented = settings.state.value.transformConfig()
             val provider = presented.provider
             TransformSession({ settings.state.value.transformConfig() },
-                AndroidTransformSecrets(context, provider = if (provider == AiProvider.GROQ_QWEN) AiProvider.GROQ_QWEN else AiProvider.OPENAI),
-                if (provider == AiProvider.GROQ_QWEN) GroqQwenTransport() else OpenAiTransport(),
+                AndroidTransformSecrets(context, provider = if (provider.isNetwork) provider else AiProvider.OPENAI),
+                createTransformTransport(provider),
                 { viewModel.transformSourceCurrent(captured) }, { viewModel.applyTransform(captured, it) }, presented = presented)
         }
         val sessionState by session.state.collectAsStateWithLifecycle()
@@ -207,7 +211,7 @@ internal fun TransformPreview(input: String, config: TransformConfig, state: Tra
                 OutlinedTextField(draft, { if (it.length <= TransformLimits.INPUT) draft = it }, modifier = Modifier.fillMaxWidth(), minLines = 3, maxLines = 8, enabled = !working,
                     label = { Text(uiText("Текст для преобразования")) })
                 if (config.provider.isNetwork) {
-                    Text(uiText(if (config.provider == AiProvider.GROQ_QWEN) "Этот текст будет отправлен в Groq для Qwen. Бесплатно только на тарифе Free в пределах квоты; хранение — по условиям Groq." else "Этот текст будет отправлен в OpenAI. Оплата и хранение — по условиям вашего аккаунта."), style = MaterialTheme.typography.bodySmall)
+                    Text(transformNetworkDisclosure(config.provider), style = MaterialTheme.typography.bodySmall)
                     ProviderLinks(config.provider)
                 }
             }
@@ -219,7 +223,7 @@ internal fun TransformPreview(input: String, config: TransformConfig, state: Tra
         } }, confirmButton = {
             TextButton(onClick = { if (preview) onApply(result) else onGenerate(draft, mode) },
                 enabled = !working && (if (preview) result.isNotBlank() && result.length <= TransformLimits.OUTPUT else draft.isNotBlank() && config.enabled && configProblem == null)) {
-                Text(uiText(if (preview) "Заменить текст" else if (config.provider == AiProvider.GROQ_QWEN) "Отправить в Groq" else if (config.provider.isNetwork) "Отправить в OpenAI" else "Преобразовать"))
+                Text(if (preview) uiText("Заменить текст") else transformSendLabel(config.provider))
             }
         }, dismissButton = { TextButton(onClick = onDismiss) { Text(uiText(if (working) "Отменить" else "Закрыть")) } })
 }

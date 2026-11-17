@@ -4,14 +4,28 @@ import com.notessync.app.i18n.uiText
 import com.notessync.app.voice.TextStructurer
 
 enum class AiProvider(private val text: String) {
-    LOCAL_RULES("Без сети (правила)"), OPENAI("OpenAI"), GROQ_QWEN("Qwen · Groq");
+    LOCAL_RULES("Без сети (правила)"), OPENAI("OpenAI"), GROQ_QWEN("Qwen · Groq"),
+    GEMINI_FREE("Gemini"), OPENROUTER_GEMMA("Gemma · OpenRouter"), OPENROUTER_NEMOTRON("Nemotron · OpenRouter");
     val label get() = uiText(text)
     val isNetwork get() = this != LOCAL_RULES
+    val isOpenRouter get() = this == OPENROUTER_GEMMA || this == OPENROUTER_NEMOTRON
+    val serviceName get() = when (this) {
+        GROQ_QWEN -> "Groq"; GEMINI_FREE -> "Google AI Studio"
+        OPENROUTER_GEMMA, OPENROUTER_NEMOTRON -> "OpenRouter"
+        else -> "OpenAI"
+    }
+    val fixedModel: String? get() = when (this) {
+        GROQ_QWEN -> GroqQwenTransport.MODEL
+        GEMINI_FREE -> FreeModelsTransport.GEMINI_MODEL
+        OPENROUTER_GEMMA -> FreeModelsTransport.GEMMA_MODEL
+        OPENROUTER_NEMOTRON -> FreeModelsTransport.NEMOTRON_MODEL
+        else -> null
+    }
 }
 enum class TransformMode(private val text: String) {
     TEXT("Связный текст"), LIST("Список"); val label get() = uiText(text)
 }
-data class TransformConfig(val enabled: Boolean = false, val provider: AiProvider = AiProvider.LOCAL_RULES, val model: String = if (provider == AiProvider.GROQ_QWEN) GroqQwenTransport.MODEL else "")
+data class TransformConfig(val enabled: Boolean = false, val provider: AiProvider = AiProvider.LOCAL_RULES, val model: String = provider.fixedModel.orEmpty())
 enum class TransformProblem { DISABLED, EMPTY, TOO_LARGE, KEY_MISSING, KEY_UNAVAILABLE, MODEL_MISSING, STALE, ACCESS,
     NETWORK, TIMEOUT, UNAUTHORIZED, RATE_LIMIT, BILLING, MODEL_UNAVAILABLE, FORBIDDEN, REGION, BAD_REQUEST,
     SERVICE_UNAVAILABLE, OUTPUT_LIMIT, PROVIDER, INCOMPLETE, REFUSED, SAVE }

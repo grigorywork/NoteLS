@@ -7,6 +7,8 @@
         <exclude domain="sharedpref" path="." />
         <exclude domain="sharedpref" path="ai_secrets.xml" />
         <exclude domain="sharedpref" path="ai_secrets_groq.xml" />
+        <exclude domain="sharedpref" path="ai_secrets_gemini.xml" />
+        <exclude domain="sharedpref" path="ai_secrets_openrouter.xml" />
         <exclude domain="sharedpref" path="backup_security.xml" />
         <exclude domain="sharedpref" path="backup_biometrics.xml" />
         <exclude domain="sharedpref" path="sync_trust.xml" />
@@ -25,6 +27,8 @@
         <exclude domain="sharedpref" path="." />
         <exclude domain="sharedpref" path="ai_secrets.xml" />
         <exclude domain="sharedpref" path="ai_secrets_groq.xml" />
+        <exclude domain="sharedpref" path="ai_secrets_gemini.xml" />
+        <exclude domain="sharedpref" path="ai_secrets_openrouter.xml" />
         <exclude domain="sharedpref" path="backup_security.xml" />
         <exclude domain="sharedpref" path="backup_biometrics.xml" />
         <exclude domain="sharedpref" path="sync_trust.xml" />
