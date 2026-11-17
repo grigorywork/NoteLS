@@ -14,6 +14,7 @@ import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.settings.SettingsRepository
 import com.notessync.app.settings.WidgetCompletedStyle
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -50,11 +51,15 @@ class CalendarFactory(
             Cell(date, YearMonth.from(date) == month)
         }
         dayEntries = try {
+            // Лаунчер ждёт данные ограниченное время: при занятой Room базе отдаём
+            // прошлый снимок вместо пустой сетки и не подвешиваем виджет.
             runBlocking {
-                loadWidgetDays(AppDatabase.get(context), gridStart.toEpochDay(), gridStart.plusDays(41).toEpochDay())
-            }
+                withTimeoutOrNull(DB_LOAD_TIMEOUT_MS) {
+                    loadWidgetDays(AppDatabase.get(context), gridStart.toEpochDay(), gridStart.plusDays(41).toEpochDay())
+                }
+            } ?: dayEntries
         } catch (e: Exception) {
-            emptyMap()
+            dayEntries
         }
         // Настройки читаем при каждом обновлении данных виджета.
         val settings = SettingsRepository.get(context).state.value
@@ -134,6 +139,7 @@ class CalendarFactory(
 
     companion object {
         private const val COMPLETED_GREEN = 0xFF81C784.toInt()
+        private const val DB_LOAD_TIMEOUT_MS = 2_000L
 
         private val TASK_COLORS = mapOf(
             "violet" to "#DCC2FF",

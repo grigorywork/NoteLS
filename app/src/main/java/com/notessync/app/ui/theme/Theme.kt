@@ -12,6 +12,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -123,25 +124,34 @@ fun NoteSyncTheme(
     glassAppearance: GlassAppearance = GlassAppearance(),
     content: @Composable () -> Unit
 ) {
-    val baseScheme = when {
-        accentColor != AccentColor.DYNAMIC -> accentScheme(accentColor, darkTheme)
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
-    } ?: if (darkTheme) DarkColors else LightColors
+    // Палитра и типографика пересобираются только при реальной смене темы:
+    // раньше любое изменение настроек (прозрачность виджета, цитата) заново
+    // строило динамическую схему и перекрашивало всё дерево — на стекле это
+    // давало заметные подвисания интерфейса.
+    val baseScheme = remember(accentColor, darkTheme, dynamicColor) {
+        when {
+            accentColor != AccentColor.DYNAMIC -> accentScheme(accentColor, darkTheme)
+            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                val context = LocalContext.current
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            }
+            darkTheme -> DarkColors
+            else -> LightColors
+        } ?: if (darkTheme) DarkColors else LightColors
+    }
 
     // Этап 37: матовое стекло — палитра становится полупрозрачной,
     // под контентом рисуется аврора в цвет акцента.
     val glass = interfaceStyle == InterfaceStyle.GLASS
-    val colorScheme = if (glass) baseScheme.glassified(darkTheme, glassAppearance, externalBackdrop = !glassBackdrop) else baseScheme
+    val colorScheme = remember(baseScheme, glass, darkTheme, glassAppearance, glassBackdrop) {
+        if (glass) baseScheme.glassified(darkTheme, glassAppearance, externalBackdrop = !glassBackdrop) else baseScheme
+    }
+    val typography = remember(fontScale, appFont) { scaledTypography(fontScale, appFont) }
 
     LocalizedUiContent {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = scaledTypography(fontScale, appFont)
+            typography = typography
         ) {
             CompositionLocalProvider(
                 LocalGlassTheme provides GlassTheme(

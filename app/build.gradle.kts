@@ -1,4 +1,4 @@
-import java.util.Properties
+﻿import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -8,7 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-// Подпись релиза (Этап 7): параметры в keystore.properties рядом с settings.gradle.kts.
+// РџРѕРґРїРёСЃСЊ СЂРµР»РёР·Р° (Р­С‚Р°Рї 7): РїР°СЂР°РјРµС‚СЂС‹ РІ keystore.properties СЂСЏРґРѕРј СЃ settings.gradle.kts.
 val keystoreProperties = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 70
-        versionName = "1.10.47"
+        versionCode = 71
+        versionName = "1.10.48"
         resourceConfigurations += listOf("ru", "en")
     }
 
@@ -49,8 +49,8 @@ android {
             }
         }
         debug {
-            // Единая постоянная подпись для всех выдаваемых сборок: обновления не
-            // должны конфликтовать из-за временного debug-ключа песочницы.
+            // Р•РґРёРЅР°СЏ РїРѕСЃС‚РѕСЏРЅРЅР°СЏ РїРѕРґРїРёСЃСЊ РґР»СЏ РІСЃРµС… РІС‹РґР°РІР°РµРјС‹С… СЃР±РѕСЂРѕРє: РѕР±РЅРѕРІР»РµРЅРёСЏ РЅРµ
+            // РґРѕР»Р¶РЅС‹ РєРѕРЅС„Р»РёРєС‚РѕРІР°С‚СЊ РёР·-Р·Р° РІСЂРµРјРµРЅРЅРѕРіРѕ debug-РєР»СЋС‡Р° РїРµСЃРѕС‡РЅРёС†С‹.
             if (keystoreProperties.getProperty("storeFile") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -86,7 +86,7 @@ tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
     forkEvery = 1L
 }
 
-// Экспорт схемы Room в app/schemas — позволяет отслеживать миграции БД в git.
+// Р­РєСЃРїРѕСЂС‚ СЃС…РµРјС‹ Room РІ app/schemas вЂ” РїРѕР·РІРѕР»СЏРµС‚ РѕС‚СЃР»РµР¶РёРІР°С‚СЊ РјРёРіСЂР°С†РёРё Р‘Р” РІ git.
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
@@ -118,7 +118,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
-    // QR-код (Этап 4): генерация + сканирование камерой.
+    // QR-РєРѕРґ (Р­С‚Р°Рї 4): РіРµРЅРµСЂР°С†РёСЏ + СЃРєР°РЅРёСЂРѕРІР°РЅРёРµ РєР°РјРµСЂРѕР№.
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.camera:camera-camera2:1.4.1")
     implementation("androidx.camera:camera-lifecycle:1.4.1")

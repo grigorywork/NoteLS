@@ -13,6 +13,9 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import com.notessync.app.i18n.UiCatalog
 import kotlin.math.roundToInt
 
@@ -43,7 +46,11 @@ class CalendarWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, ids: IntArray) {
-        ids.forEach { monthPrefs(context).edit().remove(keyMonth(it)).remove(keyDay(it)).apply() }
+        ids.forEach {
+            monthPrefs(context).edit().remove(keyMonth(it)).remove(keyDay(it)).apply()
+            rendered.remove(it)
+            lastNotifiedAt.remove(it)
+        }
     }
 
     companion object {
@@ -72,12 +79,26 @@ class CalendarWidgetProvider : AppWidgetProvider() {
         fun currentMonth(context: Context, id: Int): YearMonth =
             YearMonth.now().plusMonths(monthPrefs(context).getInt(keyMonth(id), 0).toLong())
 
-        /** Полная перерисовка виджета: шапка, сетка, прозрачность. */
-        fun updateWidget(context: Context, manager: AppWidgetManager, id: Int) {
+        /** Полная перерисовка виджета: шапка, сетка, прозрачность.
+         *  Повторная перерисовка с тем же снимком (автосохранение текста) только
+         *  перезапрашивает данные сетки: частая привязка RemoteViews через Binder
+         *  раньше копилась в лаунчере и виджет со временем переставал отвечать. */
+        fun updateWidget(context: Context, manager: AppWidgetManager, id: Int, force: Boolean = true) {
+            if (id == AppWidgetManager.INVALID_APPWIDGET_ID) return
             val settings = SettingsRepository.get(context).state.value
             val language = settings.uiLanguage
             val locale = language.locale
             val month = currentMonth(context, id)
+            val selected = selectedDay(context, id)
+            val signature = "$month|$selected|${settings.widgetAlpha}|${settings.uiLanguage}|" +
+                "${settings.widgetColoredTasks}|${settings.widgetCompletedStyle}|${LocalDate.now()}"
+            val now = System.currentTimeMillis()
+            if (!force && rendered[id] == signature) {
+                if (now - (lastNotifiedAt[id] ?: 0L) < NOTIFY_THROTTLE_MS) return
+                lastNotifiedAt[id] = now
+                runCatching { manager.notifyAppWidgetViewDataChanged(id, R.id.calendar_grid) }
+                return
+            }
             val views = RemoteViews(context.packageName, R.layout.widget_calendar)
 
             val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
@@ -131,7 +152,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
             views.setPendingIntentTemplate(R.id.calendar_grid, template)
-            val quick = QuickNoteActivity.intent(context, selectedDay(context, id)).apply {
+            val quick = QuickNoteActivity.intent(context, selected).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 data = android.net.Uri.parse("notels://widget/$id/quick-add")
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
@@ -140,10 +161,18 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
 
             manager.updateAppWidget(id, views)
-            manager.notifyAppWidgetViewDataChanged(id, R.id.calendar_grid)
+            rendered[id] = signature
+            lastNotifiedAt[id] = now
+            runCatching { manager.notifyAppWidgetViewDataChanged(id, R.id.calendar_grid) }
         }
 
         private val lastRefreshAt = java.util.concurrent.atomic.AtomicLong(0)
+        private val rendered = ConcurrentHashMap<Int, String>()
+        private val lastNotifiedAt = ConcurrentHashMap<Int, Long>()
+        private val refreshPending = AtomicBoolean(false)
+        private val refreshExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "notels-widget-refresh").apply { isDaemon = true }
+        }
 
         /**
          * Полная перерисовка всех виджетов. Аудит 2026-11-11: автосохранение
@@ -154,20 +183,28 @@ class CalendarWidgetProvider : AppWidgetProvider() {
          */
         fun refreshAll(context: Context, force: Boolean = true) {
             if (force) WeeklyWidgetUpdates.request(context)
-            if (!force) {
-                val now = System.currentTimeMillis()
-                val previous = lastRefreshAt.get()
-                if (now - previous < REFRESH_THROTTLE_MS) return
-                if (!lastRefreshAt.compareAndSet(previous, now)) return
+            val app = context.applicationContext
+            if (force) { renderAll(app, true); return }
+            val now = System.currentTimeMillis()
+            val previous = lastRefreshAt.get()
+            if (now - previous < REFRESH_THROTTLE_MS) return
+            if (!lastRefreshAt.compareAndSet(previous, now)) return
+            // Автосохранение заметки больше не вызывает Binder к лаунчеру в UI-потоке.
+            if (!refreshPending.compareAndSet(false, true)) return
+            refreshExecutor.execute {
+                try { renderAll(app, false) } catch (_: Throwable) { } finally { refreshPending.set(false) }
             }
+        }
+
+        private fun renderAll(context: Context, force: Boolean) {
             val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
+            manager.getAppWidgetIds(
                 ComponentName(context, CalendarWidgetProvider::class.java)
-            )
-            ids.forEach { updateWidget(context, manager, it) }
+            ).forEach { runCatching { updateWidget(context, manager, it, force) } }
         }
 
         private const val REFRESH_THROTTLE_MS = 2_000L
+        private const val NOTIFY_THROTTLE_MS = 1_500L
 
         private fun selfIntent(context: Context, id: Int, action: String): PendingIntent =
             PendingIntent.getBroadcast(
