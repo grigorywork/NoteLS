@@ -1,22 +1,23 @@
-name: Android checks
-
+name: Isolated UI freeze audit
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
-
+    inputs:
+      active_ms:
+        type: choice
+        description: Real active-operation duration, not virtual clock
+        default: '60000'
+        options: ['60000', '7200000']
 permissions:
   contents: read
-
 concurrency:
-  group: android-${{ github.ref }}
-  cancel-in-progress: true
-
+  group: isolated-ui-freeze-audit
+  cancel-in-progress: false
 jobs:
-  verify:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 155
+    env:
+      NOTELS_AUDIT_ACTIVE_MS: ${{ inputs.active_ms }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -24,42 +25,13 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Tests, lint and compilation
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
+      - name: Native UI audit on frozen application
+        run: ./gradlew :app:testDebugUnitTest --tests com.notessync.app.audit.UiFreezeProbeTest --console=plain --max-workers=2 --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: verification-reports
+          name: freeze-probe-reports
           path: |
             app/build/reports/tests/
-            app/build/reports/editor-preview/
-            app/build/reports/navigation-preview/
-            app/build/reports/voice-preview/
-            app/build/reports/settings-preview/
-            app/build/reports/quotes-preview/
-            app/build/reports/glass-preview/
-            app/build/reports/table-style-preview/
-            app/build/reports/lint-results-debug.*
-          if-no-files-found: ignore
-      - name: Prepare cloud debug APK (not an installed-app update)
-        id: debug_apk
-        run: |
-          python3 - <<'PYAPK'
-          import hashlib, json, os, pathlib, shutil
-          meta = json.loads(pathlib.Path('app/build/outputs/apk/debug/output-metadata.json').read_text())['elements'][0]
-          name = f"NoteLS-{meta['versionName']}-code{meta['versionCode']}-cloud-debug-NOT-UPDATE"
-          folder = pathlib.Path('cloud-debug-apk')
-          folder.mkdir(exist_ok=True)
-          apk = folder / (name + '.apk')
-          shutil.copy2('app/build/outputs/apk/debug/app-debug.apk', apk)
-          (folder / 'SHA256SUMS').write_text(hashlib.sha256(apk.read_bytes()).hexdigest() + '  ' + apk.name + '\n')
-          (folder / 'README.txt').write_text('Проверочная облачная Android Debug-сборка. НЕ обновление приложения с постоянной подписью. Ключ пользователя в CI не передаётся.\nИсточник: ' + os.environ['GITHUB_SHA'] + '\n')
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write('artifact_name=' + name + '\n')
-          PYAPK
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.debug_apk.outputs.artifact_name }}
-          path: cloud-debug-apk/
+            app/build/reports/freeze-probe/
           if-no-files-found: error
-          retention-days: 14
