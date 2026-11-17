@@ -1,0 +1,97 @@
+{
+  "stage": 79,
+  "source": "be99e5d910c452e4ac2ab1433d68777b06f37112",
+  "version": "1.10.49",
+  "code": 72,
+  "package": "com.notessync.app",
+  "debuggable": false,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "previous_verified": { "version": "1.10.48", "code": 71, "source": "f108421968abce41413009ea0eb6512c4fb36800" },
+  "changes": [
+    "settings: FormattingBarPosition (BOTTOM default, TOP) stored as formatting_bar_position with safe fallback",
+    "editor: single EditorFormattingPanel is rendered either in topBar under the title or in bottomBar, never twice",
+    "editor: More menu toggles 'Toolbar at top' / 'Toolbar at bottom' and applies immediately",
+    "editor: insert menus (tables, notebook, tags, reminder, audio, gallery, camera) move together with the panel",
+    "editor: selection state is still read inside topBar/bottomBar so typing does not recompose the whole screen"
+  ],
+  "tests_added": [
+    "com.notessync.app.ui.editor.FormattingPanelPositionTest: default keeps exactly one panel at the bottom",
+    "com.notessync.app.ui.editor.FormattingPanelPositionTest: stored top position draws the only panel above the text",
+    "com.notessync.app.ui.editor.FormattingPanelPositionTest: more menu moves the panel to the top and back without duplicates"
+  ],
+  "known_limitations": [
+    "top placement trades space under the title instead of space above the keyboard",
+    "no physical device installation was performed; verification is CI plus artifact inspection"
+  ],
+  "artifact_id": 14308619912,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/44039953479/artifacts/14308619912",
+  "zip_bytes": 15463892,
+  "zip_sha256": "74350e849a3b0d4e2def82e483a61119a99b805e2855ee35690a0a62b0864d27",
+  "apk_name": "NoteLS-1.10.49-code72-permanent-signature.apk",
+  "apk_bytes": 27583175,
+  "apk_sha256": "04b20c27824e4888bbf8ce743bde9381c9e134cc92ece2dcec05adfd05d3d026",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "signature_v2": true,
+  "signature_v3": true,
+  "signature_scheme_check": "APK Signing Block pair IDs 0x7109871a (v2) and 0xf05368c0 (v3) present",
+  "signers": 1,
+  "dex_sha256": { "classes.dex": "875f6ce628e8dd08e4af8f4d04e0631e939404c084cc2f9ca93e5d3176647ccd" },
+  "profile_sha256": {
+    "assets/dexopt/baseline.prof": "133db17453e65fcf5239e7a642935608698d99e1df14bcf67dbf4f9fb4923c33",
+    "assets/dexopt/baseline.profm": "6ef8ab88ab98ace8dae36e9c28c912119b88c6f7e29a25726ce609b18cbfca29"
+  },
+  "sidecars": {
+    "README.txt": "d82e527bfbd8fd4c5b259c86ed157ccc8447036c505e6f38a16c8bfb6795aa98",
+    "SHA256SUMS": "be9ef547897fa375c0e0d069074a4b0d9237fa0721a717b34d79e53dfbc9d220"
+  },
+  "room_schema": 18,
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "physical_device_installation_tested": false,
+  "real_paid_api_requests_made": false,
+  "ci": {
+    "run_id": 44036888370,
+    "job_id": 133881942850,
+    "event": "workflow_dispatch",
+    "branch": "codex/stage79-formatting-panel",
+    "tests": 792,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "lint_warnings": 16,
+    "lint_information": 2,
+    "build_duration": "23m55s",
+    "reports_artifact_id": 14309380246,
+    "reports_zip_bytes": 730204,
+    "reports_zip_sha256": "600997d880486bba9c6344410f841589a96c4d747cd885513415654a3babf61c",
+    "cloud_debug_artifact_id": 14309221106,
+    "cloud_debug_apk_name": "NoteLS-1.10.49-code72-cloud-debug-NOT-UPDATE.apk"
+  },
+  "signed_release": {
+    "run_id": 44039953479,
+    "identity_job_id": 133891829755,
+    "release_job_id": 133891886965,
+    "event": "workflow_dispatch",
+    "ref": "refs/heads/main",
+    "artifact_id": 14308619912,
+    "zip_bytes": 15463892,
+    "build_lint_duration": "9m39s",
+    "signing_contracts": 13,
+    "signing_contract_failures": 0,
+    "actual_checkout_source": "be99e5d910c452e4ac2ab1433d68777b06f37112",
+    "ci_metadata_output": {
+      "version": "1.10.49",
+      "code": 72,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "04b20c27824e4888bbf8ce743bde9381c9e134cc92ece2dcec05adfd05d3d026"
+    }
+  },
+  "main": {
+    "fast_forward_from": "bd98316c990cee7d92ec94a0ebae0ee228cac0e0",
+    "fast_forward_to": "be99e5d910c452e4ac2ab1433d68777b06f37112",
+    "fast_forward_via": "0677faddd184c308720c23e045d51396b7e8c2cd",
+    "method": "Git refs API in-place fast-forward"
+  }
+}
