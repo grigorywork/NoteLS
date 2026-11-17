@@ -63,6 +63,9 @@ class TaskDeadlineListUiTest {
             compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithTag("note-card-$watch").assertExists()
         ShadowSystemClock.advanceBy(Duration.ofMinutes(2))
+        // Wall time drives the SQL predicate; Compose's independent test clock
+        // drives LaunchedEffect.delay. Both clocks must reach the boundary.
+        compose.mainClock.advanceTimeBy(Duration.ofMinutes(2).toMillis())
         await { vm.taskClock.value > end &&
             compose.onAllNodesWithTag("note-card-$countdown").fetchSemanticsNodes().isEmpty() }
         compose.onNodeWithTag("note-card-$watch").assertExists()
