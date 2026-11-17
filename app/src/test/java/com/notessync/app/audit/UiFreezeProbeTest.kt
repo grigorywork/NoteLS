@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
@@ -86,7 +87,7 @@ class UiFreezeProbeTest {
         val counts = LongArray(4)
         val maximum = LongArray(4)
         val total = LongArray(4)
-        val report = File("build/reports/freeze-probe/progress.json").apply { parentFile.mkdirs() }
+        val report = File("build/reports/freeze-probe/progress.json").apply { parentFile?.mkdirs() }
         fun checkpoint(status: String) {
             val heap = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
             report.writeText("""{"status":"$status","started":"$started","observed":"${Instant.now()}","target_ms":$targetMs,"active_ms":${activeNanos / 1_000_000},"cycles":$cycles,"counts":${counts.contentToString()},"operation_total_ns":${total.contentToString()},"operation_max_ns":${maximum.contentToString()},"heap_bytes":$heap,"groups":["editor_history","task_mode","settings","list_scroll"],"sdk":28,"native_canvas":true,"physical_phone":false}""")
@@ -104,7 +105,7 @@ class UiFreezeProbeTest {
             while (activeNanos / 1_000_000 < targetMs) {
                 operation(0) {
                     compose.runOnIdle { screen = 0 }
-                    compose.onNodeWithTag("editor-task-toggle").assertIsDisplayed()
+                    compose.onNodeWithTag("editor-task-toggle").performScrollTo().assertIsDisplayed()
                     val changed = original + "\nИзменение $cycles"
                     compose.runOnIdle { editor.onContentChange(TextFieldValue(changed, TextRange(changed.length))) }
                     compose.waitForIdle()
@@ -114,11 +115,11 @@ class UiFreezeProbeTest {
                     compose.runOnIdle { assertEquals(original, editor.contentField.text) }
                 }
                 operation(1) {
-                    compose.onNodeWithTag("editor-task-toggle").assertIsOff().performClick()
+                    compose.onNodeWithTag("editor-task-toggle").assertIsOff().assertIsEnabled().performScrollTo().assertIsDisplayed().performClick()
                     compose.waitUntil(15_000) { compose.waitForIdle(); editor.isTask && !editor.taskProtectionBusy }
                     compose.onNodeWithTag("editor-task-toggle").assertIsOn()
                     compose.onNodeWithTag("editor-task-color").assertExists()
-                    compose.onNodeWithTag("editor-task-toggle").performClick()
+                    compose.onNodeWithTag("editor-task-toggle").performScrollTo().assertIsDisplayed().performClick()
                     compose.waitUntil(15_000) { compose.waitForIdle(); !editor.isTask && !editor.taskProtectionBusy }
                     compose.onNodeWithTag("editor-task-toggle").assertIsOff().assertIsDisplayed()
                 }
@@ -133,7 +134,16 @@ class UiFreezeProbeTest {
                     compose.onNodeWithText("История изменений").performScrollTo().assertIsDisplayed()
                     compose.onNodeWithContentDescription("Назад").performClick()
                     compose.onNodeWithTag("settings-group-appearance").performScrollTo().performClick()
-                    compose.onNodeWithText("Roboto").performScrollTo().assertExists()
+                    val font = AppFont.entries[(cycles % AppFont.entries.size).toInt()]
+                    compose.onNodeWithText(font.label).performScrollTo().performClick()
+                    compose.runOnIdle { assertEquals(font, settings.state.value.appFont) }
+                    if (cycles % 3L == 0L) {
+                        compose.onNodeWithTag("settings-glass-open").performScrollTo().performClick()
+                        compose.onNodeWithTag("glass-transparency").performScrollTo()
+                            .performSemanticsAction(SemanticsActions.SetProgress) { it(0.7f) }
+                        compose.onNodeWithTag("glass-save").performClick()
+                        compose.runOnIdle { assertEquals(0.7f, settings.state.value.glassAppearance.transparency, 0.001f) }
+                    }
                     compose.onNodeWithContentDescription("Назад").performClick()
                 }
                 operation(3) {
