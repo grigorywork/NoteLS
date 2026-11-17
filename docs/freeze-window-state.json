@@ -1,0 +1,29 @@
+{
+  "base": "1917722374422b73c0c0c20fa1a22014963b140a",
+  "root": "/workspace/scratch/freeze-audit-1.10.51",
+  "user_request": "UI freezes; audit2h then optimization2h, superseding prior3h+3h after82-84",
+  "phase": "audit",
+  "target_active_seconds": {
+    "audit": 7200,
+    "optimization": 7200
+  },
+  "active_intervals": [
+    {
+      "phase": "audit",
+      "start": "2026-11-17T18:37:55.223353+00:00",
+      "end": null,
+      "activity": "Verified fresh source; UI and main-thread audit"
+    }
+  ],
+  "excluded_intervals": [],
+  "old_automation_paused": true,
+  "app_changes": false,
+  "probe": {
+    "branch": "codex/freeze-audit-1.10.51",
+    "source": "dc3d8e378b4abacc2c2b6c72cbc3b3f6b67c07fe",
+    "kind": "one-minute smoke before sustained probe",
+    "status": "dispatched",
+    "app_unchanged": true,
+    "workflow_only_on_diagnostic_branch": true
+  }
+}
