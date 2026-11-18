@@ -31,6 +31,7 @@ internal fun EditorVoicePanel(ui: EditorUiState, settings: SettingsState, reposi
                     VoiceState.IDLE -> uiText(if (settings.voiceControl == VoiceControl.HOLD) "Удерживайте микрофон и говорите" else "Нажмите микрофон, затем ещё раз для остановки")
                     VoiceState.STARTING -> uiText("Запуск микрофона…")
                     VoiceState.PROCESSING -> uiText("Распознаю…")
+                    VoiceState.RESTARTING -> uiText("Продолжаю диктовку…")
                     VoiceState.LISTENING -> partial.ifBlank { uiText("Слушаю… Говорите.") }
                 }, maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
                 Text(settings.voiceLanguage.label + " · " + uiText(if (settings.voiceEngine == VoiceEngine.LOCAL) "На устройстве" else "Онлайн"),

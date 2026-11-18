@@ -175,7 +175,8 @@ class VoiceEditorTest {
             assertEquals(com.notessync.app.notes.history.EditorField.CONTENT, editor.editorField)
             assertTrue(recognizer.isDestroyed)
         }
-        compose.onNodeWithTag("voice-panel").assertDoesNotExist()
+        compose.onNodeWithTag("voice-panel").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Начать диктовку").assertIsDisplayed()
         compose.runOnIdle { editor.undo(); assertEquals("Original", editor.contentField.text) }
     }
     @Test fun `preview cancels active recognition and rejects direct and late insertion`() {
@@ -264,4 +265,61 @@ class VoiceEditorTest {
             output.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
         }
     }
+    private fun continuousDictation(control: VoiceControl) {
+        shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
+        SettingsRepository.get(app).setVoiceControl(control)
+        val editor = content()
+        val button = compose.onNodeWithTag("voice-input")
+        if (control == VoiceControl.HOLD) button.performTouchInput { down(center) } else button.performTouchInput { click() }
+        val firstRaw = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        val first = shadowOf(firstRaw)
+        compose.runOnIdle {
+            first.triggerOnReadyForSpeech(Bundle())
+            first.triggerOnPartialResults(result("Первая фраза"))
+            first.triggerOnEndOfSpeech(); first.triggerOnResults(result("Первая фраза"))
+            first.triggerOnResults(result("Дубль"))
+        }
+        compose.onNodeWithTag("voice-panel").assertIsDisplayed()
+        compose.onNodeWithTag("voice-input").assertIsEnabled()
+        compose.runOnIdle { shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(300)) }
+        val secondRaw = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        assertNotSame(firstRaw, secondRaw)
+        val second = shadowOf(secondRaw)
+        compose.runOnIdle {
+            second.triggerOnReadyForSpeech(Bundle())
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+            second.triggerOnError(SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofMillis(2001))
+        }
+        compose.onNodeWithTag("voice-panel").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Завершить диктовку").assertIsDisplayed()
+        val thirdRaw = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        assertNotSame(secondRaw, thirdRaw)
+        compose.runOnIdle {
+            val third = shadowOf(thirdRaw)
+            third.triggerOnReadyForSpeech(Bundle()); third.triggerOnEndOfSpeech()
+            third.triggerOnResults(result("Вторая фраза"))
+            assertEquals(1, Regex("Первая фраза").findAll(editor.contentField.text).count())
+            assertEquals(1, Regex("Вторая фраза").findAll(editor.contentField.text).count())
+            assertFalse(editor.contentField.text.contains("Дубль"))
+        }
+        if (control == VoiceControl.HOLD) button.performTouchInput { up() } else button.performTouchInput { click() }
+        val stopped = ShadowSpeechRecognizer.getLatestSpeechRecognizer()
+        compose.runOnIdle {
+            shadowOf(stopped).triggerOnError(SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofSeconds(20))
+            assertSame(stopped, ShadowSpeechRecognizer.getLatestSpeechRecognizer())
+            assertTrue(shadowOf(stopped).isDestroyed)
+            assertTrue(editor.contentField.text.contains("Первая фраза")); assertTrue(editor.contentField.text.contains("Вторая фраза"))
+        }
+        compose.onNodeWithTag("voice-panel").assertIsDisplayed()
+        compose.onNodeWithContentDescription(if (control == VoiceControl.HOLD) "Диктовка: удерживайте микрофон" else "Начать диктовку").assertIsDisplayed()
+    }
+    @Test fun `held pointer survives phrase commits and a five second silence until physical release`() {
+        continuousDictation(VoiceControl.HOLD)
+    }
+    @Test fun `tap session survives phrase commits and a five second silence until explicit stop`() {
+        continuousDictation(VoiceControl.TAP)
+    }
+
 }

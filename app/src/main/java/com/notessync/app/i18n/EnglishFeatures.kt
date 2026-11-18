@@ -1,6 +1,9 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addFeaturesEnglish() {
+    put("Продолжаю диктовку…", "Continuing dictation…")
+    put("При паузах диктовка продолжается. Отпустите микрофон или нажмите ещё раз для остановки. Уже распознанный текст сохраняется. Структуризация — локальные правила, без отдельного ИИ-сервиса.", "Dictation continues through pauses. Release the microphone or tap again to stop. Recognized text is kept. Text structuring uses local rules, without a separate AI service.")
+
     put("Без напоминания", "No reminder")
     put("Не удалось сохранить отметку. Попробуйте ещё раз.", "Could not save the status. Try again.")
     put("Сохранить и новая задача", "Save and add another task")

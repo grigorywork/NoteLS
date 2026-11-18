@@ -22,6 +22,10 @@ internal class AndroidVoiceRecognizerFactory(context: Context, private val langu
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag())
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            // Some services honor these patience hints, others still endpoint early.
+            // VoiceSession handles either behavior instead of relying on provider-specific timing.
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
             if (engine == VoiceEngine.LOCAL) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
         }
         // EXTRA_PREFER_OFFLINE alone is only a hint; it must never implement the strict LOCAL mode.

@@ -82,7 +82,7 @@ internal fun VoiceSettings(state: SettingsState, settings: SettingsRepository) {
                 }
             }
             Text(
-                uiText("Удерживайте микрофон и говорите; отпустите, чтобы получить текст. Режим нажатий и обычная клавиатура доступны, если удерживать неудобно. Структуризация — локальные правила, без отдельного ИИ-сервиса."),
+                uiText("При паузах диктовка продолжается. Отпустите микрофон или нажмите ещё раз для остановки. Уже распознанный текст сохраняется. Структуризация — локальные правила, без отдельного ИИ-сервиса."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)

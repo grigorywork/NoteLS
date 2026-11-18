@@ -6,7 +6,7 @@ import android.os.Looper
 import com.notessync.app.i18n.uiText
 import com.notessync.app.settings.VoiceEngine
 
-/** Android adapter. Created and used on Main; no service, model download or automatic restart. */
+/** Main-thread Android adapter. Phrases restart only inside the active foreground user gesture. */
 @androidx.annotation.MainThread
 class VoiceInputManager(context: Context, listener: Listener, languageTag: () -> String = { java.util.Locale.getDefault().toLanguageTag() }) {
     interface Listener {

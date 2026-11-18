@@ -80,15 +80,15 @@ class VoiceSessionTest {
         session.start(VoiceEngine.ONLINE); clock.fire()
         assertEquals(1, current.cancels); assertEquals(1, current.destroys); assertEquals(VoiceState.IDLE, session.state)
         session.start(VoiceEngine.LOCAL); current.callbacks.ready(); current.callbacks.endOfSpeech()
-        assertEquals(VoiceState.PROCESSING, session.state); assertEquals(15_000L, clock.jobs.last().delay)
+        assertEquals(VoiceState.RESTARTING, session.state); assertEquals(15_000L, clock.jobs.last().delay)
         clock.fire(); assertEquals(1, current.destroys)
         assertEquals(listOf(VoiceFailure.TIMEOUT, VoiceFailure.TIMEOUT), results.errors)
     }
-    @Test fun `bounded listening automatically finishes once and still accepts the final result`() {
+    @Test fun `a long provider phrase rotates without ending the user session and accepts its final result`() {
         session.start(VoiceEngine.ONLINE); current.callbacks.ready()
         assertEquals(90_000L, clock.jobs.last().delay)
         current.callbacks.ready(); clock.fire()
-        assertEquals(VoiceState.PROCESSING, session.state); assertEquals(1, current.finishes)
+        assertEquals(VoiceState.RESTARTING, session.state); assertEquals(1, current.finishes)
         current.callbacks.endOfSpeech(); current.callbacks.result("Long dictation")
         assertEquals(listOf("Long dictation"), results.finals); assertTrue(results.errors.isEmpty())
     }
@@ -102,13 +102,13 @@ class VoiceSessionTest {
     }
     @Test fun `creation and start exceptions return to idle without scheduled work`() {
         factory.createError = IllegalStateException("no service"); session.start(VoiceEngine.ONLINE)
-        assertEquals(VoiceState.IDLE, session.state); assertTrue(clock.jobs.isEmpty())
+        assertEquals(VoiceState.IDLE, session.state); assertTrue(clock.jobs.all { it.cancelled })
         factory.createError = null; factory.startError = SecurityException("permission revoked"); session.start(VoiceEngine.ONLINE)
         assertEquals(1, current.cancels); assertEquals(1, current.destroys); assertTrue(clock.jobs.all { it.cancelled })
         assertEquals(listOf(VoiceFailure.UNAVAILABLE, VoiceFailure.PERMISSION), results.errors)
     }
-    @Test fun `empty final text is not inserted and closes the session`() {
-        session.start(VoiceEngine.ONLINE); current.callbacks.result(" \n ")
+    @Test fun `empty final text after explicit stop is not inserted and closes the session`() {
+        session.start(VoiceEngine.ONLINE); session.finish(); current.callbacks.result(" \n ")
         assertTrue(results.finals.isEmpty()); assertEquals(listOf(VoiceFailure.NO_MATCH), results.errors)
         assertEquals(1, current.destroys); assertEquals(VoiceState.IDLE, session.state)
     }
@@ -120,7 +120,7 @@ class VoiceSessionTest {
         val text = "Удалить %1" + '$' + "s " + "x".repeat(32_000)
         current.callbacks.result(text)
         assertEquals(text.take(32_000), results.finals.single())
-        session.start(VoiceEngine.LOCAL)
+        session.finish(); session.start(VoiceEngine.LOCAL)
         current.callbacks.result("a".repeat(31_999) + "😀z")
         assertEquals(31_999, results.finals.last().length); assertFalse(results.finals.last().last().isHighSurrogate())
     }

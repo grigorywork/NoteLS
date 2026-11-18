@@ -119,6 +119,7 @@ fun NoteEditorScreen(
     // Этап 32: голосовой ввод.
     var voiceState by remember(viewModel) { mutableStateOf(com.notessync.app.voice.VoiceState.IDLE) }
     var voiceClosing by remember(viewModel) { mutableStateOf(false) }
+    var focusAfterVoice by remember(viewModel) { mutableStateOf(false) }
     var voicePartial by remember(viewModel) { mutableStateOf("") }
     var voiceStructureAtStart by remember(viewModel) { mutableStateOf(settingsState.voiceStructure) }
     var permissionPending by remember(viewModel) { mutableStateOf(false) }
@@ -131,16 +132,21 @@ fun NoteEditorScreen(
             object : com.notessync.app.voice.VoiceInputManager.Listener {
                 override fun onState(state: com.notessync.app.voice.VoiceState) {
                     voiceState = state
-                    if (state == com.notessync.app.voice.VoiceState.IDLE) voicePartial = ""
+                    if (state == com.notessync.app.voice.VoiceState.IDLE) {
+                        voicePartial = ""
+                        if (focusAfterVoice) scope.launch {
+                            if (ui.showVoice && !voiceClosing && !viewModel.accessDenied && !viewModel.previewMode &&
+                                !viewModel.isClosing && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) contentFocus.requestFocus()
+                        }
+                        focusAfterVoice = false
+                    }
                 }
                 override fun onPartial(text: String) { voicePartial = text }
                 override fun onFinal(text: String) {
                     if (!voiceClosing && !ui.modalOpen && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                         viewModel.insertVoiceText(text, voiceStructureAtStart)
-                        if (!viewModel.previewMode && !viewModel.accessDenied && !viewModel.isClosing) {
-                            ui.showVoice = false
-                            scope.launch { contentFocus.requestFocus() }
-                        }
+                        // A confirmed phrase is not the end of a hold/toggle gesture.
+                        // Keep the same panel and pointer target; do not move focus mid-dictation.
                     }
                 }
                 override fun onError(message: String) {
@@ -172,6 +178,11 @@ fun NoteEditorScreen(
                     uiText("Разрешение получено. Снова удерживайте микрофон для диктовки.")
                 else uiText("Разрешение получено. Нажмите микрофон ещё раз."))
         }
+    }
+    fun finishVoiceInput() {
+        focusAfterVoice = true
+        voiceManager.finish()
+        if (voiceState == com.notessync.app.voice.VoiceState.IDLE) focusAfterVoice = false
     }
     fun startVoiceInput() {
         if (!viewModel.isReady || viewModel.isClosing || viewModel.accessDenied || viewModel.previewMode || voiceClosing || captureState.busy || audioPlaying) return
@@ -363,7 +374,7 @@ fun NoteEditorScreen(
                 }, voiceEnabled = voiceEnabled, onVoice = { ui.showVoice = true },
                     onFormattingPanelChange = { SettingsRepository.get(context).setFormattingBarPosition(it) })
                 if (ui.showVoice) EditorVoicePanel(ui, settingsState, SettingsRepository.get(context), voiceState,
-                    voicePartial, voiceEnabled, onStart = { startVoiceInput() }, onFinish = voiceManager::finish,
+                    voicePartial, voiceEnabled, onStart = { startVoiceInput() }, onFinish = { finishVoiceInput() },
                     onCancel = voiceManager::cancel, onClose = { voiceManager.cancel(); ui.showVoice = false })
                 if (formattingOnTop) EditorFormattingPanel(viewModel, ui, settingsState, notebooks, "formatting-panel-top",
                     formattingAllowed(), captureState.busy, voiceClosing, onRecordAudioAction, onGalleryAction,
