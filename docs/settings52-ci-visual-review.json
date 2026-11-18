@@ -1,0 +1,9 @@
+{
+  "CI": 44280675812,
+  "main_duplicate_ci": 44284393510,
+  "main_duplicate_ci_conclusion": "cancelled",
+  "duplicate_reason": "Git refs fast-forward emitted push unexpectedly; identical successful branch CI already verified, stopped duplicate while manual Signed44284393976 proceeds.",
+  "unchanged_pngs": 16,
+  "changed_pngs": 3,
+  "review": "Agenda date changes18\u219219Nov; drawer daily quote changes with day. Settings/editor/voice/table/quotes/glass PNGs bit-identical."
+}

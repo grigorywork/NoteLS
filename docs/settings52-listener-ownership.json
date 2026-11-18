@@ -1,0 +1,12 @@
+{
+  "source": "ae77b141bc9a698a627ee53a851e42da5e572522",
+  "apk_sha256": "28d40b5760e03e5d3e7f7442abef46d49359448f2eb3d7fc1e7ba542a88269f6",
+  "repository_class": "LW4/l;",
+  "repository_implements_listener": true,
+  "singleton_field": "static volatile g:LW4/l;",
+  "constructor_this_register": "v2",
+  "registration": "invoke-interface {v3, v2}, SharedPreferences.registerOnSharedPreferenceChangeListener",
+  "separate_weak_only_callback_allocated": false,
+  "source_callback_preserved_in_actual_minified_apk": true,
+  "method": "Official build-tools35 dexdump on verified signed APK; constructor registers its own receiver retained by static singleton."
+}

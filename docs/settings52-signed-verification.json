@@ -1,0 +1,33 @@
+{
+  "artifact_id": 14418892838,
+  "archive_sha256": "86f84f00e77c8204bf24637a2695865dfbb05fbfed2a06bc4180dc0ce4b7b66f",
+  "archive_bytes": 15469964,
+  "workflow_run": {
+    "id": 44284393976,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "main",
+    "head_sha": "ae77b141bc9a698a627ee53a851e42da5e572522"
+  },
+  "source": "ae77b141bc9a698a627ee53a851e42da5e572522",
+  "package": "com.notessync.app",
+  "version": "1.10.52",
+  "code": 75,
+  "apk_name": "NoteLS-1.10.52-code75-permanent-signature.apk",
+  "apk_bytes": 27583175,
+  "apk_sha256": "28d40b5760e03e5d3e7f7442abef46d49359448f2eb3d7fc1e7ba542a88269f6",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "verified_schemes": [
+    2,
+    3
+  ],
+  "signers": 1,
+  "debuggable": false,
+  "dex_sha256": {
+    "classes.dex": "af258fcbcebe9d344b48928a9121e5154928798c81715c1c779a1d9ae895a301"
+  },
+  "readme_source_verified": true,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "physical_device_tested": false
+}

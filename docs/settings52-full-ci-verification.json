@@ -1,0 +1,42 @@
+{
+  "artifact_id": 14418406959,
+  "archive_sha256": "df8d3d24705d4788c862089d5195398ffe708203e9326b3f313ab9eff01e685d",
+  "archive_bytes": 872508,
+  "workflow_run": {
+    "id": 44280675812,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/settings-freeze-1.10.52",
+    "head_sha": "ae77b141bc9a698a627ee53a851e42da5e572522"
+  },
+  "tests": 800,
+  "failures": 0,
+  "ignored": 0,
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 16,
+    "Information": 2
+  },
+  "screenshots": {
+    "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+    "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+    "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+    "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+    "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+    "navigation-preview/agenda.png": "e91c3c2c3840dfdc9971a1188e71d769a545492b9746547da4639040e93aae9b",
+    "navigation-preview/completed.png": "e2c2658b9a9c3954eeb0034b478d55914df5a3f2c5be6ea02b886a41995f800e",
+    "navigation-preview/drawer.png": "5d7e8b689ecd892404fc10a94f11594a7e2a056511fa6d9d473be3c0d1e9aa1d",
+    "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+    "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+    "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+    "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+    "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+    "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+    "settings-preview/qwen-settings-320.png": "f58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1",
+    "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+    "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+    "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+    "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+  }
+}

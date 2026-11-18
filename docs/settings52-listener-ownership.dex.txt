@@ -1,0 +1,103 @@
+1784            -
+  Class descriptor  : 'LW4/l;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+    #0              : 'Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;'
+  Static fields     -
+    #0              : (in LW4/l;)
+      name          : 'e'
+      type          : 'Lk4/a;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in LW4/l;)
+      name          : 'f'
+      type          : '[F'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #2              : (in LW4/l;)
+      name          : 'g'
+      type          : 'LW4/l;'
+      access        : 0x0049 (PUBLIC STATIC VOLATILE)
+  Instance fields   -
+    #0              : (in LW4/l;)
+      name          : 'a'
+      type          : 'Landroid/content/Context;'
+      access        : 0x0011 (PUBLIC FINAL)
+    #1              : (in LW4/l;)
+      name          : 'b'
+      type          : 'Landroid/content/SharedPreferences;'
+      access        : 0x0011 (PUBLIC FINAL)
+    #2              : (in LW4/l;)
+      name          : 'c'
+      type          : 'Lb6/Y;'
+      access        : 0x0011 (PUBLIC FINAL)
+    #3              : (in LW4/l;)
+      name          : 'd'
+      type          : 'Lb6/Y;'
+      access        : 0x0011 (PUBLIC FINAL)
+  Direct methods    -
+    #0              : (in LW4/l;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 2
+      ins           : 0
+      outs          : 2
+      insns size    : 30 16-bit code units
+201780:                                        |[201780] W4.l.<clinit>:()V
+201790: 2200 7e14                              |0000: new-instance v0, Lk4/a; // type@147e
+201794: 1251                                   |0002: const/4 v1, #int 5 // #5
+201796: 7020 ec62 1000                         |0003: invoke-direct {v0, v1}, Lk4/a;.<init>:(I)V // method@62ec
+20179c: 6900 4418                              |0006: sput-object v0, LW4/l;.e:Lk4/a; // field@1844
+2017a0: 1240                                   |0008: const/4 v0, #int 4 // #4
+2017a2: 2300 ff20                              |0009: new-array v0, v0, [F // type@20ff
+2017a6: 2600 0700 0000                         |000b: fill-array-data v0, 00000012 // +00000007
+2017ac: 6900 4518                              |000e: sput-object v0, LW4/l;.f:[F // field@1845
+2017b0: 0e00                                   |0010: return-void
+2017b2: 0000                                   |0011: nop // spacer
+2017b4: 0003 0400 0400 0000 0000 803f 9a99 ... |0012: array-data (12 units)
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #1              : (in LW4/l;)
+      name          : '<init>'
+      type          : '(Landroid/content/Context;)V'
+      access        : 0x10001 (PUBLIC CONSTRUCTOR)
+      code          -
+      registers     : 4
+      ins           : 2
+      outs          : 3
+      insns size    : 54 16-bit code units
+2017cc:                                        |[2017cc] W4.l.<init>:(Landroid/content/Context;)V
+2017dc: 7010 225e 0200                         |0000: invoke-direct {v2}, Ljava/lang/Object;.<init>:()V // method@5e22
+2017e2: 6e10 b72a 0300                         |0003: invoke-virtual {v3}, Landroid/content/Context;.getApplicationContext:()Landroid/content/Context; // method@2ab7
+2017e8: 0c00                                   |0006: move-result-object v0
+2017ea: 5b20 4018                              |0007: iput-object v0, v2, LW4/l;.a:Landroid/content/Context; // field@1840
+2017ee: 1a00 e869                              |0009: const-string v0, "settings" // string@69e8
+2017f2: 1201                                   |000b: const/4 v1, #int 0 // #0
+2017f4: 6e30 ce2a 0301                         |000c: invoke-virtual {v3, v0, v1}, Landroid/content/Context;.getSharedPreferences:(Ljava/lang/String;I)Landroid/content/SharedPreferences; // method@2ace
+2017fa: 0c03                                   |000f: move-result-object v3
+2017fc: 5b23 4118                              |0010: iput-object v3, v2, LW4/l;.b:Landroid/content/SharedPreferences; // field@1841
+201800: 6e10 9320 0200                         |0012: invoke-virtual {v2}, LW4/l;.a:()LW4/m; // method@2093
+201806: 0c00                                   |0015: move-result-object v0
+201808: 7110 a341 0000                         |0016: invoke-static {v0}, Lb6/N;.b:(Ljava/lang/Object;)Lb6/Y; // method@41a3
+20180e: 0c00                                   |0019: move-result-object v0
+201810: 5b20 4218                              |001a: iput-object v0, v2, LW4/l;.c:Lb6/Y; // field@1842
+201814: 5b20 4318                              |001c: iput-object v0, v2, LW4/l;.d:Lb6/Y; // field@1843
+201818: 6201 440f                              |001e: sget-object v1, LM4/d;.a:Lx0/b0; // field@0f44
+20181c: 6e10 cd41 0000                         |0020: invoke-virtual {v0}, Lb6/Y;.getValue:()Ljava/lang/Object; // method@41cd
+201822: 0c00                                   |0023: move-result-object v0
+201824: 1f00 9e06                              |0024: check-cast v0, LW4/m; // type@069e
+201828: 5400 4f18                              |0026: iget-object v0, v0, LW4/m;.a:LM4/c; // field@184f
+20182c: 1a01 0e08                              |0028: const-string v1, "<set-?>" // string@080e
+201830: 7120 6015 1000                         |002a: invoke-static {v0, v1}, LN5/j;.f:(Ljava/lang/Object;Ljava/lang/String;)V // method@1560
+201836: 6201 440f                              |002d: sget-object v1, LM4/d;.a:Lx0/b0; // field@0f44
+20183a: 6e20 3c8c 0100                         |002f: invoke-virtual {v1, v0}, Lx0/b0;.setValue:(Ljava/lang/Object;)V // method@8c3c
+201840: 7220 342b 2300                         |0032: invoke-interface {v3, v2}, Landroid/content/SharedPreferences;.registerOnSharedPreferenceChangeListener:(Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;)V // method@2b34
+201846: 0e00                                   |0035: return-void
+      catches       : (none)
+      positions     :
+      locals        :
+
+  

@@ -2,7 +2,7 @@
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
   "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
-  "phase": "optimization",
+  "phase": "optimization_fixed_source_native_running",
   "target_active_seconds": {
     "audit": 10800,
     "optimization": 10800
@@ -32,8 +32,9 @@
     {
       "phase": "optimization",
       "start": "2026-11-18T09:56:43.452456+00:00",
-      "end": null,
-      "activity": "Confirmed root fix, release smoke guard, fullCI/Signed/minified Android GC regression and fixed-source long Native verification"
+      "end": "2026-11-18T10:35:46.712903+00:00",
+      "activity": "Confirmed root fix, release smoke guard, fullCI/Signed/minified Android GC regression and fixed-source long Native verification",
+      "note": "Preparation/CI/Signed/release-GC before long fixed-source Native completion. Overlap is not double counted; no claim that3h optimization already completed."
     }
   ],
   "excluded_intervals": [
@@ -56,7 +57,7 @@
     "never_merge_workflow": true,
     "workflow_started_at": "2026-11-18T06:38:44Z"
   },
-  "main_checkpoint": "44bd649e71099a15ea6e8be82a55e44de9d733eb",
+  "main_checkpoint": "ae77b141bc9a698a627ee53a851e42da5e572522",
   "user_details": {
     "location": "settings",
     "trigger": "after changing a parameter",
@@ -280,11 +281,11 @@
   "continuation": {
     "id": "Automation_9bad489b952c8191be90c89cd157657d",
     "is_enabled": true,
-    "next_run_time": "2026-11-18T01:54:08-08:00",
-    "schedule": "BEGIN:VEVENT\nDTSTART:20261118T095408Z\nEND:VEVENT",
-    "updated_at": "2026-11-18T06:39:10.141390+00:00",
-    "worker": "interactive_handed_off_to_scheduled_continuation",
-    "required_next_steps": "Verify current run44252856509 >=10800000ms. Then separate3h optimization/fix/fullCI/Signed/minified52-after-ARTGC-require-live. DeliverAPK thenstop."
+    "next_run_time": "2026-11-18T05:44:51-08:00",
+    "schedule": "BEGIN:VEVENT\nDTSTART:20261118T134451Z\nEND:VEVENT",
+    "updated_at": "2026-11-18T10:34:51.412076+00:00",
+    "worker": "scheduled worker hands off; no concurrent executor",
+    "required_next_steps": "Verify pending fixed52 Native3h proof, guarded closure, update state, fresh signedAPK52 ZIP delivery thenstop. Do not rebuild already verified unchanged app."
   },
   "audit_verified": {
     "run_id": 44252856509,
@@ -374,5 +375,55 @@
   "optimization_started_at": "2026-11-18T09:56:43.452456+00:00",
   "candidate_version": "1.10.52",
   "candidate_code": 75,
-  "interactive_worker": "active scheduled continuation; no duplicate"
+  "interactive_worker": "handed_off_after_checkpoint",
+  "application_fix_applied": true,
+  "optimization_complete": false,
+  "ci": {
+    "run_id": 44280675812,
+    "artifact_id": 14418406959,
+    "status": "success_verified",
+    "tests": 800,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0,
+    "source": "ae77b141bc9a698a627ee53a851e42da5e572522"
+  },
+  "signed": {
+    "run_id": 44284393976,
+    "artifact_id": 14418892838,
+    "status": "success_independently_verified",
+    "source": "ae77b141bc9a698a627ee53a851e42da5e572522",
+    "apk_sha256": "28d40b5760e03e5d3e7f7442abef46d49359448f2eb3d7fc1e7ba542a88269f6",
+    "version": "1.10.52",
+    "code": 75
+  },
+  "fixed_release_gc": {
+    "run_id": 44285995178,
+    "artifact_id": 14418139974,
+    "status": "success_verified",
+    "mode": "require-live",
+    "art_gc_confirmed": true,
+    "persist_and_ui_live": [
+      "LIGHT",
+      "1.15",
+      "ORANGE"
+    ],
+    "physical_phone": false
+  },
+  "optimization_probe": {
+    "branch": "codex/settings-fixed52-native-check",
+    "source": "ccd0d58d07e6004022439fe8b66b1c2235ea062b",
+    "app_source": "ae77b141bc9a698a627ee53a851e42da5e572522",
+    "run_id": 44286064780,
+    "job_id": 134738947416,
+    "status": "running",
+    "target_active_ms": 10800000,
+    "workflow_started_at": "2026-11-18T10:30:32Z",
+    "never_merge_whole_branch": true,
+    "expected_diff_only": [
+      "app/src/test/java/com/notessync/app/audit/UiFreezeProbeTest.kt",
+      ".github/workflows/android.yml"
+    ]
+  },
+  "handoff_at": "2026-11-18T10:35:46.712903+00:00"
 }

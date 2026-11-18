@@ -1,0 +1,42 @@
+{
+  "stage": "81 (исправление настроек)",
+  "slug": "settings-freeze-1.10.52",
+  "title": "Стабильное обновление настроек после сборки мусора",
+  "main_from": "8f47a17b78045e4a31e36de1fec619e61ccb36a6",
+  "changes_en": [
+    "SettingsRepository is the registered SharedPreferences listener and is retained by its existing singleton; removes release-only weak callback loss under R8.",
+    "A dedicated post-Signed Android API28 smoke checks the exact signed minified APK after explicit ARTGC: theme LIGHT, scale1.15, accent ORANGE must persist and select live.",
+    "Preserves settings chip layout, editor task controls, permanent signing identity and Room18/data2/security3."
+  ],
+  "changes_ru": [
+    "Устранена потеря обработчика настроек в минифицированной сборке: хранилище само является зарегистрированным слушателем и удерживается прежним singleton.",
+    "После Signed автоматически проверяется фактический подписанный APK на Android-эмуляторе после ARTGC: Светлая/Крупный/Оранжевый должны сохраняться и сразу выделяться в интерфейсе.",
+    "Вид с плашками и действия задачи сохранены; постоянная подпись и Room18/data2/security3 не изменены."
+  ],
+  "limitations_en": [
+    "No physical phone installation, GPU frame timing, battery or IME measurements.",
+    "NativeCanvas sustained UI timings are host test operations, not physical device performance measurements.",
+    "Free AI provider expansion and isolated diary stages82–84 remain deferred; no inference requests made."
+  ],
+  "limitations_ru": [
+    "Установка на физический телефон и измерения GPU, батареи и клавиатуры не выполнялись.",
+    "Трёхчасовые NativeCanvas-прогоны проверяют операции UI в тестовой среде; это не телефонные замеры FPS.",
+    "82–84 оставлены в очереди; платных или реальных AI-запросов не было."
+  ],
+  "audit_history": [
+    {
+      "run_id": 44252856509,
+      "source": "52218b6a2af59bf9c7a329776107733a04500655",
+      "kind": "verified pre-fix three-hour audit",
+      "active_ms": 10800196,
+      "cycles": 51154,
+      "artifact_id": 14416345656
+    },
+    {
+      "run_id": 44284393510,
+      "kind": "duplicate identical-source main CI cancelled after already verified full branch CI44280675812; manual Signed44284393976 retained"
+    }
+  ],
+  "audit_ru": "Аудит до исправления: run44252856509,10800196ms активных операций/51154циклов,1/0/0. Исправленная сборка дополнительно проверена minified release-GC и отдельным3h Native-прогоном; подробные фактические счётчики и SHA256 приведены в машиночитаемом доказательстве. Длительности вложенных групп не складывались повторно. Прежние failed/OOM прогоны не объявлены успешными3часами.",
+  "next_ru": "Работа по текущему окну завершена; после выдачи APK остановиться.82–84 отложены. WIP82/83 сохранены в codex/resume82-after-1.10.51 и codex/resume83-after-1.10.51; будущие версии перенумеровать с учётом выпущенного52/code75.85–89 и68/iPhone не начинать."
+}
