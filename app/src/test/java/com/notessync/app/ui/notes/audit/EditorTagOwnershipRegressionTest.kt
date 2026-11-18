@@ -37,8 +37,12 @@ class EditorTagOwnershipRegressionTest {
         assertTrue(vm.isReady); return vm
     }
     private suspend fun command(vm: NoteEditorViewModel, action: () -> Unit) {
-        val parent = vm.viewModelScope.coroutineContext[Job]!!; val previous = parent.children.toSet()
-        action(); withTimeout(15000) { parent.children.filter { it !in previous }.toList().joinAll() }
+        // isReady is set immediately before the permanent autosave collector starts.
+        // A snapshot of all new VM children can accidentally join that endless collector.
+        // Await only the finite tag-command owner; keep the same timeout and data assertions.
+        val owner = NoteEditorViewModel::class.java.getDeclaredField("tags").apply { isAccessible = true }
+            .get(vm) as com.notessync.app.ui.notes.EditorTags
+        action(); withTimeout(15000) { owner.awaitIdle() }
     }
     @Test fun `stale editor cannot attach a tag to replacement global identity`() = runBlocking {
         val note = NoteEntity(id = 1, title = "Original", content = "Body"); db.noteDao().upsert(note)
