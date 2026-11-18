@@ -1,4 +1,4 @@
-## Продолжение заблокировано GitHub Actions,18ноября23:10UTC
+## Продолжение заблокировано GitHub Actions,18ноября2026
 
 **84/дневник НЕ закрыт, нового проверенного APK56 нет.** Main app остаётся проверенным55/code78/Room18. WIP56/code79/Room19 сохранён в `codex/private-diary-1.10.56`, source `74bb2767c10793a1e0525ac4c87668a8d52b2752`. Локальная копия `/workspace/scratch/stage84-private-diary56`; GitHub REST only, локальный SDK/Gradle не запускать.
 
