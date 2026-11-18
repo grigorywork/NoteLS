@@ -2,7 +2,7 @@
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
   "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
-  "phase": "audit",
+  "phase": "audit_native_running",
   "target_active_seconds": {
     "audit": 10800,
     "optimization": 10800
@@ -18,8 +18,9 @@
     {
       "phase": "audit",
       "start": "2026-11-18T04:12:56.539632+00:00",
-      "end": null,
-      "activity": "Resume: inspect failed native memory probe and isolate settings path"
+      "end": "2026-11-18T05:00:42.054066+00:00",
+      "activity": "Interactive preparation: video/DEX audit, actual release-emulator GC reproduction, Native audit launch, verified automatic handoff",
+      "note": "Overlaps ongoing Native run; do not add the same wall time twice. Interactive worker ends at handoff."
     }
   ],
   "excluded_intervals": [
@@ -29,7 +30,7 @@
       "reason": "User requested stop, then restart after80min; reschedule was not saved, automation stayed disabled; resumed on explicit user message. Entire gap excluded."
     }
   ],
-  "old_automation_paused": true,
+  "old_automation_paused": false,
   "app_changes": false,
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
@@ -41,7 +42,7 @@
     "application_unchanged": true,
     "never_merge_workflow": true
   },
-  "main_checkpoint": "0085ac21a1bb6483c45a2491dcff0dc5ac48892c",
+  "main_checkpoint": "3689a30fc8ea67315f7e2c5dece57f0888e7d9c7",
   "user_details": {
     "location": "settings",
     "trigger": "after changing a parameter",
@@ -107,7 +108,7 @@
       "priority": "primary",
       "severity": "confirmed release retention bug",
       "area": "settings observer ownership",
-      "evidence": "Actual delivered minifiedAPK51: SettingsRepository=W4/m has Context/SharedPreferences/twoFlow fields only; constructor allocatesW4/l, registers local callback, never stores a strong reference. Android retains listeners weakly. Debug code retains private listener, R8 discards unused field. Explains stale settings after GC while scrolling works in user video. Need actual minified Android emulator reproduction, then make repository its own listener and release-specific guard."
+      "evidence": "Actual minifiedAPK51 loses callback field under R8. Android emulator run44237800230 after ART GC confirmed persisted LIGHT/1.15/ORANGE while all three UI selections stayed false. Verified ZIP/API/GC/result/XML/screenshots; production fix not yet applied."
     },
     {
       "id": "A01",
@@ -228,5 +229,16 @@
     ],
     "never_merge_workflow": true
   },
-  "preferred_fix": "Make SettingsRepository itself implement SharedPreferences.OnSharedPreferenceChangeListener, register(this), move existing callback body into override; singleton/state consumers retain the actual callback owner. No fragile unused listener field for R8 to discard. Validate full ordinary CI and actual minified APK after ART GC. Consider auto release smoke guard. No production code changes yet."
+  "preferred_fix": "Make SettingsRepository itself implement SharedPreferences.OnSharedPreferenceChangeListener, register(this), move existing callback body into override; singleton/state consumers retain the actual callback owner. No fragile unused listener field for R8 to discard. Validate full ordinary CI and actual minified APK after ART GC. Consider auto release smoke guard. No production code changes yet.",
+  "audit_not_complete": true,
+  "optimization_started": false,
+  "continuation": {
+    "id": "Automation_9bad489b952c8191be90c89cd157657d",
+    "is_enabled": true,
+    "next_run_time": "2026-11-17T23:44:40-08:00",
+    "schedule": "BEGIN:VEVENT\nDTSTART:20261118T074440Z\nEND:VEVENT",
+    "updated_at": "2026-11-18T05:00:11.706334+00:00",
+    "worker": "interactive_handed_off_to_scheduled_continuation",
+    "required_next_steps": "Verify pending 3h Native artifact; then separate3h optimization/fix/CI/Signed/minified-release-after-GC verification; deliver52; stop."
+  }
 }
