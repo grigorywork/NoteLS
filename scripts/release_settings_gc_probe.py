@@ -54,9 +54,22 @@ def selected(label):
     return any(n.get("selected") == "true" or n.get("checked") == "true" for n in path)
 
 def prefs():
-    root = ET.fromstring(adb("shell", "cat", f"/data/user/0/{PACKAGE}/shared_prefs/settings.xml"))
+    result = subprocess.run(["adb", "shell", "cat", f"/data/user/0/{PACKAGE}/shared_prefs/settings.xml"],
+                            timeout=15, text=True, capture_output=True)
+    if result.returncode != 0: return {}
+    root = ET.fromstring(result.stdout)
     allowed = {"theme_mode", "font_scale", "accent_color", "interface_style", "app_font"}
     return {n.get("name"): n.get("value", n.text) for n in root if n.get("name") in allowed}
+
+def wait_pref(key, value):
+    # apply() updates memory before the asynchronous settings.xml write completes.
+    # Persistence checks must wait for that write, independently of the UI-state check.
+    after = {}
+    for _ in range(50):
+        after = prefs()
+        if after.get(key) == value: return after
+        time.sleep(.2)
+    raise AssertionError(("Persisted preference did not settle", key, value, after))
 
 def snapshot(name):
     ET.ElementTree(tree()).write(OUT / f"{name}.xml", encoding="utf-8")
@@ -81,8 +94,7 @@ def force_gc():
     assert adb("shell", "pidof", "-s", PACKAGE).strip() == pid
 
 def check_change(label, key, value, expected_stale, scroll=False):
-    tap(label, scroll); after = prefs()
-    assert after.get(key) == value, (key, after)
+    tap(label, scroll); after = wait_pref(key, value)
     is_selected = selected(label)
     event = {"label": label, "key": key, "persisted": after[key], "ui_selected": is_selected}
     events.append(event); snapshot(key + "-after-gc")
@@ -96,7 +108,7 @@ def main():
     assert adb("shell", "id", "-u").strip() == "0"
     apk = Path(args.apk); digest = hashlib.sha256(apk.read_bytes()).hexdigest()
     adb("install", "-r", str(apk)); open_settings(); tap("Тёмная")
-    assert prefs()["theme_mode"] == "DARK"
+    wait_pref("theme_mode", "DARK")
     adb("shell", "am", "force-stop", PACKAGE); open_settings()
     assert selected("Тёмная"); snapshot("dark-before-gc"); force_gc()
     check_change("Светлая", "theme_mode", "LIGHT", args.expect_stale)
