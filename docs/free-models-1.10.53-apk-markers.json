@@ -1,0 +1,18 @@
+{
+  "apk_sha256": "4242d659cfb917bba3e4cad95d3359d03c9ea866ff25018caf526c36d15f7835",
+  "dex_sha256": "00cb81675966ba14e79330eb67199b7ec03c82be0db476d9fc9e52305d308279",
+  "markers": [
+    "gemini-3.5-flash-lite",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3.5-lightning:free",
+    "qwen/qwen3.8-27b",
+    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    "https://openrouter.ai/api/v1/chat/completions",
+    "ai_secrets_gemini",
+    "ai_secrets_openrouter",
+    "notels.ai.gemini.v1",
+    "notels.ai.openrouter.v1"
+  ],
+  "all_present": true,
+  "real_inference_calls": false
+}
