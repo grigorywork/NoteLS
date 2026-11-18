@@ -33,14 +33,15 @@
   "app_changes": false,
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
-    "source": "8c38bee09989be8308fe13a46ca1a69951817c4f",
-    "kind": "2h target not reached;294696ms active",
-    "status": "failed_heap_oom_needs_isolation",
-    "app_unchanged": true,
-    "workflow_only_on_diagnostic_branch": true,
-    "run_id": 44155003357
+    "source": "d60554b7e3f933bfa32cdffd1d7fe97388ab6c4f",
+    "run_id": 44238005002,
+    "status": "running",
+    "target_active_ms": 10800000,
+    "kind": "three-hour sustained NativeCanvas UI audit; exact counters only from final artifact",
+    "application_unchanged": true,
+    "never_merge_workflow": true
   },
-  "main_checkpoint": "89bb22bd856f66dab99cc6bac539185971df7751",
+  "main_checkpoint": "0085ac21a1bb6483c45a2491dcff0dc5ac48892c",
   "user_details": {
     "location": "settings",
     "trigger": "after changing a parameter",
@@ -89,9 +90,25 @@
       "cycles": 496,
       "heap_bytes": 535411352,
       "reason": "Java heap OOM in cumulative native UI diagnostic. Need separate framework-retained input/animation state from actual app leak; allocation stack alone is not cause. Already dispatched before user pause, finished after stop; excluded from requested post-pause duration."
+    },
+    {
+      "run_id": 44235957414,
+      "source": "d4fd84ccaf372487902db9cabbca1d0e1b390bbe",
+      "result": "success",
+      "kind": "60s smoke with dismissed-dialog test registry cleanup",
+      "artifact_id": 14397990694,
+      "tests": 1,
+      "app_unchanged": true
     }
   ],
   "findings": [
+    {
+      "id": "A07",
+      "priority": "primary",
+      "severity": "confirmed release retention bug",
+      "area": "settings observer ownership",
+      "evidence": "Actual delivered minifiedAPK51: SettingsRepository=W4/m has Context/SharedPreferences/twoFlow fields only; constructor allocatesW4/l, registers local callback, never stores a strong reference. Android retains listeners weakly. Debug code retains private listener, R8 discards unused field. Explains stale settings after GC while scrolling works in user video. Need actual minified Android emulator reproduction, then make repository its own listener and release-specific guard."
+    },
     {
       "id": "A01",
       "severity": "candidate",
@@ -156,5 +173,60 @@
       "Selected bundled font preloading on explicit IO, then publish preference only if request is current; rapid last-tap wins/cancel on disposal; preserve pill layout"
     ]
   },
-  "timing_note": "Do not count unknown gap or post-stop CI toward3h. Before-pause reviewed interval is preparatory evidence; latest3h window begins on explicit resume."
+  "timing_note": "Do not count unknown gap or post-stop CI toward3h. Before-pause reviewed interval is preparatory evidence; latest3h window begins on explicit resume.",
+  "video_evidence": {
+    "video_sha256": "8830b2ca7687d95de7e9be90cf7166240fc52bffb7a56733ccd2d08f814f9573",
+    "duration_s": 8.853333,
+    "size_px": [
+      1216,
+      2688
+    ],
+    "observed": "Dark/classic settings; visible taps on Light and Large leave Dark/Normal selected; scrolling continues. Nunito/Violet remain selected. Clip demonstrates stale choices rather than a fully unresponsive scroll surface.",
+    "apk_sha256": "c95f8604c8ef77578fd2e3a58398bd2dca1f6574e6d54b74848a8c3c001a53df",
+    "minified_repository_class": "LW4/m;",
+    "minified_listener_class": "LW4/l;",
+    "repository_instance_fields": [
+      "Context a",
+      "SharedPreferences b",
+      "StateFlow c",
+      "StateFlow d"
+    ],
+    "listener_field_present": false,
+    "repository_implements_listener": false,
+    "constructor_registers_local_listener_without_storing": true,
+    "source_listener_is_private_final_but_r8_eliminated": true
+  },
+  "primary_focus": "Actual release-only lost SharedPreferences callback; stale UI after parameter changes, per video. Font/Binder work secondary until root issue fixed.",
+  "release_gc_probe": {
+    "branch": "codex/settings-release-gc-audit",
+    "source": "c5880b0b10405c0b3faf508d4954025078d7e679",
+    "run_id": 44237800230,
+    "result": "successfully_reproduced_bug",
+    "artifact_id": 14398092931,
+    "artifact_sha256": "8c852bf93e7950cb39e7c7e500d393bbe804c2f881de1e9432f1979cd7d10640",
+    "apk_version": "1.10.51",
+    "apk_sha256": "c95f8604c8ef77578fd2e3a58398bd2dca1f6574e6d54b74848a8c3c001a53df",
+    "real_android_emulator": true,
+    "physical_phone": false,
+    "art_gc_confirmed": true,
+    "changes": [
+      {
+        "pref": "theme_mode",
+        "persisted": "LIGHT",
+        "ui_selected": false
+      },
+      {
+        "pref": "font_scale",
+        "persisted": "1.15",
+        "ui_selected": false
+      },
+      {
+        "pref": "accent_color",
+        "persisted": "ORANGE",
+        "ui_selected": false
+      }
+    ],
+    "never_merge_workflow": true
+  },
+  "preferred_fix": "Make SettingsRepository itself implement SharedPreferences.OnSharedPreferenceChangeListener, register(this), move existing callback body into override; singleton/state consumers retain the actual callback owner. No fragile unused listener field for R8 to discard. Validate full ordinary CI and actual minified APK after ART GC. Consider auto release smoke guard. No production code changes yet."
 }

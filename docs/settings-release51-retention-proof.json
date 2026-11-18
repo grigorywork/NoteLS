@@ -1,0 +1,22 @@
+{
+  "video_sha256": "8830b2ca7687d95de7e9be90cf7166240fc52bffb7a56733ccd2d08f814f9573",
+  "duration_s": 8.853333,
+  "size_px": [
+    1216,
+    2688
+  ],
+  "observed": "Dark/classic settings; visible taps on Light and Large leave Dark/Normal selected; scrolling continues. Nunito/Violet remain selected. Clip demonstrates stale choices rather than a fully unresponsive scroll surface.",
+  "apk_sha256": "c95f8604c8ef77578fd2e3a58398bd2dca1f6574e6d54b74848a8c3c001a53df",
+  "minified_repository_class": "LW4/m;",
+  "minified_listener_class": "LW4/l;",
+  "repository_instance_fields": [
+    "Context a",
+    "SharedPreferences b",
+    "StateFlow c",
+    "StateFlow d"
+  ],
+  "listener_field_present": false,
+  "repository_implements_listener": false,
+  "constructor_registers_local_listener_without_storing": true,
+  "source_listener_is_private_final_but_r8_eliminated": true
+}

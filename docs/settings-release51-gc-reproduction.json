@@ -1,0 +1,53 @@
+{
+  "artifact": {
+    "id": 14398092931,
+    "node_id": "MDg6QXJ0aWZhY3QxNDM5ODA5MjkzMQ==",
+    "name": "minified-settings-gc-baseline",
+    "size_in_bytes": 515087,
+    "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/14398092931",
+    "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/14398092931/zip",
+    "expired": false,
+    "digest": "sha256:8c852bf93e7950cb39e7c7e500d393bbe804c2f881de1e9432f1979cd7d10640",
+    "created_at": "2026-11-18T04:33:03Z",
+    "updated_at": "2026-11-18T04:33:03Z",
+    "expires_at": "2027-02-16T04:30:33Z",
+    "workflow_run": {
+      "id": 44237800230,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/settings-release-gc-audit",
+      "head_sha": "c5880b0b10405c0b3faf508d4954025078d7e679"
+    }
+  },
+  "result": {
+    "status": "success",
+    "mode": "reproduce-stale",
+    "apk_sha256": "c95f8604c8ef77578fd2e3a58398bd2dca1f6574e6d54b74848a8c3c001a53df",
+    "minified_installed_apk": true,
+    "art_gc_confirmed": true,
+    "physical_phone": false,
+    "events": [
+      {
+        "label": "Светлая",
+        "key": "theme_mode",
+        "persisted": "LIGHT",
+        "ui_selected": false
+      },
+      {
+        "label": "Крупный",
+        "key": "font_scale",
+        "persisted": "1.15",
+        "ui_selected": false
+      },
+      {
+        "label": "Оранжевый",
+        "key": "accent_color",
+        "persisted": "ORANGE",
+        "ui_selected": false
+      }
+    ]
+  },
+  "archive_verified": true,
+  "bug_reproduced_on_android_emulator": true,
+  "app_fixed": false
+}
