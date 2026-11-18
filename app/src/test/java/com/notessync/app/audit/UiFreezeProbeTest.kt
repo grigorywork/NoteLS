@@ -33,6 +33,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowSystemClock
+import org.robolectric.shadows.ShadowTrace
 import org.robolectric.shadows.ShadowDialog
 import java.time.Duration
 
@@ -205,7 +206,19 @@ class UiFreezeProbeTest {
                     compose.onNodeWithTag("notes-cards").assertIsDisplayed()
                 }
                 cycles++
-                if (cycles % 10L == 0L) { checkpoint("running"); println("FREEZE_AUDIT cycles=$cycles active_ms=${activeNanos / 1_000_000}") }
+                if (cycles % 10L == 0L) {
+                    // ShadowTrace retains every completed Compose trace forever in a test-only
+                    // ThreadLocal queue. Release completed trace history at an idle boundary;
+                    // do not clear live sections or alter application/Compose state.
+                    compose.runOnIdle {
+                        assertTrue("No live UI trace may be discarded", ShadowTrace.getCurrentSections().isEmpty())
+                        ShadowTrace.reset()
+                    }
+                    assertTrue("No live driver trace may be discarded", ShadowTrace.getCurrentSections().isEmpty())
+                    ShadowTrace.reset()
+                    checkpoint("running")
+                    println("FREEZE_AUDIT cycles=$cycles active_ms=${activeNanos / 1_000_000}")
+                }
             }
             assertTrue(counts.all { it > 0 }); assertTrue(activeNanos / 1_000_000 >= targetMs)
             checkpoint("success")
