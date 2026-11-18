@@ -48,7 +48,9 @@ class BootCountdownRegressionTest {
             val pending = requireNotNull(shadowOf(receiver).originalPendingResult)
             Shadow.extract<ShadowBroadcastPendingResult>(pending).future.get(10, TimeUnit.SECONDS)
             val intents = shadowOf(alarms).scheduledAlarms.map { shadowOf(it.operation).savedIntent }
-            assertTrue("Ordinary reminder is a positive control for boot completion", intents.any {
+            val recovery = app.getSharedPreferences("alarm_recovery", Context.MODE_PRIVATE).all
+            val diagnostic = "alarms=$intents now=${System.currentTimeMillis()} at=$at page=${db.noteDao().getAlarmPage(0, System.currentTimeMillis())} recovery=$recovery"
+            assertTrue("Ordinary reminder is a positive control for boot completion: $diagnostic", intents.any {
                 it.getLongExtra(ReminderReceiver.EXTRA_NOTE_ID, -1) == reminder && !it.getBooleanExtra(ReminderReceiver.EXTRA_IS_TIMER, false)
             })
             assertTrue("Running countdown must also be restored after boot", intents.any {

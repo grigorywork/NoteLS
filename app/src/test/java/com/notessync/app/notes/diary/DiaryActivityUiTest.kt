@@ -135,6 +135,7 @@ class DiaryActivityUiTest {
         compose.onNodeWithContentDescription("Назад").performClick()
         await { exists(hasContentDescription("Меню")) }
         compose.onNodeWithText(legacy.title).assertDoesNotExist(); compose.onNodeWithText(task.title).assertDoesNotExist()
+        await { runCatching { compose.onNodeWithText(dated.title).assertIsDisplayed() }.isSuccess }
         compose.onNodeWithText(dated.title).assertIsDisplayed()
     }
 }

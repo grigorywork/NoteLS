@@ -55,8 +55,15 @@ class DiaryScreenUiTest {
         SettingsRepository.get(app).apply { setUiLanguage(UiLanguage.RUSSIAN); setBackupFrequency(BackupFrequency.MANUAL) }
     }
     @After fun after() { models.clear(); DiarySession.lock(); ProtectionSession.lockAll(); AppDatabase.closeInstance() }
-    private fun await(condition: () -> Boolean) = compose.waitUntil(15_000) {
-        ShadowSystemClock.advanceBy(Duration.ofMillis(100)); compose.waitForIdle(); condition()
+    private fun await(condition: () -> Boolean) {
+        try { compose.waitUntil(15_000) {
+            ShadowSystemClock.advanceBy(Duration.ofMillis(100)); compose.waitForIdle(); condition()
+        } } catch (failure: Throwable) {
+            snapshot("failure")
+            val model = models["diary"] as? DiaryViewModel
+            throw AssertionError("Diary state: books=${model?.books?.value?.map { it.id }} message=${model?.message?.value}\n" +
+                compose.onRoot(useUnmergedTree = true).printToString(), failure)
+        }
     }
     private fun exists(matcher: SemanticsMatcher) = compose.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
     private fun content(): DiaryViewModel {
@@ -87,6 +94,7 @@ class DiaryScreenUiTest {
 
     private fun enter() {
         compose.onNodeWithTag("diary-enter").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("diary-enter").assertIsEnabled()
         val field = compose.onNodeWithTag("diary-enter").fetchSemanticsNode().boundsInRoot
         val viewport = compose.onNodeWithTag("diary-viewport").fetchSemanticsNode().boundsInRoot
         assertTrue("button=$field keyboardTop=${viewport.bottom - keyboardDp.intValue*density}",
