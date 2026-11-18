@@ -16,9 +16,27 @@ events = []
 def adb(*args, binary=False):
     return subprocess.check_output(["adb", *map(str, args)], timeout=40, text=not binary)
 
+hierarchy_retries = 0
+
 def tree():
-    adb("shell", "uiautomator", "dump", "/sdcard/notels-settings-probe.xml")
-    return ET.fromstring(adb("shell", "cat", "/sdcard/notels-settings-probe.xml"))
+    global hierarchy_retries
+    path = "/sdcard/notels-settings-probe.xml"
+    failure = None
+    for attempt in range(5):
+        # uiautomator can print 'null root node' yet exit0, leaving its OLD file.
+        # Never let a failed capture masquerade as the freshly updated UI.
+        adb("shell", "rm", "-f", path)
+        try:
+            adb("shell", "uiautomator", "dump", path)
+            adb("shell", "test", "-s", path)
+            root = ET.fromstring(adb("shell", "cat", path))
+            assert root.tag == "hierarchy" and len(root), "Empty hierarchy"
+            return root
+        except (subprocess.CalledProcessError, ET.ParseError, AssertionError) as error:
+            failure = error
+            hierarchy_retries += 1
+            time.sleep(.2)
+    raise AssertionError("No fresh valid UI hierarchy after5 attempts") from failure
 
 def match_path(root, label, parents=()):
     for node in root:
@@ -95,8 +113,16 @@ def force_gc():
 
 def check_change(label, key, value, expected_stale, scroll=False):
     tap(label, scroll); after = wait_pref(key, value)
-    is_selected = selected(label)
-    event = {"label": label, "key": key, "persisted": after[key], "ui_selected": is_selected}
+    # Persistence and accessibility publication are asynchronous, separate checks.
+    # A permanently lost callback still fails; stale-file fallback is never accepted.
+    started = time.monotonic()
+    while True:
+        is_selected = selected(label)
+        if expected_stale or is_selected or time.monotonic() - started >= 10:
+            break
+        time.sleep(.2)
+    event = {"label": label, "key": key, "persisted": after[key], "ui_selected": is_selected,
+             "ui_wait_ms": round((time.monotonic() - started) * 1000)}
     events.append(event); snapshot(key + "-after-gc")
     assert is_selected != expected_stale, event
 
@@ -116,7 +142,8 @@ def main():
     check_change("Оранжевый", "accent_color", "ORANGE", args.expect_stale, scroll=True)
     result = {"status": "success", "mode": "reproduce-stale" if args.expect_stale else "require-live",
               "apk_sha256": digest, "minified_installed_apk": True, "art_gc_confirmed": True,
-              "physical_phone": False, "events": events}
+              "physical_phone": False, "fresh_hierarchy_required": True,
+              "hierarchy_retries": hierarchy_retries, "events": events}
     (OUT / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2))
     print(json.dumps(result, ensure_ascii=False))
 
