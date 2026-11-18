@@ -1,0 +1,342 @@
+{
+  "artifact_id": 14447320410,
+  "archive_sha256": "4fe7efb9567575c6d954fb7d1d63339071c569caf5495e266988e0d7277ecad1",
+  "archive_bytes": 15475218,
+  "workflow_run": {
+    "id": 44345282911,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "main",
+    "head_sha": "bd94266ffaa55f46b65a5b592114557d5a1e606a"
+  },
+  "source": "bd94266ffaa55f46b65a5b592114557d5a1e606a",
+  "package": "com.notessync.app",
+  "version": "1.10.54",
+  "code": 77,
+  "apk_name": "NoteLS-1.10.54-code77-permanent-signature.apk",
+  "apk_bytes": 27583175,
+  "apk_sha256": "82dd8406d3912cb782cf573bfbfa8d2feacf94828db7696d541a60586c80e4d1",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "verified_schemes": [
+    2,
+    3
+  ],
+  "signers": 1,
+  "debuggable": false,
+  "dex_sha256": {
+    "classes.dex": "8f25dcd56bf3fd2c0890850aab34e660c039a094dc662f94fda9105758ded2b9"
+  },
+  "readme_source_verified": true,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "physical_device_tested": false,
+  "stage": 83,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/44345282911/artifacts/14447320410",
+  "additional_evidence": {},
+  "minified_release_gc": {
+    "run_id": 44347066251,
+    "source": "bd94266ffaa55f46b65a5b592114557d5a1e606a",
+    "artifact_id": 14447555432,
+    "zip_sha256": "f1acc9a183a6534de0185f9a6d26e44e89c2feb5ebc4b2effb49326b6dbc91a1",
+    "zip_bytes": 499742,
+    "input": {
+      "signed_run_id": "44345282911",
+      "source": "bd94266ffaa55f46b65a5b592114557d5a1e606a",
+      "apk_sha256": "82dd8406d3912cb782cf573bfbfa8d2feacf94828db7696d541a60586c80e4d1",
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "non_debuggable": true
+    },
+    "result": {
+      "status": "success",
+      "mode": "require-live",
+      "apk_sha256": "82dd8406d3912cb782cf573bfbfa8d2feacf94828db7696d541a60586c80e4d1",
+      "minified_installed_apk": true,
+      "art_gc_confirmed": true,
+      "physical_phone": false,
+      "fresh_hierarchy_required": true,
+      "hierarchy_retries": 0,
+      "events": [
+        {
+          "label": "Светлая",
+          "key": "theme_mode",
+          "persisted": "LIGHT",
+          "ui_selected": true,
+          "ui_wait_ms": 1298
+        },
+        {
+          "label": "Крупный",
+          "key": "font_scale",
+          "persisted": "1.15",
+          "ui_selected": true,
+          "ui_wait_ms": 1224
+        },
+        {
+          "label": "Оранжевый",
+          "key": "accent_color",
+          "persisted": "ORANGE",
+          "ui_selected": true,
+          "ui_wait_ms": 1229
+        }
+      ]
+    },
+    "actual_android_emulator": true,
+    "physical_phone": false
+  },
+  "ci_compiled_source": "bd94266ffaa55f46b65a5b592114557d5a1e606a",
+  "ci_source_equivalence": {
+    "only_docs_changed": true,
+    "changed_paths": []
+  },
+  "changes": [
+    "Photo removal uses a 44dp rounded-square touch target with 6dp corners and the existing 18dp close icon.",
+    "Existing removal callback, ownership guards and attachment storage are unchanged."
+  ],
+  "known_limitations": [
+    "No physical phone test or phone performance measurement.",
+    "No new geometry-mirroring tests for the reversible visual change."
+  ],
+  "audit_history": [],
+  "ci": {
+    "artifact_id": 14446280299,
+    "archive_sha256": "3db436c93c7c51035a4f9263a335ef62166fad768c3febf838f13cfa863b7d05",
+    "archive_bytes": 908192,
+    "workflow_run": {
+      "id": 44340767236,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/photo-remove-1.10.54",
+      "head_sha": "bd94266ffaa55f46b65a5b592114557d5a1e606a"
+    },
+    "tests": 811,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 16,
+      "Information": 2
+    },
+    "screenshots": {
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "e91c3c2c3840dfdc9971a1188e71d769a545492b9746547da4639040e93aae9b",
+      "navigation-preview/completed.png": "2b01a6586f0850702c534e55b40867323dafbb2428bcb9e351615f91c2a01cb5",
+      "navigation-preview/drawer.png": "cfc79fe068600213beb2a0ff91599bdd9cd1b19cf52ac3cf26c40a1423e57fa5",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "a40658383f6d9c64be054f90fa61ff0d93986f920ef2b42bc7b39be671a6243a",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/qwen-settings-320.png": "f58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    },
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 134929789912,
+        "name": "verify",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 5
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 23
+          },
+          {
+            "name": "Tests, lint and compilation",
+            "conclusion": "success",
+            "seconds": 1266
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Prepare cloud debug APK (not an installed-app update)",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signed_release": {
+    "run_id": 44345282911,
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 134945895326,
+        "name": "identity",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Check whether the permanent identity is configured",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      },
+      {
+        "id": 134945975849,
+        "name": "release",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Require existing signing Secrets and pinned certificate",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 27
+          },
+          {
+            "name": "Build and lint release",
+            "conclusion": "success",
+            "seconds": 460
+          },
+          {
+            "name": "Verify signing guards with disposable test keys",
+            "conclusion": "success",
+            "seconds": 9
+          },
+          {
+            "name": "Sign with the existing permanent key and verify its identity",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 19
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ],
+    "ci_metadata_output": {
+      "version": "1.10.54",
+      "code": 77,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "82dd8406d3912cb782cf573bfbfa8d2feacf94828db7696d541a60586c80e4d1"
+    }
+  },
+  "room_schema": 18,
+  "room_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "real_paid_api_requests_made": false,
+  "main": {
+    "fast_forward_from": "87d105aaad3e00532f63e0415c79bfa15f99970c",
+    "fast_forward_to": "bd94266ffaa55f46b65a5b592114557d5a1e606a",
+    "method": "Git refs REST API, force=false"
+  }
+}
