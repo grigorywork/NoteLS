@@ -1629,3 +1629,9 @@ OOM точно в `ShadowTrace.endSection → ArrayDeque.grow`: исходник
 
 
 2026-11-18T13:36:49.466354+00:00: Этап81 (исправление настроек) закрыт: NoteLS1.10.52/code75, Room18/data2/security3. Source `ae77b141bc9a698a627ee53a851e42da5e572522`. Полный CI[44280675812](https://github.com/grigorywork/NoteLS/actions/runs/44280675812) =**800 тестов/0 отказов/0 пропусков**, lint0errors/16warnings/2info. Signed[44284393976](https://github.com/grigorywork/NoteLS/actions/runs/44284393976) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room18. Физическая установка не выполнялась. Работа по текущему окну завершена; после выдачи APK остановиться.82–84 отложены. WIP82/83 сохранены в codex/resume82-after-1.10.51 и codex/resume83-after-1.10.51; будущие версии перенумеровать с учётом выпущенного52/code75.85–89 и68/iPhone не начинать. Proofdocs/settings-freeze-1.10.52-verification.json. APK https://github.com/grigorywork/NoteLS/actions/runs/44284393976/artifacts/14418892838
+
+
+2026-11-18T14:03:03.210094+00:00: ## Новое расширение очереди18ноября2026
+
+82–84 возобновлены пользователем. Дополнительно разрешены85—быстрая кнопка преобразования/скрытие в настройках и на слабых устройствах плюс уточняемые дополнительные free-модели,86—минималистичный ярлык планировщика,87—удобства аналитики. [Точный объём и pending-вопрос](queue-additions-2026-11-18.md). Следующий текущий82 кандидат53/code76/fullCI44319025893 пока выполняется; source44a5fdba... на отдельной codex/free-models-1.10.53. Не повторять закрытый52/3h+3h;68/iPhone не начинать.
+
