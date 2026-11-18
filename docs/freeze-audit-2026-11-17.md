@@ -1,3 +1,11 @@
+## 18 ноября:3h аудит подтверждён, начат фикс52
+
+Проверены итоговые HTML/progress и SHA256 ZIP поAPI: [Native run44252856509](https://github.com/grigorywork/NoteLS/actions/runs/44252856509) SUCCESS,1test/0fail/0ignored,**10800196ms активных операций/51154циклов**, SDK28 NativeCanvas. Не физический телефон. [Полное доказательство](settings-native-audit-three-hours.json). Старые неуспешные прогоны не подменяют этот результат.
+
+Автоматическое продолжение началось18ноября09:54UTC; отдельный этап оптимизации/исправлений начат после проверки артефакта, время вstate. Кандидат **1.10.52/code75**, production-фикс A07: SettingsRepository сам реализует OnSharedPreferenceChangeListener и регистрирует this. Удалено слабое владение отдельным callback, которое R8 делал недостижимым. Плашки/редактор/данные не изменены. Добавляется отдельная release-проверка после Signed: точный подписанный minifiedAPK, ARTGC и live UI выбранных LIGHT/1.15/ORANGE. Обычный android.yml не изменён.
+
+Это пока кандидат, не проверенныйAPK52. Требуются полныйCI, Signed прежнимключом, независимая подпись/ZIP/source/Room проверка, release-GC require-live, затем длительная Native-проверка на исправленном52.82–84 отложены, после выдачи52 остановиться.
+
 ## Актуально18ноября06:39UTC: повторный3h-аудит в работе
 
 Короткая проверка исправленного диагностического сценария прошла: source52218b6a2af59bf9c7a329776107733a04500655, run44251447156/artifact14404790742, ZIP/API/SHA256 сверены; HTML1test/0fail/0ignored, progress success/60040ms/96cycles. [Proof](settings-native-trace-cleanup-smoke.json). Это только60с, не3ч.

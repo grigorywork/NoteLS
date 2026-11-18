@@ -2,7 +2,7 @@
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
   "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
-  "phase": "audit_native_running",
+  "phase": "optimization",
   "target_active_seconds": {
     "audit": 10800,
     "optimization": 10800
@@ -28,6 +28,12 @@
       "end": "2026-11-18T06:40:28.763952+00:00",
       "activity": "Status check, failed-run artifact verification, official ShadowTrace root cause, diagnostic cleanup, successful smoke, repeat3h audit launch/handoff",
       "note": "Overlap with actual CI run is not counted twice; do not substitute manual preparation or waiting for3h successful Native proof."
+    },
+    {
+      "phase": "optimization",
+      "start": "2026-11-18T09:56:43.452456+00:00",
+      "end": null,
+      "activity": "Confirmed root fix, release smoke guard, fullCI/Signed/minified Android GC regression and fixed-source long Native verification"
     }
   ],
   "excluded_intervals": [
@@ -38,12 +44,12 @@
     }
   ],
   "old_automation_paused": false,
-  "app_changes": false,
+  "app_changes": true,
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
     "source": "52218b6a2af59bf9c7a329776107733a04500655",
     "run_id": 44252856509,
-    "status": "running",
+    "status": "success_verified",
     "target_active_ms": 10800000,
     "kind": "Repeated3h Native audit after bounded completed-trace registry cleanup",
     "application_unchanged": true,
@@ -269,8 +275,8 @@
     "never_merge_workflow": true
   },
   "preferred_fix": "Make SettingsRepository itself implement SharedPreferences.OnSharedPreferenceChangeListener, register(this), move existing callback body into override; singleton/state consumers retain the actual callback owner. No fragile unused listener field for R8 to discard. Validate full ordinary CI and actual minified APK after ART GC. Consider auto release smoke guard. No production code changes yet.",
-  "audit_not_complete": true,
-  "optimization_started": false,
+  "audit_not_complete": false,
+  "optimization_started": true,
   "continuation": {
     "id": "Automation_9bad489b952c8191be90c89cd157657d",
     "is_enabled": true,
@@ -279,5 +285,94 @@
     "updated_at": "2026-11-18T06:39:10.141390+00:00",
     "worker": "interactive_handed_off_to_scheduled_continuation",
     "required_next_steps": "Verify current run44252856509 >=10800000ms. Then separate3h optimization/fix/fullCI/Signed/minified52-after-ARTGC-require-live. DeliverAPK thenstop."
-  }
+  },
+  "audit_verified": {
+    "run_id": 44252856509,
+    "source": "52218b6a2af59bf9c7a329776107733a04500655",
+    "artifact_id": 14416345656,
+    "zip_sha256": "d3e995dddfc64b807f8005f37fa4b4d3a5aa235ed0ffe1fb70ace6336a305e0a",
+    "zip_bytes": 42444,
+    "tests": 1,
+    "failures": 0,
+    "ignored": 0,
+    "progress": {
+      "status": "success",
+      "started": "2026-11-18T06:44:03.376317962Z",
+      "observed": "2026-11-18T09:44:07.317322934Z",
+      "target_ms": 10800000,
+      "active_ms": 10800196,
+      "cycles": 51154,
+      "counts": [
+        51154,
+        51154,
+        51154,
+        51154
+      ],
+      "operation_total_ns": [
+        2931909021347,
+        1454995652241,
+        2204440411397,
+        4208851023224
+      ],
+      "operation_max_ns": [
+        726975974,
+        599517162,
+        1784741696,
+        1725025288
+      ],
+      "heap_bytes": 236296176,
+      "groups": [
+        "editor_history",
+        "task_mode",
+        "settings",
+        "list_scroll"
+      ],
+      "settings_detail_counts": [
+        51154,
+        51154,
+        51154,
+        51154,
+        17052,
+        51154,
+        51154
+      ],
+      "settings_detail_total_ns": [
+        100559493790,
+        344932218075,
+        116709185815,
+        722667005230,
+        230879621875,
+        675082698751,
+        13378618494
+      ],
+      "settings_detail_max_ns": [
+        311047157,
+        441546813,
+        61601177,
+        349805192,
+        580599332,
+        328403187,
+        13478925
+      ],
+      "settings_detail_groups": [
+        "theme_scale",
+        "editor_section",
+        "appearance_section",
+        "font_change",
+        "glass_save",
+        "language_roundtrip",
+        "close_section"
+      ],
+      "sdk": 28,
+      "native_canvas": true,
+      "physical_phone": false
+    },
+    "physical_phone": false,
+    "app_version": "1.10.51",
+    "application_changes": false
+  },
+  "optimization_started_at": "2026-11-18T09:56:43.452456+00:00",
+  "candidate_version": "1.10.52",
+  "candidate_code": 75,
+  "interactive_worker": "active scheduled continuation; no duplicate"
 }

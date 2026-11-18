@@ -1,0 +1,85 @@
+{
+  "run_id": 44252856509,
+  "source": "52218b6a2af59bf9c7a329776107733a04500655",
+  "artifact_id": 14416345656,
+  "zip_sha256": "d3e995dddfc64b807f8005f37fa4b4d3a5aa235ed0ffe1fb70ace6336a305e0a",
+  "zip_bytes": 42444,
+  "tests": 1,
+  "failures": 0,
+  "ignored": 0,
+  "progress": {
+    "status": "success",
+    "started": "2026-11-18T06:44:03.376317962Z",
+    "observed": "2026-11-18T09:44:07.317322934Z",
+    "target_ms": 10800000,
+    "active_ms": 10800196,
+    "cycles": 51154,
+    "counts": [
+      51154,
+      51154,
+      51154,
+      51154
+    ],
+    "operation_total_ns": [
+      2931909021347,
+      1454995652241,
+      2204440411397,
+      4208851023224
+    ],
+    "operation_max_ns": [
+      726975974,
+      599517162,
+      1784741696,
+      1725025288
+    ],
+    "heap_bytes": 236296176,
+    "groups": [
+      "editor_history",
+      "task_mode",
+      "settings",
+      "list_scroll"
+    ],
+    "settings_detail_counts": [
+      51154,
+      51154,
+      51154,
+      51154,
+      17052,
+      51154,
+      51154
+    ],
+    "settings_detail_total_ns": [
+      100559493790,
+      344932218075,
+      116709185815,
+      722667005230,
+      230879621875,
+      675082698751,
+      13378618494
+    ],
+    "settings_detail_max_ns": [
+      311047157,
+      441546813,
+      61601177,
+      349805192,
+      580599332,
+      328403187,
+      13478925
+    ],
+    "settings_detail_groups": [
+      "theme_scale",
+      "editor_section",
+      "appearance_section",
+      "font_change",
+      "glass_save",
+      "language_roundtrip",
+      "close_section"
+    ],
+    "sdk": 28,
+    "native_canvas": true,
+    "physical_phone": false
+  },
+  "physical_phone": false,
+  "app_version": "1.10.51",
+  "application_changes": false
+}

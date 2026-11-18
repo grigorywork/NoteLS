@@ -1,0 +1,104 @@
+name: Release settings after GC
+
+on:
+  workflow_run:
+    workflows: [Signed NoteLS APK]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      signed_run_id:
+        description: Successful Signed NoteLS APK run on main
+        required: true
+        type: string
+      source_sha:
+        description: Exact source commit of that signed APK
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: release-settings-gc-${{ github.event.workflow_run.id || inputs.signed_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  settings:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      SIGNED_RUN_ID: ${{ github.event.workflow_run.id || inputs.signed_run_id }}
+      EXPECTED_SOURCE: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Require a successful trusted signing run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          run_id=os.environ['SIGNED_RUN_ID']; source=os.environ['EXPECTED_SOURCE']
+          assert re.fullmatch(r'[0-9]+',run_id) and re.fullmatch(r'[0-9a-f]{40}',source)
+          run=json.loads(subprocess.check_output(['gh','api',f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}"]))
+          assert run['name']=='Signed NoteLS APK' and run['conclusion']=='success'
+          assert run['head_repository']['full_name']==os.environ['GITHUB_REPOSITORY']
+          assert run['head_branch']=='main' and run['head_sha']==source
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ env.SIGNED_RUN_ID }}
+          name: NoteLS-permanent-signature-${{ env.EXPECTED_SOURCE }}
+          path: release-apk
+      - name: Verify APK identity and minified release input
+        id: input
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,re,subprocess
+          folder=pathlib.Path('release-apk'); apks=list(folder.glob('*.apk')); assert len(apks)==1
+          apk=apks[0]; digest=hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert (folder/'SHA256SUMS').read_text().strip()==digest+'  '+apk.name
+          readme=(folder/'README.txt').read_text()
+          assert 'Источник: '+os.environ['EXPECTED_SOURCE']+'\n' in readme
+          tools=pathlib.Path(os.environ['ANDROID_HOME'])/'build-tools'/'35.0.0'
+          signed=subprocess.check_output([str(tools/'apksigner'),'verify','--verbose','--print-certs',str(apk)],text=True)
+          pin=pathlib.Path('.github/signing-certificate.sha256').read_text().strip()
+          assert re.findall(r'^Signer #\d+ certificate SHA-256 digest: (\w+)$',signed,re.M)==[pin]
+          for version in [2,3]: assert re.search(rf'Verified using v{version} scheme .*: true',signed)
+          badging=subprocess.check_output([str(tools/'aapt2'),'dump','badging',str(apk)],text=True)
+          assert "package: name='com.notessync.app'" in badging and 'application-debuggable' not in badging
+          out=pathlib.Path('release-settings-probe');out.mkdir(exist_ok=True)
+          (out/'input.json').write_text(json.dumps({'signed_run_id':os.environ['SIGNED_RUN_ID'],'source':os.environ['EXPECTED_SOURCE'],'apk_sha256':digest,'certificate_sha256':pin,'non_debuggable':True},indent=2))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream: stream.write('apk_path='+str(apk)+'\n')
+          PY
+      - name: Enable emulator KVM access
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -no-snapshot -memory 2048 -cores 2
+          script: python3 scripts/release_settings_gc_probe.py --apk '${{ steps.input.outputs.apk_path }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-settings-after-gc-${{ env.EXPECTED_SOURCE }}
+          path: release-settings-probe/
+          if-no-files-found: warn

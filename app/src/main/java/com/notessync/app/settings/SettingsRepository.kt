@@ -160,7 +160,7 @@ data class SettingsState(
 )
 
 /** Настройки приложения (Этап 6): тема и размер шрифта. */
-class SettingsRepository private constructor(context: Context) {
+class SettingsRepository private constructor(context: Context) : SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -168,7 +168,7 @@ class SettingsRepository private constructor(context: Context) {
     private val _state = MutableStateFlow(read())
     val state: StateFlow<SettingsState> = _state
 
-    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         val current = read()
         _state.value = current
         UiStrings.language = current.uiLanguage
@@ -176,7 +176,9 @@ class SettingsRepository private constructor(context: Context) {
 
     init {
         UiStrings.language = _state.value.uiLanguage
-        prefs.registerOnSharedPreferenceChangeListener(listener)
+        // SharedPreferences keeps listeners weakly. The singleton repository must be
+        // the listener itself: R8 can remove an otherwise unread callback field.
+        prefs.registerOnSharedPreferenceChangeListener(this)
     }
 
     // Аудит 2026-11-11: неизвестное значение (даунгрейд, повреждённые prefs)
