@@ -349,7 +349,6 @@ fun NotesListScreen(
                                 filter.isUnfinished() -> uiText(if (taskPending) "Загрузка…" else "Нет подходящих задач")
                                 filter == NoteFilter.Tasks -> uiText("Пока нет задач")
                                 filter == NoteFilter.Completed -> uiText("Нет выполненных задач")
-                                diary -> uiText("В дневнике пока нет записей")
                                 else -> uiText("Пока нет заметок")
                             },
                             style = MaterialTheme.typography.bodyLarge,

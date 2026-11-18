@@ -1,3 +1,11 @@
+## 84/56: KSP19 сохранён, повтор после исправления старой UI-ссылки
+
+Первыйrun44402134761/sourcebdd268... остановилсянаcompileDebugKotlin: NotesListScreen352оставшаясяссылкаdiaryотстарогоtag-screen. ТестыНЕвыполнялись/845НЕpass. Ссылкаудалена. Доtestcompileисправлены2reserved-wordимениfixtureпеременных.
+
+РеальныйKSP19изroom-schemasartifact14474450860ZIP/API/SHAa6e419ddaed67f0f9ad5140154b60e62ecd8bdbcdb4a81d96cad19aa38d8bca9проверен. Схема19SHA042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869, identity61703504e840fea926257eeba0d419e1. Все6остальныхentities/индексы/связи побайтовоструктурноравны18; вnotebooksдобавлентолькоisDiary INTEGER NOT NULL DEFAULT0. [Proof](private-diary-1.10.56-schema-proof.json). Не вручнуюсгенерированныйJSON. Новаяпроверкадолжнапоказатьтотжеэкспорт19.
+
+Дополнительнозакрытаякарточказаписисотдельнымпаролемтеперьмаскируетдату/updatedAtвместесзаголовком/текстом; всёмаскированиепроверяетсянаnonnull-date. Кандидат56/code79покаНЕinstallable. ПовторныйобычныйполныйCI845/lint/build, затемSigned/независимаяRoom19APK/freshGC. Mainпокаverified55/f480, невторойGradle. Следующие85–87безвопросов, затемНОВЫЕ1hаудита→1hоптимизации.
+
 ## В работе84: отдельный дневник, кандидат1.10.56/code79/Room19
 
 Голосовой55/code78 закрыт/выдан: sourcebc1c522239050f61287187c5466a70a7b9a1aad6, fullCI44354391508=825/0/0/lint0, Signed44394699564/artifact14470776318, actualAPK/прежнийpin/Room18/GC44396858139/artifact14472081365/fresh3UItrueпроверены. Mainпослезакрытияf48007c5cb2566172fb4888cbc7fba1efd53de6d. ИсправлениеVoiceSession/NoteEditorScreenперенесено56побайтовобезотката.

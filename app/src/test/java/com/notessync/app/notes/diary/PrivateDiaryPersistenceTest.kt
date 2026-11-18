@@ -91,7 +91,7 @@ class PrivateDiaryPersistenceTest {
     @Test fun `all general queries and cached cards exclude diary even with both password grants`() = runBlocking {
         val book = book()
         val note = insert(NoteEntity(notebookId = book.id, title = "SECRET", content = "Private", isTask = true,
-            isCompleted = true, isFavorite = true, isProtected = true, taskDueAt = 1))
+            isCompleted = true, isFavorite = true, isProtected = true, taskDueAt = 1, dayKey = 20_000))
         tag(note); ProtectionSession.unlockTask(note.syncId)
         for (filter in listOf(NoteFilter.All, NoteFilter.Tasks, NoteFilter.Completed, NoteFilter.Unfinished,
             NoteFilter.Overdue, NoteFilter.Favorites, NoteFilter.Notebook(book.id, book.name), NoteFilter.Tag(DiaryEntries.TAG_NAME))) {
@@ -100,8 +100,9 @@ class PrivateDiaryPersistenceTest {
             assertTrue(db.noteDao().rawCards(NotesViewModel.buildCardQuery("", filter, NoteSort.BY_DATE, setOf(book.id), setOf(note.syncId))).first().isEmpty())
         }
         assertTrue(visibleNotes(listOf(note), listOf(book), ProtectionSession.state.value).isEmpty())
-        val private = db.noteDao().diaryRows(PrivateDiary.rows(book.id, false, 0)).first().single()
-        assertEquals(note.id, private.id); assertEquals("", private.title); assertEquals("", private.preview)
+        val card = db.noteDao().diaryRows(PrivateDiary.rows(book.id, false, 0)).first().single()
+        assertEquals(note.id, card.id); assertEquals("", card.title); assertEquals("", card.preview)
+        assertNull(card.dayKey); assertEquals(0L, card.updatedAt)
         db.noteDao().update(note.copy(isDeleted = true))
         assertTrue(db.noteDao().rawQuery(NotesViewModel.buildQuery("", NoteFilter.Trash, NoteSort.BY_DATE, setOf(book.id), setOf(note.syncId))).first().isEmpty())
         assertTrue(db.noteDao().rawLockedTaskTargets(NotesViewModel.buildLockedTaskTargetsQuery(setOf(book.id), trash = true)).first().isEmpty())
@@ -253,20 +254,20 @@ class PrivateDiaryPersistenceTest {
         val diary = book()
         val parent = NotebookEntity(name = "Protected source", isProtected = true).let { it.copy(id = db.notebookDao().upsert(it)) }
         val own = PasswordProtector.create("separate-entry-password")
-        val protected = insert(NoteEntity(title = "Protected legacy", notebookId = parent.id, isTask = true, isProtected = true,
+        val protectedEntry = insert(NoteEntity(title = "Protected legacy", notebookId = parent.id, isTask = true, isProtected = true,
             passwordHash = own.hash, passwordSalt = own.salt, dayKey = 1))
         val trash = insert(NoteEntity(title = "Old journal trash", isDeleted = true, dayKey = 1))
         val dated = insert(NoteEntity(title = "Dated task", isTask = true, dayKey = 1, taskPriority = 2,
             taskElapsedMillis = 123, taskCountdownMillis = 987, taskDueAt = 123456))
-        tag(protected); tag(trash)
+        tag(protectedEntry); tag(trash)
         val before = db.noteDao().diaryCandidates(PrivateDiary.candidates(emptySet(), 0)).first()
-        assertFalse(before.any { it.id == protected.id }); assertTrue(before.single { it.id == trash.id }.isDeleted)
-        ProtectionSession.unlockNotebook(parent.id); ProtectionSession.unlockTask(protected.syncId)
-        val preview = db.noteDao().diaryCandidates(PrivateDiary.candidates(setOf(parent.id), 0, setOf(protected.syncId))).first()
-        assertTrue(preview.any { it.id == protected.id }); assertFalse(preview.any { it.id == dated.id })
-        assertEquals(2, PrivateDiary.move(db, diary, listOf(protected, trash, dated).map { NoteIdentity(it.id, it.syncId) }))
-        val privateAfter = db.noteDao().getById(protected.id)!!; val trashAfter = db.noteDao().getById(trash.id)!!
-        assertEquals(protected.copy(notebookId = diary.id, updatedAt = privateAfter.updatedAt, dirty = true), privateAfter)
+        assertFalse(before.any { it.id == protectedEntry.id }); assertTrue(before.single { it.id == trash.id }.isDeleted)
+        ProtectionSession.unlockNotebook(parent.id); ProtectionSession.unlockTask(protectedEntry.syncId)
+        val preview = db.noteDao().diaryCandidates(PrivateDiary.candidates(setOf(parent.id), 0, setOf(protectedEntry.syncId))).first()
+        assertTrue(preview.any { it.id == protectedEntry.id }); assertFalse(preview.any { it.id == dated.id })
+        assertEquals(2, PrivateDiary.move(db, diary, listOf(protectedEntry, trash, dated).map { NoteIdentity(it.id, it.syncId) }))
+        val privateAfter = db.noteDao().getById(protectedEntry.id)!!; val trashAfter = db.noteDao().getById(trash.id)!!
+        assertEquals(protectedEntry.copy(notebookId = diary.id, updatedAt = privateAfter.updatedAt, dirty = true), privateAfter)
         assertEquals(trash.copy(notebookId = diary.id, updatedAt = trashAfter.updatedAt, dirty = true), trashAfter)
         assertEquals(dated, db.noteDao().getById(dated.id))
         assertEquals(1, PrivateDiary.move(db, diary, listOf(NoteIdentity(dated.id, dated.syncId)), includeTasks = true))

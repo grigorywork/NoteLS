@@ -55,8 +55,8 @@ internal object PrivateDiary {
 
     fun rows(bookId: Long, trash: Boolean, page: Int) = SimpleSQLiteQuery(
         "SELECT notes.id, notes.syncId, CASE WHEN notes.isProtected=0 THEN SUBSTR(notes.title,1,256) ELSE '' END AS title, " +
-            "CASE WHEN notes.isProtected=0 THEN SUBSTR(notes.content,1,160) ELSE '' END AS preview, notes.dayKey, " +
-            "notes.updatedAt, notes.isDeleted, notes.isProtected FROM notes JOIN notebooks b ON b.id=notes.notebookId " +
+            "CASE WHEN notes.isProtected=0 THEN SUBSTR(notes.content,1,160) ELSE '' END AS preview, CASE WHEN notes.isProtected=0 THEN notes.dayKey ELSE NULL END AS dayKey, " +
+            "CASE WHEN notes.isProtected=0 THEN notes.updatedAt ELSE 0 END AS updatedAt, notes.isDeleted, notes.isProtected FROM notes JOIN notebooks b ON b.id=notes.notebookId " +
             "WHERE b.id=? AND b.isDiary=1 AND b.isProtected=1 AND b.isDeleted=0 AND notes.isPurged=0 AND notes.isDeleted=? " +
             "ORDER BY COALESCE(notes.dayKey, notes.createdAt/86400000) DESC, notes.updatedAt DESC, notes.id DESC LIMIT ? OFFSET ?",
         arrayOf(bookId, if (trash) 1 else 0, PAGE + 1, page.coerceAtLeast(0).toLong() * PAGE))

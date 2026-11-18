@@ -1,0 +1,29 @@
+{
+  "generation_run": 44402134761,
+  "source": "bdd2682cf2afb981344c916317103fe85c0468bb",
+  "run_conclusion": "failure: one leftover old UI reference; no tests run",
+  "artifact_id": 14474450860,
+  "zip_sha256": "a6e419ddaed67f0f9ad5140154b60e62ecd8bdbcdb4a81d96cad19aa38d8bca9",
+  "zip_bytes": 30728,
+  "schema_path": "app/schemas/com.notessync.app.data.local.AppDatabase/19.json",
+  "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+  "room_version": 19,
+  "identity_hash": "61703504e840fea926257eeba0d419e1",
+  "unchanged_entities": [
+    "notes",
+    "tags",
+    "note_tag_cross_ref",
+    "attachments",
+    "custom_quotes",
+    "quote_library_state"
+  ],
+  "only_added_field": {
+    "fieldPath": "isDiary",
+    "columnName": "isDiary",
+    "affinity": "INTEGER",
+    "notNull": true,
+    "defaultValue": "0"
+  },
+  "old_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+  "full_ci_verified": false
+}
