@@ -1725,3 +1725,6 @@ DiaryScaffold/FABтеперьучитываетWindowInsets.ime. Nativeпаро�
 
 
 2026-11-18T22:15:20.800172+00:00: Diary56 fullCI44405609595 completed845/5failed. Actual snackbar self-cancellation fixed; 2drawer selectors disambiguated from legacy tag by Tab role; actualschema17 quote fixture reconstructed from realDDL (no future column). No timeout/assertion weakening. Repeat fullCI required beforeSigned; noAPK56yet.
+
+
+2026-11-18T22:28:56.643743+00:00: Diary56/44409808330 cancelled after source audit found private editor trash used forbidden general scope. Fixed fresh private parent authorization and added actual VM/NativeSQLite delete+locked denial regression. Existing20cases retained; expected846total(825+17persistence+4NativeUI). Cancelledrun pass not claimed. FullCI→Signed→actualRoom19APK→freshGC required before84closure.

@@ -12,6 +12,9 @@ import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.*
 import com.notessync.app.data.local.model.NoteIdentity
 import com.notessync.app.notes.actions.NoteActions
+import com.notessync.app.notes.text.TextFormatting
+import com.notessync.app.notes.text.FormatMark
+import com.notessync.app.notes.text.FormatKind
 import com.notessync.app.security.*
 import com.notessync.app.security.biometrics.*
 import com.notessync.app.settings.*
@@ -232,6 +235,25 @@ class PrivateDiaryPersistenceTest {
         DiarySession.lock(); await { vm.accessDenied }
         assertEquals("", vm.titleField.text); assertEquals("", vm.contentField.text)
         assertEquals("Original body", db.noteDao().getById(old.id)!!.content)
+    }
+
+    @Test fun `private editor can trash its authorized entry while a general action and a locked editor cannot`() = runBlocking {
+        val book = book()
+        val formatting = TextFormatting(marks = listOf(FormatMark(0, 4, FormatKind.BOLD.name, "1"))).encode()
+        val note = insert(NoteEntity(title = "Private editor", content = "Keep journal text", textFormat = formatting, notebookId = book.id))
+        val vm = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to note.id))).also { models.put("delete-editor", it) }
+        await { vm.isReady }
+        assertEquals(0, NoteActions(app, db).apply(setOf(note.id), NoteActions.Action.TRASH, mapOf(note.id to note.syncId)))
+        assertEquals(note.id, vm.deleteNow())
+        val trashed = db.noteDao().getById(note.id)!!
+        assertTrue(trashed.isDeleted); assertEquals(book.id, trashed.notebookId)
+        assertEquals(note.syncId, trashed.syncId); assertEquals(note.content, trashed.content); assertEquals(note.textFormat, trashed.textFormat)
+        assertEquals(1, NoteActions(app, db).apply(setOf(note.id), NoteActions.Action.RESTORE, mapOf(note.id to note.syncId), book.id))
+        val locked = NoteEditorViewModel(app, SavedStateHandle(mapOf("noteId" to note.id))).also { models.put("locked-delete-editor", it) }
+        await { locked.isReady }
+        DiarySession.lock(); await { locked.accessDenied }
+        assertEquals(-1L, locked.deleteNow()); assertFalse(db.noteDao().getById(note.id)!!.isDeleted)
+        assertEquals(note.content, db.noteDao().getById(note.id)!!.content)
     }
 
     @Test fun `encrypted backup roundtrip preserves private identity and invalid staging cannot replace live data`() = runBlocking {

@@ -702,8 +702,12 @@ class NoteEditorViewModel @JvmOverloads constructor(
 
     suspend fun deleteNow(): Long = saveMutex.withLock {
         withContext(NonCancellable) {
-            val deletedId = if (!exists || accessibleParent() == null) -1L else {
-                val changed = NoteActions(app, db).apply(setOf(currentNoteId), NoteActions.Action.TRASH, mapOf(currentNoteId to syncId))
+            val current = if (exists) accessibleParent() else null
+            val deletedId = if (current == null) -1L else {
+                // The general list must never act on Journal rows; this explicitly authorized
+                // editor supplies the fresh private parent, rechecked inside NoteActions' transaction.
+                val diaryId = current.notebookId?.let { db.notebookDao().getById(it) }?.takeIf { it.isDiary }?.id
+                val changed = NoteActions(app, db).apply(setOf(currentNoteId), NoteActions.Action.TRASH, mapOf(currentNoteId to syncId), diaryId)
                 if (changed > 0) currentNoteId else -1L
             }
             if (deletedId > 0 && dayKey != null) CalendarWidgetProvider.refreshAll(app)
