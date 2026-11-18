@@ -2,7 +2,7 @@
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
   "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
-  "phase": "audit_native_running",
+  "phase": "audit_driver_revalidation",
   "target_active_seconds": {
     "audit": 10800,
     "optimization": 10800
@@ -34,11 +34,11 @@
   "app_changes": false,
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
-    "source": "d60554b7e3f933bfa32cdffd1d7fe97388ab6c4f",
-    "run_id": 44238005002,
-    "status": "running",
-    "target_active_ms": 10800000,
-    "kind": "three-hour sustained NativeCanvas UI audit; exact counters only from final artifact",
+    "source": "52218b6a2af59bf9c7a329776107733a04500655",
+    "run_id": 44251447156,
+    "status": "smoke_running",
+    "target_active_ms": 60000,
+    "kind": "NativeCanvas smoke after clearing completed test-only trace history on idle every10cycles; currentSections empty asserted first",
     "application_unchanged": true,
     "never_merge_workflow": true
   },
@@ -100,6 +100,19 @@
       "artifact_id": 14397990694,
       "tests": 1,
       "app_unchanged": true
+    },
+    {
+      "run_id": 44238005002,
+      "source": "d60554b7e3f933bfa32cdffd1d7fe97388ab6c4f",
+      "result": "failure",
+      "artifact_id": 14400337298,
+      "artifact_sha256": "c5018cb077a745d4ceacd6c9a398f4af207a8503948b49a29b1d2e7b38a8e8fd",
+      "tests": 1,
+      "failures": 1,
+      "ignored": 0,
+      "active_ms": 2475893,
+      "cycles": 14061,
+      "reason": "OOM at Robolectric ShadowTrace.endSection previousSections ArrayDeque.grow; unbounded completed trace history, official4.14.1 source verified. Not successful3h, not phone leak."
     }
   ],
   "findings": [
@@ -163,6 +176,12 @@
       "area": "diagnostic only",
       "severity": "confirmed harness retention",
       "evidence": "Robolectric4.14.1 ShadowDialog.show adds realDialog to static shownDialogs ArrayList; dismiss does not remove; reset clears only registry. Multi-hour test now first asserts real dialog absent and none showing, then clears this test-only registry. Do not label this as app/phone leak."
+    },
+    {
+      "id": "D02",
+      "severity": "confirmed harness retention",
+      "area": "Robolectric Trace history",
+      "evidence": "Stack ShadowTrace.endSection -> ArrayDeque.grow. Source stores every completed section in previousSections ThreadLocal queue. Diagnostic now resets only test trace bookkeeping at idle, asserts current sections empty, every10cycles; application memory and Compose state untouched."
     }
   ],
   "research": {

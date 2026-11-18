@@ -1,0 +1,86 @@
+{
+  "run_id": 44238005002,
+  "source": "d60554b7e3f933bfa32cdffd1d7fe97388ab6c4f",
+  "conclusion": "failure",
+  "artifact_id": 14400337298,
+  "zip_sha256": "c5018cb077a745d4ceacd6c9a398f4af207a8503948b49a29b1d2e7b38a8e8fd",
+  "zip_size": 18248,
+  "tests": 1,
+  "failures": 1,
+  "ignored": 0,
+  "progress": {
+    "status": "failure",
+    "started": "2026-11-18T04:35:57.123034940Z",
+    "observed": "2026-11-18T05:17:14.192421312Z",
+    "target_ms": 10800000,
+    "active_ms": 2475893,
+    "cycles": 14061,
+    "counts": [
+      14062,
+      14062,
+      14062,
+      14062
+    ],
+    "operation_total_ns": [
+      645779779474,
+      371018821114,
+      498626773134,
+      960468061979
+    ],
+    "operation_max_ns": [
+      744744210,
+      389643499,
+      3511363004,
+      1187043568
+    ],
+    "heap_bytes": 295542016,
+    "groups": [
+      "editor_history",
+      "task_mode",
+      "settings",
+      "list_scroll"
+    ],
+    "settings_detail_counts": [
+      14062,
+      14062,
+      14062,
+      14062,
+      4688,
+      14062,
+      14062
+    ],
+    "settings_detail_total_ns": [
+      59290517597,
+      68547839044,
+      23934163067,
+      146382213825,
+      54990310662,
+      142946778434,
+      2435899697
+    ],
+    "settings_detail_max_ns": [
+      3476489109,
+      292093424,
+      71181366,
+      680259211,
+      377687474,
+      2338871076,
+      30313410
+    ],
+    "settings_detail_groups": [
+      "theme_scale",
+      "editor_section",
+      "appearance_section",
+      "font_change",
+      "glass_save",
+      "language_roundtrip",
+      "close_section"
+    ],
+    "sdk": 28,
+    "native_canvas": true,
+    "physical_phone": false
+  },
+  "root_cause": "OOM at ShadowTrace.endSection -> ArrayDeque.grow. Official Robolectric4.14.1 source keeps every completed trace in an unbounded ThreadLocal previousSections queue. Production Android does not keep this shadow queue. Diagnostic fix resets completed trace history on UI/driver idle every10cycles, asserting no current section first; no app state cleanup or heap increase.",
+  "application_changed": false,
+  "three_hour_audit_completed": false
+}
