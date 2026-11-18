@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -48,7 +49,8 @@ class FreeModelsUiTest {
             val state by settings.state.collectAsState()
             view = LocalView.current
             NoteSyncTheme(darkTheme = false, dynamicColor = false) {
-                Column(Modifier.requiredSize(320.dp, 640.dp).testTag("free-model-host").verticalScroll(rememberScrollState())) {
+                Column(Modifier.requiredSize(320.dp, 640.dp).background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+                    .testTag("free-model-host").verticalScroll(rememberScrollState())) {
                     TransformSettingsSection(state, settings, secrets)
                 }
             }
@@ -71,6 +73,9 @@ class FreeModelsUiTest {
         compose.runOnIdle {
             val bitmap = Bitmap.createBitmap(bounds.width.toInt(), bounds.height.toInt(), Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap); canvas.translate(-bounds.left, -bounds.top); view.draw(canvas)
+            val pixels = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            assertTrue("The form preview must have an opaque theme background", pixels.all { android.graphics.Color.alpha(it) == 255 })
             val file = File("build/reports/settings-preview/free-model-nemotron-320.png").apply { parentFile?.mkdirs() }
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
         }
