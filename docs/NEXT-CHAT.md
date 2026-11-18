@@ -1,3 +1,17 @@
+## 81 (исправление настроек) закрыт — проверенный NoteLS1.10.52/code75
+
+Этап81 (исправление настроек) закрыт: NoteLS1.10.52/code75, Room18/data2/security3. Source `ae77b141bc9a698a627ee53a851e42da5e572522`. Полный CI[44280675812](https://github.com/grigorywork/NoteLS/actions/runs/44280675812) =**800 тестов/0 отказов/0 пропусков**, lint0errors/16warnings/2info. Signed[44284393976](https://github.com/grigorywork/NoteLS/actions/runs/44284393976) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room18. Физическая установка не выполнялась.
+
+- Устранена потеря обработчика настроек в минифицированной сборке: хранилище само является зарегистрированным слушателем и удерживается прежним singleton.
+- После Signed автоматически проверяется фактический подписанный APK на Android-эмуляторе после ARTGC: Светлая/Крупный/Оранжевый должны сохраняться и сразу выделяться в интерфейсе.
+- Вид с плашками и действия задачи сохранены; постоянная подпись и Room18/data2/security3 не изменены.
+
+Работа по текущему окну завершена; после выдачи APK остановиться.82–84 отложены. WIP82/83 сохранены в codex/resume82-after-1.10.51 и codex/resume83-after-1.10.51; будущие версии перенумеровать с учётом выпущенного52/code75.85–89 и68/iPhone не начинать.
+
+[Отчёт](settings-freeze-1.10.52.md), [доказательства](settings-freeze-1.10.52-verification.json).
+
+APK: https://github.com/grigorywork/NoteLS/actions/runs/44284393976/artifacts/14418892838
+
 ## 18 ноября10:35UTC: фикс52 вmain, APK и release-GC проверены; длительный тест ещё идёт
 
 Исправление A07 уже вapp source **ae77b141bc9a698a627ee53a851e42da5e572522**, NoteLS1.10.52/code75. Хранилище само является SharedPreferences listener и регистрирует this. Обычный android.yml/плашки/редактор/данные сохранены. DEX реального APK подтвердил интерфейс listener и регистрацию своего receiver; [binary proof](settings52-listener-ownership.json).
