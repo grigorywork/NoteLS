@@ -47,7 +47,7 @@ class UiFreezeProbeTest {
     private val store = ViewModelStore()
     @After fun cleanup() { store.clear(); AppDatabase.closeInstance() }
 
-    @Test(timeout = 8_100_000) fun `real editor settings and list repeatedly respond under sustained native load`() {
+    @Test(timeout = 12_600_000) fun `real editor settings and list repeatedly respond under sustained native load`() {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db")
         val settings = SettingsRepository.get(app).apply {
             setUiLanguage(UiLanguage.RUSSIAN); setBackupFrequency(BackupFrequency.MANUAL)
@@ -83,7 +83,7 @@ class UiFreezeProbeTest {
         }
         compose.waitUntil(15_000) { compose.waitForIdle(); editor.isReady }
         val targetMs = System.getenv("NOTELS_AUDIT_ACTIVE_MS")?.toLong() ?: 60_000L
-        require(targetMs in 60_000L..7_200_000L)
+        require(targetMs in 60_000L..10_800_000L)
         val started = Instant.now().toString()
         var activeNanos = 0L
         var cycles = 0L

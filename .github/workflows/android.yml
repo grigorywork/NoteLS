@@ -6,7 +6,7 @@ on:
         type: choice
         description: Real active-operation duration, not virtual clock
         default: '60000'
-        options: ['60000', '7200000']
+        options: ['60000', '7200000', '10800000']
 permissions:
   contents: read
 concurrency:
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 155
+    timeout-minutes: 220
     env:
       NOTELS_AUDIT_ACTIVE_MS: ${{ inputs.active_ms }}
     steps:
