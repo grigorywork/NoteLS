@@ -1,0 +1,389 @@
+{
+  "artifact_id": 14470776318,
+  "archive_sha256": "6003ed166981d6315b9c9136725b93d883ec0dcdad5fe398b6659ee3b93da37e",
+  "archive_bytes": 15476485,
+  "workflow_run": {
+    "id": 44394699564,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "main",
+    "head_sha": "bc1c522239050f61287187c5466a70a7b9a1aad6"
+  },
+  "source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+  "package": "com.notessync.app",
+  "version": "1.10.55",
+  "code": 78,
+  "apk_name": "NoteLS-1.10.55-code78-permanent-signature.apk",
+  "apk_bytes": 27583175,
+  "apk_sha256": "a6e35348c8539b2c6d6f000d84d18107d168ec8f8a96d5d78257bcffd84d0617",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "verified_schemes": [
+    2,
+    3
+  ],
+  "signers": 1,
+  "debuggable": false,
+  "dex_sha256": {
+    "classes.dex": "24e3fe86dcc9cacc5e98b9733b457a6eac765951ff6c09549f52573b7cda3839"
+  },
+  "readme_source_verified": true,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "physical_device_tested": false,
+  "stage": "83а",
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/44394699564/artifacts/14470776318",
+  "additional_evidence": {
+    "voice_regression_reports": {
+      "com.notessync.app.voice.VoiceContinuityRegressionTest": {
+        "tests": 10,
+        "failures": 0,
+        "ignored": 0
+      },
+      "com.notessync.app.voice.VoiceSessionTest": {
+        "tests": 9,
+        "failures": 0,
+        "ignored": 0
+      },
+      "com.notessync.app.voice.AndroidVoiceRecognizerTest": {
+        "tests": 12,
+        "failures": 0,
+        "ignored": 0
+      },
+      "com.notessync.app.ui.notes.VoiceEditorTest": {
+        "tests": 10,
+        "failures": 0,
+        "ignored": 0
+      },
+      "com.notessync.app.ui.notes.VoiceInputButtonTest": {
+        "tests": 3,
+        "failures": 0,
+        "ignored": 0
+      }
+    },
+    "devices_named_by_user": [
+      "Samsung Galaxy A01",
+      "ZTE Nubia Z80 Ultra"
+    ],
+    "physical_device_tests": false,
+    "shortcut_reference": "docs/user-devices-shortcut-2026-11-18.md",
+    "actual_apk_markers": {
+      "source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+      "apk_sha256": "a6e35348c8539b2c6d6f000d84d18107d168ec8f8a96d5d78257bcffd84d0617",
+      "markers": {
+        "android.speech.extras.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS": true,
+        "android.speech.extras.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS": true,
+        "Продолжаю диктовку": true
+      }
+    }
+  },
+  "minified_release_gc": {
+    "run_id": 44396858139,
+    "source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+    "artifact_id": 14472081365,
+    "zip_sha256": "1f2d26f7b3a5f423f8f4512c1ddfd1ca47364991a95ae7d0032dd6b109ca22ec",
+    "zip_bytes": 501659,
+    "input": {
+      "signed_run_id": "44394699564",
+      "source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+      "apk_sha256": "a6e35348c8539b2c6d6f000d84d18107d168ec8f8a96d5d78257bcffd84d0617",
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "non_debuggable": true
+    },
+    "result": {
+      "status": "success",
+      "mode": "require-live",
+      "apk_sha256": "a6e35348c8539b2c6d6f000d84d18107d168ec8f8a96d5d78257bcffd84d0617",
+      "minified_installed_apk": true,
+      "art_gc_confirmed": true,
+      "physical_phone": false,
+      "fresh_hierarchy_required": true,
+      "hierarchy_retries": 0,
+      "events": [
+        {
+          "label": "Светлая",
+          "key": "theme_mode",
+          "persisted": "LIGHT",
+          "ui_selected": true,
+          "ui_wait_ms": 1175
+        },
+        {
+          "label": "Крупный",
+          "key": "font_scale",
+          "persisted": "1.15",
+          "ui_selected": true,
+          "ui_wait_ms": 1168
+        },
+        {
+          "label": "Оранжевый",
+          "key": "accent_color",
+          "persisted": "ORANGE",
+          "ui_selected": true,
+          "ui_wait_ms": 1165
+        }
+      ]
+    },
+    "actual_android_emulator": true,
+    "physical_phone": false
+  },
+  "ci_compiled_source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+  "ci_source_equivalence": {
+    "only_docs_changed": true,
+    "changed_paths": []
+  },
+  "changes": [
+    "A user-started foreground dictation stays active across provider end-of-speech and final phrase callbacks, in both hold and tap modes.",
+    "Confirmed phrases are inserted once; later silence, cancellation or service failure cannot erase previously inserted text.",
+    "The same recognition engine and strict local-mode policy are retained. Silence/no-match rearm within the active gesture; busy and immediately failing services have bounded backoff.",
+    "Stop, release, screen pause, preview, closing and editor replacement invalidate pending restarts and stale callbacks.",
+    "Provider silence hints request 10 seconds; the 90-second provider watchdog rotates a phrase instead of ending dictation.",
+    "The voice panel and pointer target remain mounted; editor focus restores only after an explicit stop."
+  ],
+  "known_limitations": [
+    "Recognition is provided by the selected Android speech service. Silence extras are provider hints and rearming can have a short service-dependent gap.",
+    "Regression tests drive controlled recognition callbacks, Android adapters and real Compose gestures. Physical microphone accuracy and provider timing on the user phone were not measured."
+  ],
+  "audit_history": [],
+  "ci": {
+    "artifact_id": 14451859491,
+    "archive_sha256": "c90d04cab3e64366794f1721b3be58eebd9d1b3e4eba7a666dbdeb14700838d7",
+    "archive_bytes": 911192,
+    "workflow_run": {
+      "id": 44354391508,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/voice-continuous-1.10.55",
+      "head_sha": "bc1c522239050f61287187c5466a70a7b9a1aad6"
+    },
+    "tests": 825,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 16,
+      "Information": 2
+    },
+    "screenshots": {
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "e91c3c2c3840dfdc9971a1188e71d769a545492b9746547da4639040e93aae9b",
+      "navigation-preview/completed.png": "5b422a0a9a045b152eebd7af60626bcae3fd58001158d4eb1ea0904a0afa52e4",
+      "navigation-preview/drawer.png": "78e381c0cbb6ba6cfba9f9105a79df8410f31363a7d521237d99d8addc532c19",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "a40658383f6d9c64be054f90fa61ff0d93986f920ef2b42bc7b39be671a6243a",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/qwen-settings-320.png": "f58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    },
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 134978442360,
+        "name": "verify",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 19
+          },
+          {
+            "name": "Tests, lint and compilation",
+            "conclusion": "success",
+            "seconds": 1767
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Prepare cloud debug APK (not an installed-app update)",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signed_release": {
+    "run_id": 44394699564,
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 135121367363,
+        "name": "identity",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Check whether the permanent identity is configured",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      },
+      {
+        "id": 135121445841,
+        "name": "release",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 5
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Require existing signing Secrets and pinned certificate",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 28
+          },
+          {
+            "name": "Build and lint release",
+            "conclusion": "success",
+            "seconds": 655
+          },
+          {
+            "name": "Verify signing guards with disposable test keys",
+            "conclusion": "success",
+            "seconds": 11
+          },
+          {
+            "name": "Sign with the existing permanent key and verify its identity",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 31
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ],
+    "ci_metadata_output": {
+      "version": "1.10.55",
+      "code": 78,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "a6e35348c8539b2c6d6f000d84d18107d168ec8f8a96d5d78257bcffd84d0617"
+    }
+  },
+  "room_schema": 18,
+  "room_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "real_paid_api_requests_made": false,
+  "main": {
+    "fast_forward_from": "29b85e3a6f52f14935c5087698aa3c02b16aeb53",
+    "fast_forward_to": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+    "method": "Git refs REST API, force=false"
+  }
+}
