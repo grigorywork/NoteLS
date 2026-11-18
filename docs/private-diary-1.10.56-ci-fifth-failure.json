@@ -1,0 +1,19 @@
+{
+  "run_id": 44411996611,
+  "source": "4b072d87c4339b25951ea1f138f4e00788b0cd70",
+  "conclusion": "failure",
+  "tests": 846,
+  "failures": 3,
+  "artifact_id": 14478743878,
+  "zip_sha256": "bb62b58e4c32fc0409ae11e06f924548aa529eaaf07a68d92b104cb333feadd4",
+  "findings": [
+    "Migration data/ACL assertions passed but final public dated row visibility was asserted before asynchronous rendering/scroll completed. Wait for displayed row under same15s cap added; privacy assertions retained.",
+    "Setup mismatch feedback now visible, but second coordinate click did not reach successful setup; targeted repro adds screenshot/state/tree and enabled assertion to diagnose snackbar/keyboard overlap.",
+    "Boot ordinary-reminder positive control failed; application logic unchanged from55. Add alarm/page/recovery diagnostics; do not silently rerun as proof or weaken it."
+  ],
+  "private_persistence": {
+    "tests": 17,
+    "failures": 0
+  },
+  "full_ci_verified": false
+}

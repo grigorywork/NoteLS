@@ -1,0 +1,85 @@
+{
+  "observed_at": "2026-11-18T23:04:56.233513+00:00",
+  "status": "blocked_github_actions_billing",
+  "last_verified_release": {
+    "version": "1.10.55",
+    "code": 78,
+    "source": "bc1c522239050f61287187c5466a70a7b9a1aad6",
+    "signed_run_id": 44394699564,
+    "artifact_id": 14470776318
+  },
+  "candidate": {
+    "version": "1.10.56",
+    "code": 79,
+    "room": 19,
+    "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+    "full_ci_verified": false,
+    "signed_apk_exists": false
+  },
+  "last_full_ci": {
+    "id": 44411996611,
+    "source": "4b072d87c4339b25951ea1f138f4e00788b0cd70",
+    "tests": 846,
+    "failures": 3,
+    "ignored": 0,
+    "report_artifact_id": 14478743878,
+    "report_zip_sha256": "bb62b58e4c32fc0409ae11e06f924548aa529eaaf07a68d92b104cb333feadd4",
+    "private_persistence_tests": 17,
+    "private_persistence_failures": 0
+  },
+  "blocked_probe": {
+    "id": 44417149138,
+    "source": "efee19406dd026c75fc6774e776aa6ba8d89062a",
+    "job_id": 135200313968,
+    "runner_name": "",
+    "steps": 0,
+    "tests_ran": false,
+    "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the Billing & plans section in your settings",
+    "annotations_api": "https://api.github.com/repos/grigorywork/NoteLS/check-runs/135200313968/annotations"
+  },
+  "unverified_followup": [
+    "Reserve measured snackbar height for locked password form above IME so validation feedback cannot intercept submit; clear feedback in finally on disposal. Hypothesis/candidate fix, no pass claimed.",
+    "Migration UI retains immediate privacy assertions, waits under unchanged15s cap for public dated row to become displayed.",
+    "Native form failure emits real screenshot/state/tree and asserts submit enabled; boot failure includes scheduled intents, SQL alarm page and recovery state. Boot cause still unresolved; do not weaken assertions."
+  ],
+  "queue": [
+    {
+      "stage": 84,
+      "state": "unfinished_candidate"
+    },
+    {
+      "stage": 85,
+      "state": "not_started"
+    },
+    {
+      "stage": 86,
+      "state": "not_started"
+    },
+    {
+      "stage": 87,
+      "state": "not_started"
+    }
+  ],
+  "requested_new_windows": {
+    "audit_active_ms": 3600000,
+    "optimization_active_ms": 3600000,
+    "start_after_all_stages": true,
+    "audit_started": false,
+    "optimization_started": false,
+    "old52_window": "closed_do_not_repeat"
+  },
+  "no_active_worker_after_checkpoint": true,
+  "no_active_ci": true,
+  "billing_or_spending_changed": false,
+  "runner_inventory": "403 Resource not accessible by integration; do not infer self-hosted runner availability",
+  "ordinary_android_workflow_preserved_on_feature": true,
+  "diagnostic_branch_never_merge_whole": "codex/diary56-targeted-probe",
+  "constraints": [
+    "GitHub REST only",
+    "No local SDK/Gradle build",
+    "Existing signing Secret and permanent certificate unchanged",
+    "No paid AI requests",
+    "No duplicate worker/Gradle",
+    "No questions between authorized stages"
+  ]
+}

@@ -1728,3 +1728,6 @@ DiaryScaffold/FABтеперьучитываетWindowInsets.ime. Nativeпаро�
 
 
 2026-11-18T22:28:56.643743+00:00: Diary56/44409808330 cancelled after source audit found private editor trash used forbidden general scope. Fixed fresh private parent authorization and added actual VM/NativeSQLite delete+locked denial regression. Existing20cases retained; expected846total(825+17persistence+4NativeUI). Cancelledrun pass not claimed. FullCI→Signed→actualRoom19APK→freshGC required before84closure.
+
+
+2026-11-18T23:04:56.233513+00:00: Diary56 NOT CLOSED. Full846/3failed44411996611. Targeted probe44417149138 failed before runner/0steps due explicit GitHub billing/spending error. No test executed in probe. Unverified snackbar/IME padding followup, retained privacy/timeout assertions, diagnostics saved. Main app remains verified55. Need owner restore Actions access; do not change spending/key or fake CI/hours. After84closure continue85–87 thenNEW1h audit→1h optimization; neither clock started.
