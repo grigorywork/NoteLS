@@ -1,3 +1,9 @@
+## Начат83: компактное удаление фото, кандидат54/code77
+
+82 закрыт в53/code76 (811/0/0/lint0, Signed44334673971/artifact14442362419 и реальный minified release-GC контроль подтверждены). Сейчас83: прежний круглый48dp фон удаления фото заменён на квадрат44dp со скруглением6dp, крестик18dp. Callback/доступ/вложения/данные не менялись. Перенесён ТОЛЬКО PhotoAttachmentGrid.kt из WIP83, версия повышена на свежем build.gradle.kts; дерево82 не заменялось.
+
+Кандидат **1.10.54/code77** ещё НЕ проверен/НЕinstallable; выполняются обычный полныйCI811/lint/build. Отдельные тесты, зеркалящие размеры простой кнопки, не добавлялись. Подпись/Room18/data2/security3 прежние. ПослеCI — Signed и независимаяAPK+свежийrelease-GC. Затем84 дневник/пароль/перенос,85быстраяAIкнопка(FOURмодели всего),86ярлыкпланировщика,87аналитика. Новое окно3h+3h не требуется;68/iPhone отложен.
+
 ## 82 закрыт — проверенный NoteLS1.10.53/code76
 
 Этап82 закрыт: NoteLS1.10.53/code76, Room18/data2/security3. Source `6a88a6ad4081226691fa38606ce9867b0a3b0e0f`. Полный CI[44328191686](https://github.com/grigorywork/NoteLS/actions/runs/44328191686) =**811 тестов/0 отказов/0 пропусков**, lint0errors/16warnings/2info. Signed[44334673971](https://github.com/grigorywork/NoteLS/actions/runs/44334673971) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room18. Физическая установка не выполнялась.
