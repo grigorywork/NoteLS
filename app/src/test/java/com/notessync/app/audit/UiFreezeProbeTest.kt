@@ -33,6 +33,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowSystemClock
+import org.robolectric.shadows.ShadowDialog
 import java.time.Duration
 
 /** Isolated diagnostic only: elapsed real operations, never virtual-clock duration or idle sleep. */
@@ -169,9 +170,15 @@ class UiFreezeProbeTest {
                         compose.onNodeWithTag("glass-frost").performScrollTo()
                             .performSemanticsAction(SemanticsActions.SetProgress) { it(frost) }
                         compose.onNodeWithTag("glass-save").performClick()
+                        compose.onNode(isDialog()).assertDoesNotExist()
                         compose.runOnIdle {
                             assertEquals(transparency, settings.state.value.glassAppearance.transparency, 0.001f)
                             assertEquals(frost, settings.state.value.glassAppearance.frost, 0.001f)
+                            // Robolectric's static shownDialogs keeps every dismissed Dialog until
+                            // test reset. A multi-hour single test must release this test-only
+                            // registry after asserting the real dialog has already been dismissed.
+                            assertTrue(ShadowDialog.getShownDialogs().none { it.isShowing })
+                            ShadowDialog.reset()
                         }
                         }
                     }
