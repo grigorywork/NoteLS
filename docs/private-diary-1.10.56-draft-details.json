@@ -1,0 +1,131 @@
+{
+  "stage": 84,
+  "slug": "private-diary-1.10.56",
+  "title": "Отдельный дневник с паролем",
+  "main_from": "f48007c5cb2566172fb4888cbc7fba1efd53de6d",
+  "room_version": 19,
+  "previous_room_version": 18,
+  "room_schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+  "changes_en": [
+    "A separate password-protected Journal drawer destination replaces the legacy journal/tag and daily-planner overflow actions. Calendar day planning remains available.",
+    "Journal membership is explicit notebook metadata and is always excluded from general lists/search/filters/trash/pickers/widgets/analytics, including during an unlocked session.",
+    "Fresh password setup, unlock, change-password and lock/exit checks reuse the existing password algorithm. Separately protected entries retain their own credentials and hide previews until verified.",
+    "User-selected legacy migration preserves IDs, sync IDs, documents, formatting, tables, tags, attachments, dates and task clocks. Tagged journal trash is retained; ordinary dated tasks require explicit opt-in and selection.",
+    "Private membership survives stale editors and legacy sync metadata. Private parent dependencies and optional wire markers prevent orphan private notes becoming public.",
+    "Room18 to19 adds only notebooks.isDiary default0; encrypted backup restore migrates and validates staging before touching live tables. Cancellation is preserved.",
+    "IME-aware password UI and bounded pages keep all records accessible without loading full documents into the list. Voice55 and the settings listener fix remain intact."
+  ],
+  "changes_ru": [
+    "Отдельный пункт «Дневник» с собственным паролем, сменой пароля и замком. Старый пункт «Ежедневник» убран из меню.",
+    "Записи дневника скрыты из общих заметок, поиска, фильтров, общей корзины, виджетов и аналитики даже после разблокировки.",
+    "Перенос выбирается после задания пароля: прежние записи с тегом «Дневник» отмечены, остальные датированные записи выбираются вручную. Задачи доступны только после отдельного включения и выбора.",
+    "Сохраняются текст, разметка, таблицы, вложения, даты, таймеры, идентификаторы, корзина и отдельные пароли записей.",
+    "Миграция Room18→19 добавляет один признак; старые копии проходят миграцию и проверку до восстановления живых данных.",
+    "Форма пароля и кнопки доступны над клавиатурой на небольшом экране. Исправление диктовки55 сохранено."
+  ],
+  "limitations_en": [
+    "Password protection gates app access using the established protected-notebook session policy; lock/leave Journal or restart the process to require it again. Encrypted backup protection is unchanged.",
+    "Older app versions do not have the separate Journal UI. Update paired devices for the same UI isolation.",
+    "Native UI/SQLite and controlled lifecycle tests are not physical Samsung A01 or Nubia Z80 Ultra tests."
+  ],
+  "limitations_ru": [
+    "Сессия блокируется замком, выходом из дневника или завершением процесса; обычное переключение приложения сохраняет редактируемый текст.",
+    "Для одинакового отдельного дневника на связанных устройствах нужно обновить приложение на обоих.",
+    "На физических A01 и Nubia проверки не выполнялись."
+  ],
+  "audit_history": [
+    {
+      "run_id": 44402134761,
+      "source": "bdd2682cf2afb981344c916317103fe85c0468bb",
+      "conclusion": "failure",
+      "finding": "Leftover diary variable in legacy empty state; no tests ran. Actual KSP19 generated and independently verified."
+    },
+    {
+      "run_id": 44403548996,
+      "source": "e14bb4849cbe27ce656a012fbcbc4d49c9c24f29",
+      "conclusion": "cancelled",
+      "finding": "Log contained ExperimentalTestApi opt-in requirement in a new native selection test. Opt-in added; source also finished with IME-aware form. No tests pass claimed."
+    },
+    {
+      "run_id": 44405609595,
+      "source": "4eacae3a7996390b9d85251672c43ce500aa70a2",
+      "conclusion": "failure",
+      "tests": 845,
+      "failures": 5,
+      "artifact_id": 14474854812,
+      "zip_sha256": "fac439f8ca6f5482867f84852c150ac90f58ea417640defc8f9e374697a4b708",
+      "causes": [
+        "Actual Diary snackbar effect cleared its own key before show completed; effect cancelled. Clear moved after show completion with expected-message guard.",
+        "Two navigation tests matched both legacy Diary tag checkbox and new drawer Tab; selector now specifically requires Tab semantics.",
+        "Quote migration fixture downgraded current tables by version only, retaining future isDiary column. Replaced with actual schema17 DDL/index/setup reconstruction and exact original note ContentValues."
+      ],
+      "test_timeout_increased": false,
+      "assertions_removed": false
+    },
+    {
+      "run_id": 44409808330,
+      "source": "f5c1226e9150bab6e27e3e7bd38333219370ed82",
+      "conclusion": "cancelled",
+      "finding": "Code audit found private editor deleteNow passed general scope, which intentionally skips private rows. Authorized editor now supplies fresh private parent; NoteActions rechecks membership/credentials in its transaction. Added actual Room/VM regression for successful private trash, blocked general trash and denied locked editor. No current-run pass claimed."
+    },
+    {
+      "run_id": 44411996611,
+      "source": "4b072d87c4339b25951ea1f138f4e00788b0cd70",
+      "conclusion": "failure",
+      "tests": 846,
+      "failures": 3,
+      "artifact_id": 14478743878,
+      "zip_sha256": "bb62b58e4c32fc0409ae11e06f924548aa529eaaf07a68d92b104cb333feadd4",
+      "findings": [
+        "Migration data/ACL assertions passed but final public dated row visibility was asserted before asynchronous rendering/scroll completed. Wait for displayed row under same15s cap added; privacy assertions retained.",
+        "Setup mismatch feedback now visible, but second coordinate click did not reach successful setup; targeted repro adds screenshot/state/tree and enabled assertion to diagnose snackbar/keyboard overlap.",
+        "Boot ordinary-reminder positive control failed; application logic unchanged from55. Add alarm/page/recovery diagnostics; do not silently rerun as proof or weaken it."
+      ],
+      "private_persistence": {
+        "tests": 17,
+        "failures": 0
+      },
+      "full_ci_verified": false
+    }
+  ],
+  "audit_ru": "Проверка схемы: все6 остальных Roomentities/связи/индексы равны18; notebooks добавляет только isDiary INTEGER NOT NULL DEFAULT0. Реальный KSP19 SHA 042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869, identity 61703504e840fea926257eeba0d419e1. Новые21 регрессия включают миграцию18, защищённый/удалённый перенос, genericCRUD, устаревшие редактор/credentials, legacy sync, encrypted restore/cancellation, настоящий AppNavHost под Native Robolectric и форму320dp с IME260dp. Маскирование закрытой записи включает заголовок/текст/дату/updatedAt. Голосовой55/плашки/постояннаягалочка сохранены.",
+  "additional_evidence": {
+    "schema_generation": {
+      "generation_run": 44402134761,
+      "source": "bdd2682cf2afb981344c916317103fe85c0468bb",
+      "run_conclusion": "failure: one leftover old UI reference; no tests run",
+      "artifact_id": 14474450860,
+      "zip_sha256": "a6e419ddaed67f0f9ad5140154b60e62ecd8bdbcdb4a81d96cad19aa38d8bca9",
+      "zip_bytes": 30728,
+      "schema_path": "app/schemas/com.notessync.app.data.local.AppDatabase/19.json",
+      "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+      "room_version": 19,
+      "identity_hash": "61703504e840fea926257eeba0d419e1",
+      "unchanged_entities": [
+        "notes",
+        "tags",
+        "note_tag_cross_ref",
+        "attachments",
+        "custom_quotes",
+        "quote_library_state"
+      ],
+      "only_added_field": {
+        "fieldPath": "isDiary",
+        "columnName": "isDiary",
+        "affinity": "INTEGER",
+        "notNull": true,
+        "defaultValue": "0"
+      },
+      "old_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+      "full_ci_verified": false
+    },
+    "physical_device_tests": false
+  },
+  "extra_paths": [
+    "docs/private-diary-1.10.56-release-gc.json",
+    "docs/private-diary-1.10.56-schema-proof.json",
+    "docs/private-diary-1.10.56-ci-failure.json",
+    "docs/private-diary-1.10.56-ci-fifth-failure.json"
+  ],
+  "next_ru": "Продолжать85: быстрая кнопка преобразования текста, настройка её скрытия и автоматическое скрытие на low-RAM/неподдерживаемых устройствах; модели остаются четырьмя: Qwen/Gemini/Gemma/Nemotron. Затем86 ярлык планировщика с присланной пользователем календарной графикой,87 аналитика сравнение периодов/просроченные/drilldown. Без вопросов между этапами. После всей очереди — НОВЫЕ1 фактическийчас аудита, затем1 фактическийчас оптимизации/исправлений/проверок, с UTC и проверяемыми доказательствами, без простоя/двойного счёта. Старое3h+3h52 не повторять;68/iPhone не начинать."
+}
