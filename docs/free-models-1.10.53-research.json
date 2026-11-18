@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-11-18T13:57:07.598489+00:00",
+  "inference_requests_made": false,
+  "openrouter_catalog": [
+    {
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "pricing": {
+        "prompt": "0",
+        "completion": "0"
+      },
+      "context_length": 1000000,
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "pricing": {
+        "prompt": "0",
+        "completion": "0"
+      },
+      "context_length": 262144,
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    }
+  ],
+  "sources": [
+    "https://console.groq.com/docs/models",
+    "https://console.groq.com/docs/rate-limits",
+    "https://aistudio.google.com/docs/pricing#gemini-3.5-flash-lite",
+    "https://aistudio.google.com/docs/openai",
+    "https://openrouter.ai/api/v1/models",
+    "https://openrouter.ai/docs/guides/routing/provider-selection#max-price",
+    "https://openrouter.ai/docs/guides/routing/model-variants/free"
+  ],
+  "notes": [
+    "Qwen3.8 already selected by existing Groq adapter; unchanged. Free plan rate-limits table includes it.",
+    "Gemini3.5 FlashLite has free input/output under Free tier; billed projects are not automatically free. UI instructs use without billing, app cannot verify account tier.",
+    "OpenRouter exact :free models have zero catalog prices; request provider.max_price prompt/completion/request all0, allow_fallbacksfalse, no model fallback array.",
+    "No runtime catalog fetch, dynamic model switch or provider retries. Existing private credential values never accessed by this work."
+  ]
+}

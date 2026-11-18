@@ -29,10 +29,12 @@ class AndroidTransformSecrets(context: Context, keys: TransformKeyProvider? = nu
     private val alias = when (provider) {
         AiProvider.OPENAI -> ALIAS
         AiProvider.GROQ_QWEN -> GROQ_ALIAS
+        AiProvider.GEMINI_FREE -> GEMINI_ALIAS
+        AiProvider.OPENROUTER_GEMMA, AiProvider.OPENROUTER_NEMOTRON -> OPENROUTER_ALIAS
         AiProvider.LOCAL_RULES -> error("Local rules do not use credentials")
     }
     private val keys = keys ?: AndroidTransformKeys(alias)
-    private val aad = if (provider == AiProvider.GROQ_QWEN) alias.toByteArray(Charsets.UTF_8) else null
+    private val aad = if (provider == AiProvider.OPENAI) null else alias.toByteArray(Charsets.UTF_8)
     private val prefs = context.applicationContext.getSharedPreferences(prefsName(provider), Context.MODE_PRIVATE)
     override suspend fun present(): Boolean = withContext(Dispatchers.IO) { prefs.contains("encrypted") }
     override suspend fun save(value: String) = withContext(Dispatchers.IO) {
@@ -67,9 +69,15 @@ class AndroidTransformSecrets(context: Context, keys: TransformKeyProvider? = nu
         internal const val ALIAS = "notels.ai.openai.v1"
         const val GROQ_PREFS = "ai_secrets_groq"
         internal const val GROQ_ALIAS = "notels.ai.groq.qwen.v1"
+        const val GEMINI_PREFS = "ai_secrets_gemini"
+        internal const val GEMINI_ALIAS = "notels.ai.gemini.v1"
+        const val OPENROUTER_PREFS = "ai_secrets_openrouter"
+        internal const val OPENROUTER_ALIAS = "notels.ai.openrouter.v1"
         internal fun prefsName(provider: AiProvider) = when (provider) {
             AiProvider.OPENAI -> PREFS
             AiProvider.GROQ_QWEN -> GROQ_PREFS
+            AiProvider.GEMINI_FREE -> GEMINI_PREFS
+            AiProvider.OPENROUTER_GEMMA, AiProvider.OPENROUTER_NEMOTRON -> OPENROUTER_PREFS
             AiProvider.LOCAL_RULES -> error("Local rules do not use credentials")
         }
         internal fun spec(alias: String = ALIAS) = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)

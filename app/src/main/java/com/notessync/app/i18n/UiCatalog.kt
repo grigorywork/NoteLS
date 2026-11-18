@@ -11,6 +11,7 @@ object UiCatalog {
             addFeaturesEnglish()
             addQuotesEnglish()
             addBackupSecurityEnglish()
+            addFreeModelsEnglish()
         }
     }
 

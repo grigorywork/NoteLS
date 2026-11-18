@@ -1629,3 +1629,13 @@ OOM точно в `ShadowTrace.endSection → ArrayDeque.grow`: исходник
 
 
 2026-11-18T13:36:49.466354+00:00: Этап81 (исправление настроек) закрыт: NoteLS1.10.52/code75, Room18/data2/security3. Source `ae77b141bc9a698a627ee53a851e42da5e572522`. Полный CI[44280675812](https://github.com/grigorywork/NoteLS/actions/runs/44280675812) =**800 тестов/0 отказов/0 пропусков**, lint0errors/16warnings/2info. Signed[44284393976](https://github.com/grigorywork/NoteLS/actions/runs/44284393976) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room18. Физическая установка не выполнялась. Работа по текущему окну завершена; после выдачи APK остановиться.82–84 отложены. WIP82/83 сохранены в codex/resume82-after-1.10.51 и codex/resume83-after-1.10.51; будущие версии перенумеровать с учётом выпущенного52/code75.85–89 и68/iPhone не начинать. Proofdocs/settings-freeze-1.10.52-verification.json. APK https://github.com/grigorywork/NoteLS/actions/runs/44284393976/artifacts/14418892838
+
+
+2026-11-18T13:57:07.601169+00:00: ## Начат82 после проверенной52: четыре бесплатные модели
+
+Новое указание18ноября «Продолжай работу» возобновило очередь82–84. Текущий кандидат **1.10.53/code76**, ещё НЕ проверен/НЕinstallable. Сохранённый82 перенесён только по14 явным путям на main fd75ef898bfd7239a5561d11d49006ac858cfa6d, с сохранением52-фикса SharedPreferences listener и release-GC проверки. Версия старого черновика52/code75 перенумерована.
+
+Четыре free-модели: Qwen/Groq (существующий3.8), Gemini3.5 FlashLite/Google, Gemma4/Nemotron3.5/OpenRouter exact:free. Актуальные официальные условия перепроверены18ноября; [research](free-models-1.10.53-research.json). Free квоты зависят от аккаунта; Gemini требует проект без биллинга. UI это сообщает. Отдельные защищённые ключи Google/OR; два OR-варианта делят сервисный ключ. Старые OpenAI/Groq ключи и ручная модель OpenAI сохраняются. Запрос только по явному нажатию, ответ через preview/Apply со stale/access guards.
+
+Новые transport/credential/settings/UI тесты офлайн; реальных AI-запросов и доступа к пользовательским ключам нет. Общий CI ожидает811 тестов; это ещё НЕpass. До его результата source/main/test не менять, второй Gradle не запускать. После полногоCI — Signed прежнимключом, независимаяAPK проверка и новый автоматический release-settings-GC. Следующий83 только после закрытия82;84 после83,85–89/iPhone68 отложены. Ранее запрошенное окно3h+3h уже закрыто в52; не повторять автоматически по историческому handoff.
+
