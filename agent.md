@@ -1722,3 +1722,6 @@ DiaryScaffold/FABтеперьучитываетWindowInsets.ime. Nativeпаро�
 
 Кандидат56/code79ещёНЕinstallable. ПолныйобычныйCI845/lint/build→независимаяпроверкаreport/schema→Signedпрежнимключом→actualAPK/source/Room19identity→freshGC. После84продолжать85–87безвопросов, затемНОВОЕ1hаудит+1hоптимизация.
 
+
+
+2026-11-18T22:15:20.800172+00:00: Diary56 fullCI44405609595 completed845/5failed. Actual snackbar self-cancellation fixed; 2drawer selectors disambiguated from legacy tag by Tab role; actualschema17 quote fixture reconstructed from realDDL (no future column). No timeout/assertion weakening. Repeat fullCI required beforeSigned; noAPK56yet.

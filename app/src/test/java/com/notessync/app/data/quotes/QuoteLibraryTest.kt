@@ -56,15 +56,27 @@ class QuoteLibraryTest {
         assertTrue(runCatching { library.import(preview) }.isFailure)
         assertEquals(1, db.customQuoteDao().count()); assertEquals(old, db.customQuoteDao().pinned()!!.id)
     }
-    @Test fun `actual version17 schema migrates to18 without changing notes and with an empty quote library`() = runBlocking {
+    @Test fun `actual version17 schema migrates to current without changing notes and with an empty quote library`() = runBlocking {
         val note = NoteEntity(title = "Existing", content = "Keep all text", textFormat = "styles", dayKey = 3000L)
         val id = db.noteDao().upsert(note); val before = db.noteDao().getById(id)
-        AppDatabase.closeInstance()
+        val values = android.content.ContentValues()
+        db.openHelper.readableDatabase.query("SELECT * FROM notes WHERE id = ?", arrayOf(id)).use { cursor ->
+            assertTrue(cursor.moveToFirst()); android.database.DatabaseUtils.cursorRowToContentValues(cursor, values)
+        }
+        AppDatabase.closeInstance(); assertTrue(app.deleteDatabase("notessync.db"))
         val schemaPath = "schemas/com.notessync.app.data.local.AppDatabase/17.json"
         val schema = JSONObject(listOf(File(schemaPath), File("app", schemaPath)).first { it.isFile }.readText()).getJSONObject("database")
-        SQLiteDatabase.openDatabase(app.getDatabasePath("notessync.db").path, null, SQLiteDatabase.OPEN_READWRITE).use { old ->
-            old.execSQL("DROP TABLE quote_library_state"); old.execSQL("DROP TABLE custom_quotes")
-            old.execSQL("UPDATE room_master_table SET identity_hash = ? WHERE id = 42", arrayOf(schema.getString("identityHash")))
+        SQLiteDatabase.openOrCreateDatabase(app.getDatabasePath("notessync.db"), null).use { old ->
+            val entities = schema.getJSONArray("entities")
+            for (i in 0 until entities.length()) {
+                val entity = entities.getJSONObject(i); val table = entity.getString("tableName")
+                old.execSQL(entity.getString("createSql").replace("\${TABLE_NAME}", table))
+                val indices = entity.getJSONArray("indices")
+                for (j in 0 until indices.length()) old.execSQL(indices.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}", table))
+            }
+            val setup = schema.getJSONArray("setupQueries")
+            for (i in 0 until setup.length()) old.execSQL(setup.getString(i))
+            old.insertOrThrow("notes", null, values)
             old.version = 17
         }
         db = AppDatabase.get(app)

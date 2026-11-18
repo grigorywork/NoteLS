@@ -76,7 +76,8 @@ class DiaryActivityUiTest {
     private fun open() {
         await { exists(hasContentDescription("Меню")) }
         compose.onNodeWithContentDescription("Меню").performClick()
-        compose.onNodeWithText("Дневник").performClick()
+        compose.onNode(hasText("Дневник") and SemanticsMatcher.expectValue(
+            androidx.compose.ui.semantics.SemanticsProperties.Role, androidx.compose.ui.semantics.Role.Tab)).performClick()
         await { exists(hasTestTag("diary-password")) }
     }
     private fun enter(password: String) {

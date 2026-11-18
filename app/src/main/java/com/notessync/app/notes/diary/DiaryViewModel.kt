@@ -54,7 +54,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         .map { DiaryCandidates(key.book, key.access, key.page, it, key.includeTasks) } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(0, 0), null)
 
     private fun occupied() = operation.value || controller.busy.value
-    fun clearMessage() { mutableMessage.value = null }
+    fun clearMessage(expected: String) { if (mutableMessage.value == expected) mutableMessage.value = null }
     fun select(id: Long) { lock(); selected.value = id; mutableTrash.value = false; limit.value = 0 }
     fun showTrash(value: Boolean) { mutableTrash.value = value; limit.value = 0 }
     fun showMigration(value: Boolean) { migration.value = value; candidateLimit.value = 0; datedTasks.value = false }

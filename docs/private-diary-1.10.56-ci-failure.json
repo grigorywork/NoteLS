@@ -1,0 +1,16 @@
+{
+  "run_id": 44405609595,
+  "source": "4eacae3a7996390b9d85251672c43ce500aa70a2",
+  "conclusion": "failure",
+  "tests": 845,
+  "failures": 5,
+  "artifact_id": 14474854812,
+  "zip_sha256": "fac439f8ca6f5482867f84852c150ac90f58ea417640defc8f9e374697a4b708",
+  "causes": [
+    "Actual Diary snackbar effect cleared its own key before show completed; effect cancelled. Clear moved after show completion with expected-message guard.",
+    "Two navigation tests matched both legacy Diary tag checkbox and new drawer Tab; selector now specifically requires Tab semantics.",
+    "Quote migration fixture downgraded current tables by version only, retaining future isDiary column. Replaced with actual schema17 DDL/index/setup reconstruction and exact original note ContentValues."
+  ],
+  "test_timeout_increased": false,
+  "assertions_removed": false
+}

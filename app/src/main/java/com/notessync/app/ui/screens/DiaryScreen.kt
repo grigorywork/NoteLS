@@ -58,7 +58,11 @@ fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: Diary
     DisposableEffect(viewModel) { onDispose { viewModel.stopped() } }
     LaunchedEffect(book?.id, unlocked) { password = ""; confirmation = ""; protectedRow = null; migrating = false; changingPassword = false }
     LaunchedEffect(message) {
-        message?.let { viewModel.clearMessage(); snackbar.showSnackbar(uiText(it)) }
+        message?.let {
+            // Keep the effect key stable until the snackbar completes; clearing first cancels it.
+            snackbar.showSnackbar(uiText(it))
+            viewModel.clearMessage(it)
+        }
     }
     Scaffold(
         modifier = Modifier.windowInsetsPadding(imeInsets),
