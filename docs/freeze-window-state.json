@@ -1,29 +1,160 @@
 {
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
-  "user_request": "UI freezes; audit2h then optimization2h, superseding prior3h+3h after82-84",
+  "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
   "phase": "audit",
   "target_active_seconds": {
-    "audit": 7200,
-    "optimization": 7200
+    "audit": 10800,
+    "optimization": 10800
   },
   "active_intervals": [
     {
       "phase": "audit",
       "start": "2026-11-17T18:37:55.223353+00:00",
+      "end": "2026-11-17T19:07:08+00:00",
+      "activity": "Verified fresh source; UI and main-thread audit",
+      "note": "Closed at last confirmed interactive activity before user stop; conservative timestamp."
+    },
+    {
+      "phase": "audit",
+      "start": "2026-11-18T04:12:56.539632+00:00",
       "end": null,
-      "activity": "Verified fresh source; UI and main-thread audit"
+      "activity": "Resume: inspect failed native memory probe and isolate settings path"
     }
   ],
-  "excluded_intervals": [],
+  "excluded_intervals": [
+    {
+      "start": "2026-11-17T19:07:08+00:00",
+      "end": "2026-11-18T04:12:56.539632+00:00",
+      "reason": "User requested stop, then restart after80min; reschedule was not saved, automation stayed disabled; resumed on explicit user message. Entire gap excluded."
+    }
+  ],
   "old_automation_paused": true,
   "app_changes": false,
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
-    "source": "dc3d8e378b4abacc2c2b6c72cbc3b3f6b67c07fe",
-    "kind": "one-minute smoke before sustained probe",
-    "status": "dispatched",
+    "source": "8c38bee09989be8308fe13a46ca1a69951817c4f",
+    "kind": "2h target not reached;294696ms active",
+    "status": "failed_heap_oom_needs_isolation",
     "app_unchanged": true,
-    "workflow_only_on_diagnostic_branch": true
-  }
+    "workflow_only_on_diagnostic_branch": true,
+    "run_id": 44155003357
+  },
+  "main_checkpoint": "89bb22bd856f66dab99cc6bac539185971df7751",
+  "user_details": {
+    "location": "settings",
+    "trigger": "after changing a parameter",
+    "phone_and_android": "not supplied"
+  },
+  "probe_history": [
+    {
+      "run_id": 44151245263,
+      "source": "dc3d8e378b4abacc2c2b6c72cbc3b3f6b67c07fe",
+      "result": "failure",
+      "tests": 1,
+      "failures": 1,
+      "artifact_id": 14358074405,
+      "reason": "After Undo restored focus at bottom of long document; diagnostic clicked offscreen task row. Driver now explicitly scrolls target into view and asserts displayed/enabled; not counted as physical app freeze."
+    },
+    {
+      "run_id": 44152644038,
+      "source": "260e7fba0b6c85fe8cdd3b9b203d4cfefdd05512",
+      "result": "failure",
+      "tests": 1,
+      "failures": 1,
+      "artifact_id": 14359068714,
+      "reason": "Driver did not advance paused Android uptime for debounced home query; added same350ms ShadowSystemClock advancement as existing HomeActionsTest/NavigationSectionsUiTest. Real System.nanoTime duration counter remains separate. Editor/history/task/settings phases completed; list never rendered."
+    },
+    {
+      "run_id": 44153819141,
+      "source": "ed93d23b0399b56b571e49412a080d74ac754322",
+      "result": "success",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0,
+      "artifact_id": 14358969717,
+      "active_ms": 60185,
+      "cycles": 193,
+      "physical_phone": false
+    },
+    {
+      "run_id": 44155003357,
+      "source": "8c38bee09989be8308fe13a46ca1a69951817c4f",
+      "result": "failure",
+      "tests": 1,
+      "failures": 1,
+      "ignored": 0,
+      "artifact_id": 14362280411,
+      "active_ms": 294696,
+      "cycles": 496,
+      "heap_bytes": 535411352,
+      "reason": "Java heap OOM in cumulative native UI diagnostic. Need separate framework-retained input/animation state from actual app leak; allocation stack alone is not cause. Already dispatched before user pause, finished after stop; excluded from requested post-pause duration."
+    }
+  ],
+  "findings": [
+    {
+      "id": "A01",
+      "severity": "candidate",
+      "area": "editor autosave",
+      "evidence": "formatting.encode before Default dispatcher, currently lower priority after settings clarification"
+    },
+    {
+      "id": "A02",
+      "severity": "candidate",
+      "area": "bulk list formatting",
+      "evidence": "editedLines copies/recompares full document per line; lower priority than settings"
+    },
+    {
+      "id": "A03",
+      "severity": "confirmed main-thread path",
+      "area": "settings language and calendar refresh",
+      "evidence": "setUiLanguage→createReminderChannel and refreshAll(force=true)→WeeklyWidgetUpdates.bind/getAppWidgetIds and renderAll/Binder in caller UI thread"
+    },
+    {
+      "id": "A04",
+      "severity": "confirmed scheduling risk",
+      "area": "calendar auto-refresh",
+      "evidence": "force=false throttle and refreshPending simply drop trailing requests; may retain old snapshot"
+    },
+    {
+      "id": "A05",
+      "severity": "confirmed main-thread path",
+      "area": "backup settings",
+      "evidence": "BackupSecuritySettings calls BiometricManager.canAuthenticate directly per recomposition"
+    },
+    {
+      "id": "A06",
+      "severity": "candidate cold load",
+      "area": "font changes",
+      "evidence": "20 bundled ResourceFont entries use default Blocking strategy; changing appFont requires font resource loading on UI cache miss; Async strategy needs regression verification"
+    },
+    {
+      "id": "N01",
+      "severity": "rejected broad hypothesis",
+      "area": "cursor visual transform",
+      "evidence": "FormattedTextTransformation already caches last source and result; repeated call alone is not repeated full rendering"
+    },
+    {
+      "id": "N02",
+      "severity": "reviewed",
+      "area": "glass draft",
+      "evidence": "preview frost changes only on slider finish; no continuous blur animation; background transitions bounded220ms; no identified infinite animation at rest"
+    },
+    {
+      "id": "D01",
+      "area": "diagnostic only",
+      "severity": "confirmed harness retention",
+      "evidence": "Robolectric4.14.1 ShadowDialog.show adds realDialog to static shownDialogs ArrayList; dismiss does not remove; reset clears only registry. Multi-hour test now first asserts real dialog absent and none showing, then clears this test-only registry. Do not label this as app/phone leak."
+    }
+  ],
+  "research": {
+    "compose_source": "https://dl.google.com/dl/android/maven2/androidx/compose/ui/ui-text-android/1.7.6/ui-text-android-1.7.6-sources.jar",
+    "font_findings": "AndroidFontLoader ResourceFont loadBlocking calls ResourcesCompat.getFont; awaitLoad callback path may still perform packaged-resource I/O inline (async scope launches UNDISPATCHED). FontFamily.Resolver.preload on explicit IO warms resource/typeface request caches; locks are not held across file reads. Simply setting FontLoadingStrategy.Async is not accepted as proof of off-main disk I/O.",
+    "planned_settings_priority": [
+      "Move synchronous calendar/weekly widget refresh work away from UI, preserve trailing/forced requests, serial render",
+      "Off-main biometric availability for backup settings, lifecycle refresh; retain fresh authentication guards",
+      "Selected bundled font preloading on explicit IO, then publish preference only if request is current; rapid last-tap wins/cancel on disposal; preserve pill layout"
+    ]
+  },
+  "timing_note": "Do not count unknown gap or post-stop CI toward3h. Before-pause reviewed interval is preparatory evidence; latest3h window begins on explicit resume."
 }
