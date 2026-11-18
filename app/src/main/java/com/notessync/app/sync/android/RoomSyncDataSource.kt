@@ -80,25 +80,29 @@ class RoomSyncDataSource(
     }
 
     override suspend fun getChangesSince(since: Long): ChangeSet = withContext(Dispatchers.IO) {
-        data class Captured(val note: NoteEntity, val notebook: String?, val tags: List<String>, val files: List<AttachmentEntity>)
+        data class Captured(val note: NoteEntity, val notebook: String?, val tags: List<String>, val files: List<AttachmentEntity>, val diary: Boolean)
         // One consistent SQL snapshot; no file open/hash is performed while holding this transaction.
         val snapshot = db.withTransaction {
-            val notebooks = db.notebookDao().getChangedSince(since).map { it.toDto() }
+            val notebooks = db.notebookDao().getChangedSince(since).toMutableList()
             val rows = db.noteDao().getSyncSnapshotSince(since)
+            val capturedBooks = notebooks.mapTo(hashSetOf()) { it.id }
+            for (ids in rows.filter { it.linkedNotebookDiary }.mapNotNull { it.note.notebookId }.distinct().filter { it !in capturedBooks }.chunked(200)) {
+                notebooks.addAll(db.notebookDao().getByIds(ids))
+            }
             val notes = ArrayList<Captured>(rows.size)
             for (group in rows.chunked(200)) {
                 val ids = group.map { it.note.id }
                 val files = db.attachmentDao().getForSyncNotes(ids).groupBy { it.noteId }
                 val tags = db.tagDao().getForSyncNotes(ids).groupBy { it.noteId }
                 for (row in group) notes.add(Captured(row.note, row.linkedNotebookSyncId,
-                    tags[row.note.id].orEmpty().map { it.name }, files[row.note.id].orEmpty()))
+                    tags[row.note.id].orEmpty().map { it.name }, files[row.note.id].orEmpty(), row.linkedNotebookDiary))
             }
-            notebooks to notes
+            notebooks.map { it.toDto() } to notes
         }
         val notes = ArrayList<NoteDto>(snapshot.second.size)
         for (row in snapshot.second) {
             currentCoroutineContext().ensureActive()
-            notes.add(row.note.toDto(row.notebook, row.tags, row.files.mapNotNull { it.toDto(row.note.syncId) }))
+            notes.add(row.note.toDto(row.notebook, row.tags, row.files.mapNotNull { it.toDto(row.note.syncId) }, row.diary))
         }
         ChangeSet(notebooks = snapshot.first, notes = notes)
     }
@@ -116,17 +120,21 @@ class RoomSyncDataSource(
             for (dto in changes.notebooks) syncTransaction {
                 val local = db.notebookDao().getBySyncId(dto.syncId)
                 if (local == null || dto.updatedAt > local.updatedAt) {
+                    val diary = local?.isDiary == true || dto.isDiary == true
+                    val validPassword = dto.isProtected && com.notessync.app.notes.diary.DiaryPrivacy.validCredentials(dto.passwordHash, dto.passwordSalt)
+                    val corrected = local?.isDiary == true && (dto.isDiary != true || dto.deleted || !validPassword)
                     val entity = NotebookEntity(
                         id = local?.id ?: 0,
                         syncId = dto.syncId,
                         name = dto.name,
-                        isDeleted = dto.deleted,
-                        isProtected = dto.isProtected,
-                        passwordHash = dto.passwordHash,
-                        passwordSalt = dto.passwordSalt,
+                        isDeleted = if (diary) false else dto.deleted,
+                        isDiary = diary,
+                        isProtected = diary || dto.isProtected,
+                        passwordHash = if (diary && !validPassword) local?.passwordHash else dto.passwordHash,
+                        passwordSalt = if (diary && !validPassword) local?.passwordSalt else dto.passwordSalt,
                         createdAt = local?.createdAt ?: System.currentTimeMillis(),
-                        updatedAt = dto.updatedAt,
-                        dirty = false
+                        updatedAt = if (corrected) com.notessync.app.data.local.model.nextChangeTimestamp(dto.updatedAt) else dto.updatedAt,
+                        dirty = corrected
                     )
                     ProtectionSession.lockNotebook(local?.id ?: entity.id)
                     val storedId = if (local == null) db.notebookDao().upsert(entity) else {
@@ -140,15 +148,20 @@ class RoomSyncDataSource(
             for (incoming in changes.notes) {
                 val committed = linkedSetOf<Long>()
                 syncTransaction(afterCommit = { changedAlarms.addAll(committed) }) {
-                    val notebookId = incoming.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.takeUnless { book -> book.isDeleted }?.id }
-                    val dto = if (incoming.notebookSyncId != null && notebookId == null) incoming.copy(notebookSyncId = null) else incoming
-                    val local = db.noteDao().getBySyncId(dto.syncId)
+                    val local = db.noteDao().getBySyncId(incoming.syncId)
+                    val localBook = local?.notebookId?.let { db.notebookDao().getById(it) }
+                    val remoteBook = incoming.notebookSyncId?.let { db.notebookDao().getBySyncId(it)?.takeUnless { book -> book.isDeleted } }
+                    require(incoming.diary != true || remoteBook?.let { com.notessync.app.notes.diary.DiaryPrivacy.valid(it) } == true) { "Missing or invalid diary parent" }
+                    // An older peer can omit the marker or detach a deleted parent. Keep private content private.
+                    val parent = if (localBook?.isDiary == true && remoteBook?.isDiary != true) localBook else remoteBook
+                    val notebookId = parent?.id
+                    val dto = incoming.copy(notebookSyncId = parent?.syncId, diary = if (parent?.isDiary == true) true else incoming.diary)
                     val mayConflict = local != null && local.dirty && !local.isPurged && dto.purged != true && dto.updatedAt > local.updatedAt
                     val localFiles = if (mayConflict) db.attachmentDao().getByNoteId(local!!.id) else emptyList()
                     val localSnapshot = local?.toDto(
                         if (mayConflict) local.notebookId?.let { db.notebookDao().getById(it)?.syncId } else null,
                         if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
-                        if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList())
+                        if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList(), localBook?.isDiary == true)
                     val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
                     val alarmsRelevant = local?.reminderAt != null || local?.taskCountdownEndAt != null ||
                         dto.reminderAt != null || dto.taskCountdownEndAt != null
@@ -403,13 +416,15 @@ class RoomSyncDataSource(
         updatedAt = updatedAt,
         isProtected = isProtected,
         passwordHash = passwordHash,
-        passwordSalt = passwordSalt
+        passwordSalt = passwordSalt,
+        isDiary = if (isDiary) true else null
     )
 
     private fun NoteEntity.toDto(
         notebookSyncId: String?,
         tagNames: List<String>,
-        attachments: List<AttachmentDto>
+        attachments: List<AttachmentDto>,
+        diary: Boolean = false
     ) = NoteDto(
         syncId = syncId,
         title = title,
@@ -422,6 +437,7 @@ class RoomSyncDataSource(
         createdAt = createdAt,
         updatedAt = updatedAt,
         notebookSyncId = notebookSyncId,
+        diary = if (diary) true else null,
         tagNames = tagNames,
         attachments = attachments,
         reminderAt = reminderAt,

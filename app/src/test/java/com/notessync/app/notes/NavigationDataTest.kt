@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.entity.*
 import com.notessync.app.notes.diary.DiaryEntries
+import com.notessync.app.notes.diary.PrivateDiary
+import com.notessync.app.security.PasswordProtector
 import com.notessync.app.notes.tables.*
 import com.notessync.app.security.ProtectionSession
 import com.notessync.app.settings.*
@@ -107,25 +109,28 @@ class NavigationDataTest {
             assertEquals(setOf("id", "syncId", "notebookId", "isDeleted"), it.columnNames.toSet())
         }
     }
-    @Test fun `journal entries use the local date and regular synced tags without changing other notes`() = runBlocking {
+    private suspend fun diaryBook() = PrivateDiary.create(db, PasswordProtector.create("fixture-diary-password"), 1).also { ProtectionSession.unlockNotebook(it.id) }
+    @Test fun `journal entries use the local date and synced tags inside their private notebook without changing other notes`() = runBlocking {
         val clock = Instant.parse("2026-11-15T23:30:00Z").toEpochMilli()
         val untouched = NoteEntity(title = "Keep", content = "Unrelated").let { it.copy(id = db.noteDao().upsert(it)) }
-        val first = DiaryEntries.create(db, clock, ZoneId.of("UTC"))
-        val second = DiaryEntries.create(db, clock, ZoneId.of("Asia/Tokyo"))
+        val diary = diaryBook()
+        val first = DiaryEntries.create(db, diary, clock, ZoneId.of("UTC"))
+        val second = DiaryEntries.create(db, diary, clock, ZoneId.of("Asia/Tokyo"))
         assertEquals("15.11.2026", first.title); assertEquals("16.11.2026", second.title)
         assertEquals(LocalDate.of(2026, 11, 15).toEpochDay(), first.dayKey)
         assertEquals(LocalDate.of(2026, 11, 16).toEpochDay(), second.dayKey)
         assertNotEquals(first.id, second.id); assertNotEquals(first.syncId, second.syncId)
-        assertFalse(first.isTask); assertFalse(first.isProtected); assertNull(first.notebookId)
+        assertFalse(first.isTask); assertFalse(first.isProtected); assertEquals(diary.id, first.notebookId)
         assertEquals(listOf(DiaryEntries.TAG_NAME), db.tagDao().getTagNamesForNote(first.id))
         assertEquals(2, db.tagDao().getForSyncNotes(listOf(first.id, second.id)).size)
-        assertEquals(setOf(first.id, second.id), rows(NoteFilter.Tag(DiaryEntries.TAG_NAME)).map { it.id }.toSet())
+        assertTrue(rows(NoteFilter.Tag(DiaryEntries.TAG_NAME), books = setOf(diary.id)).isEmpty())
+        assertEquals(setOf(first.id, second.id), db.noteDao().diaryRows(PrivateDiary.rows(diary.id, false, 0)).first().map { it.id }.toSet())
         assertEquals(untouched, db.noteDao().getById(untouched.id))
     }
     @Test fun `journal revives the existing tag identity with a monotonic timestamp`() = runBlocking {
         val tag = TagEntity(name = DiaryEntries.TAG_NAME, isDeleted = true, updatedAt = 1000)
         val id = db.tagDao().insert(tag)
-        val note = DiaryEntries.create(db, 500, ZoneId.of("UTC"))
+        val note = DiaryEntries.create(db, diaryBook(), 500, ZoneId.of("UTC"))
         val after = db.tagDao().getByName(DiaryEntries.TAG_NAME)!!
         assertEquals(id, after.id); assertEquals(tag.syncId, after.syncId)
         assertFalse(after.isDeleted); assertEquals(1001L, after.updatedAt); assertTrue(after.dirty)

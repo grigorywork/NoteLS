@@ -12,6 +12,7 @@ object UiCatalog {
             addQuotesEnglish()
             addBackupSecurityEnglish()
             addFreeModelsEnglish()
+            addDiaryEnglish()
         }
     }
 

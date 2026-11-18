@@ -66,7 +66,7 @@ internal fun EditorFormattingPanel(viewModel: NoteEditorViewModel, ui: EditorUiS
             }
         }
         DropdownMenu(expanded = ui.showPhotoMenu, onDismissRequest = { ui.showPhotoMenu = false }) {
-            DropdownMenuItem(text = { Text(uiText("Блокнот")) }, leadingIcon = { Icon(Icons.Default.Folder, null) },
+            if (!viewModel.isDiaryEntry) DropdownMenuItem(text = { Text(uiText("Блокнот")) }, leadingIcon = { Icon(Icons.Default.Folder, null) },
                 onClick = { ui.showNotebookMenu = true })
             DropdownMenuItem(text = { Text(uiText("Теги")) }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) },
                 onClick = { ui.dismissMenus(); ui.showTagDialog = true })
@@ -125,7 +125,7 @@ internal fun EditorFormattingPanel(viewModel: NoteEditorViewModel, ui: EditorUiS
             )
         }
         DropdownMenu(
-            expanded = ui.showNotebookMenu,
+            expanded = ui.showNotebookMenu && !viewModel.isDiaryEntry,
             onDismissRequest = { ui.showNotebookMenu = false }
         ) {
             DropdownMenuItem(
@@ -135,7 +135,7 @@ internal fun EditorFormattingPanel(viewModel: NoteEditorViewModel, ui: EditorUiS
                     ui.showNotebookMenu = false
                 }
             )
-            notebooks.forEach { notebook ->
+            notebooks.filterNot { it.isDiary }.forEach { notebook ->
                 DropdownMenuItem(
                     text = {
                         Text(

@@ -25,6 +25,10 @@ class MainActivity : FragmentActivity() {
         setIntent(intent)
         widgetRequests.value = WidgetNoteLinks.read(intent, ++widgetSequence)
     }
+    override fun onStop() {
+        com.notessync.app.notes.diary.DiarySession.lock()
+        super.onStop()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

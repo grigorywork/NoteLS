@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckBox
@@ -65,7 +66,7 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
     notebooks: List<NotebookEntity>, protectionState: ProtectionState, biometricBindings: Map<String, String>,
     displaySettings: SettingsState, drawerQuoteIndex: Int, drawerState: DrawerState, scope: CoroutineScope,
     snackbarHostState: SnackbarHostState, settingsContext: android.content.Context,
-    onOpenCalendar: () -> Unit, onOpenQuotes: () -> Unit, onOpenAgenda: () -> Unit = onOpenCalendar) {
+    onOpenCalendar: () -> Unit, onOpenQuotes: () -> Unit, onOpenDiary: () -> Unit = {}) {
     ModalDrawerSheet {
         // Collect the one-row selection only while the open drawer is displayed.
         val pin = if (drawerState.isOpen && displaySettings.drawerQuote.enabled) {
@@ -79,7 +80,7 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
             Text(uiText("Заметки"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             NotesSectionsMenu(filter, onSelect = {
                 viewModel.selectFilter(it); scope.launch { drawerState.close() }
-            }, onOpenAgenda = { scope.launch { drawerState.close() }; onOpenAgenda() })
+            })
         }
         NavigationDrawerItem(
             label = { Text(uiText("Все заметки")) },
@@ -121,6 +122,12 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
             },
             modifier = Modifier.padding(horizontal = 12.dp)
         )
+        NavigationDrawerItem(
+            label = { Text(uiText("Дневник")) },
+            icon = { Icon(androidx.compose.material.icons.Icons.Default.Book, null) }, selected = false,
+            onClick = { scope.launch { drawerState.close() }; onOpenDiary() },
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         NavigationDrawerItem(
             label = { Text(uiText("Цитаты"), style = MaterialTheme.typography.titleMedium) },
@@ -155,7 +162,7 @@ internal fun NotesDrawer(viewModel: NotesViewModel, notebookUi: HomeNotebookStat
                 Icon(Icons.Default.Add, contentDescription = uiText("Новый блокнот"))
             }
         }
-        notebooks.forEach { notebook ->
+        notebooks.filterNot { it.isDiary }.forEach { notebook ->
             var menuOpen by remember(notebook.id) { mutableStateOf(false) }
             val biometricTag = remember(notebook) { NotebookBiometricBinding.from(notebook)?.credentialTag }
             val biometricEnrolled = biometricTag != null && biometricBindings[notebook.syncId] == biometricTag

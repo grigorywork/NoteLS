@@ -179,6 +179,11 @@ object BackupManager {
                     } catch (_: com.notessync.app.data.quotes.QuoteException) {
                         error(uiText("Некорректный цитатник в резервной копии"))
                     }
+                    try {
+                        com.notessync.app.notes.diary.validateDiarySnapshot(packed) { job.ensureActive() }
+                    } catch (_: IllegalStateException) {
+                        error(uiText("Некорректный дневник в резервной копии"))
+                    }
                     val count = packed.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use {
                         check(it.moveToFirst()); it.getLong(0)
                     }
@@ -211,6 +216,7 @@ object BackupManager {
                         tables.asReversed().forEach { target.execSQL("DELETE FROM `$it`") }
                         tables.forEach { copyTable(packed, target, it) }
                         // Local numeric IDs may now belong to different protected notebooks.
+                        com.notessync.app.notes.diary.DiarySession.lock()
                         com.notessync.app.security.ProtectionSession.lockAll()
                     }
                     committed = true

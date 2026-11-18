@@ -38,7 +38,8 @@ object Routes {
     const val SCANNER = "scanner"
     const val ANALYTICS = "analytics"
     const val CALENDAR = "calendar"
-    const val AGENDA = "agenda"
+    const val DIARY = "diary"
+    const val AGENDA = "agenda" // Legacy in-app route; no Daily Planner menu item.
     const val QUOTES = "quotes"
     const val EDITOR = "editor?noteId={noteId}&isTask={isTask}&dayKey={dayKey}"
 
@@ -81,7 +82,7 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                 onOpenSync = { navigate(Routes.SYNC) },
                 onOpenAnalytics = { navigate(Routes.ANALYTICS) },
                 onOpenCalendar = { navigate(Routes.CALENDAR) },
-                onOpenAgenda = { navigate(Routes.AGENDA) },
+                onOpenDiary = { navigate(Routes.DIARY) },
                 onOpenQuotes = { navigate(Routes.QUOTES) },
                 onOpenEditor = { noteId, isTask ->
                     navigate(Routes.editor(noteId, isTask))
@@ -111,6 +112,9 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                     }
                 } }
             )
+        }
+        composable(Routes.DIARY) {
+            com.notessync.app.ui.screens.DiaryScreen(onBack = { back() }, onOpenNote = { id -> navigate(Routes.editor(id)) })
         }
         composable(Routes.ANALYTICS) {
             AnalyticsScreen(

@@ -172,25 +172,6 @@ class NotesViewModel @JvmOverloads constructor(
     val lockedTasks: StateFlow<List<TaskUnlockTarget>> = lockedResults.map { it?.targets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), emptyList())
 
-    var creatingDiary by mutableStateOf(false)
-        private set
-    fun createDiaryEntry(onReady: (Long) -> Unit, onError: () -> Unit) {
-        if (creatingDiary) return
-        creatingDiary = true
-        viewModelScope.launch {
-            try {
-                val note = com.notessync.app.notes.diary.DiaryEntries.create(db)
-                com.notessync.app.data.backup.BackupManager.noteChanged()
-                runCatching { com.notessync.app.data.backup.BackupManager.requestAutoBackup(getApplication(), afterNote = true) }
-                runCatching { CalendarWidgetProvider.refreshAll(getApplication()) }
-                onReady(note.id)
-            } catch (error: Exception) {
-                if (error is kotlinx.coroutines.CancellationException) throw error
-                onError()
-            } finally { creatingDiary = false }
-        }
-    }
-
     fun onQueryChange(value: String) { _query.value = value }
     fun selectFilter(value: NoteFilter) { refreshTaskClock(); _filter.value = value }
     fun selectSort(value: NoteSort) { _sort.value = value }
@@ -203,7 +184,7 @@ class NotesViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             db.withTransaction {
                 val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
-                if (fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction
+                if (fresh.isDiary || fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction
                 notebookDao.update(fresh.copy(name = name.trim(), updatedAt = nextChangeTimestamp(fresh.updatedAt), dirty = true))
             }
         }
@@ -215,7 +196,7 @@ class NotesViewModel @JvmOverloads constructor(
             val record = withContext(Dispatchers.Default) { PasswordProtector.create(password) }
             db.withTransaction {
                 val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction
-                if (fresh.isDeleted || fresh.isProtected || fresh.syncId != notebook.syncId) return@withTransaction
+                if (fresh.isDiary || fresh.isDeleted || fresh.isProtected || fresh.syncId != notebook.syncId) return@withTransaction
                 notebookDao.update(fresh.copy(isProtected = true, passwordHash = record.hash, passwordSalt = record.salt,
                     updatedAt = nextChangeTimestamp(fresh.updatedAt), dirty = true))
                 ProtectionSession.unlockNotebook(fresh.id)
@@ -235,7 +216,7 @@ class NotesViewModel @JvmOverloads constructor(
             val verified = fresh?.syncId == notebook.syncId && verify(expected, password)
             val removed = db.withTransaction {
                 val latest = notebookDao.getById(notebook.id)
-                if (!verified || latest == null || latest.isDeleted || latest.syncId != notebook.syncId || latest.passwordRecord() != expected) false
+                if (!verified || latest == null || latest.isDiary || latest.isDeleted || latest.syncId != notebook.syncId || latest.passwordRecord() != expected) false
                 else {
                     notebookDao.update(latest.copy(isProtected = false, passwordHash = null, passwordSalt = null,
                         updatedAt = nextChangeTimestamp(latest.updatedAt), dirty = true))
@@ -270,7 +251,7 @@ class NotesViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             val removed = db.withTransaction {
                 val fresh = notebookDao.getById(notebook.id) ?: return@withTransaction false
-                if (fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction false
+                if (fresh.isDiary || fresh.isDeleted || fresh.syncId != notebook.syncId || !ProtectionSession.isUnlocked(fresh)) return@withTransaction false
                 noteDao.clearNotebook(fresh.id)
                 notebookDao.softDelete(fresh.id)
                 true
@@ -346,6 +327,7 @@ class NotesViewModel @JvmOverloads constructor(
                 "SELECT $projection FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (trash) 1 else 0}" +
                     " AND notes.isTask = 1 AND notes.isProtected = 1"
             )
+            sql.append(" AND (notes.notebookId IS NULL OR notes.notebookId NOT IN (SELECT id FROM notebooks WHERE isDiary = 1))")
             val args = mutableListOf<Any>()
             completed?.let { sql.append(" AND notes.isCompleted = ?"); args.add(if (it) 1 else 0) }
             if (unlockedTaskIds.isNotEmpty()) {
@@ -393,6 +375,7 @@ class NotesViewModel @JvmOverloads constructor(
         ): SupportSQLiteQuery {
             val projection = if (minimum) "MIN(notes.taskDueAt)" else if (cards) NOTE_CARD_COLUMNS else "notes.*"
             val sql = StringBuilder("SELECT $projection FROM notes WHERE notes.isPurged = 0 AND notes.isDeleted = ${if (filter == NoteFilter.Trash) 1 else 0}")
+            sql.append(" AND (notes.notebookId IS NULL OR notes.notebookId NOT IN (SELECT id FROM notebooks WHERE isDiary = 1))")
             val args = mutableListOf<Any>()
             when (filter) {
                 NoteFilter.All, NoteFilter.Trash -> Unit

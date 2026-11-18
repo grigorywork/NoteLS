@@ -25,7 +25,7 @@ internal fun EditorTaskControls(viewModel: NoteEditorViewModel, ui: EditorUiStat
             Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 6.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 TaskModeButton(viewModel, ui, enabled)
-                viewModel.notebookName?.let { name -> TextButton(onClick = { ui.showNotebookMenu = true }, enabled = enabled) {
+                viewModel.notebookName?.let { name -> TextButton(onClick = { ui.showNotebookMenu = true }, enabled = enabled && !viewModel.isDiaryEntry) {
                     Icon(Icons.Default.FolderOpen, null, Modifier.size(16.dp))
                     Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
                 } }

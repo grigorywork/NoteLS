@@ -16,7 +16,8 @@ data class NotebookDto(
     val updatedAt: Long,
     val isProtected: Boolean = false,
     val passwordHash: String? = null,
-    val passwordSalt: String? = null
+    val passwordSalt: String? = null,
+    val isDiary: Boolean? = null
 )
 
 @Serializable
@@ -69,7 +70,8 @@ data class NoteDto(
     val pinned: Boolean? = null,
     val purged: Boolean? = null,
     val noteColor: String? = null,
-    val taskDeadline: TaskDeadlineDto? = null
+    val taskDeadline: TaskDeadlineDto? = null,
+    val diary: Boolean? = null
 )
 
 // Пакет изменений: блокноты + заметки (теги едут внутри заметок по именам).

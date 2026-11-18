@@ -171,6 +171,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
     var notebookName by mutableStateOf<String?>(null)
     var noteTags by mutableStateOf<List<String>>(emptyList())
 
+    var isDiaryEntry by mutableStateOf(false)
+        private set
+    private val accessLoaded = MutableStateFlow(false)
     private var notebookId: Long? = null
     // Новая запись из календаря сразу закрепляется за выбранным днём.
     private var dayKey: Long? = savedState.get<Long>("dayKey")?.takeIf { it != -1L }
@@ -184,7 +187,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         .flatMapLatest { id -> if (id <= 0) flowOf(emptyList()) else attachmentDao.observeByNoteId(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val notebooks: StateFlow<List<NotebookEntity>> = db.notebookDao().observeAll()
+    val notebooks: StateFlow<List<NotebookEntity>> = db.notebookDao().observeAll().map { books -> books.filterNot { it.isDiary } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val noteIdentity get() = com.notessync.app.data.local.model.NoteIdentity(currentNoteId, syncId)
@@ -192,6 +195,23 @@ class NoteEditorViewModel @JvmOverloads constructor(
         get() = currentNoteId != -1L
 
     init {
+        viewModelScope.launch {
+            val accessFlow = _noteIdFlow.flatMapLatest { id -> if (id > 0) noteDao.observeAccess(id) else flowOf(null) }
+            combine(accessFlow, ProtectionSession.state, accessLoaded) { access, session, ready -> Triple(access, session, ready) }
+                .collect { (access, session, ready) ->
+                    if (ready && (isDiaryEntry || access?.notebookDiary == true)) {
+                        isDiaryEntry = true
+                        if (access?.allowed(currentNoteId, syncId, session) != true) {
+                            // Never save cleared presentation state; the committed document stays intact.
+                            accessDenied = true
+                            audioCapture.cancel(); audioPlayback.stop()
+                            titleField = TextFieldValue(""); contentField = TextFieldValue("")
+                            formatting = TextFormatting(); tables = null; unsupportedTables = ""
+                            noteTags = emptyList(); notebookName = null; document.clearHistory()
+                        }
+                    }
+                }
+        }
         viewModelScope.launch {
             combine(audioCapture.state, audioPlayback.state, _noteIdFlow) { capture, playback, id -> (capture.busy || playback.active) to id }
                 .distinctUntilChanged().flatMapLatest { (active, id) ->
@@ -215,8 +235,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 noteDao.getById(currentNoteId)?.let { note ->
                     lastSavedNote = note
                     val notebook = note.notebookId?.let { db.notebookDao().getById(it) }
+                    isDiaryEntry = notebook?.isDiary == true
                     val notebookLocked = notebook?.let {
-                        it.isProtected && !ProtectionSession.isUnlocked(it)
+                        (it.isDiary && !com.notessync.app.notes.diary.DiaryPrivacy.valid(it)) || (it.isProtected && !ProtectionSession.isUnlocked(it))
                     } == true
                     val noteLocked = note.isProtected && !ProtectionSession.isUnlocked(note)
                     if (note.isDeleted || notebookLocked || noteLocked) {
@@ -253,6 +274,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 }
             }
             isReady = true
+            accessLoaded.value = true
             startAutosave()
             }
         }
@@ -353,7 +375,11 @@ class NoteEditorViewModel @JvmOverloads constructor(
             if (exists && (fresh == null || fresh.isDeleted || fresh.isPurged || fresh.syncId != syncId)) { deleted = true; return@withTransaction false }
             if (fresh != null && !NoteActions(app, db).canAccess(fresh)) { accessDenied = true; return@withTransaction false }
             accepted = true
-            val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false)
+            val freshBook = fresh?.notebookId?.let { db.notebookDao().getById(it) }
+            val privateParent = freshBook?.takeIf { it.isDiary }
+            if (privateParent != null) { isDiaryEntry = true; notebookId = privateParent.id; notebookName = privateParent.name }
+            val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false,
+                notebookId = privateParent?.id ?: baseNote.notebookId)
             val previous = lastSavedNote
             val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
@@ -615,6 +641,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
     }
 
     fun assignNotebook(notebook: NotebookEntity?) {
+        if (isDiaryEntry || notebook?.isDiary == true || !loaded || accessDenied || isClosing) return
         notebookId = notebook?.id
         notebookName = notebook?.name
         viewModelScope.launch { saveNow() }

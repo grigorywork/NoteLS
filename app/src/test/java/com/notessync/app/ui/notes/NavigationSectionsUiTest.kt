@@ -46,6 +46,7 @@ class NavigationSectionsUiTest {
     private lateinit var drawingView: View
     private val opened = AtomicLong()
     private val agenda = AtomicInteger()
+    private val diaryOpened = AtomicInteger()
     private val settingsOpened = AtomicInteger()
     @Before fun before() {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ProtectionSession.lockAll()
@@ -66,7 +67,7 @@ class NavigationSectionsUiTest {
             drawingView = LocalView.current
             NoteSyncTheme(darkTheme = true, dynamicColor = false) { Box(Modifier.requiredSize(320.dp, 760.dp).testTag("nav-viewport")) {
                 NotesListScreen({ settingsOpened.incrementAndGet() }, {}, {}, {}, {}, { id, _ -> opened.set(id) }, viewModel = vm,
-                    onOpenAgenda = { agenda.incrementAndGet() })
+                    onOpenAgenda = { agenda.incrementAndGet() }, onOpenDiary = { diaryOpened.incrementAndGet() })
             } }
         }
         await { vm.results.value != null }
@@ -105,23 +106,21 @@ class NavigationSectionsUiTest {
         await { exists(done) && exists(active) }
         runBlocking { assertFalse(db.noteDao().getById(done)!!.isCompleted) }
     }
-    @Test fun `drawer keeps secondary sections in overflow and journal creates a dated regular note`() {
+    @Test fun `drawer opens a separate journal and removes the legacy daily planner menus`() {
         val vm = home()
         compose.onNodeWithContentDescription("Меню").performClick()
         compose.onNodeWithContentDescription("Разделы заметок").assertIsDisplayed()
         listOf("Корзина", "Невыполненные", "Просроченные", "Аналитика").forEach { compose.onNodeWithText(it).assertDoesNotExist() }
         snapshot("drawer")
-        compose.onNodeWithContentDescription("Разделы заметок").performClick()
         compose.onNodeWithText("Дневник").performClick()
-        await { vm.results.value?.key?.filter == NoteFilter.Tag(DiaryEntries.TAG_NAME) }
-        compose.onNodeWithContentDescription("Новая запись дневника").performClick()
-        await { opened.get() > 0 }
-        runBlocking {
-            val note = AppDatabase.get(app).noteDao().getById(opened.get())!!
-            assertFalse(note.isTask); assertNotNull(note.dayKey); assertTrue(note.title.isNotBlank())
-            assertEquals(listOf(DiaryEntries.TAG_NAME), AppDatabase.get(app).tagDao().getTagNamesForNote(note.id))
-        }
-        section("Ежедневник"); assertEquals(1, agenda.get())
+        assertEquals(1, diaryOpened.get())
+        compose.onNodeWithContentDescription("Меню").performClick()
+        compose.onNodeWithContentDescription("Разделы заметок").performClick()
+        compose.onNodeWithText("Ежедневник").assertDoesNotExist()
+        compose.onNodeWithText("Дневник").assertExists() // the permanent drawer destination, not an overflow action
+        compose.onNodeWithText("Корзина").performClick()
+        assertEquals(NoteFilter.Trash, vm.filter.value)
+        assertEquals(0, agenda.get())
         compose.onNodeWithContentDescription("Действия со списком").performClick()
         compose.onNodeWithText("Сортировка").performClick()
         compose.onNodeWithText("По имени").performClick()
@@ -139,7 +138,7 @@ class NavigationSectionsUiTest {
                 CalendarScreen({}, { _, _ -> }, { _, _ -> }, viewModel = vm, agendaMode = true)
             } }
         }
-        compose.onNodeWithText("Daily planner").assertIsDisplayed()
+        compose.onNodeWithText("Day agenda").assertIsDisplayed()
         compose.onNodeWithContentDescription("Previous month").assertDoesNotExist()
         val before = vm.state.value.selectedDate
         compose.onNodeWithContentDescription("Next day").performClick()

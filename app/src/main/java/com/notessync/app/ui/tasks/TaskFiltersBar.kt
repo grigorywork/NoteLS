@@ -25,7 +25,7 @@ internal fun TaskFiltersBar(value: TaskFilters, overdue: Boolean, notebooks: Lis
         AssistChip(onClick = { picker = 1 }, label = { Text(if (overdue) TaskDueFilter.OVERDUE.label else value.due.label) })
         AssistChip(onClick = { picker = 2 }, label = { Text(value.priority?.let { TaskPriority.from(it).label } ?: uiText("Все приоритеты")) })
         AssistChip(onClick = { picker = 3 }, label = { Text(when (value.notebookId) {
-            null -> uiText("Все блокноты"); 0L -> uiText("Без блокнота"); else -> notebooks.find { it.id == value.notebookId }?.name?.take(80) ?: uiText("Блокнот")
+            null -> uiText("Все блокноты"); 0L -> uiText("Без блокнота"); else -> notebooks.find { !it.isDiary && it.id == value.notebookId }?.name?.take(80) ?: uiText("Блокнот")
         }, maxLines = 1) })
         AssistChip(onClick = { picker = 4 }, label = { Text(value.tagId?.let { id -> tags.find { it.id == id }?.name?.take(80)?.let { "#$it" } } ?: uiText("Все теги"), maxLines = 1) })
         if (value != TaskFilters() || overdue) TextButton(onClick = { onChange(TaskFilters()) }) { Text(uiText("Сбросить фильтры")) }
@@ -34,7 +34,7 @@ internal fun TaskFiltersBar(value: TaskFilters, overdue: Boolean, notebooks: Lis
     when (picker) {
         1 -> FilterPicker(uiText("Срок задачи"), TaskDueFilter.entries.map { it to it.label }, { close() }) { onChange(value.copy(due = it)); close() }
         2 -> FilterPicker(uiText("Приоритет"), listOf(null to uiText("Все приоритеты")) + TaskPriority.entries.map { it.value to it.label }, { close() }) { onChange(value.copy(priority = it)); close() }
-        3 -> FilterPicker(uiText("Блокнот"), listOf(null to uiText("Все блокноты"), 0L to uiText("Без блокнота")) + notebooks.map { it.id to it.name }, { close() }) { onChange(value.copy(notebookId = it)); close() }
+        3 -> FilterPicker(uiText("Блокнот"), listOf(null to uiText("Все блокноты"), 0L to uiText("Без блокнота")) + notebooks.filterNot { it.isDiary }.map { it.id to it.name }, { close() }) { onChange(value.copy(notebookId = it)); close() }
         4 -> FilterPicker(uiText("Теги"), listOf(null to uiText("Все теги")) + tags.map { it.id to "#${it.name}" }, { close() }) { onChange(value.copy(tagId = it)); close() }
     }
 }

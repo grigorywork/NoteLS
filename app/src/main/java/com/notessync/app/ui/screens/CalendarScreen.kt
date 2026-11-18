@@ -94,7 +94,7 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiText(if (showMonth) "Календарь" else "Ежедневник"),
+                title = { Text(uiText(if (showMonth) "Календарь" else "Дела дня"),
                     style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

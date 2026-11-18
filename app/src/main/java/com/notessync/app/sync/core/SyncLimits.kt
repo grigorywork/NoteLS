@@ -13,6 +13,10 @@ internal object SyncLimits {
         }
     }
     fun changes(set: ChangeSet) {
+        for (book in set.notebooks) if (book.isDiary == true) {
+            require(!book.deleted && book.isProtected && com.notessync.app.notes.diary.DiaryPrivacy.validCredentials(book.passwordHash, book.passwordSalt)) { "Invalid diary metadata" }
+        }
+        for (note in set.notes) if (note.diary == true) require(!note.notebookSyncId.isNullOrBlank()) { "Missing diary parent" }
         val seen = HashSet<String>()
         for (note in set.notes) for (meta in note.attachments) {
             attachment(meta)
