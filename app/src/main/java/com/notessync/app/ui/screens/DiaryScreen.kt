@@ -30,7 +30,8 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: DiaryViewModel = viewModel()) {
+fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: DiaryViewModel = viewModel(),
+    imeInsets: WindowInsets = WindowInsets.ime) {
     val books by viewModel.books.collectAsStateWithLifecycle()
     val book by viewModel.book.collectAsStateWithLifecycle()
     val access by ProtectionSession.state.collectAsStateWithLifecycle()
@@ -60,6 +61,7 @@ fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: Diary
         message?.let { viewModel.clearMessage(); snackbar.showSnackbar(uiText(it)) }
     }
     Scaffold(
+        modifier = Modifier.windowInsetsPadding(imeInsets),
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = { TopAppBar(title = { Text(uiText(if (trash) "Корзина дневника" else "Дневник")) },
             navigationIcon = { IconButton(onClick = ::back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Назад")) } },

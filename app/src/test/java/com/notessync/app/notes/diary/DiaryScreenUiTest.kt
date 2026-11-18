@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
@@ -34,6 +36,7 @@ import java.io.File
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicLong
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w320dp-h800dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -45,6 +48,8 @@ class DiaryScreenUiTest {
     private val models = ViewModelStore()
     private lateinit var drawingView: View
     private val opened = AtomicLong()
+    private val keyboardDp = mutableIntStateOf(0)
+    private var density = 1f
     @Before fun before() {
         AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); DiarySession.lock(); ProtectionSession.lockAll()
         SettingsRepository.get(app).apply { setUiLanguage(UiLanguage.RUSSIAN); setBackupFrequency(BackupFrequency.MANUAL) }
@@ -58,8 +63,12 @@ class DiaryScreenUiTest {
         val vm = DiaryViewModel(app).also { models.put("diary", it) }
         compose.setContent {
             drawingView = LocalView.current
+            density = LocalDensity.current.density
+            val keyboardPixels = with(LocalDensity.current) { keyboardDp.intValue.dp.roundToPx() }
             NoteSyncTheme(darkTheme = true, dynamicColor = false) {
-                Box(Modifier.requiredSize(320.dp, 760.dp)) { DiaryScreen({}, { opened.set(it) }, vm) }
+                Box(Modifier.requiredSize(320.dp, 760.dp).testTag("diary-viewport")) {
+                    DiaryScreen({}, { opened.set(it) }, vm, imeInsets = WindowInsets(bottom = keyboardPixels))
+                }
             }
         }
         await { vm.books.value != null }
@@ -76,16 +85,26 @@ class DiaryScreenUiTest {
         }
     }
 
-    @Test fun `setup rejects mismatched confirmation then creates private entries and lock removes all previews`() {
-        val vm = content()
-        compose.onNodeWithTag("diary-password").performTextReplacement("fixture-diary-password")
-        compose.onNodeWithTag("diary-confirm").performTextReplacement("different")
+    private fun enter() {
+        compose.onNodeWithTag("diary-enter").performScrollTo().assertIsDisplayed()
+        val field = compose.onNodeWithTag("diary-enter").fetchSemanticsNode().boundsInRoot
+        val viewport = compose.onNodeWithTag("diary-viewport").fetchSemanticsNode().boundsInRoot
+        assertTrue("button=$field keyboardTop=${viewport.bottom - keyboardDp.intValue*density}",
+            field.bottom <= viewport.bottom - keyboardDp.intValue*density + 1f)
         compose.onNodeWithTag("diary-enter").performClick()
+    }
+
+    @Test fun `setup remains usable above a keyboard rejects mismatch creates private entries and locks previews`() {
+        keyboardDp.intValue = 260
+        val vm = content()
+        compose.onNodeWithTag("diary-password").performScrollTo().performTextReplacement("fixture-diary-password")
+        compose.onNodeWithTag("diary-confirm").performScrollTo().performTextReplacement("different")
+        enter()
         await { exists(hasText("Пароли должны совпадать: 4–128 символов")) }
         runBlocking { assertTrue(db.notebookDao().getDiaries().isEmpty()) }
-        compose.onNodeWithTag("diary-password").performTextReplacement("fixture-diary-password")
-        compose.onNodeWithTag("diary-confirm").performTextReplacement("fixture-diary-password")
-        compose.onNodeWithTag("diary-enter").performClick()
+        compose.onNodeWithTag("diary-password").performScrollTo().performTextReplacement("fixture-diary-password")
+        compose.onNodeWithTag("diary-confirm").performScrollTo().performTextReplacement("fixture-diary-password")
+        enter()
         await { exists(hasContentDescription("Новая запись дневника")) }
         compose.onNodeWithContentDescription("Новая запись дневника").performClick()
         await { opened.get() > 0 }
@@ -94,6 +113,8 @@ class DiaryScreenUiTest {
         compose.onNodeWithContentDescription("Заблокировать дневник").performClick()
         await { exists(hasTestTag("diary-password")) }
         compose.onNodeWithTag("diary-row-${note.id}").assertDoesNotExist()
+        compose.runOnIdle { keyboardDp.intValue = 0 }
+        compose.waitForIdle()
         snapshot("password-320")
     }
 

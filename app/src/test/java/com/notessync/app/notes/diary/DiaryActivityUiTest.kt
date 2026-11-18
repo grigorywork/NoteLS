@@ -27,6 +27,7 @@ import org.robolectric.shadows.ShadowSystemClock
 import java.time.Duration
 
 /** Actual app navigation/lifecycle under Native Robolectric; not a physical phone test. */
+@OptIn(ExperimentalTestApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class, qualifiers = "ru-w320dp-h800dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
