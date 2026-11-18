@@ -23,29 +23,23 @@ private val noteSections = listOf(
 
 /** Secondary destinations occupy one overflow button rather than permanent drawer rows. */
 @Composable
-internal fun NotesSectionsMenu(filter: NoteFilter, onSelect: (NoteFilter) -> Unit, onOpenAgenda: () -> Unit) {
+internal fun NotesSectionsMenu(filter: NoteFilter, onSelect: (NoteFilter) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }, modifier = Modifier.semantics {
-            selected = noteSections.any { it.filter == filter } || filter == NoteFilter.Tag(DiaryEntries.TAG_NAME)
+            selected = noteSections.any { it.filter == filter }
         }) { Icon(Icons.Default.MoreVert, uiText("Разделы заметок")) }
         DropdownMenu(open, { open = false }) {
-            NoteSectionItems(filter, onSelect, onOpenAgenda) { open = false }
+            NoteSectionItems(filter, onSelect) { open = false }
         }
     }
 }
 
 @Composable
-internal fun NoteSectionItems(filter: NoteFilter, onSelect: (NoteFilter) -> Unit, onOpenAgenda: () -> Unit, close: () -> Unit) {
+internal fun NoteSectionItems(filter: NoteFilter, onSelect: (NoteFilter) -> Unit, close: () -> Unit) {
     noteSections.forEach { section ->
         DropdownMenuItem(text = { Text(uiText(section.label)) }, leadingIcon = { Icon(section.icon, null) },
             trailingIcon = { if (filter == section.filter) Icon(Icons.Default.Check, null) },
             onClick = { close(); onSelect(section.filter) })
     }
-    HorizontalDivider()
-    DropdownMenuItem(text = { Text(uiText("Дневник")) }, leadingIcon = { Icon(Icons.Default.Book, null) },
-        trailingIcon = { if (filter == NoteFilter.Tag(DiaryEntries.TAG_NAME)) Icon(Icons.Default.Check, null) },
-        onClick = { close(); onSelect(NoteFilter.Tag(DiaryEntries.TAG_NAME)) })
-    DropdownMenuItem(text = { Text(uiText("Ежедневник")) }, leadingIcon = { Icon(Icons.Default.Today, null) },
-        onClick = { close(); onOpenAgenda() })
 }

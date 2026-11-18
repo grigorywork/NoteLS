@@ -35,12 +35,20 @@ jobs:
             app/build/reports/editor-preview/
             app/build/reports/navigation-preview/
             app/build/reports/voice-preview/
+            app/build/reports/diary-preview/
             app/build/reports/settings-preview/
             app/build/reports/quotes-preview/
             app/build/reports/glass-preview/
             app/build/reports/table-style-preview/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: room-schemas
+          path: app/schemas/
+          if-no-files-found: error
+          retention-days: 14
       - name: Prepare cloud debug APK (not an installed-app update)
         id: debug_apk
         run: |

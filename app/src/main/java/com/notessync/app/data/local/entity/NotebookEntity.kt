@@ -16,5 +16,6 @@ data class NotebookEntity(
     val passwordSalt: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
-    val dirty: Boolean = true
+    val dirty: Boolean = true,
+    @androidx.room.ColumnInfo(defaultValue = "0") val isDiary: Boolean = false
 )

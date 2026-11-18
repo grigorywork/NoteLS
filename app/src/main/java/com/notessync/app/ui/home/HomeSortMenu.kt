@@ -15,7 +15,7 @@ import com.notessync.app.ui.notes.NoteSort
 
 @Composable
 internal fun HomeActionsMenu(current: NoteSort, onSelect: (NoteSort) -> Unit, filter: NoteFilter,
-    onFilter: (NoteFilter) -> Unit, onSettings: () -> Unit, onAgenda: () -> Unit) {
+    onFilter: (NoteFilter) -> Unit, onSettings: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     var sorting by remember { mutableStateOf(false) }
     Box {
@@ -38,7 +38,7 @@ internal fun HomeActionsMenu(current: NoteSort, onSelect: (NoteSort) -> Unit, fi
                 DropdownMenuItem(text = { Text(uiText("Настройки")) }, leadingIcon = { Icon(Icons.Default.Settings, null) },
                     onClick = { open = false; onSettings() })
                 HorizontalDivider()
-                NoteSectionItems(filter, onFilter, onAgenda) { open = false }
+                NoteSectionItems(filter, onFilter) { open = false }
             }
         }
     }
@@ -53,5 +53,5 @@ internal fun filterTitle(filter: NoteFilter): String = when (filter) {
     NoteFilter.Overdue -> uiText("Просроченные")
     NoteFilter.Favorites -> uiText("Избранное")
     is NoteFilter.Notebook -> filter.name
-    is NoteFilter.Tag -> if (filter.name == com.notessync.app.notes.diary.DiaryEntries.TAG_NAME) uiText("Дневник") else "#" + filter.name
+    is NoteFilter.Tag -> "#" + filter.name
 }

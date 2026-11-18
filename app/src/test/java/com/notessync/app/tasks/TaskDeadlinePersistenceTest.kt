@@ -58,7 +58,7 @@ class TaskDeadlinePersistenceTest {
             old.insertOrThrow("notes", null, values); old.version = 16
         }
         val db = AppDatabase.get(app); val note = db.noteDao().getById(1)!!
-        assertEquals(18, db.openHelper.readableDatabase.version); assertNull(note.taskDueAt)
+        assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version); assertNull(note.taskDueAt)
         assertEquals(777L, note.reminderAt); assertEquals(888L, note.taskCountdownEndAt); assertEquals(345L, note.taskElapsedMillis)
         assertEquals(20_000L, note.dayKey); assertEquals("Original 😀", note.content)
     }

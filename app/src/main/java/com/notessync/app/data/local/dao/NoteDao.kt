@@ -12,12 +12,18 @@ import com.notessync.app.data.local.entity.NotebookEntity
 import kotlinx.coroutines.flow.Flow
 
 // Choose three identities using the covering metadata index before reading bounded title/body previews.
-internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS syncId, SUBSTR(title, 1, 256) AS title, SUBSTR(content, 1, 256) AS content, isTask, isCompleted, isPinned, SUBSTR(taskColor, 1, 16) AS taskColor, SUBSTR(noteColor, 1, 16) AS noteColor FROM notes WHERE id IN (SELECT id FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isPinned DESC, updatedAt DESC, id DESC LIMIT 3) ORDER BY isPinned DESC, updatedAt DESC, id DESC"
+internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS syncId, SUBSTR(title, 1, 256) AS title, SUBSTR(content, 1, 256) AS content, isTask, isCompleted, isPinned, SUBSTR(taskColor, 1, 16) AS taskColor, SUBSTR(noteColor, 1, 16) AS noteColor FROM notes WHERE id IN (SELECT id FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) ORDER BY isPinned DESC, updatedAt DESC, id DESC LIMIT 3) ORDER BY isPinned DESC, updatedAt DESC, id DESC"
 
-internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes INDEXED BY index_notes_dayKey WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
+internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes INDEXED BY index_notes_dayKey WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
 
 @Dao
 interface NoteDao {
+
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class])
+    fun diaryRows(query: SupportSQLiteQuery): Flow<List<com.notessync.app.notes.diary.DiaryRow>>
+
+    @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class, com.notessync.app.data.local.entity.TagEntity::class, com.notessync.app.data.local.entity.NoteTagCrossRef::class])
+    fun diaryCandidates(query: SupportSQLiteQuery): Flow<List<com.notessync.app.notes.diary.DiaryCandidate>>
 
     @Query("SELECT * FROM notes WHERE isDeleted = 0 ORDER BY updatedAt DESC")
     fun observeAll(): Flow<List<NoteEntity>>
@@ -97,7 +103,7 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE dirty = 1 OR updatedAt > :since")
     suspend fun getChangedSince(since: Long): List<NoteEntity>
 
-    @Query("SELECT notes.*, notebooks.syncId AS linkedNotebookSyncId FROM notes " +
+    @Query("SELECT notes.*, notebooks.syncId AS linkedNotebookSyncId, COALESCE(notebooks.isDiary, 0) AS linkedNotebookDiary FROM notes " +
         "LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.dirty = 1 OR notes.updatedAt > :since")
     suspend fun getSyncSnapshotSince(since: Long): List<SyncNoteRow>
 
@@ -136,36 +142,36 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND reminderAt IS NOT NULL AND reminderAt > :now")
     suspend fun getWithFutureReminders(now: Long): List<NoteEntity>
 
-    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE((notebooks.isProtected OR notebooks.isDiary), 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     suspend fun getTransformAccess(id: Long): com.notessync.app.data.local.model.TransformAccess?
 
-    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE((notebooks.isProtected OR notebooks.isDiary), 0) AS notebookProtected, notes.updatedAt, COALESCE(notebooks.updatedAt, 0) AS notebookUpdatedAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     fun observeTransformAccess(id: Long): Flow<com.notessync.app.data.local.model.TransformAccess?>
 
-    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE((notebooks.isProtected OR notebooks.isDiary), 0) AS notebookProtected, COALESCE(notebooks.isDiary, 0) AS notebookDiary FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     suspend fun getAccess(id: Long): com.notessync.app.data.local.model.NoteAccess?
 
-    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE(notebooks.isProtected, 0) AS notebookProtected FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
+    @Query("SELECT notes.id, notes.syncId, notes.isDeleted, notes.isPurged, notes.isProtected, notes.notebookId, COALESCE((notebooks.isProtected OR notebooks.isDiary), 0) AS notebookProtected, COALESCE(notebooks.isDiary, 0) AS notebookDiary FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.id = :id")
     fun observeAccess(id: Long): Flow<com.notessync.app.data.local.model.NoteAccess?>
 
     @Query(COMPACT_WIDGET_SQL)
     fun observeCompactWidget(): Flow<List<com.notessync.app.data.local.model.CompactWidgetEntry>>
 
-    @Query("SELECT dayKey, COUNT(*) AS total FROM notes INDEXED BY index_notes_dayKey WHERE dayKey BETWEEN :fromDay AND :toDay AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1)) GROUP BY dayKey")
+    @Query("SELECT dayKey, COUNT(*) AS total FROM notes INDEXED BY index_notes_dayKey WHERE dayKey BETWEEN :fromDay AND :toDay AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) GROUP BY dayKey")
     suspend fun getWidgetDayCounts(fromDay: Long, toDay: Long): List<com.notessync.app.data.local.model.WidgetDayCount>
 
     @Query(WIDGET_DAY_SNIPPETS_SQL)
     suspend fun getWidgetDaySnippets(day: Long): List<com.notessync.app.data.local.model.WidgetDaySnippet>
 
     // Lightweight statistics, including ordinary notes. No bodies, tables, formatting or attachment paths.
-    @Query("SELECT id, CASE WHEN isTask = 1 THEN SUBSTR(title, 1, 256) ELSE '' END AS title, notebookId, isTask, isCompleted, updatedAt, taskCompletedAt, taskElapsedMillis, taskColor, isDeleted, isPurged, isProtected FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1))")
+    @Query("SELECT id, CASE WHEN isTask = 1 THEN SUBSTR(title, 1, 256) ELSE '' END AS title, notebookId, isTask, isCompleted, updatedAt, taskCompletedAt, taskElapsedMillis, taskColor, isDeleted, isPurged, isProtected FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1))")
     fun observeForAnalytics(): Flow<List<com.notessync.app.data.local.model.AnalyticsEntry>>
 
     // Аналитика (Этап 31): все задачи без защищённых — статистика не раскрывает секреты.
     @Query(
         "SELECT * FROM notes WHERE isDeleted = 0 AND isTask = 1 AND isProtected = 0 " +
             "AND (notebookId IS NULL OR notebookId NOT IN " +
-            "(SELECT id FROM notebooks WHERE isProtected = 1)) " +
+            "(SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) " +
             "ORDER BY updatedAt DESC"
     )
     fun observeTasksForAnalytics(): Flow<List<NoteEntity>>
@@ -174,7 +180,7 @@ interface NoteDao {
     @Query(
         "SELECT * FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND dayKey = :dayKey " +
             "AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN " +
-            "(SELECT id FROM notebooks WHERE isProtected = 1)) ORDER BY createdAt ASC"
+            "(SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) ORDER BY createdAt ASC"
     )
     fun observeByDay(dayKey: Long): Flow<List<NoteEntity>>
 
@@ -182,7 +188,7 @@ interface NoteDao {
         "SELECT * FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND dayKey IS NOT NULL " +
             "AND dayKey BETWEEN :fromDay AND :toDay AND isProtected = 0 " +
             "AND (notebookId IS NULL OR notebookId NOT IN " +
-            "(SELECT id FROM notebooks WHERE isProtected = 1)) " +
+            "(SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) " +
             "ORDER BY isTask DESC, isCompleted ASC, createdAt ASC"
     )
     suspend fun getForDayRange(fromDay: Long, toDay: Long): List<NoteEntity>
@@ -191,7 +197,7 @@ interface NoteDao {
         "SELECT * FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND dayKey IS NOT NULL " +
             "AND dayKey BETWEEN :fromDay AND :toDay AND isProtected = 0 " +
             "AND (notebookId IS NULL OR notebookId NOT IN " +
-            "(SELECT id FROM notebooks WHERE isProtected = 1)) " +
+            "(SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) " +
             "ORDER BY isTask DESC, isCompleted ASC, createdAt ASC"
     )
     fun observeForDayRange(fromDay: Long, toDay: Long): Flow<List<NoteEntity>>
@@ -200,7 +206,7 @@ interface NoteDao {
         "SELECT DISTINCT dayKey FROM notes WHERE isDeleted = 0 AND isPurged = 0 AND dayKey IS NOT NULL " +
             "AND dayKey BETWEEN :fromDay AND :toDay AND isProtected = 0 " +
             "AND (notebookId IS NULL OR notebookId NOT IN " +
-            "(SELECT id FROM notebooks WHERE isProtected = 1))"
+            "(SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1))"
     )
     suspend fun getDaysWithNotes(fromDay: Long, toDay: Long): List<Long>
 }

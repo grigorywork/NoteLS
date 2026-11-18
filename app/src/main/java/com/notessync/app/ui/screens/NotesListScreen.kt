@@ -100,7 +100,8 @@ fun NotesListScreen(
     deletedNoteEvents: StateFlow<NoteIdentity?>? = null,
     onDeletedEventHandled: () -> Unit = {},
     viewModel: NotesViewModel = viewModel(),
-    onOpenAgenda: () -> Unit = onOpenCalendar
+    onOpenAgenda: () -> Unit = onOpenCalendar,
+    onOpenDiary: () -> Unit = {}
 ) {
     val settingsContext = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(settingsContext) }
@@ -128,7 +129,6 @@ fun NotesListScreen(
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
-    val diary = (filter as? NoteFilter.Tag)?.name == com.notessync.app.notes.diary.DiaryEntries.TAG_NAME
     val lockedTasks = lockedResult?.takeIf {
         it.scope.filter == filter && it.scope.archiveCompleted == displaySettings.archiveCompletedTasks &&
             it.scope.session == listSession && it.scope.protection == protectionState
@@ -215,7 +215,7 @@ fun NotesListScreen(
         drawerContent = {
             NotesDrawer(viewModel, notebookUi, filter, notebooks, protectionState, biometricBindings,
                 displaySettings, drawerQuoteIndex, drawerState, scope, snackbarHostState, settingsContext,
-                onOpenCalendar = onOpenCalendar, onOpenQuotes = onOpenQuotes, onOpenAgenda = onOpenAgenda)
+                onOpenCalendar = onOpenCalendar, onOpenQuotes = onOpenQuotes, onOpenDiary = onOpenDiary)
         }
     ) {
         Scaffold(
@@ -236,26 +236,21 @@ fun NotesListScreen(
                         IconButton(onClick = onOpenSync) {
                             Icon(Icons.Default.Sync, contentDescription = uiText("Синхронизация"))
                         }
-                        HomeActionsMenu(sort, viewModel::selectSort, filter, viewModel::selectFilter, onOpenSettings, onOpenAgenda)
+                        HomeActionsMenu(sort, viewModel::selectSort, filter, viewModel::selectFilter, onOpenSettings)
                     }
                 )
             },
             floatingActionButton = {
                 if (filter != NoteFilter.Trash && filter != NoteFilter.Completed && selected.isEmpty()) Column(horizontalAlignment = Alignment.End) {
-                    if (!diary) SmallFloatingActionButton(
+                    SmallFloatingActionButton(
                         onClick = { onOpenEditor(-1L, true) },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {
                         Icon(Icons.Default.CheckBox, contentDescription = uiText("Новая задача"))
                     }
-                    FloatingActionButton(onClick = {
-                        if (diary) viewModel.createDiaryEntry({ onOpenEditor(it, false) }, {
-                            scope.launch { snackbarHostState.showSnackbar(uiText("Не удалось создать запись дневника. Повторите.")) }
-                        }) else onOpenEditor(-1L, false)
-                    }) {
-                        if (viewModel.creatingDiary) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                        else Icon(Icons.Default.Add, contentDescription = uiText(if (diary) "Новая запись дневника" else "Новая заметка"))
+                    FloatingActionButton(onClick = { onOpenEditor(-1L, false) }) {
+                        Icon(Icons.Default.Add, contentDescription = uiText("Новая заметка"))
                     }
                 }
             }

@@ -14,11 +14,20 @@ interface NotebookDao {
     @Query("SELECT * FROM notebooks WHERE isDeleted = 0 ORDER BY name ASC")
     fun observeAll(): Flow<List<NotebookEntity>>
 
-    @Query("SELECT id, SUBSTR(name, 1, 256) AS name, isProtected, isDeleted FROM notebooks ORDER BY name COLLATE NOCASE, id")
+    @Query("SELECT id, SUBSTR(name, 1, 256) AS name, (isProtected OR isDiary) AS isProtected, isDeleted FROM notebooks ORDER BY name COLLATE NOCASE, id")
     fun observeForAnalytics(): Flow<List<com.notessync.app.data.local.model.AnalyticsNotebook>>
+
+    @Query("SELECT * FROM notebooks WHERE isDiary = 1 AND isDeleted = 0 ORDER BY createdAt, id")
+    fun observeDiaries(): Flow<List<NotebookEntity>>
+
+    @Query("SELECT * FROM notebooks WHERE isDiary = 1 AND isDeleted = 0 ORDER BY createdAt, id")
+    suspend fun getDiaries(): List<NotebookEntity>
 
     @Query("SELECT * FROM notebooks WHERE syncId = :syncId")
     suspend fun getBySyncId(syncId: String): NotebookEntity?
+
+    @Query("SELECT * FROM notebooks WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<Long>): List<NotebookEntity>
 
     @Query("SELECT * FROM notebooks WHERE id = :id")
     suspend fun getById(id: Long): NotebookEntity?

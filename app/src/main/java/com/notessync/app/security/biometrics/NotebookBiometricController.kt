@@ -29,19 +29,22 @@ class NotebookBiometricController(private val scope: CoroutineScope, private val
     fun unlockPassword(notebook: NotebookEntity, password: String, onResult: (Boolean) -> Unit) {
         cancel()
         val token = generation
+        val diaryGeneration = com.notessync.app.notes.diary.DiarySession.generation
         _busy.value = true
         scope.launch {
             var accepted = false
             try {
                 val fresh = db.notebookDao().getById(notebook.id)
                 val binding = fresh?.let { NotebookBiometricBinding.from(it) }
+                if (fresh?.isDiary == true) com.notessync.app.notes.diary.DiarySession.register(fresh.id)
                 val verified = binding != null && fresh.syncId == notebook.syncId && withContext(Dispatchers.Default) {
                     PasswordProtector.verify(password, PasswordRecord(fresh.passwordHash!!, fresh.passwordSalt!!))
                 }
                 accepted = db.withTransaction {
                     val unchanged = binding != null && matches(notebook.id, binding)
                     withContext(Dispatchers.Main.immediate) {
-                        val valid = verified && unchanged && generation == token
+                        val valid = verified && unchanged && generation == token &&
+                            (fresh?.isDiary != true || com.notessync.app.notes.diary.DiarySession.generation == diaryGeneration)
                         if (valid) ProtectionSession.unlockNotebook(notebook.id)
                         valid
                     }
@@ -61,7 +64,7 @@ class NotebookBiometricController(private val scope: CoroutineScope, private val
                 ready.await()
                 val fresh = db.notebookDao().getById(notebook.id)
                 val binding = fresh?.let { NotebookBiometricBinding.from(it) }
-                if (binding == null || fresh.syncId != notebook.syncId || binding != NotebookBiometricBinding.from(notebook)) throw StaleNotebook()
+                if (fresh?.isDiary == true || binding == null || fresh.syncId != notebook.syncId || binding != NotebookBiometricBinding.from(notebook)) throw StaleNotebook()
                 if (enroll) {
                     val verified = withContext(Dispatchers.Default) {
                         PasswordProtector.verify(password, PasswordRecord(fresh.passwordHash!!, fresh.passwordSalt!!))

@@ -68,7 +68,7 @@ class QuoteLibraryTest {
             old.version = 17
         }
         db = AppDatabase.get(app)
-        assertEquals(before, db.noteDao().getById(id)); assertEquals(18, db.openHelper.readableDatabase.version)
+        assertEquals(before, db.noteDao().getById(id)); assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version)
         assertEquals(0, db.customQuoteDao().count()); assertNull(db.customQuoteDao().pinned())
     }
     @Test fun `capacity changed after preview rolls back the whole import and preserves current selection`() = runBlocking {

@@ -22,7 +22,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
     private val app = context.applicationContext
     enum class Action { TRASH, RESTORE, PURGE, PIN, UNPIN }
 
-    suspend fun apply(ids: Set<Long>?, action: Action, identities: Map<Long, String>? = null): Int = withContext(NonCancellable) {
+    suspend fun apply(ids: Set<Long>?, action: Action, identities: Map<Long, String>? = null, diaryNotebookId: Long? = null): Int = withContext(NonCancellable) {
         val discardedFiles = mutableListOf<String>()
         val changed = db.withTransaction {
             val changedRows = mutableListOf<Long>()
@@ -46,7 +46,9 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
                         if (bookId !in books) books[bookId] = db.notebookDao().getById(bookId)
                         books[bookId]
                     }
-                    if (note.isPurged || !ProtectionSession.isUnlocked(note) || (book != null && !ProtectionSession.isUnlocked(book))) continue
+                    if (book?.isDiary == true && diaryNotebookId != book.id) continue
+                    if (diaryNotebookId != null && (book?.isDiary != true || book.id != diaryNotebookId)) continue
+                    if ((book?.isDiary == true && !com.notessync.app.notes.diary.DiaryPrivacy.valid(book)) || note.isPurged || !ProtectionSession.isUnlocked(note) || (book != null && !ProtectionSession.isUnlocked(book))) continue
                     val now = System.currentTimeMillis()
                     val version = nextChangeTimestamp(note.updatedAt, now)
                     val updated = when (action) {
@@ -80,7 +82,7 @@ class NoteActions(context: Context, private val db: AppDatabase = AppDatabase.ge
     }
 
     suspend fun canAccess(note: NoteEntity): Boolean = ProtectionSession.isUnlocked(note) &&
-        (note.notebookId?.let { db.notebookDao().getById(it) }?.let { ProtectionSession.isUnlocked(it) } != false)
+        (note.notebookId?.let { db.notebookDao().getById(it) }?.let { (!it.isDiary || com.notessync.app.notes.diary.DiaryPrivacy.valid(it)) && ProtectionSession.isUnlocked(it) } != false)
 
     companion object {
         fun paused(note: NoteEntity, now: Long): NoteEntity = note.copy(
