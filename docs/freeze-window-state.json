@@ -2,7 +2,7 @@
   "base": "1917722374422b73c0c0c20fa1a22014963b140a",
   "root": "/workspace/scratch/freeze-audit-1.10.51",
   "user_request": "Latest: resume now; priority settings freeze after parameter change, 3h actual audit then3h optimization. Supersedes2h+2h; pause excluded.",
-  "phase": "audit_driver_revalidation",
+  "phase": "audit_native_running",
   "target_active_seconds": {
     "audit": 10800,
     "optimization": 10800
@@ -21,6 +21,13 @@
       "end": "2026-11-18T05:00:42.054066+00:00",
       "activity": "Interactive preparation: video/DEX audit, actual release-emulator GC reproduction, Native audit launch, verified automatic handoff",
       "note": "Overlaps ongoing Native run; do not add the same wall time twice. Interactive worker ends at handoff."
+    },
+    {
+      "phase": "audit",
+      "start": "2026-11-18T06:26:01+00:00",
+      "end": "2026-11-18T06:40:28.763952+00:00",
+      "activity": "Status check, failed-run artifact verification, official ShadowTrace root cause, diagnostic cleanup, successful smoke, repeat3h audit launch/handoff",
+      "note": "Overlap with actual CI run is not counted twice; do not substitute manual preparation or waiting for3h successful Native proof."
     }
   ],
   "excluded_intervals": [
@@ -35,14 +42,15 @@
   "probe": {
     "branch": "codex/freeze-audit-1.10.51",
     "source": "52218b6a2af59bf9c7a329776107733a04500655",
-    "run_id": 44251447156,
-    "status": "smoke_running",
-    "target_active_ms": 60000,
-    "kind": "NativeCanvas smoke after clearing completed test-only trace history on idle every10cycles; currentSections empty asserted first",
+    "run_id": 44252856509,
+    "status": "running",
+    "target_active_ms": 10800000,
+    "kind": "Repeated3h Native audit after bounded completed-trace registry cleanup",
     "application_unchanged": true,
-    "never_merge_workflow": true
+    "never_merge_workflow": true,
+    "workflow_started_at": "2026-11-18T06:38:44Z"
   },
-  "main_checkpoint": "3689a30fc8ea67315f7e2c5dece57f0888e7d9c7",
+  "main_checkpoint": "44bd649e71099a15ea6e8be82a55e44de9d733eb",
   "user_details": {
     "location": "settings",
     "trigger": "after changing a parameter",
@@ -113,6 +121,18 @@
       "active_ms": 2475893,
       "cycles": 14061,
       "reason": "OOM at Robolectric ShadowTrace.endSection previousSections ArrayDeque.grow; unbounded completed trace history, official4.14.1 source verified. Not successful3h, not phone leak."
+    },
+    {
+      "run_id": 44251447156,
+      "source": "52218b6a2af59bf9c7a329776107733a04500655",
+      "result": "success",
+      "artifact_id": 14404790742,
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0,
+      "active_ms": 60040,
+      "cycles": 96,
+      "kind": "60s trace-cleanup smoke, not3h"
     }
   ],
   "findings": [
@@ -254,10 +274,10 @@
   "continuation": {
     "id": "Automation_9bad489b952c8191be90c89cd157657d",
     "is_enabled": true,
-    "next_run_time": "2026-11-17T23:44:40-08:00",
-    "schedule": "BEGIN:VEVENT\nDTSTART:20261118T074440Z\nEND:VEVENT",
-    "updated_at": "2026-11-18T05:00:11.706334+00:00",
+    "next_run_time": "2026-11-18T01:54:08-08:00",
+    "schedule": "BEGIN:VEVENT\nDTSTART:20261118T095408Z\nEND:VEVENT",
+    "updated_at": "2026-11-18T06:39:10.141390+00:00",
     "worker": "interactive_handed_off_to_scheduled_continuation",
-    "required_next_steps": "Verify pending 3h Native artifact; then separate3h optimization/fix/CI/Signed/minified-release-after-GC verification; deliver52; stop."
+    "required_next_steps": "Verify current run44252856509 >=10800000ms. Then separate3h optimization/fix/fullCI/Signed/minified52-after-ARTGC-require-live. DeliverAPK thenstop."
   }
 }

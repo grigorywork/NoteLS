@@ -1,0 +1,81 @@
+{
+  "run_id": 44251447156,
+  "source": "52218b6a2af59bf9c7a329776107733a04500655",
+  "artifact_id": 14404790742,
+  "zip_sha256": "e43b9cd84c21006edc635a4fe2361ff33c36a786bc3839c62121bed789d993b1",
+  "tests": 1,
+  "failures": 0,
+  "ignored": 0,
+  "progress": {
+    "status": "success",
+    "started": "2026-11-18T06:32:02.738013230Z",
+    "observed": "2026-11-18T06:33:02.820883821Z",
+    "target_ms": 60000,
+    "active_ms": 60040,
+    "cycles": 96,
+    "counts": [
+      96,
+      96,
+      96,
+      96
+    ],
+    "operation_total_ns": [
+      14416549870,
+      5324093145,
+      18922818621,
+      21377332146
+    ],
+    "operation_max_ns": [
+      766936572,
+      630898755,
+      2157327744,
+      1709600396
+    ],
+    "heap_bytes": 136727400,
+    "groups": [
+      "editor_history",
+      "task_mode",
+      "settings",
+      "list_scroll"
+    ],
+    "settings_detail_counts": [
+      96,
+      96,
+      96,
+      96,
+      32,
+      96,
+      96
+    ],
+    "settings_detail_total_ns": [
+      984791441,
+      2861008616,
+      970328759,
+      5427681979,
+      2918502951,
+      5564986261,
+      189070753
+    ],
+    "settings_detail_max_ns": [
+      495734369,
+      393173119,
+      96557752,
+      317142197,
+      842940044,
+      496215939,
+      21559457
+    ],
+    "settings_detail_groups": [
+      "theme_scale",
+      "editor_section",
+      "appearance_section",
+      "font_change",
+      "glass_save",
+      "language_roundtrip",
+      "close_section"
+    ],
+    "sdk": 28,
+    "native_canvas": true,
+    "physical_phone": false
+  }
+}
