@@ -83,5 +83,16 @@
     "No duplicate worker/Gradle",
     "No questions between authorized stages"
   ],
-  "main_app_still_verified55": true
+  "main_app_still_verified55": true,
+  "last_blocker_recheck": {
+    "observed_at": "2026-11-19T05:32:23.049797+00:00",
+    "run_id": 44417149138,
+    "attempt": 2,
+    "job_id": 135363121077,
+    "conclusion": "failure",
+    "runner_name": "",
+    "steps": 0,
+    "tests_ran": false,
+    "reason": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the Billing & plans section in your settings"
+  }
 }
