@@ -15,7 +15,8 @@
     "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
     "full_ci_verified": false,
     "signed_apk_exists": false,
-    "source": "74bb2767c10793a1e0525ac4c87668a8d52b2752"
+    "source": "74bb2767c10793a1e0525ac4c87668a8d52b2752",
+    "feature_docs_merge": "0e6f2c94ce08d7c7433f742e91fec3804cf51215"
   },
   "last_full_ci": {
     "id": 44411996611,
@@ -97,13 +98,16 @@
   },
   "restoration_reported": true,
   "last_restoration_probe": {
-    "observed_at": "2026-11-19T05:45:36.250982+00:00",
+    "observed_at": "2026-11-19T05:47:43.455922+00:00",
     "run_id": 44467172960,
-    "job_id": 135367659960,
+    "attempt": 2,
+    "job_id": 135368428161,
     "source": "de187cd069e207631d836cb09db0fe84310880bd",
     "status": "failure",
+    "runner_name": "",
     "steps": 0,
     "tests_ran": false,
-    "reason": "GitHub billing/spending error; pending one later retry for propagation"
-  }
+    "reason": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the Billing & plans section in your settings"
+  },
+  "awaiting_user_billing_status": true
 }
