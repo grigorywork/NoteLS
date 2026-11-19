@@ -46,6 +46,7 @@ class DiaryScreenUiTest {
     private val app: Application get() = RuntimeEnvironment.getApplication()
     private val db get() = AppDatabase.get(app)
     private val models = ViewModelStore()
+    private var currentModel: DiaryViewModel? = null
     private lateinit var drawingView: View
     private val opened = AtomicLong()
     private val keyboardDp = mutableIntStateOf(0)
@@ -60,14 +61,14 @@ class DiaryScreenUiTest {
             ShadowSystemClock.advanceBy(Duration.ofMillis(100)); compose.waitForIdle(); condition()
         } } catch (failure: Throwable) {
             snapshot("failure")
-            val model = models["diary"] as? DiaryViewModel
+            val model = currentModel
             throw AssertionError("Diary state: books=${model?.books?.value?.map { it.id }} message=${model?.message?.value}\n" +
                 compose.onRoot(useUnmergedTree = true).printToString(), failure)
         }
     }
     private fun exists(matcher: SemanticsMatcher) = compose.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
     private fun content(): DiaryViewModel {
-        val vm = DiaryViewModel(app).also { models.put("diary", it) }
+        val vm = DiaryViewModel(app).also { models.put("diary", it); currentModel = it }
         compose.setContent {
             drawingView = LocalView.current
             density = LocalDensity.current.density

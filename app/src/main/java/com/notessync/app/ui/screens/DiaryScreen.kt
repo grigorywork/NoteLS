@@ -14,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,6 +50,8 @@ fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: Diary
     var protectedAction by remember { mutableStateOf(false) }
     var protectedRow by remember { mutableStateOf<DiaryRow?>(null) }
     val snackbar = remember { SnackbarHostState() }
+    var snackbarHeight by remember { mutableIntStateOf(0) }
+    val feedbackPadding = with(LocalDensity.current) { snackbarHeight.toDp() }
     val unlocked = book?.let { DiaryPrivacy.valid(it) && it.id in access.notebookIds } == true
     val shown = result?.takeIf { unlocked && it.book == book && it.trash == trash && it.page == page }?.rows.orEmpty()
     fun back() { viewModel.lock(); onBack() }
@@ -60,13 +64,13 @@ fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: Diary
     LaunchedEffect(message) {
         message?.let {
             // Keep the effect key stable until the snackbar completes; clearing first cancels it.
-            snackbar.showSnackbar(uiText(it))
-            viewModel.clearMessage(it)
+            try { snackbar.showSnackbar(uiText(it)) }
+            finally { viewModel.clearMessage(it) }
         }
     }
     Scaffold(
         modifier = Modifier.windowInsetsPadding(imeInsets),
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost = { SnackbarHost(snackbar, Modifier.onSizeChanged { snackbarHeight = it.height }) },
         topBar = { TopAppBar(title = { Text(uiText(if (trash) "Корзина дневника" else "Дневник")) },
             navigationIcon = { IconButton(onClick = ::back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Назад")) } },
             actions = {
@@ -89,7 +93,9 @@ fun DiaryScreen(onBack: () -> Unit, onOpenNote: (Long) -> Unit, viewModel: Diary
             Icon(Icons.Default.Add, uiText("Новая запись дневника"))
         } }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+        // Validation feedback must not intercept the submit button above the keyboard.
+        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
+            .padding(bottom = if (unlocked) 0.dp else feedbackPadding)) {
             if (books == null) { LinearProgressIndicator(Modifier.fillMaxWidth()); return@Column }
             if (books.orEmpty().size > 1) {
                 var selectBook by remember { mutableStateOf(false) }
