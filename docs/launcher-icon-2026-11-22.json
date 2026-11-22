@@ -1,0 +1,20 @@
+{
+  "original_file_sha256": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+  "original_bytes": 2328382,
+  "width": 1254,
+  "height": 1254,
+  "original_pixels_unmodified": true,
+  "adaptive_inset_percent": 22,
+  "scope": "NoteLS home-screen launcher icon",
+  "candidate_version": "1.10.56/code79",
+  "apk_built": false,
+  "device_installation": false,
+  "old_launcher_pngs_removed": [
+    "app/src/main/res/mipmap-mdpi/ic_launcher.png",
+    "app/src/main/res/mipmap-hdpi/ic_launcher.png",
+    "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+    "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+    "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
+  ],
+  "new_image_copies": 1
+}
