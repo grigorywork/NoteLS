@@ -1,6 +1,9 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addSettingsEnglish() {
+    put("Быстрая кнопка в редакторе", "Quick button in the editor")
+    put("Быстрая кнопка скрыта: устройство с малым объёмом памяти. Преобразование доступно в меню вставки.", "The quick button is hidden on this low-memory device. Text transformation is available in the insert menu.")
+    put("Быстрая кнопка недоступна на этом устройстве. Преобразование доступно в меню вставки.", "The quick button is unavailable on this device. Text transformation is available in the insert menu.")
     put("Значок приложения", "App icon")
     put("Матовый", "Frosted")
     put("Значок: ", "Icon: ")

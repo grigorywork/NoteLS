@@ -372,7 +372,8 @@ fun NoteEditorScreen(
                     voiceManager.cancel()
                     scope.launch { if (viewModel.saveNow(force = true)) onOpenCalendar() }
                 }, voiceEnabled = voiceEnabled, onVoice = { ui.showVoice = true },
-                    onFormattingPanelChange = { SettingsRepository.get(context).setFormattingBarPosition(it) })
+                    onFormattingPanelChange = { SettingsRepository.get(context).setFormattingBarPosition(it) },
+                    transformIdle = voiceIdle() && !voiceClosing && !captureState.busy && !audioPlaying)
                 if (ui.showVoice) EditorVoicePanel(ui, settingsState, SettingsRepository.get(context), voiceState,
                     voicePartial, voiceEnabled, onStart = { startVoiceInput() }, onFinish = { finishVoiceInput() },
                     onCancel = voiceManager::cancel, onClose = { voiceManager.cancel(); ui.showVoice = false })

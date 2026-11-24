@@ -24,4 +24,17 @@ class TransformSettingsTest {
         assertTrue(restored.aiEnabled); assertEquals(AiProvider.OPENAI, restored.aiProvider); assertEquals("fixture-model", restored.aiModel)
         assertFalse(app.getSharedPreferences(AndroidTransformSecrets.PREFS, 0).contains("encrypted"))
     }
+    @Test fun `quick button preference survives recreation independently of provider and enabled state`() {
+        val settings = SettingsRepository.get(app)
+        assertTrue(settings.state.value.quickTransformButton)
+        settings.setAiEnabled(true); settings.setAiProvider(AiProvider.GROQ_QWEN)
+        settings.setQuickTransformButton(false)
+        reset()
+        val restored = SettingsRepository.get(app)
+        assertFalse(restored.state.value.quickTransformButton)
+        assertTrue(restored.state.value.aiEnabled)
+        assertEquals(AiProvider.GROQ_QWEN, restored.state.value.aiProvider)
+        restored.setAiEnabled(false); restored.setAiEnabled(true)
+        assertFalse(restored.state.value.quickTransformButton)
+    }
 }

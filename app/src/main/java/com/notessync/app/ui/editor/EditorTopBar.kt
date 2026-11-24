@@ -14,18 +14,33 @@ import com.notessync.app.settings.SettingsState
 import com.notessync.app.settings.FormattingBarPosition
 import com.notessync.app.ui.notes.NoteEditorViewModel
 import com.notessync.app.ui.notes.text.*
+import com.notessync.app.ai.QuickTransformAvailability
+import com.notessync.app.ai.quickTransformAvailability
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditorTopBar(viewModel: NoteEditorViewModel, ui: EditorUiState, settings: SettingsState,
     onExit: () -> Unit, onCalendar: () -> Unit, voiceEnabled: Boolean, onVoice: () -> Unit,
-    onFormattingPanelChange: (FormattingBarPosition) -> Unit) {
+    onFormattingPanelChange: (FormattingBarPosition) -> Unit, transformIdle: Boolean = true) {
+    val context = LocalContext.current.applicationContext
+    val quickTransform = remember(context) { quickTransformAvailability(context) }
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 44.dp) {
         TopAppBar(title = { Text(uiText(if (viewModel.isTask) "Задача" else "Заметка"),
             style = MaterialTheme.typography.titleMedium, maxLines = 1) },
             navigationIcon = { IconButton(onClick = onExit, modifier = Modifier.size(44.dp)) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Назад"), Modifier.size(20.dp))
             } }, actions = {
+                if (settings.aiEnabled && settings.quickTransformButton && quickTransform == QuickTransformAvailability.AVAILABLE) {
+                    IconButton(onClick = { ui.dismissMenus(); ui.showVoice = false; ui.showTransform = true },
+                        enabled = viewModel.isReady && !viewModel.isClosing && !viewModel.accessDenied &&
+                            !viewModel.previewMode && !viewModel.isPhotoBusy && !ui.modalOpen && transformIdle &&
+                            viewModel.contentField.text.isNotBlank(),
+                        modifier = Modifier.size(44.dp).testTag("quick-transform")) {
+                        Icon(Icons.Default.AutoFixHigh, uiText("Преобразовать текст"), Modifier.size(20.dp))
+                    }
+                }
                 if (viewModel.historyEnabled) {
                     IconButton(onClick = viewModel::undo, enabled = viewModel.canUndo && !viewModel.isClosing, modifier = Modifier.size(44.dp)) {
                         Icon(Icons.AutoMirrored.Filled.Undo, uiText("Отменить"), Modifier.size(20.dp))

@@ -89,6 +89,14 @@ fun TransformSettingsSection(state: SettingsState, settings: SettingsRepository,
         }
         Text(uiText("Предпросмотр перед заменой. Ничего не отправляется автоматически."), style = MaterialTheme.typography.bodySmall)
         if (state.aiEnabled) {
+            com.notessync.app.ui.settings.SettingsToggle(uiText("Быстрая кнопка в редакторе"),
+                state.quickTransformButton, settings::setQuickTransformButton, padded = false)
+            val shortcutAvailability = remember(context) { quickTransformAvailability(context) }
+            if (shortcutAvailability != QuickTransformAvailability.AVAILABLE) Text(uiText(
+                if (shortcutAvailability == QuickTransformAvailability.LOW_RAM)
+                    "Быстрая кнопка скрыта: устройство с малым объёмом памяти. Преобразование доступно в меню вставки."
+                else "Быстрая кнопка недоступна на этом устройстве. Преобразование доступно в меню вставки."),
+                style = MaterialTheme.typography.bodySmall)
             com.notessync.app.ui.settings.SettingsDropdown("ai-provider", uiText("Провайдер"), state.aiProvider, AiProvider.entries,
                 settings::setAiProvider, { it.label }, enabled = !busy)
             if (state.aiProvider == AiProvider.LOCAL_RULES) Text(uiText("Локальные правила без ИИ и сети. Модели не скачиваются."), style = MaterialTheme.typography.bodySmall)

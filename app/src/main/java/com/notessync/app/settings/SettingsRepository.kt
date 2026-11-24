@@ -124,6 +124,7 @@ data class SettingsState(
     val cameraCapture: Boolean = true,
     val audioRecording: Boolean = true,
     val aiEnabled: Boolean = false,
+    val quickTransformButton: Boolean = true,
     val autoSyncEnabled: Boolean = true,
     val aiProvider: com.notessync.app.ai.AiProvider = com.notessync.app.ai.AiProvider.LOCAL_RULES,
     val aiModel: String = "",
@@ -198,6 +199,7 @@ class SettingsRepository private constructor(context: Context) : SharedPreferenc
         audioRecording = prefs.getBoolean("audio_recording", true),
         autoSyncEnabled = runCatching { prefs.getBoolean("auto_sync", true) }.getOrDefault(false),
         aiEnabled = runCatching { prefs.getBoolean("ai_enabled", false) }.getOrDefault(false),
+        quickTransformButton = runCatching { prefs.getBoolean("quick_transform_button", true) }.getOrDefault(true),
         aiProvider = enumPref("ai_provider", com.notessync.app.ai.AiProvider.LOCAL_RULES),
         aiModel = runCatching { prefs.getString("ai_model", "").orEmpty().take(160) }.getOrDefault(""),
         quickTaskTime = prefs.getBoolean("quick_task_time", true),
@@ -287,6 +289,7 @@ class SettingsRepository private constructor(context: Context) : SharedPreferenc
     fun setAutoSyncEnabled(value: Boolean) { prefs.edit().putBoolean("auto_sync", value).apply(); _state.value = read() }
 
     fun setAiEnabled(value: Boolean) { prefs.edit().putBoolean("ai_enabled", value).apply(); _state.value = read() }
+    fun setQuickTransformButton(value: Boolean) { prefs.edit().putBoolean("quick_transform_button", value).apply(); _state.value = read() }
     fun setAiProvider(value: com.notessync.app.ai.AiProvider) { prefs.edit().putString("ai_provider", value.name).apply(); _state.value = read() }
     fun setAiModel(value: String) { prefs.edit().putString("ai_model", value.trim().take(160)).apply(); _state.value = read() }
     fun setAudioRecording(value: Boolean) { prefs.edit().putBoolean("audio_recording", value).apply(); _state.value = read() }
