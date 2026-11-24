@@ -1,6 +1,12 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addSettingsEnglish() {
+    put("Значок приложения", "App icon")
+    put("Значок: ", "Icon: ")
+    put("Розовое стекло", "Pink glass")
+    put("Лист с галочкой", "Folded note")
+    put("Выбери ярлык для рабочего стола. Его обновление может занять несколько секунд.", "Choose a home screen icon. It may take a few seconds to update.")
+    put("Не удалось сменить значок. Попробуй ещё раз.", "Could not change the icon. Try again.")
     put("Внешний вид", "Appearance")
     put("Голос и аудио", "Voice and audio")
     put("Развёрнуто", "Expanded")

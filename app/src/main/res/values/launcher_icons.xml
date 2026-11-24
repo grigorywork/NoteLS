@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_glass_background">#D38CE5</color>
+    <color name="launcher_frosted_background">#DDA0DD</color>
+    <color name="launcher_paper_background">#BA91BF</color>
+</resources>

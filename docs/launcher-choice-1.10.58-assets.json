@@ -1,0 +1,42 @@
+{
+  "artwork": {
+    "glass": {
+      "path": "app/src/main/res/drawable-nodpi/launcher_glass.png",
+      "sha256": "6bae7aa5ded4f0a42aff42b4e2d6cc55f4ab5dcd270c11381d6e7ebb579d6746",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ]
+    },
+    "frosted": {
+      "path": "app/src/main/res/drawable-nodpi/launcher_frosted.png",
+      "sha256": "e0d01843283c453f6b7a1c81f6c7c227ebccc8f65a58bc529e74291981820987",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ]
+    },
+    "paper": {
+      "path": "app/src/main/res/drawable-nodpi/launcher_paper.png",
+      "sha256": "9e185ad882eb0cedaaae2ed1fd542dc6ae4362109523fa6b8ac122c6c04061f6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ]
+    }
+  },
+  "method": "Production assets prepared from approved mockup concepts using image tool; no programmatic image editing.",
+  "physical_phone_tested": false
+}

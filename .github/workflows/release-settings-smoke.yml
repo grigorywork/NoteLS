@@ -95,7 +95,19 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -no-snapshot -memory 2048 -cores 2
-          script: python3 scripts/release_settings_gc_probe.py --apk '${{ steps.input.outputs.apk_path }}'
+          script: |
+            python3 scripts/release_settings_gc_probe.py --apk '${{ steps.input.outputs.apk_path }}'
+            python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api28
+      - name: Verify launcher choices on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -no-snapshot -memory 2048 -cores 2
+          script: python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api35
       - uses: actions/upload-artifact@v4
         if: always()
         with:
