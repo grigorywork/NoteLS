@@ -47,8 +47,9 @@ internal fun LauncherIconSettings() {
             LauncherIcon.entries.forEach { icon ->
                 val description = uiText("Значок: ") + uiText(icon.title)
                 // Launcher artwork is large; settings decode only ~157px thumbnails off the UI thread.
-                val preview by produceState<ImageBitmap?>(null, icon.artwork) {
-                    value = withContext(Dispatchers.IO) {
+                var preview by remember(icon.artwork) { mutableStateOf<ImageBitmap?>(null) }
+                LaunchedEffect(icon.artwork) {
+                    preview = withContext(Dispatchers.IO) {
                         BitmapFactory.decodeResource(context.resources, icon.artwork,
                             BitmapFactory.Options().apply { inSampleSize = 8 })?.asImageBitmap()
                     }
