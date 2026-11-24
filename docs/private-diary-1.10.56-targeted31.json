@@ -1,0 +1,11 @@
+{
+  "run_id": 45364571246,
+  "source": "a39572679192046f4399a15fa56f1da9e9980f90",
+  "artifact_id": 14905154974,
+  "zip_sha256": "cfee869e8f06d5eda68f53395b1f45c6947080cf92a7dd29094b28b879253015",
+  "tests": 31,
+  "failures": 0,
+  "ignored": 0,
+  "scope": "targeted_only_not_full846",
+  "public_repository": true
+}

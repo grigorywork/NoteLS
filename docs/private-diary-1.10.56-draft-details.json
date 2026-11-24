@@ -13,7 +13,8 @@
     "User-selected legacy migration preserves IDs, sync IDs, documents, formatting, tables, tags, attachments, dates and task clocks. Tagged journal trash is retained; ordinary dated tasks require explicit opt-in and selection.",
     "Private membership survives stale editors and legacy sync metadata. Private parent dependencies and optional wire markers prevent orphan private notes becoming public.",
     "Room18 to19 adds only notebooks.isDiary default0; encrypted backup restore migrates and validates staging before touching live tables. Cancellation is preserved.",
-    "IME-aware password UI and bounded pages keep all records accessible without loading full documents into the list. Voice55 and the settings listener fix remain intact."
+    "IME-aware password UI and bounded pages keep all records accessible without loading full documents into the list. Voice55 and the settings listener fix remain intact.",
+    "Launcher uses user-supplied original PNG, adaptive inset/black background, normal/round fallback and a matching monochrome calendar/check for themed icons."
   ],
   "changes_ru": [
     "Отдельный пункт «Дневник» с собственным паролем, сменой пароля и замком. Старый пункт «Ежедневник» убран из меню.",
@@ -21,7 +22,8 @@
     "Перенос выбирается после задания пароля: прежние записи с тегом «Дневник» отмечены, остальные датированные записи выбираются вручную. Задачи доступны только после отдельного включения и выбора.",
     "Сохраняются текст, разметка, таблицы, вложения, даты, таймеры, идентификаторы, корзина и отдельные пароли записей.",
     "Миграция Room18→19 добавляет один признак; старые копии проходят миграцию и проверку до восстановления живых данных.",
-    "Форма пароля и кнопки доступны над клавиатурой на небольшом экране. Исправление диктовки55 сохранено."
+    "Форма пароля и кнопки доступны над клавиатурой на небольшом экране. Исправление диктовки55 сохранено.",
+    "Ярлык NoteLS заменён на предоставленную картинку; оригинальный PNG сохранён без перерисовки, подготовлены обычный/круглый/adaptive и тематический варианты."
   ],
   "limitations_en": [
     "Password protection gates app access using the established protected-notebook session policy; lock/leave Journal or restart the process to require it again. Encrypted backup protection is unchanged.",
@@ -86,6 +88,13 @@
         "failures": 0
       },
       "full_ci_verified": false
+    },
+    {
+      "run_id": 45027939748,
+      "attempt": 3,
+      "source": "b5a9c3b03b73402d6b1cb9c4f6e1cb87a7f21c90",
+      "result": "31/1failed",
+      "finding": "Native activity test attempted input before asynchronous editor loaded; now waits for enabled populated field under same15s cap. Followup31/0/0 independently verified."
     }
   ],
   "audit_ru": "Проверка схемы: все6 остальных Roomentities/связи/индексы равны18; notebooks добавляет только isDiary INTEGER NOT NULL DEFAULT0. Реальный KSP19 SHA 042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869, identity 61703504e840fea926257eeba0d419e1. Новые21 регрессия включают миграцию18, защищённый/удалённый перенос, genericCRUD, устаревшие редактор/credentials, legacy sync, encrypted restore/cancellation, настоящий AppNavHost под Native Robolectric и форму320dp с IME260dp. Маскирование закрытой записи включает заголовок/текст/дату/updatedAt. Голосовой55/плашки/постояннаягалочка сохранены.",
@@ -119,13 +128,45 @@
       "old_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
       "full_ci_verified": false
     },
-    "physical_device_tests": false
+    "physical_device_tests": false,
+    "targeted31": {
+      "run_id": 45364571246,
+      "source": "a39572679192046f4399a15fa56f1da9e9980f90",
+      "artifact_id": 14905154974,
+      "zip_sha256": "cfee869e8f06d5eda68f53395b1f45c6947080cf92a7dd29094b28b879253015",
+      "tests": 31,
+      "failures": 0,
+      "ignored": 0,
+      "scope": "targeted_only_not_full846",
+      "public_repository": true
+    },
+    "launcher": {
+      "original_file_sha256": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+      "original_bytes": 2328382,
+      "width": 1254,
+      "height": 1254,
+      "original_pixels_unmodified": true,
+      "adaptive_inset_percent": 22,
+      "scope": "NoteLS home-screen launcher icon",
+      "candidate_version": "1.10.56/code79",
+      "apk_built": false,
+      "device_installation": false,
+      "old_launcher_pngs_removed": [
+        "app/src/main/res/mipmap-mdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-hdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
+      ],
+      "new_image_copies": 1
+    }
   },
   "extra_paths": [
     "docs/private-diary-1.10.56-release-gc.json",
     "docs/private-diary-1.10.56-schema-proof.json",
     "docs/private-diary-1.10.56-ci-failure.json",
-    "docs/private-diary-1.10.56-ci-fifth-failure.json"
+    "docs/private-diary-1.10.56-ci-fifth-failure.json",
+    "docs/private-diary-1.10.56-targeted31.json"
   ],
   "next_ru": "Продолжать85: быстрая кнопка преобразования текста, настройка её скрытия и автоматическое скрытие на low-RAM/неподдерживаемых устройствах; модели остаются четырьмя: Qwen/Gemini/Gemma/Nemotron. Затем86 ярлык планировщика с присланной пользователем календарной графикой,87 аналитика сравнение периодов/просроченные/drilldown. Без вопросов между этапами. После всей очереди — НОВЫЕ1 фактическийчас аудита, затем1 фактическийчас оптимизации/исправлений/проверок, с UTC и проверяемыми доказательствами, без простоя/двойного счёта. Старое3h+3h52 не повторять;68/iPhone не начинать."
 }
