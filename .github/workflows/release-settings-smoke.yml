@@ -27,7 +27,7 @@ concurrency:
 jobs:
   settings:
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/launcher58-live-probe') ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_repository.full_name == github.repository &&
        github.event.workflow_run.head_branch == 'main')
@@ -96,6 +96,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -no-snapshot -memory 2048 -cores 2
           script: |
+            set -e
             python3 scripts/release_settings_gc_probe.py --apk '${{ steps.input.outputs.apk_path }}'
             python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api28
       - name: Verify launcher choices on Android 15
