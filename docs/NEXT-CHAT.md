@@ -1,3 +1,7 @@
+## Тестовый драйвер58 исправлен; приложение58 не менялось
+
+После проверки1.10.58 сохранён только исправленный тестовый драйвер: он прокручивает строку значка целиком выше системной панели. Тот же подписанный APK проверен наAndroid9/15 в run45440070703; app/test/resources/build не менялись, новая APK-сборка не требуется. Подписанный source по-прежнему b1f4b1f8be850c5d63349cc63618b4a478cf3eff. Следующая версия приложения1.10.59/code82;85–87 и новые1h+1h остаются в очереди.
+
 ## 84b закрыт — проверенный NoteLS1.10.58/code81
 
 Этап84b закрыт: NoteLS1.10.58/code81, Room19/data2/security3. Source `b1f4b1f8be850c5d63349cc63618b4a478cf3eff`. Полный CI[45432362954](https://github.com/grigorywork/NoteLS/actions/runs/45432362954) =**857 тестов/0 отказов/0 пропусков**, lint0errors/27warnings/2info. Signed[45436555530](https://github.com/grigorywork/NoteLS/actions/runs/45436555530) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.

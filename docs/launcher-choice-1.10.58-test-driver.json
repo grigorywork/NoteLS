@@ -1,0 +1,17 @@
+{
+  "app_source": "b1f4b1f8be850c5d63349cc63618b4a478cf3eff",
+  "version": "1.10.58",
+  "code": 81,
+  "apk_sha256": "cbe771c3331660ebe8fc14a092825040155d471a8b451cef28f29370a1546479",
+  "guarded_release_closure": "dad7b2bc2b8035771b34a3865939e6be12cef579",
+  "tested_driver_source": "256be364952fe426cb9f9bca2b3b2e00055eca14",
+  "successful_actual_apk_run": 45440070703,
+  "artifact_id": 14942809004,
+  "zip_sha256": "ca7cc5877cc54071bc13d8d70f09c3dc5f05a187a36755204ce4b4cce96b5dce",
+  "script_sha256": "14a68b5415a2156733ea7380072822fc8643ddf8286e6064c9decf031019c889",
+  "canonical_workflow_matches_tested_except_trusted_dispatch_ref": true,
+  "normal_android_checks_workflow_unchanged": true,
+  "runtime_app_or_unit_tests_changed": false,
+  "new_apk_required": false,
+  "scope": "Require a fully visible row before tapping; fail immediately if the first emulator command fails. Existing UI/PM/certificate/source checks retained."
+}

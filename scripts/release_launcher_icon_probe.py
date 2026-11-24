@@ -25,6 +25,33 @@ def wait_launcher(alias):
         time.sleep(.2)
     raise AssertionError(('Exactly one selected launcher required', alias, entries))
 
+def icon_target(root, label):
+    path = ui.match_path(root, 'Значок: '+label)
+    if not path: return None, None
+    row = next((n for n in reversed(path) if n.get('checkable') == 'true'), path[-1])
+    viewport = next((n for n in reversed(path) if n.get('class') == 'android.widget.ScrollView'), None)
+    return ui.bounds(row), ui.bounds(viewport) if viewport is not None else None
+
+def tap_icon(label):
+    for _ in range(9):
+        root = ui.tree()
+        box, viewport = icon_target(root, label)
+        # Android15 can report an unclipped clickable parent extending UNDER the
+        # navigation bar. Do not tap its midpoint until the WHOLE row is visible.
+        if box and viewport and box[1] >= viewport[1]+4 and box[3] <= viewport[3]-4:
+            point = [(box[0]+box[2])//2, (box[1]+box[3])//2]
+            ui.adb('shell','input','tap',*point)
+            return {'label':label, 'row_bounds':box, 'viewport_bounds':viewport, 'tap':point}
+        size = [int(x) for x in re.findall(r'\d+', ui.adb('shell','wm','size'))][-2:]
+        if viewport:
+            top, bottom = viewport[1], viewport[3]
+        else:
+            top, bottom = int(size[1]*.15), int(size[1]*.9)
+        upper = int(top+(bottom-top)*.3); lower = int(top+(bottom-top)*.8)
+        if box and box[1] < top+4: upper,lower = lower,upper
+        ui.adb('shell','input','swipe',size[0]//2,lower,size[0]//2,upper,350)
+    raise AssertionError('Fully visible icon choice missing: '+label)
+
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--apk', required=True); parser.add_argument('--output', required=True); args = parser.parse_args()
     global OUT
@@ -37,7 +64,7 @@ def main():
         # Explicit MainActivity remains valid for old home-screen, reminder and widget intents.
         ui.open_settings()
         before_pid = ui.adb('shell', 'pidof', '-s', PACKAGE).strip()
-        ui.tap('Значок: '+label, scroll=True)
+        tap_proof = tap_icon(label)
         component = wait_launcher(alias)
         started_ui = time.monotonic()
         while not ui.selected('Значок: '+label):
@@ -50,7 +77,7 @@ def main():
         assert 'Error' not in started
         assert ui.adb('shell', 'pidof', '-s', PACKAGE).strip()
         assert wait_launcher(alias) == component
-        events.append({'alias':alias, 'selected':True, 'launcher_count':1, 'process_survived_switch':True,
+        events.append({'tap_proof':tap_proof, 'alias':alias, 'selected':True, 'launcher_count':1, 'process_survived_switch':True,
                        'relaunch_selected_component':True, 'persisted_after_process_restart':True})
     # Package replacement must retain the selection and exactly one entry.
     ui.adb('install', '-r', args.apk)
