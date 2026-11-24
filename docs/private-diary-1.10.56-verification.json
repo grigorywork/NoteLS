@@ -1,0 +1,509 @@
+{
+  "artifact_id": 14909065825,
+  "archive_sha256": "9c64be675e680c905ce94efd9a524abf24d22414a41f698f887eb4aec034da2f",
+  "archive_bytes": 17675690,
+  "workflow_run": {
+    "id": 45368846190,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "main",
+    "head_sha": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3"
+  },
+  "source": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3",
+  "package": "com.notessync.app",
+  "version": "1.10.56",
+  "code": 79,
+  "apk_name": "NoteLS-1.10.56-code79-permanent-signature.apk",
+  "apk_bytes": 29782559,
+  "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "verified_schemes": [
+    2,
+    3
+  ],
+  "signers": 1,
+  "debuggable": false,
+  "dex_sha256": {
+    "classes.dex": "f1ef87e3bf9277f37b40362022770b2aa0e9be1129b72b77c75720ec2ea63df1"
+  },
+  "readme_source_verified": true,
+  "room_schema": 19,
+  "room_identity": "61703504e840fea926257eeba0d419e1",
+  "room_schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "physical_device_tested": false,
+  "stage": 84,
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/45368846190/artifacts/14909065825",
+  "additional_evidence": {
+    "schema_generation": {
+      "generation_run": 44402134761,
+      "source": "bdd2682cf2afb981344c916317103fe85c0468bb",
+      "run_conclusion": "failure: one leftover old UI reference; no tests run",
+      "artifact_id": 14474450860,
+      "zip_sha256": "a6e419ddaed67f0f9ad5140154b60e62ecd8bdbcdb4a81d96cad19aa38d8bca9",
+      "zip_bytes": 30728,
+      "schema_path": "app/schemas/com.notessync.app.data.local.AppDatabase/19.json",
+      "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+      "room_version": 19,
+      "identity_hash": "61703504e840fea926257eeba0d419e1",
+      "unchanged_entities": [
+        "notes",
+        "tags",
+        "note_tag_cross_ref",
+        "attachments",
+        "custom_quotes",
+        "quote_library_state"
+      ],
+      "only_added_field": {
+        "fieldPath": "isDiary",
+        "columnName": "isDiary",
+        "affinity": "INTEGER",
+        "notNull": true,
+        "defaultValue": "0"
+      },
+      "old_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
+      "full_ci_verified": true,
+      "final_verification": {
+        "run_id": 45365380761,
+        "source": "a96e73cd8bb78c724bb99ae1eabe675756b65c9b",
+        "artifact_id": 14907194385,
+        "zip_sha256": "963eb3be8daf7a6ba4f488f46a9332696ef5c80200040ea6427d68e13f9bda61",
+        "zip_bytes": 30728,
+        "schema19_raw_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+        "raw_schema_equals_committed": true
+      }
+    },
+    "physical_device_tests": false,
+    "targeted31": {
+      "run_id": 45364571246,
+      "source": "a39572679192046f4399a15fa56f1da9e9980f90",
+      "artifact_id": 14905154974,
+      "zip_sha256": "cfee869e8f06d5eda68f53395b1f45c6947080cf92a7dd29094b28b879253015",
+      "tests": 31,
+      "failures": 0,
+      "ignored": 0,
+      "scope": "targeted_only_not_full846",
+      "public_repository": true
+    },
+    "launcher": {
+      "original_file_sha256": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+      "original_bytes": 2328382,
+      "width": 1254,
+      "height": 1254,
+      "original_pixels_unmodified": true,
+      "adaptive_inset_percent": 22,
+      "scope": "NoteLS home-screen launcher icon",
+      "candidate_version": "1.10.56/code79",
+      "apk_built": false,
+      "device_installation": false,
+      "old_launcher_pngs_removed": [
+        "app/src/main/res/mipmap-mdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-hdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+        "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
+      ],
+      "new_image_copies": 1
+    },
+    "actual_apk_launcher": {
+      "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb",
+      "source_png_sha256": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "matches": [
+        {
+          "apk_path": "res/fJ.png",
+          "png_sha256": "f52694ee6e64f5e05acd7e0e838dc456e8572a170cd7b60e0847f800bdf8117a",
+          "pixels_identical": true
+        }
+      ],
+      "original_pixels_preserved_in_actual_signed_apk": true
+    },
+    "public_actions_working": true
+  },
+  "minified_release_gc": {
+    "run_id": 45370201833,
+    "source": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3",
+    "artifact_id": 14908932742,
+    "zip_sha256": "2a6eea2f584b591ad5b573a833364a7c8a733aea1898c6401febfdc853e2c3d8",
+    "zip_bytes": 508303,
+    "input": {
+      "signed_run_id": "45368846190",
+      "source": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3",
+      "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb",
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "non_debuggable": true
+    },
+    "result": {
+      "status": "success",
+      "mode": "require-live",
+      "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb",
+      "minified_installed_apk": true,
+      "art_gc_confirmed": true,
+      "physical_phone": false,
+      "fresh_hierarchy_required": true,
+      "hierarchy_retries": 0,
+      "events": [
+        {
+          "label": "Светлая",
+          "key": "theme_mode",
+          "persisted": "LIGHT",
+          "ui_selected": true,
+          "ui_wait_ms": 1178
+        },
+        {
+          "label": "Крупный",
+          "key": "font_scale",
+          "persisted": "1.15",
+          "ui_selected": true,
+          "ui_wait_ms": 1173
+        },
+        {
+          "label": "Оранжевый",
+          "key": "accent_color",
+          "persisted": "ORANGE",
+          "ui_selected": true,
+          "ui_wait_ms": 1190
+        }
+      ]
+    },
+    "actual_android_emulator": true,
+    "physical_phone": false
+  },
+  "ci_compiled_source": "a96e73cd8bb78c724bb99ae1eabe675756b65c9b",
+  "ci_source_equivalence": {
+    "only_docs_changed": true,
+    "changed_paths": [
+      "docs/private-diary-1.10.56-draft-details.json",
+      "docs/private-diary-1.10.56-schema-proof.json"
+    ]
+  },
+  "changes": [
+    "A separate password-protected Journal drawer destination replaces the legacy journal/tag and daily-planner overflow actions. Calendar day planning remains available.",
+    "Journal membership is explicit notebook metadata and is always excluded from general lists/search/filters/trash/pickers/widgets/analytics, including during an unlocked session.",
+    "Fresh password setup, unlock, change-password and lock/exit checks reuse the existing password algorithm. Separately protected entries retain their own credentials and hide previews until verified.",
+    "User-selected legacy migration preserves IDs, sync IDs, documents, formatting, tables, tags, attachments, dates and task clocks. Tagged journal trash is retained; ordinary dated tasks require explicit opt-in and selection.",
+    "Private membership survives stale editors and legacy sync metadata. Private parent dependencies and optional wire markers prevent orphan private notes becoming public.",
+    "Room18 to19 adds only notebooks.isDiary default0; encrypted backup restore migrates and validates staging before touching live tables. Cancellation is preserved.",
+    "IME-aware password UI and bounded pages keep all records accessible without loading full documents into the list. Voice55 and the settings listener fix remain intact.",
+    "Launcher uses user-supplied original PNG, adaptive inset/black background, normal/round fallback and a matching monochrome calendar/check for themed icons."
+  ],
+  "known_limitations": [
+    "Password protection gates app access using the established protected-notebook session policy; lock/leave Journal or restart the process to require it again. Encrypted backup protection is unchanged.",
+    "Older app versions do not have the separate Journal UI. Update paired devices for the same UI isolation.",
+    "Native UI/SQLite and controlled lifecycle tests are not physical Samsung A01 or Nubia Z80 Ultra tests."
+  ],
+  "audit_history": [
+    {
+      "run_id": 44402134761,
+      "source": "bdd2682cf2afb981344c916317103fe85c0468bb",
+      "conclusion": "failure",
+      "finding": "Leftover diary variable in legacy empty state; no tests ran. Actual KSP19 generated and independently verified."
+    },
+    {
+      "run_id": 44403548996,
+      "source": "e14bb4849cbe27ce656a012fbcbc4d49c9c24f29",
+      "conclusion": "cancelled",
+      "finding": "Log contained ExperimentalTestApi opt-in requirement in a new native selection test. Opt-in added; source also finished with IME-aware form. No tests pass claimed."
+    },
+    {
+      "run_id": 44405609595,
+      "source": "4eacae3a7996390b9d85251672c43ce500aa70a2",
+      "conclusion": "failure",
+      "tests": 845,
+      "failures": 5,
+      "artifact_id": 14474854812,
+      "zip_sha256": "fac439f8ca6f5482867f84852c150ac90f58ea417640defc8f9e374697a4b708",
+      "causes": [
+        "Actual Diary snackbar effect cleared its own key before show completed; effect cancelled. Clear moved after show completion with expected-message guard.",
+        "Two navigation tests matched both legacy Diary tag checkbox and new drawer Tab; selector now specifically requires Tab semantics.",
+        "Quote migration fixture downgraded current tables by version only, retaining future isDiary column. Replaced with actual schema17 DDL/index/setup reconstruction and exact original note ContentValues."
+      ],
+      "test_timeout_increased": false,
+      "assertions_removed": false
+    },
+    {
+      "run_id": 44409808330,
+      "source": "f5c1226e9150bab6e27e3e7bd38333219370ed82",
+      "conclusion": "cancelled",
+      "finding": "Code audit found private editor deleteNow passed general scope, which intentionally skips private rows. Authorized editor now supplies fresh private parent; NoteActions rechecks membership/credentials in its transaction. Added actual Room/VM regression for successful private trash, blocked general trash and denied locked editor. No current-run pass claimed."
+    },
+    {
+      "run_id": 44411996611,
+      "source": "4b072d87c4339b25951ea1f138f4e00788b0cd70",
+      "conclusion": "failure",
+      "tests": 846,
+      "failures": 3,
+      "artifact_id": 14478743878,
+      "zip_sha256": "bb62b58e4c32fc0409ae11e06f924548aa529eaaf07a68d92b104cb333feadd4",
+      "findings": [
+        "Migration data/ACL assertions passed but final public dated row visibility was asserted before asynchronous rendering/scroll completed. Wait for displayed row under same15s cap added; privacy assertions retained.",
+        "Setup mismatch feedback now visible, but second coordinate click did not reach successful setup; targeted repro adds screenshot/state/tree and enabled assertion to diagnose snackbar/keyboard overlap.",
+        "Boot ordinary-reminder positive control failed; application logic unchanged from55. Add alarm/page/recovery diagnostics; do not silently rerun as proof or weaken it."
+      ],
+      "private_persistence": {
+        "tests": 17,
+        "failures": 0
+      },
+      "full_ci_verified": false
+    },
+    {
+      "run_id": 45027939748,
+      "attempt": 3,
+      "source": "b5a9c3b03b73402d6b1cb9c4f6e1cb87a7f21c90",
+      "result": "31/1failed",
+      "finding": "Native activity test attempted input before asynchronous editor loaded; now waits for enabled populated field under same15s cap. Followup31/0/0 independently verified."
+    }
+  ],
+  "ci": {
+    "artifact_id": 14907837381,
+    "archive_sha256": "fe10c511b7dbaff34827a2b18a3f53b6ad8c439fd7c54adf7c32459faded0233",
+    "archive_bytes": 938415,
+    "workflow_run": {
+      "id": 45365380761,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/private-diary-1.10.56",
+      "head_sha": "a96e73cd8bb78c724bb99ae1eabe675756b65c9b"
+    },
+    "tests": 846,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 17,
+      "Information": 2
+    },
+    "screenshots": {
+      "diary-preview/password-320.png": "7def7b2781785a7416cd970c0e7264f33bd0a722653752f0fc64331e0fbc80bc",
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "d77d043b9deaf6c2a951bb1051ec0df5297aa2c50134907f047821ce863151e6",
+      "navigation-preview/completed.png": "d06ddbd32a147accfe450096b206417287bb9d4f8f3c81fdfca04deebd93b52b",
+      "navigation-preview/drawer.png": "d875d49e796e7e58d6613c7503e50d99c07428443ed177531bb0aee83344cc56",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "a40658383f6d9c64be054f90fa61ff0d93986f920ef2b42bc7b39be671a6243a",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "settings-preview/qwen-settings-320.png": "f58d167c0cc2896faf24c6a5c6fa4aba62a595f95be605ae87245744672533a1",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    },
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 138345643211,
+        "name": "verify",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 9
+          },
+          {
+            "name": "Tests, lint and compilation",
+            "conclusion": "success",
+            "seconds": 1228
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Prepare cloud debug APK (not an installed-app update)",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signed_release": {
+    "run_id": 45368846190,
+    "event": "workflow_dispatch",
+    "jobs": [
+      {
+        "id": 138357548125,
+        "name": "identity",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Check whether the permanent identity is configured",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      },
+      {
+        "id": 138357608814,
+        "name": "release",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Require existing signing Secrets and pinned certificate",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 10
+          },
+          {
+            "name": "Build and lint release",
+            "conclusion": "success",
+            "seconds": 456
+          },
+          {
+            "name": "Verify signing guards with disposable test keys",
+            "conclusion": "success",
+            "seconds": 9
+          },
+          {
+            "name": "Sign with the existing permanent key and verify its identity",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 24
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ],
+    "ci_metadata_output": {
+      "version": "1.10.56",
+      "code": 79,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb"
+    }
+  },
+  "room_schema_changed": true,
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "real_paid_api_requests_made": false,
+  "main": {
+    "fast_forward_from": "5f9c23de01c53b8e3e004e8fcf5666ae4abe4452",
+    "fast_forward_to": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3",
+    "method": "Git refs REST API, force=false"
+  }
+}

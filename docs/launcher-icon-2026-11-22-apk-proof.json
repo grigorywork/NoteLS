@@ -1,0 +1,16 @@
+{
+  "apk_sha256": "98809015a49299181564613b0d657cffa7cb6aacfd560951b7b84260a25f32eb",
+  "source_png_sha256": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "matches": [
+    {
+      "apk_path": "res/fJ.png",
+      "png_sha256": "f52694ee6e64f5e05acd7e0e838dc456e8572a170cd7b60e0847f800bdf8117a",
+      "pixels_identical": true
+    }
+  ],
+  "original_pixels_preserved_in_actual_signed_apk": true
+}

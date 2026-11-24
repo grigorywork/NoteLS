@@ -1,6 +1,6 @@
 {
   "observed_at": "2026-11-18T23:07:03.002058+00:00",
-  "status": "blocked_github_actions_billing",
+  "status": "resolved_release_verified",
   "last_verified_release": {
     "version": "1.10.55",
     "code": 78,
@@ -13,9 +13,9 @@
     "code": 79,
     "room": 19,
     "schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
-    "full_ci_verified": false,
-    "signed_apk_exists": false,
-    "source": "74bb2767c10793a1e0525ac4c87668a8d52b2752",
+    "full_ci_verified": true,
+    "signed_apk_exists": true,
+    "source": "57b079cfae5541fd373c5b0d2f325f7177dd3ca3",
     "feature_docs_merge": "0e6f2c94ce08d7c7433f742e91fec3804cf51215"
   },
   "last_full_ci": {
@@ -109,5 +109,14 @@
     "tests_ran": false,
     "reason": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the Billing & plans section in your settings"
   },
-  "awaiting_user_billing_status": true
+  "awaiting_user_billing_status": true,
+  "resolution": {
+    "public_repository": true,
+    "full_ci_run": 45365380761,
+    "tests": 846,
+    "failures": 0,
+    "signed_run": 45368846190,
+    "release_gc_run": 45370201833,
+    "new_apk_verified": true
+  }
 }
