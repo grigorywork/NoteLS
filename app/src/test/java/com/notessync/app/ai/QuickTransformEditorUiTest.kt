@@ -49,7 +49,7 @@ import java.time.Duration
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class QuickTransformEditorUiTest {
     @get:Rule val compose = createComposeRule()
-    private val app get() = RuntimeEnvironment.getApplication<Application>()
+    private val app get() = RuntimeEnvironment.getApplication()
     private val settings get() = SettingsRepository.get(app)
     private val store = ViewModelStore()
     private lateinit var view: View

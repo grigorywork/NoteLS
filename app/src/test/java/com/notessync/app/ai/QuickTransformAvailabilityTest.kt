@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28, 35], application = Application::class, manifest = Config.NONE)
 class QuickTransformAvailabilityTest {
     @Test fun `platform low RAM and missing network capability hide only the shortcut`() {
-        val app = RuntimeEnvironment.getApplication<Application>()
+        val app = RuntimeEnvironment.getApplication()
         val manager = shadowOf(app.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
         shadowOf(app).grantPermissions(Manifest.permission.INTERNET)
         manager.setIsLowRamDevice(false)
