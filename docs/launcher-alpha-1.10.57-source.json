@@ -9,6 +9,6 @@
   "app_background_transparent": true,
   "artwork_has_not_been_stretched_out_of_aspect": true,
   "physical_phone_tested": false,
-  "build_verified": false,
+  "build_verified": true,
   "image_method": "Background removal and alpha cleanup with image-edit tool; supplied calendar/checkmark composition retained."
 }

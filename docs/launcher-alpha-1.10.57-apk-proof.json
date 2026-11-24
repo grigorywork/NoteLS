@@ -1,0 +1,34 @@
+{
+  "version": "1.10.57",
+  "code": 80,
+  "apk_sha256": "5dca954b0ed13040498ec74e6edf8e098f4e3c1d642a040559ec90b24ec088b1",
+  "source": "130398080ed7f9d29a2e2071e539d3b90cf2512f",
+  "edited_source_png_sha256": "b8a9c7467325966f1eb9e28145de73abb6359ee491f47ae59c4296144b34b067",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "alpha_range": [
+    0,
+    255
+  ],
+  "corner_alpha": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "matches": [
+    {
+      "apk_path": "res/fJ.png",
+      "png_sha256": "80291ddfe672ced973fe85241aa80f3b84818e7ecb62746551afbab6de19f543",
+      "visible_pixels_and_alpha_identical_to_edited_asset": true,
+      "fully_transparent_rgb_differences": 999
+    }
+  ],
+  "actual_launcher_xml": {
+    "res/BW.xml": "N: android=http://schemas.android.com/apk/res/android (line=2)\n  E: bitmap (line=2)\n    A: http://schemas.android.com/apk/res/android:gravity(0x010100af)=0x00000077\n    A: http://schemas.android.com/apk/res/android:src(0x01010119)=@0x7f0800a7\n    A: http://schemas.android.com/apk/res/android:filter(0x0101011b)=true\n"
+  },
+  "bitmap_no_app_defined_inset_or_adaptive_background": true,
+  "physical_phone_tested": false
+}

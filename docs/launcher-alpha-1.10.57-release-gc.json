@@ -1,0 +1,49 @@
+{
+  "run_id": 45412262804,
+  "source": "130398080ed7f9d29a2e2071e539d3b90cf2512f",
+  "artifact_id": 14930001062,
+  "zip_sha256": "4bd2356a189edb99fc83bab0803d505cb78fee3094bb1f1a350f2947148ddf55",
+  "zip_bytes": 511384,
+  "input": {
+    "signed_run_id": "45410565412",
+    "source": "130398080ed7f9d29a2e2071e539d3b90cf2512f",
+    "apk_sha256": "5dca954b0ed13040498ec74e6edf8e098f4e3c1d642a040559ec90b24ec088b1",
+    "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+    "non_debuggable": true
+  },
+  "result": {
+    "status": "success",
+    "mode": "require-live",
+    "apk_sha256": "5dca954b0ed13040498ec74e6edf8e098f4e3c1d642a040559ec90b24ec088b1",
+    "minified_installed_apk": true,
+    "art_gc_confirmed": true,
+    "physical_phone": false,
+    "fresh_hierarchy_required": true,
+    "hierarchy_retries": 0,
+    "events": [
+      {
+        "label": "Светлая",
+        "key": "theme_mode",
+        "persisted": "LIGHT",
+        "ui_selected": true,
+        "ui_wait_ms": 1122
+      },
+      {
+        "label": "Крупный",
+        "key": "font_scale",
+        "persisted": "1.15",
+        "ui_selected": true,
+        "ui_wait_ms": 1129
+      },
+      {
+        "label": "Оранжевый",
+        "key": "accent_color",
+        "persisted": "ORANGE",
+        "ui_selected": true,
+        "ui_wait_ms": 1132
+      }
+    ]
+  },
+  "actual_android_emulator": true,
+  "physical_phone": false
+}

@@ -1,3 +1,16 @@
+## 84a закрыт — проверенный NoteLS1.10.57/code80
+
+Этап84a закрыт: NoteLS1.10.57/code80, Room19/data2/security3. Source `130398080ed7f9d29a2e2071e539d3b90cf2512f`. Полный CI[45380528166](https://github.com/grigorywork/NoteLS/actions/runs/45380528166) =**846 тестов/0 отказов/0 пропусков**, lint0errors/19warnings/2info. Signed[45410565412](https://github.com/grigorywork/NoteLS/actions/runs/45410565412) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.
+
+- Убран внешний чёрный фон картинки и чёрная подложка ярлыка.
+- Удалён22%отступ; прозрачныйPNG подключён напрямую для обычного и круглого ярлыка, включаяAndroid8+. Календарь занимаетпочтивсюплощадь безискаженияпропорций.
+
+Следующие85–87 остаются в очереди; быстрыйИИпереключатель, отдельныйярлыкпланировщика и аналитика. Четыре моделиTOTAL сохраняются. Новые1hаудита→1hоптимизации ещёне начаты; прежнее52окнонеповторять.
+
+[Отчёт](launcher-alpha-1.10.57.md), [доказательства](launcher-alpha-1.10.57-verification.json).
+
+APK: https://github.com/grigorywork/NoteLS/actions/runs/45410565412/artifacts/14929031436
+
 ## 84 закрыт — проверенный NoteLS1.10.56/code79
 
 Этап84 закрыт: NoteLS1.10.56/code79, Room19/data2/security3. Source `57b079cfae5541fd373c5b0d2f325f7177dd3ca3`. Полный CI[45365380761](https://github.com/grigorywork/NoteLS/actions/runs/45365380761) =**846 тестов/0 отказов/0 пропусков**, lint0errors/17warnings/2info. Signed[45368846190](https://github.com/grigorywork/NoteLS/actions/runs/45368846190) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.
