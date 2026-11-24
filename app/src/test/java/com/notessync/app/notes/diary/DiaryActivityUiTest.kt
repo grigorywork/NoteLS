@@ -94,7 +94,7 @@ class DiaryActivityUiTest {
         assertFalse(ProtectionSession.isUnlocked(diary)); compose.onNodeWithText(privateNote.title).assertDoesNotExist()
         enter("fixture-diary-pass"); await { exists(hasTestTag("diary-row-${privateNote.id}")) }
         compose.onNodeWithTag("diary-row-${privateNote.id}").performClick()
-        await { exists(hasTestTag("editor-body")) }
+        await { exists(hasTestTag("editor-body") and isEnabled() and hasText(privateNote.content) and hasSetTextAction()) }
         compose.onNodeWithTag("editor-body").performTextInputSelection(androidx.compose.ui.text.TextRange(privateNote.content.length))
         compose.onNodeWithTag("editor-body").performTextInput(" live")
         compose.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
