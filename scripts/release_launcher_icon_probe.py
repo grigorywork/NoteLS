@@ -39,7 +39,10 @@ def main():
         before_pid = ui.adb('shell', 'pidof', '-s', PACKAGE).strip()
         ui.tap('Значок: '+label, scroll=True)
         component = wait_launcher(alias)
-        assert ui.selected('Значок: '+label)
+        started_ui = time.monotonic()
+        while not ui.selected('Значок: '+label):
+            assert time.monotonic()-started_ui < 10, 'Selected icon was not published in live UI'
+            time.sleep(.2)
         assert ui.adb('shell', 'pidof', '-s', PACKAGE).strip() == before_pid, 'Icon switch killed app process'
         ui.snapshot('launcher-'+alias+'-selected')
         ui.adb('shell', 'am', 'force-stop', PACKAGE)

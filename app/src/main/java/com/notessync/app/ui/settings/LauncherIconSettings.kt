@@ -56,6 +56,7 @@ internal fun LauncherIconSettings() {
                 Row(Modifier.fillMaxWidth().heightIn(min = 80.dp).testTag("launcher-icon-${icon.name.lowercase()}")
                     .semantics { contentDescription = description }
                     .selectable(selected == icon, enabled = !busy, role = Role.RadioButton, onClick = {
+                        if (busy) return@selectable
                         busy = true; failed = false
                         scope.launch {
                             try { selected = withContext(Dispatchers.IO) { icons.select(icon) } }
