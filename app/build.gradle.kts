@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 82
-        versionName = "1.10.59"
+        versionCode = 83
+        versionName = "1.10.60"
         resourceConfigurations += listOf("ru", "en")
     }
 
@@ -84,6 +84,8 @@ kotlin {
 // Native Robolectric/Compose share process clocks; isolate classes without skipping assertions.
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
     forkEvery = 1L
+    // The equivalent official Central endpoint avoids the repo1 HTTP429 seen in stage85 CI.
+    systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
 }
 
 // Р­РєСЃРїРѕСЂС‚ СЃС…РµРјС‹ Room РІ app/schemas вЂ” РїРѕР·РІРѕР»СЏРµС‚ РѕС‚СЃР»РµР¶РёРІР°С‚СЊ РјРёРіСЂР°С†РёРё Р‘Р” РІ git.

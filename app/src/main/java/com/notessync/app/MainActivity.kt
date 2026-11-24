@@ -19,20 +19,27 @@ import com.notessync.app.ui.theme.NoteSyncTheme
 
 class MainActivity : FragmentActivity() {
     private val widgetRequests = MutableStateFlow<WidgetNoteRequest?>(null)
+    private val plannerRequests = MutableStateFlow<Long?>(null)
     private var widgetSequence = 0L
+    private fun readRequests(intent: Intent) {
+        val sequence = ++widgetSequence
+        widgetRequests.value = WidgetNoteLinks.read(intent, sequence)
+        plannerRequests.value = sequence.takeIf { com.notessync.app.launcher.PlannerShortcutLinks.matches(intent) }
+    }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        widgetRequests.value = WidgetNoteLinks.read(intent, ++widgetSequence)
+        readRequests(intent)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) widgetRequests.value = WidgetNoteLinks.read(intent, ++widgetSequence)
+        if (savedInstanceState == null) readRequests(intent)
         val settings = SettingsRepository.get(this)
         setContent {
             val state by settings.state.collectAsStateWithLifecycle()
             val widgetRequest by widgetRequests.collectAsState()
+            val plannerRequest by plannerRequests.collectAsState()
             NoteSyncTheme(
                 darkTheme = when (state.themeMode) {
                     ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -45,9 +52,11 @@ class MainActivity : FragmentActivity() {
                 glassAppearance = state.glassAppearance,
                 interfaceStyle = state.interfaceStyle
             ) {
-                AppNavHost(widgetRequest) { handled ->
+                AppNavHost(widgetRequest, onWidgetHandled = { handled ->
                     if (widgetRequests.value?.sequence == handled) widgetRequests.value = null
-                }
+                }, plannerRequest = plannerRequest, onPlannerHandled = { handled ->
+                    if (plannerRequests.value == handled) plannerRequests.value = null
+                })
             }
         }
     }

@@ -1,6 +1,14 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addSettingsEnglish() {
+    put("Планировщик", "Planner")
+    put("Открыть календарь", "Open calendar")
+    put("Ярлык планировщика", "Planner shortcut")
+    put("Открывает календарь одним нажатием.", "Open the calendar with one tap.")
+    put("Добавить на главный экран", "Add to home screen")
+    put("Лаунчер не поддерживает добавление ярлыка из приложения.", "Your launcher does not support adding a shortcut from the app.")
+    put("Запрос на добавление ярлыка отправлен.", "The shortcut request was sent to your launcher.")
+    put("Не удалось запросить ярлык. Попробуй ещё раз.", "Could not request the shortcut. Try again.")
     put("Быстрая кнопка в редакторе", "Quick button in the editor")
     put("Быстрая кнопка скрыта: устройство с малым объёмом памяти. Преобразование доступно в меню вставки.", "The quick button is hidden on this low-memory device. Text transformation is available in the insert menu.")
     put("Быстрая кнопка недоступна на этом устройстве. Преобразование доступно в меню вставки.", "The quick button is unavailable on this device. Text transformation is available in the insert menu.")

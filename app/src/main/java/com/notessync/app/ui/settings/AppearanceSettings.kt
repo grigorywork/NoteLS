@@ -179,6 +179,7 @@ internal fun AppearanceSettings(state: SettingsState, settings: SettingsReposito
     }
 
     LauncherIconSettings()
+    PlannerShortcutSettings()
 
     SettingsCard(Modifier.fillMaxWidth()) {
         SettingsToggle(uiText("Флажки приоритета"), state.showTaskPriorities, settings::setShowTaskPriorities)

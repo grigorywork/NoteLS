@@ -48,7 +48,8 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long) -> Unit = {}) {
+fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long) -> Unit = {},
+    plannerRequest: Long? = null, onPlannerHandled: (Long) -> Unit = {}) {
     val navController = rememberNavController()
     // Синхронизация — процессная сессия: ViewModel живёт в Activity,
     // чтобы сканер и экран синхронизации видели один и тот же экземпляр.
@@ -72,6 +73,28 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                     }
                 }
             } finally { onWidgetHandled(widgetRequest.sequence) }
+        }
+    }
+    LaunchedEffect(plannerRequest) {
+        if (plannerRequest != null) {
+            try {
+                val entry = navController.currentBackStackEntry
+                // A warm shortcut must not abandon an editor's pending text or attachments.
+                val saved = if (entry != null && entry.destination.route == Routes.EDITOR) {
+                    androidx.lifecycle.ViewModelProvider(entry)[com.notessync.app.ui.notes.NoteEditorViewModel::class.java]
+                        .saveNow(force = true)
+                } else true
+                if (saved) suspendCancellableCoroutine<Unit> { continuation ->
+                    activity.runOnUiThread {
+                        if (continuation.isActive) {
+                            try {
+                                if (!activity.isDestroyed) navController.navigate(Routes.CALENDAR) { launchSingleTop = true }
+                                continuation.resume(Unit)
+                            } catch (error: Exception) { continuation.resumeWithException(error) }
+                        }
+                    }
+                }
+            } finally { onPlannerHandled(plannerRequest) }
         }
     }
 
