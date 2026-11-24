@@ -15,6 +15,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.UiLanguage
 import com.notessync.app.settings.SettingsRepository
@@ -50,11 +52,20 @@ class LauncherIconUiTest {
         compose.waitUntil(15_000) { compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty() }
     }
     private fun choice(icon: LauncherIcon) = compose.onNodeWithTag("launcher-icon-${icon.name.lowercase()}")
+    private fun awaitSelected(icon: LauncherIcon) {
+        // Two direct actions run before recomposition: absence of a busy node can still
+        // describe the OLD frame. Wait for the positive result, then assert platform state.
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithTag("launcher-icon-${icon.name.lowercase()}").fetchSemanticsNodes()
+                .singleOrNull()?.config?.getOrNull(SemanticsProperties.Selected) == true &&
+                compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty()
+        }
+    }
     @Test fun `three previews select actual launcher and show selected state on narrow screen`() {
         content()
         for (target in listOf(LauncherIcon.PAPER, LauncherIcon.FROSTED, LauncherIcon.GLASS)) {
             choice(target).performScrollTo().assertIsDisplayed().performClick()
-            compose.waitUntil(15_000) { compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty() }
+            awaitSelected(target)
             choice(target).assertIsSelected()
             assertEquals(target, LauncherIcons(app).current())
         }
@@ -65,12 +76,12 @@ class LauncherIconUiTest {
         val paper = choice(LauncherIcon.PAPER).fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
         val frosted = choice(LauncherIcon.FROSTED).fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
         compose.runOnIdle { paper(); frosted() }
-        compose.waitUntil(15_000) { compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty() }
+        awaitSelected(LauncherIcon.PAPER)
         choice(LauncherIcon.PAPER).assertIsSelected()
         choice(LauncherIcon.FROSTED).assertIsNotSelected()
         assertEquals(LauncherIcon.PAPER, LauncherIcons(app).current())
         restoration.emulateSavedInstanceStateRestore()
-        compose.waitUntil(15_000) { compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty() }
+        awaitSelected(LauncherIcon.PAPER)
         choice(LauncherIcon.PAPER).assertIsSelected()
         assertEquals(LauncherIcon.PAPER, LauncherIcons(app).current())
         screenshot("launcher-icons-paper-restored-320")
