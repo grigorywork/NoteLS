@@ -2,6 +2,7 @@ package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addSettingsEnglish() {
     put("Значок приложения", "App icon")
+    put("Матовый", "Frosted")
     put("Значок: ", "Icon: ")
     put("Розовое стекло", "Pink glass")
     put("Лист с галочкой", "Folded note")

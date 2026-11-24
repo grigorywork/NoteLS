@@ -32,7 +32,7 @@ def main():
     assert ui.adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1'
     ui.adb('root'); ui.adb('wait-for-device'); ui.adb('install', '-r', args.apk)
     events = []
-    for alias, label in [('GlassIcon', 'Розовое стекло'), ('FrostedIcon', 'Матовое стекло'), ('PaperIcon', 'Лист с галочкой')]:
+    for alias, label in [('GlassIcon', 'Розовое стекло'), ('FrostedIcon', 'Матовый'), ('PaperIcon', 'Лист с галочкой')]:
         ui.adb('shell', 'am', 'force-stop', PACKAGE)
         # Explicit MainActivity remains valid for old home-screen, reminder and widget intents.
         ui.open_settings()

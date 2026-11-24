@@ -9,7 +9,7 @@ import com.notessync.app.R
 /** Stable manifest names: keep these aliases across future updates. */
 enum class LauncherIcon(val alias: String, val title: String, val artwork: Int) {
     GLASS("GlassIcon", "Розовое стекло", R.drawable.launcher_glass),
-    FROSTED("FrostedIcon", "Матовое стекло", R.drawable.launcher_frosted),
+    FROSTED("FrostedIcon", "Матовый", R.drawable.launcher_frosted),
     PAPER("PaperIcon", "Лист с галочкой", R.drawable.launcher_paper)
 }
 
@@ -47,14 +47,22 @@ internal class AndroidLauncherComponents(context: Context) : LauncherComponents 
 class LauncherIcons internal constructor(private val components: LauncherComponents) {
     constructor(context: Context) : this(AndroidLauncherComponents(context.applicationContext))
 
-    @Synchronized fun current(): LauncherIcon {
+    companion object {
+        // A recreated settings screen owns a new controller. Serialize across instances
+        // so legacy target-first switches cannot interleave during configuration changes.
+        private val switchLock = Any()
+    }
+    fun current(): LauncherIcon = synchronized(switchLock) { currentLocked() }
+    fun select(target: LauncherIcon): LauncherIcon = synchronized(switchLock) { selectLocked(target) }
+
+    private fun currentLocked(): LauncherIcon {
         val enabled = LauncherIcon.entries.filter(components::enabled)
         if (enabled.size == 1) return enabled.single()
         // Repair interrupted legacy switches, preserving a launch entry before removing extras.
         return select(enabled.firstOrNull() ?: LauncherIcon.GLASS)
     }
 
-    @Synchronized fun select(target: LauncherIcon): LauncherIcon {
+    private fun selectLocked(target: LauncherIcon): LauncherIcon {
         val before = LauncherIcon.entries.associateWith(components::enabled)
         if (before.count { it.value } == 1 && before[target] == true) return target
         try {

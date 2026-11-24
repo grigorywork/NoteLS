@@ -63,6 +63,39 @@ class LauncherIconsTest {
         assertEquals(LauncherIcon.PAPER, LauncherIcons(platform).select(LauncherIcon.PAPER))
         assertEquals(1, calls)
     }
+    @Test fun `controllers from recreated screens cannot interleave legacy switches`() {
+        val firstEntered = java.util.concurrent.CountDownLatch(1)
+        val releaseFirst = java.util.concurrent.CountDownLatch(1)
+        val secondStarted = java.util.concurrent.CountDownLatch(1)
+        val secondBackendEntry = java.util.concurrent.CountDownLatch(1)
+        val errors = java.util.concurrent.ConcurrentLinkedQueue<Throwable>()
+        val active = linkedSetOf(LauncherIcon.GLASS)
+        val platform = object : LauncherComponents {
+            override fun enabled(icon: LauncherIcon): Boolean {
+                if (Thread.currentThread().name == "second-icon-controller") secondBackendEntry.countDown()
+                return icon in active
+            }
+            override fun set(icon: LauncherIcon, enabled: Boolean) {
+                if (Thread.currentThread().name == "first-icon-controller" && icon == LauncherIcon.PAPER && enabled) {
+                    firstEntered.countDown()
+                    check(releaseFirst.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                }
+                if (enabled) active.add(icon) else active.remove(icon)
+                check(active.isNotEmpty())
+            }
+        }
+        val first = Thread({ try { LauncherIcons(platform).select(LauncherIcon.PAPER) } catch (e: Throwable) { errors.add(e) } }, "first-icon-controller")
+        val second = Thread({ secondStarted.countDown(); try { LauncherIcons(platform).select(LauncherIcon.FROSTED) } catch (e: Throwable) { errors.add(e) } }, "second-icon-controller")
+        first.start()
+        try {
+            assertTrue(firstEntered.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            second.start(); assertTrue(secondStarted.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            assertFalse("Second screen must wait for the first switch", secondBackendEntry.await(150, java.util.concurrent.TimeUnit.MILLISECONDS))
+        } finally { releaseFirst.countDown(); first.join(5_000); second.join(5_000) }
+        assertFalse(first.isAlive); assertFalse(second.isAlive)
+        assertTrue(errors.toString(), errors.isEmpty())
+        assertEquals(setOf(LauncherIcon.FROSTED), active)
+    }
     @Test fun `real manifest aliases switch while main activity and explicit widget intents stay enabled`() {
         verifyManifestSwitch()
     }

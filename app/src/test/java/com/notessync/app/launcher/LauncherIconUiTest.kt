@@ -59,7 +59,7 @@ class LauncherIconUiTest {
     @Test fun `English large text labels and choices stay reachable`() {
         content(english = true)
         compose.onNodeWithText("App icon").assertIsDisplayed()
-        for (label in listOf("Pink glass", "Frosted glass", "Folded note")) compose.onNodeWithText(label).performScrollTo().assertIsDisplayed()
+        for (label in listOf("Pink glass", "Frosted", "Folded note")) compose.onNodeWithText(label).performScrollTo().assertIsDisplayed()
         screenshot("launcher-icons-en-large-320")
     }
     private fun screenshot(name: String) {
@@ -67,7 +67,7 @@ class LauncherIconUiTest {
         compose.runOnIdle {
             val bitmap = Bitmap.createBitmap(box.width.toInt(), box.height.toInt(), Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap); canvas.translate(-box.left, -box.top); view.draw(canvas)
-            File("build/reports/settings-preview/$name.png").apply { parentFile.mkdirs() }.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            File("build/reports/settings-preview/$name.png").apply { parentFile?.mkdirs() }.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             bitmap.recycle()
         }
     }
