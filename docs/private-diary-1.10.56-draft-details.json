@@ -126,7 +126,16 @@
         "defaultValue": "0"
       },
       "old_schema_sha256": "f6f988c94c5342796142e29df703f6d6e27bd0fc664a76b8ac8939dd006c1973",
-      "full_ci_verified": false
+      "full_ci_verified": true,
+      "final_verification": {
+        "run_id": 45365380761,
+        "source": "a96e73cd8bb78c724bb99ae1eabe675756b65c9b",
+        "artifact_id": 14907194385,
+        "zip_sha256": "963eb3be8daf7a6ba4f488f46a9332696ef5c80200040ea6427d68e13f9bda61",
+        "zip_bytes": 30728,
+        "schema19_raw_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+        "raw_schema_equals_committed": true
+      }
     },
     "physical_device_tests": false,
     "targeted31": {
