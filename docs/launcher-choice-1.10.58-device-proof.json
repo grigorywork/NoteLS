@@ -1,0 +1,199 @@
+{
+  "run_id": 45440070703,
+  "artifact_id": 14942809004,
+  "zip_sha256": "ca7cc5877cc54071bc13d8d70f09c3dc5f05a187a36755204ce4b4cce96b5dce",
+  "input": {
+    "signed_run_id": "45436555530",
+    "source": "b1f4b1f8be850c5d63349cc63618b4a478cf3eff",
+    "apk_sha256": "cbe771c3331660ebe8fc14a092825040155d471a8b451cef28f29370a1546479",
+    "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+    "non_debuggable": true
+  },
+  "api28_and_api35": {
+    "28": {
+      "status": "success",
+      "apk_sha256": "cbe771c3331660ebe8fc14a092825040155d471a8b451cef28f29370a1546479",
+      "minified_installed_apk": true,
+      "actual_android_emulator": true,
+      "physical_phone": false,
+      "events": [
+        {
+          "tap_proof": {
+            "label": "Розовое стекло",
+            "row_bounds": [
+              84,
+              1415,
+              996,
+              1625
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1794
+            ],
+            "tap": [
+              540,
+              1520
+            ]
+          },
+          "alias": "GlassIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        },
+        {
+          "tap_proof": {
+            "label": "Матовый",
+            "row_bounds": [
+              84,
+              510,
+              996,
+              720
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1794
+            ],
+            "tap": [
+              540,
+              615
+            ]
+          },
+          "alias": "FrostedIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        },
+        {
+          "tap_proof": {
+            "label": "Лист с галочкой",
+            "row_bounds": [
+              84,
+              694,
+              996,
+              904
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1794
+            ],
+            "tap": [
+              540,
+              799
+            ]
+          },
+          "alias": "PaperIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        }
+      ],
+      "same_apk_update_preserves_choice": true,
+      "main_activity_always_enabled": true
+    },
+    "35": {
+      "status": "success",
+      "apk_sha256": "cbe771c3331660ebe8fc14a092825040155d471a8b451cef28f29370a1546479",
+      "minified_installed_apk": true,
+      "actual_android_emulator": true,
+      "physical_phone": false,
+      "events": [
+        {
+          "tap_proof": {
+            "label": "Розовое стекло",
+            "row_bounds": [
+              84,
+              1125,
+              996,
+              1335
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1857
+            ],
+            "tap": [
+              540,
+              1230
+            ]
+          },
+          "alias": "GlassIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        },
+        {
+          "tap_proof": {
+            "label": "Матовый",
+            "row_bounds": [
+              84,
+              1565,
+              996,
+              1775
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1857
+            ],
+            "tap": [
+              540,
+              1670
+            ]
+          },
+          "alias": "FrostedIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        },
+        {
+          "tap_proof": {
+            "label": "Лист с галочкой",
+            "row_bounds": [
+              84,
+              1072,
+              996,
+              1282
+            ],
+            "viewport_bounds": [
+              0,
+              231,
+              1080,
+              1857
+            ],
+            "tap": [
+              540,
+              1177
+            ]
+          },
+          "alias": "PaperIcon",
+          "selected": true,
+          "launcher_count": 1,
+          "process_survived_switch": true,
+          "relaunch_selected_component": true,
+          "persisted_after_process_restart": true
+        }
+      ],
+      "same_apk_update_preserves_choice": true,
+      "main_activity_always_enabled": true
+    }
+  },
+  "physical_phone_tested": false
+}

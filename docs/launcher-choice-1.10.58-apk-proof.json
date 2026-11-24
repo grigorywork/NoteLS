@@ -1,0 +1,69 @@
+{
+  "source": "b1f4b1f8be850c5d63349cc63618b4a478cf3eff",
+  "version": "1.10.58",
+  "code": 81,
+  "apk_sha256": "cbe771c3331660ebe8fc14a092825040155d471a8b451cef28f29370a1546479",
+  "artwork": {
+    "glass": {
+      "source_png_sha256": "6bae7aa5ded4f0a42aff42b4e2d6cc55f4ab5dcd270c11381d6e7ebb579d6746",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ],
+      "actual_apk_matches": [
+        {
+          "apk_path": "res/Oy.png",
+          "sha256": "3ce0397e5e9b258228bebba5a011ad79df95ca851e9c5d35c5d073d20ed72959",
+          "pixels_identical": true
+        }
+      ]
+    },
+    "frosted": {
+      "source_png_sha256": "e0d01843283c453f6b7a1c81f6c7c227ebccc8f65a58bc529e74291981820987",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ],
+      "actual_apk_matches": [
+        {
+          "apk_path": "res/bS.png",
+          "sha256": "40127b131ac61e73ba12f3ad7580556e4072305c3dbdabe2c3df4439de8c52fd",
+          "pixels_identical": true
+        }
+      ]
+    },
+    "paper": {
+      "source_png_sha256": "9e185ad882eb0cedaaae2ed1fd542dc6ae4362109523fa6b8ac122c6c04061f6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_range": [
+        255,
+        255
+      ],
+      "actual_apk_matches": [
+        {
+          "apk_path": "res/7r.png",
+          "sha256": "59ab672aa110b0d7f582e97fdff6670141c471e3ef59ec65fb779ea091e63367",
+          "pixels_identical": true
+        }
+      ]
+    }
+  },
+  "actual_manifest_aliases": {
+    "GlassIcon": "E: activity-alias (line=86)\n            A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f11001c\n            A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f0f0003\n            A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"com.notessync.app.launcher.GlassIcon\" (Raw: \"com.notessync.app.launcher.GlassIcon\")\n            A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true\n            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true\n            A: http://schemas.android.com/apk/res/android:targetActivity(0x01010202)=\"com.notessync.app.MainActivity\" (Raw: \"com.notessync.app.MainActivity\")\n              E: intent-filter (line=93)\n                  E: action (line=94)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.action.MAIN\" (Raw: \"android.intent.action.MAIN\")\n                  E: category (line=96)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.category.LAUNCHER\" (Raw: \"android.intent.category.LAUNCHER\")",
+    "FrostedIcon": "E: activity-alias (line=73)\n            A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f11001c\n            A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f0f0002\n            A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"com.notessync.app.launcher.FrostedIcon\" (Raw: \"com.notessync.app.launcher.FrostedIcon\")\n            A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=false\n            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true\n            A: http://schemas.android.com/apk/res/android:targetActivity(0x01010202)=\"com.notessync.app.MainActivity\" (Raw: \"com.notessync.app.MainActivity\")\n              E: intent-filter (line=80)\n                  E: action (line=81)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.action.MAIN\" (Raw: \"android.intent.action.MAIN\")\n                  E: category (line=83)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.category.LAUNCHER\" (Raw: \"android.intent.category.LAUNCHER\")",
+    "PaperIcon": "E: activity-alias (line=60)\n            A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f11001c\n            A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f0f0004\n            A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"com.notessync.app.launcher.PaperIcon\" (Raw: \"com.notessync.app.launcher.PaperIcon\")\n            A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=false\n            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true\n            A: http://schemas.android.com/apk/res/android:targetActivity(0x01010202)=\"com.notessync.app.MainActivity\" (Raw: \"com.notessync.app.MainActivity\")\n              E: intent-filter (line=67)\n                  E: action (line=68)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.action.MAIN\" (Raw: \"android.intent.action.MAIN\")\n                  E: category (line=70)\n                    A: http://schemas.android.com/apk/res/android:name(0x01010003)=\"android.intent.category.LAUNCHER\" (Raw: \"android.intent.category.LAUNCHER\")"
+  },
+  "application_uses_adaptive_icon": true,
+  "physical_phone_tested": false
+}

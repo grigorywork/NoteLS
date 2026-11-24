@@ -1,3 +1,18 @@
+## 84b закрыт — проверенный NoteLS1.10.58/code81
+
+Этап84b закрыт: NoteLS1.10.58/code81, Room19/data2/security3. Source `b1f4b1f8be850c5d63349cc63618b4a478cf3eff`. Полный CI[45432362954](https://github.com/grigorywork/NoteLS/actions/runs/45432362954) =**857 тестов/0 отказов/0 пропусков**, lint0errors/27warnings/2info. Signed[45436555530](https://github.com/grigorywork/NoteLS/actions/runs/45436555530) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.
+
+- В настройках внешнего вида добавлены три превью ярлыка: «Розовое стекло» (1Б), «Матовый» (3), «Лист с галочкой».
+- Непрозрачные изображения занимают весь значок; Android применяет форму лаунчера.
+- Выбор сохраняется системой Android на этом устройстве. Главная activity остаётся включённой для прежних ярлыков, виджетов и напоминаний. На Android13+ переключение атомарное, на старых версиях новый ярлык включается до отключения остальных.
+- Уменьшенные превью декодируются вне UI-потока; выбор отключён на время переключения, ошибка показана в настройках.
+
+В очереди остаются этапы 85–87: быстрая кнопка ИИ, отдельный ярлык планировщика и аналитика. Следующая версия — 1.10.59/code82. Четыре модели сохраняются. Новое окно: один фактический час аудита, затем один час оптимизации — ещё не начато; прежнее окно 52 не повторять.
+
+[Отчёт](launcher-choice-1.10.58.md), [доказательства](launcher-choice-1.10.58-verification.json).
+
+APK: https://github.com/grigorywork/NoteLS/actions/runs/45436555530/artifacts/14942068483
+
 ## 84a закрыт — проверенный NoteLS1.10.57/code80
 
 Этап84a закрыт: NoteLS1.10.57/code80, Room19/data2/security3. Source `130398080ed7f9d29a2e2071e539d3b90cf2512f`. Полный CI[45380528166](https://github.com/grigorywork/NoteLS/actions/runs/45380528166) =**846 тестов/0 отказов/0 пропусков**, lint0errors/19warnings/2info. Signed[45410565412](https://github.com/grigorywork/NoteLS/actions/runs/45410565412) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.
