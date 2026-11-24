@@ -1,0 +1,14 @@
+{
+  "version": "1.10.57",
+  "code": 80,
+  "source_image_original": "d5f9b6ac6e77e702f2108b5242a73bd9f397957b484dd5a07f2f80e18520f1d1",
+  "new_image_sha256": "b8a9c7467325966f1eb9e28145de73abb6359ee491f47ae59c4296144b34b067",
+  "transparent_png": true,
+  "legacy_bitmap_launcher_all_supported_versions": true,
+  "adaptive_22_percent_inset_removed": true,
+  "app_background_transparent": true,
+  "artwork_has_not_been_stretched_out_of_aspect": true,
+  "physical_phone_tested": false,
+  "build_verified": false,
+  "image_method": "Background removal and alpha cleanup with image-edit tool; supplied calendar/checkmark composition retained."
+}
