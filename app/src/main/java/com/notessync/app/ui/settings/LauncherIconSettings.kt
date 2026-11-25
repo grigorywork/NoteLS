@@ -22,25 +22,18 @@ import androidx.compose.ui.unit.dp
 import com.notessync.app.i18n.uiText
 import com.notessync.app.launcher.LauncherIcon
 import com.notessync.app.launcher.LauncherIcons
+import com.notessync.app.launcher.LauncherIconSelection
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 internal fun LauncherIconSettings() {
     val context = LocalContext.current
     val icons = remember(context.applicationContext) { LauncherIcons(context) }
-    var selected by remember { mutableStateOf<LauncherIcon?>(null) }
-    var busy by remember { mutableStateOf(true) }
-    var failed by remember { mutableStateOf(false) }
-    var requestRevision by remember { mutableLongStateOf(0L) }
-    val publishedRevision = requestRevision
     val scope = rememberCoroutineScope()
-    LaunchedEffect(icons) {
-        try { selected = withContext(Dispatchers.IO) { icons.current() } }
-        catch (_: Exception) { failed = true }
-        finally { busy = false }
-    }
+    val selection = remember(icons, scope) { LauncherIconSelection(icons, scope) }
+    val choice by selection.state.collectAsState()
+    LaunchedEffect(selection) { selection.load() }
     SettingsCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp).selectableGroup()) {
             Text(uiText("Значок приложения"), style = MaterialTheme.typography.titleSmall)
@@ -58,28 +51,18 @@ internal fun LauncherIconSettings() {
                 }
                 Row(Modifier.fillMaxWidth().heightIn(min = 80.dp).testTag("launcher-icon-${icon.name.lowercase()}")
                     .semantics { contentDescription = description }
-                    .selectable(selected == icon, enabled = !busy, role = Role.RadioButton, onClick = {
-                        // IO may complete before the next frame. An old frame's second
-                        // callback must not become valid again just because busy cleared.
-                        if (busy || publishedRevision != requestRevision) return@selectable
-                        requestRevision++
-                        busy = true; failed = false
-                        scope.launch {
-                            try { selected = withContext(Dispatchers.IO) { icons.select(icon) } }
-                            catch (_: Exception) { failed = true }
-                            finally { busy = false }
-                        }
-                    }).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                    .selectable(choice.selected == icon, enabled = !choice.busy, role = Role.RadioButton,
+                        onClick = selection.action(icon, choice)).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(Modifier.size(64.dp).clip(RoundedCornerShape(14.dp))) {
                         preview?.let { Image(it, null, Modifier.fillMaxSize()) }
                     }
                     Text(uiText(icon.title), Modifier.weight(1f))
-                    RadioButton(selected == icon, onClick = null, enabled = !busy)
+                    RadioButton(choice.selected == icon, onClick = null, enabled = !choice.busy)
                 }
             }
-            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("launcher-icon-busy"))
-            if (failed) Text(uiText("Не удалось сменить значок. Попробуй ещё раз."),
+            if (choice.busy) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("launcher-icon-busy"))
+            if (choice.failed) Text(uiText("Не удалось сменить значок. Попробуй ещё раз."),
                 color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("launcher-icon-error"))
         }
     }

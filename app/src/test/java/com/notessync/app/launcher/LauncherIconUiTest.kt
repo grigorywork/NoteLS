@@ -92,7 +92,7 @@ class LauncherIconUiTest {
         for (label in listOf("Pink glass", "Frosted", "Folded note")) compose.onNodeWithText(label).performScrollTo().assertIsDisplayed()
         screenshot("launcher-icons-en-large-320")
     }
-    @Test fun `a callback retained from an older frame cannot replace the published choice`() {
+    @Test fun `retained accessibility actions use the newly published enabled choice`() {
         content()
         val oldFrosted = choice(LauncherIcon.FROSTED).fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
         choice(LauncherIcon.PAPER).performClick()
@@ -101,9 +101,9 @@ class LauncherIconUiTest {
         compose.runOnIdle { oldFrosted() }
         screenshot("launcher-icons-after-stale-callback")
         compose.waitUntil(15_000) { compose.onAllNodesWithTag("launcher-icon-busy").fetchSemanticsNodes().isEmpty() }
-        choice(LauncherIcon.PAPER).assertIsSelected()
-        choice(LauncherIcon.FROSTED).assertIsNotSelected()
-        assertEquals(LauncherIcon.PAPER, LauncherIcons(app).current())
+        awaitSelected(LauncherIcon.FROSTED)
+        choice(LauncherIcon.FROSTED).assertIsSelected()
+        assertEquals(LauncherIcon.FROSTED, LauncherIcons(app).current())
     }
     private fun screenshot(name: String) {
         val box = compose.onNodeWithTag("icon-viewport").fetchSemanticsNode().boundsInRoot
