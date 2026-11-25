@@ -15,6 +15,8 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -81,6 +83,12 @@ class CompactSettingsUiTest {
         for (font in AppFont.entries) compose.onNodeWithText(font.label).assertExists()
         compose.onNodeWithText("Montserrat").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(AppFont.MONTSERRAT, settings.state.value.appFont) }
+        // Repository emission precedes lifecycle collection and the rendered font frame.
+        // Wait for the positive UI publication; a permanently lost update still fails.
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithText("Montserrat").fetchSemanticsNodes().singleOrNull()
+                ?.config?.getOrNull(SemanticsProperties.Selected) == true
+        }
         compose.onNodeWithText("Montserrat").assertIsSelected()
         compose.onNodeWithText("Лицензии шрифтов").performScrollTo().assertIsDisplayed().performClick()
         compose.onNode(isDialog()).assertIsDisplayed()
