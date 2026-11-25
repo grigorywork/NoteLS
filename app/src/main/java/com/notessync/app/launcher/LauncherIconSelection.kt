@@ -20,13 +20,14 @@ internal class LauncherIconSelection(
 ) {
     private val mutable = MutableStateFlow(LauncherSelectionState())
     val state = mutable.asStateFlow()
+    private var loadingStarted = false
 
-    init {
-        scope.launch {
-            try { val icon = withContext(dispatcher) { icons.current() }; mutable.update { it.copy(selected = icon) } }
-            catch (error: Exception) { if (error is CancellationException) throw error; mutable.update { it.copy(failed = true) } }
-            finally { mutable.update { it.copy(busy = false) } }
-        }
+    suspend fun load() {
+        if (loadingStarted) return
+        loadingStarted = true
+        try { val icon = withContext(dispatcher) { icons.current() }; mutable.update { it.copy(selected = icon) } }
+        catch (error: Exception) { if (error is CancellationException) throw error; mutable.update { it.copy(failed = true) } }
+        finally { mutable.update { it.copy(busy = false) } }
     }
 
     fun action(icon: LauncherIcon, published: LauncherSelectionState): () -> Unit = {

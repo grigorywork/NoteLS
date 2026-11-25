@@ -33,6 +33,7 @@ internal fun LauncherIconSettings() {
     val scope = rememberCoroutineScope()
     val selection = remember(icons, scope) { LauncherIconSelection(icons, scope) }
     val choice by selection.state.collectAsState()
+    LaunchedEffect(selection) { selection.load() }
     SettingsCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp).selectableGroup()) {
             Text(uiText("Значок приложения"), style = MaterialTheme.typography.titleSmall)

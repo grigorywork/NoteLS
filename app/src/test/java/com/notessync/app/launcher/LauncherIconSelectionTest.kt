@@ -19,6 +19,7 @@ class LauncherIconSelectionTest {
     }
     @Test fun `fast completed IO cannot admit a second callback from an unpublished frame but a fresh frame can choose again`() = runTest {
         val backend = Components(); val selection = LauncherIconSelection(LauncherIcons(backend), backgroundScope, StandardTestDispatcher(testScheduler))
+        backgroundScope.launch { selection.load() }
         runCurrent()
         val published = selection.state.value
         val first = selection.action(LauncherIcon.PAPER, published)
@@ -34,7 +35,8 @@ class LauncherIconSelectionTest {
     }
     @Test fun `pending operation and disposed owner reject additional callbacks`() = runTest {
         val backend = Components(); val owner = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
-        val selection = LauncherIconSelection(LauncherIcons(backend), owner, StandardTestDispatcher(testScheduler)); runCurrent()
+        val selection = LauncherIconSelection(LauncherIcons(backend), owner, StandardTestDispatcher(testScheduler))
+        owner.launch { selection.load() }; runCurrent()
         val frame = selection.state.value
         selection.action(LauncherIcon.PAPER, frame)(); selection.action(LauncherIcon.FROSTED, frame)()
         assertTrue(selection.state.value.busy); runCurrent()
@@ -45,7 +47,8 @@ class LauncherIconSelectionTest {
     }
     @Test fun `failed operation retains platform choice rejects stale retry and permits a new published retry`() = runTest {
         val backend = Components().apply { fail = LauncherIcon.PAPER }
-        val icons = LauncherIcons(backend); val selection = LauncherIconSelection(icons, backgroundScope, StandardTestDispatcher(testScheduler)); runCurrent()
+        val icons = LauncherIcons(backend); val selection = LauncherIconSelection(icons, backgroundScope, StandardTestDispatcher(testScheduler))
+        backgroundScope.launch { selection.load() }; runCurrent()
         val old = selection.state.value; val stale = selection.action(LauncherIcon.FROSTED, old)
         selection.action(LauncherIcon.PAPER, old)(); runCurrent()
         assertTrue(selection.state.value.failed); assertFalse(selection.state.value.busy)
