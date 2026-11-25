@@ -33,6 +33,8 @@ internal fun LauncherIconSettings() {
     var selected by remember { mutableStateOf<LauncherIcon?>(null) }
     var busy by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
+    var requestRevision by remember { mutableLongStateOf(0L) }
+    val publishedRevision = requestRevision
     val scope = rememberCoroutineScope()
     LaunchedEffect(icons) {
         try { selected = withContext(Dispatchers.IO) { icons.current() } }
@@ -57,7 +59,10 @@ internal fun LauncherIconSettings() {
                 Row(Modifier.fillMaxWidth().heightIn(min = 80.dp).testTag("launcher-icon-${icon.name.lowercase()}")
                     .semantics { contentDescription = description }
                     .selectable(selected == icon, enabled = !busy, role = Role.RadioButton, onClick = {
-                        if (busy) return@selectable
+                        // IO may complete before the next frame. An old frame's second
+                        // callback must not become valid again just because busy cleared.
+                        if (busy || publishedRevision != requestRevision) return@selectable
+                        requestRevision++
                         busy = true; failed = false
                         scope.launch {
                             try { selected = withContext(Dispatchers.IO) { icons.select(icon) } }
