@@ -1,0 +1,632 @@
+{
+  "artifact_id": 14999493205,
+  "archive_sha256": "f4cf246215e27203c3f76b66cf4c30f9bb86b8d7b272ab8c6ef94acfd1bc7541",
+  "archive_bytes": 19008173,
+  "workflow_run": {
+    "id": 45564796930,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "main",
+    "head_sha": "b1491b99d0aa2808975956836e88969f38fc25cf"
+  },
+  "source": "b1491b99d0aa2808975956836e88969f38fc25cf",
+  "package": "com.notessync.app",
+  "version": "1.10.60",
+  "code": 83,
+  "apk_name": "NoteLS-1.10.60-code83-permanent-signature.apk",
+  "apk_bytes": 31122287,
+  "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef",
+  "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+  "verified_schemes": [
+    2,
+    3
+  ],
+  "signers": 1,
+  "debuggable": false,
+  "dex_sha256": {
+    "classes.dex": "9bac9c22b5214c9374904a5d6f8593d89ddfe83bcec63fcfb06d096ccbf46630"
+  },
+  "readme_source_verified": true,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "physical_device_tested": false,
+  "room_schema": 19,
+  "room_identity": "61703504e840fea926257eeba0d419e1",
+  "room_schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+  "planner_dex_markers_verified": true,
+  "stage": "86",
+  "artifact_url": "https://github.com/grigorywork/NoteLS/actions/runs/45564796930/artifacts/14999493205",
+  "additional_evidence": {
+    "planner_artwork_source_sha256": "b8a9c7467325966f1eb9e28145de73abb6359ee491f47ae59c4296144b34b067",
+    "initial_invalid_fixture_probe": {
+      "run": 45555967112,
+      "source": "1f8d0ff76903ff63d473310dcf392bfe72fe2ff3",
+      "artifact_id": 14995862741,
+      "archive_sha256": "5ce260314299524ec9d7ff3c3555b24b50934f171a7993885a9f787369d808cb",
+      "tests": 4,
+      "failures": 1,
+      "ignored": 0,
+      "app_source_identical_to": "840aa2008833367337db4417fe83775771e2d2bc",
+      "only_changes": [
+        "app/src/test/java/com/notessync/app/launcher/LauncherIconUiTest.kt",
+        ".github/workflows/android.yml"
+      ],
+      "diagnostic_workflow_not_merged": true,
+      "classification": "invalid new UI fixture expectation",
+      "correction": "Compose SemanticsAction rebinds to current node callback after recomposition; choosing FROSTED after published PAPER is legitimate, so this probe did not establish an application bug."
+    },
+    "controlled_icon_selection_probe": {
+      "run": 45560144513,
+      "source": "96ac0e258e9897514f293938c9a18de12fce84ec",
+      "artifact_id": 14997049449,
+      "archive_sha256": "5052159318fdadfdf528ae075916e41bcb2e6c17cde9fefe3a0a4ccfe40db422",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0,
+      "cases": "original UI3 plus valid accessibility UI1 plus controlled async callback/backend3",
+      "diagnostic_workflow_not_merged": true
+    },
+    "release_gc": {
+      "status": "success",
+      "run_id": 45565881132,
+      "source": "b1491b99d0aa2808975956836e88969f38fc25cf",
+      "artifact_id": 14999988448,
+      "zip_sha256": "16317a4de75330bd37fa6c1e9e467729f9db75a425dd68af8e38ad176468c0f0",
+      "input": {
+        "signed_run_id": "45564796930",
+        "source": "b1491b99d0aa2808975956836e88969f38fc25cf",
+        "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef",
+        "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+        "non_debuggable": true
+      },
+      "result": {
+        "status": "success",
+        "mode": "require-live",
+        "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef",
+        "minified_installed_apk": true,
+        "art_gc_confirmed": true,
+        "physical_phone": false,
+        "fresh_hierarchy_required": true,
+        "hierarchy_retries": 0,
+        "events": [
+          {
+            "label": "Светлая",
+            "key": "theme_mode",
+            "persisted": "LIGHT",
+            "ui_selected": true,
+            "ui_wait_ms": 1179
+          },
+          {
+            "label": "Крупный",
+            "key": "font_scale",
+            "persisted": "1.15",
+            "ui_selected": true,
+            "ui_wait_ms": 1185
+          },
+          {
+            "label": "Оранжевый",
+            "key": "accent_color",
+            "persisted": "ORANGE",
+            "ui_selected": true,
+            "ui_wait_ms": 1189
+          }
+        ]
+      },
+      "launchers": {
+        "28": {
+          "status": "success",
+          "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef",
+          "minified_installed_apk": true,
+          "actual_android_emulator": true,
+          "physical_phone": false,
+          "events": [
+            {
+              "tap_proof": {
+                "label": "Розовое стекло",
+                "row_bounds": [
+                  84,
+                  1458,
+                  996,
+                  1668
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1794
+                ],
+                "tap": [
+                  540,
+                  1563
+                ]
+              },
+              "alias": "GlassIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            },
+            {
+              "tap_proof": {
+                "label": "Матовый",
+                "row_bounds": [
+                  84,
+                  535,
+                  996,
+                  745
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1794
+                ],
+                "tap": [
+                  540,
+                  640
+                ]
+              },
+              "alias": "FrostedIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            },
+            {
+              "tap_proof": {
+                "label": "Лист с галочкой",
+                "row_bounds": [
+                  84,
+                  900,
+                  996,
+                  1110
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1794
+                ],
+                "tap": [
+                  540,
+                  1005
+                ]
+              },
+              "alias": "PaperIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            }
+          ],
+          "same_apk_update_preserves_choice": true,
+          "main_activity_always_enabled": true
+        },
+        "35": {
+          "status": "success",
+          "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef",
+          "minified_installed_apk": true,
+          "actual_android_emulator": true,
+          "physical_phone": false,
+          "events": [
+            {
+              "tap_proof": {
+                "label": "Розовое стекло",
+                "row_bounds": [
+                  84,
+                  493,
+                  996,
+                  703
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1857
+                ],
+                "tap": [
+                  540,
+                  598
+                ]
+              },
+              "alias": "GlassIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            },
+            {
+              "tap_proof": {
+                "label": "Матовый",
+                "row_bounds": [
+                  84,
+                  1112,
+                  996,
+                  1322
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1857
+                ],
+                "tap": [
+                  540,
+                  1217
+                ]
+              },
+              "alias": "FrostedIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            },
+            {
+              "tap_proof": {
+                "label": "Лист с галочкой",
+                "row_bounds": [
+                  84,
+                  1129,
+                  996,
+                  1339
+                ],
+                "viewport_bounds": [
+                  0,
+                  231,
+                  1080,
+                  1857
+                ],
+                "tap": [
+                  540,
+                  1234
+                ]
+              },
+              "alias": "PaperIcon",
+              "selected": true,
+              "launcher_count": 1,
+              "process_survived_switch": true,
+              "relaunch_selected_component": true,
+              "persisted_after_process_restart": true
+            }
+          ],
+          "same_apk_update_preserves_choice": true,
+          "main_activity_always_enabled": true
+        }
+      }
+    }
+  },
+  "changes": [
+    "Optional explicit system pin request for a stable planner shortcut using original supplied calendar artwork.",
+    "Explicit MainActivity planner intent; independent of app launcher alias selection; no additional launcher component or dynamic shortcut.",
+    "Cold/repeated/restored navigation and warm editor force-save before calendar navigation.",
+    "Published request revision rejects stale launcher callbacks after fast IO completion; old assertions and timeouts retained.",
+    "Official equivalent Maven Central endpoint for Robolectric SDK dependencies."
+  ],
+  "known_limitations": [
+    "Pin request and navigation were tested with Android platform shadows and NativeCompose, while the actual minified APK underwent settings-GC and launcher-choice checks on Android9/15 CI emulators.",
+    "Home launcher controls final pin placement and icon mask; no physical phone was tested."
+  ],
+  "audit_history": [
+    {
+      "run": 45491089013,
+      "tests": 872,
+      "failures": 1,
+      "ignored": 0,
+      "new_planner_tests_passed": 8,
+      "failure": "existing same-frame double-click UI case timed out before recreation"
+    },
+    {
+      "run": 45555967112,
+      "source": "1f8d0ff76903ff63d473310dcf392bfe72fe2ff3",
+      "artifact_id": 14995862741,
+      "archive_sha256": "5ce260314299524ec9d7ff3c3555b24b50934f171a7993885a9f787369d808cb",
+      "tests": 4,
+      "failures": 1,
+      "ignored": 0,
+      "app_source_identical_to": "840aa2008833367337db4417fe83775771e2d2bc",
+      "only_changes": [
+        "app/src/test/java/com/notessync/app/launcher/LauncherIconUiTest.kt",
+        ".github/workflows/android.yml"
+      ],
+      "diagnostic_workflow_not_merged": true,
+      "classification": "invalid new UI fixture expectation",
+      "correction": "Compose SemanticsAction rebinds to current node callback after recomposition; choosing FROSTED after published PAPER is legitimate, so this probe did not establish an application bug."
+    },
+    {
+      "run": 45556351761,
+      "tests": 873,
+      "failures": 1,
+      "ignored": 0,
+      "failure": "only the newly added invalid UI fixture failed; original tests and planner tests passed",
+      "correction": "retained semantics actions are rebound by Compose after a new frame; UI expectation corrected, controlled backend callback tests added"
+    },
+    {
+      "run": 45560144513,
+      "source": "96ac0e258e9897514f293938c9a18de12fce84ec",
+      "artifact_id": 14997049449,
+      "archive_sha256": "5052159318fdadfdf528ae075916e41bcb2e6c17cde9fefe3a0a4ccfe40db422",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0,
+      "cases": "original UI3 plus valid accessibility UI1 plus controlled async callback/backend3",
+      "diagnostic_workflow_not_merged": true
+    },
+    {
+      "run": 45560775862,
+      "source": "823add275fa1bd4825670b26e224415317a0311a",
+      "tests": 876,
+      "failures": 1,
+      "ignored": 0,
+      "all_icon_and_planner_cases_passed": 15,
+      "failure": "pre-existing font test observed persisted MONTSERRAT before Selected UI frame publication",
+      "fix": "bounded positive selected-state await before unchanged font/persistence/licence assertions; no application change"
+    },
+    {
+      "run": 45562994642,
+      "source": "b1491b99d0aa2808975956836e88969f38fc25cf",
+      "tests": 876,
+      "failures": 0,
+      "ignored": 0,
+      "lint_errors": 0
+    }
+  ],
+  "ci": {
+    "artifact_id": 14999601354,
+    "archive_sha256": "b6dd735cf449cc9676cea355cb205ad0ff01e05114e8cc472cf17043f2ae8c20",
+    "archive_bytes": 1165216,
+    "workflow_run": {
+      "id": 45562994642,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "b1491b99d0aa2808975956836e88969f38fc25cf"
+    },
+    "tests": 876,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 27,
+      "Information": 2
+    },
+    "screenshots": {
+      "diary-preview/password-320.png": "7def7b2781785a7416cd970c0e7264f33bd0a722653752f0fc64331e0fbc80bc",
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/quick-transform-editor-320.png": "1f2a4e04666ae1895a1bd91a33a9cdd9ed80e9575c3b310e5af489255b5ab095",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "d7fe641e39166659189c86aedc4dc4aadb2ad1a2288ff4f2930eba44c608da11",
+      "navigation-preview/completed.png": "e6acbeae220b7f35550f916e8de3e78766356e20f03019feeaaff228bc9daf3c",
+      "navigation-preview/drawer.png": "60cfefe5d30588d31d7b9129677c131d4b91f2e857704d34bdb1a0cf794e7d8e",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "1cd7072ea13137e5f0aad1cb84a40f3107b308da52868a80cc646e92dab9845b",
+      "settings-preview/launcher-icons-after-stale-callback.png": "06fdd006a4209408fd16e25bcae2c7e2c23e6a17f57ccfd5b00a871a80973355",
+      "settings-preview/launcher-icons-before-stale-callback.png": "ffc2155a0d90207e07d19a4f28ff0731ee6ac2a5aa220e09f0e3c1975574b4ae",
+      "settings-preview/launcher-icons-en-large-320.png": "5dd5eafdad5410265854e8edbd40a8b27eceb0859dc4e8f9869d8585e9d28d1c",
+      "settings-preview/launcher-icons-paper-restored-320.png": "76ba753b86c86e0d2f3b17f56d21b6e324144f27699ead58d9553762b1d1aa22",
+      "settings-preview/launcher-icons-ru-320.png": "61bd116bb3b20cab9226a2beaad0bdbd73bb4a09a0c301fc877e7f45ed71e9d5",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/planner-shortcut-320.png": "5fde2750091fcdc5cd0b1fc6f83b564cb3262cec7cacd93527c97d18e646445d",
+      "settings-preview/qwen-settings-320.png": "7987d4228f85ca0117bbf8879da3b31de166314c9fd3a33c2fbeea9eabbfc3b7",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    },
+    "event": "push",
+    "jobs": [
+      {
+        "id": 139030920317,
+        "name": "verify",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 10
+          },
+          {
+            "name": "Tests, lint and compilation",
+            "conclusion": "success",
+            "seconds": 839
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Prepare cloud debug APK (not an installed-app update)",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 20
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signed_release": {
+    "run_id": 45564796930,
+    "event": "workflow_run",
+    "jobs": [
+      {
+        "id": 139036871446,
+        "name": "identity",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 3
+          },
+          {
+            "name": "Check whether the permanent identity is configured",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      },
+      {
+        "id": 139036935446,
+        "name": "release",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Require existing signing Secrets and pinned certificate",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 8
+          },
+          {
+            "name": "Build and lint release",
+            "conclusion": "success",
+            "seconds": 449
+          },
+          {
+            "name": "Verify signing guards with disposable test keys",
+            "conclusion": "success",
+            "seconds": 9
+          },
+          {
+            "name": "Sign with the existing permanent key and verify its identity",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "conclusion": "success",
+            "seconds": 2
+          },
+          {
+            "name": "Post Run gradle/actions/setup-gradle@v4",
+            "conclusion": "success",
+            "seconds": 17
+          },
+          {
+            "name": "Post Run actions/setup-java@v4",
+            "conclusion": "success",
+            "seconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success",
+            "seconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "seconds": 0
+          }
+        ]
+      }
+    ],
+    "ci_metadata_output": {
+      "version": "1.10.60",
+      "code": 83,
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "apk_sha256": "d423228dbe2c0af0e773cb2bf446d61d1113a7539edf32d25ba14a9aa9a073ef"
+    }
+  },
+  "data_format": 2,
+  "security_format": 3,
+  "data_or_security_format_changes": false,
+  "real_paid_api_requests_made": false,
+  "main": {
+    "fast_forward_from": "f7bcbb060efc5a0f0b775bd69c8a1c97fef62799",
+    "fast_forward_to": "b1491b99d0aa2808975956836e88969f38fc25cf",
+    "method": "Git refs REST API, force=false"
+  }
+}
