@@ -1,3 +1,9 @@
+## Передача в другой аккаунтGPT —26ноября2026
+
+**85–86 закрыты, проверенная1.10.60/code83/Room19. Следующий87 ещё не начат; кандидат1.10.61/code84. Новые1h+1h ещё не начаты.** Полный876/0/0, lint0error; Signed45564796930 и release-GC45565881132 success, независимаяAPK проверена26ноября. Runtime source b1491b99d0aa2808975956836e88969f38fc25cf; последующие изменения только docs.
+
+Сначала читать [полную передачу](HANDOFF-2026-11-26.md) и [подготовку87](analytics-87-plan.md). Исторические WIP ниже не возобновлять. Работа в этом чате остановлена для передачи, новых автоматических запусков не создано.
+
 ## 86 закрыт — проверенный NoteLS1.10.60/code83
 
 Этап86 закрыт: NoteLS1.10.60/code83, Room19/data2/security3. Source `b1491b99d0aa2808975956836e88969f38fc25cf`. Полный CI[45562994642](https://github.com/grigorywork/NoteLS/actions/runs/45562994642) =**876 тестов/0 отказов/0 пропусков**, lint0errors/27warnings/2info. Signed[45564796930](https://github.com/grigorywork/NoteLS/actions/runs/45564796930) SUCCESS. Независимо сверены ZIP/API digest/состав/SHA256SUMS/APK/source/package/version/nondebug/настоящий apksigner v2/v3/один signer/постоянный сертификат/DEX/Room19. Физическая установка не выполнялась.
