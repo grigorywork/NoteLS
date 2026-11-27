@@ -17,3 +17,9 @@ Drilldown текущий/предыдущий/активные/просроче�
 Run46082648047/job140784940993, diagnostic source9002530527c07992337034ee629e4ded0e359f39, app-sourcebe86a9724059d3f13f9ef4200d50c98e6aaf8cfe. Компиляцияmain/test успешна;49тестов/4отказа/0пропусков, build7m26s. Все4отказа — начальное ожидание счётчика в новыхNativeUI; остальные45, включая9pure/4Room/factory и старыеUI, прошли. Lint/assemble после отказа не подтверждены. ZIP отчёта15237921685 SHA256b03f6997848d5b9561a9fd0c20bf997987942ac28bf01ec10f283fa50eafbf2b независимо совпал сAPI.
 
 Диагностика: clickable Row/Button объединяет count в помеченный testTag узел, прежний helper искал только потомка. Helper теперь допускает сам тегированный узел или потомка с ТОЧНЫМ числом; прежние15s/всеassertions сохранены, production не менялся. Это гипотеза до повторного целевогоCI, не заявленный успех. Пользователь отменил перенос прямо сейчас: продолжать здесь, перенос позже.
+
+## Повторная целевая проверка успешна, НЕ полныйCI
+
+46084088740/job140789503700/source d29a22c5e00e73b94f5e731c74f608d840946866:49/0fail/0ignored; lint0error27warnings2info, test/lint/assembleDebugBUILD SUCCESS7m9s. ПровереныZIP/API119140bytes/c68464fae2ef31e4b807c6eae075e18e0135678b372ab20dcd07b35621a2be92/HTML/lintXML. Новые9pure/4Roomfactory/4NativeUI прошли. Диагностическийsource отличается от featuref425049 толькофильтромкомандыworkflow; вmainобычныйполныйcommand. ТриPNGосмотрены, подписи/кнопки/пагинациядоступныRU/ENlargefont320dp;нефизическийтелефон. Room19schemaиcertificatepinпобайтовосовпадаютсverified60.
+
+Аудит87: privacy SQLнечитаетbody/tables/attachments; scalar metadata masks private/diarynames; cachedprivacy/filterguards/freshNoteAccess+syncId, безwrites; nearestforegrounddeadline/midnight/futurecompletion/timezoneбезbackgroundpolling. Старыеcompletedarchive/notebookscopeсохранены. Полный893/lint/APK→Signed→независимыйAPKactualRoom19→actualreleaseGC ещёпредстоят;87НЕзакрыт. Guideanalytics-comparison-guide.md.

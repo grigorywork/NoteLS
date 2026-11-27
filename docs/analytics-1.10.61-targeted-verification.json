@@ -1,0 +1,34 @@
+{
+  "artifact_id": 15238886337,
+  "archive_sha256": "c68464fae2ef31e4b807c6eae075e18e0135678b372ab20dcd07b35621a2be92",
+  "archive_bytes": 119140,
+  "workflow_run": {
+    "id": 46084088740,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/analytics87-targeted",
+    "head_sha": "d29a22c5e00e73b94f5e731c74f608d840946866"
+  },
+  "tests": 49,
+  "failures": 0,
+  "ignored": 0,
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 27,
+    "Information": 2
+  },
+  "screenshots": {
+    "analytics-preview/overdue-320.png": "34b6e61f2aae4a8f1c31c6c1f7377912fc39a185d2b76633ad2a2979f70b1988",
+    "analytics-preview/periods-320.png": "a799ae5fa84d245a954a0423b97e1e8e15bdc682f5851129f12b997fa093cbd2",
+    "analytics-preview/overdue-large-en-320.png": "1b765f93a96330efca63ad69ec9317a08ad893090dfc4f5d1ab340f6157e8592"
+  },
+  "stage": 87,
+  "job_id": 140789503700,
+  "build_duration": "7m9s",
+  "app_source": "f4250491963492cc54612447d4b004696577a10d",
+  "diagnostic_only_workflow": true,
+  "full_ci": false,
+  "installable": false,
+  "physical_phone_tested": false
+}
