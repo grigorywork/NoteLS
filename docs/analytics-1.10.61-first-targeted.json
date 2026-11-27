@@ -1,0 +1,55 @@
+{
+  "stage": 87,
+  "run": 46082648047,
+  "job": 140784940993,
+  "source": "9002530527c07992337034ee629e4ded0e359f39",
+  "app_source": "be86a9724059d3f13f9ef4200d50c98e6aaf8cfe",
+  "result": "failure",
+  "tests": 49,
+  "failed": 4,
+  "ignored": 0,
+  "classes": {
+    "UiCatalogTest": [
+      6,
+      0
+    ],
+    "AnalyticsMathTest": [
+      14,
+      0
+    ],
+    "TaskDeadlineClockTest": [
+      2,
+      0
+    ],
+    "AnalyticsPeriodsProjectionTest": [
+      4,
+      0
+    ],
+    "AnalyticsPeriodsTest": [
+      9,
+      0
+    ],
+    "AnalyticsPeriodsUiTest": [
+      4,
+      4
+    ],
+    "AnalyticsProjectionTest": [
+      3,
+      0
+    ],
+    "AnalyticsSummaryTest": [
+      5,
+      0
+    ],
+    "AnalyticsUiTest": [
+      2,
+      0
+    ]
+  },
+  "artifact": 15237921685,
+  "zip_sha256": "b03f6997848d5b9561a9fd0c20bf997987942ac28bf01ec10f283fa50eafbf2b",
+  "digest_matches_api": true,
+  "diagnosis": "All four new UI tests time out in initial awaitCount; tagged clickable merged node excluded by ancestor-only matcher. Fix pending rerun; timeout/assertions preserved.",
+  "full_ci": false,
+  "installable_61": false
+}
