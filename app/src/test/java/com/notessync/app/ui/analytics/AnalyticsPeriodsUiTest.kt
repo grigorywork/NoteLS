@@ -66,7 +66,9 @@ class AnalyticsPeriodsUiTest {
         ShadowSystemClock.advanceBy(Duration.ofMillis(100));compose.waitForIdle();check()
     } }
     private fun awaitCount(tag:String,count:Int) = await {
-        compose.onAllNodes(hasText(count.toString()) and hasAnyAncestor(hasTestTag(tag))).fetchSemanticsNodes().isNotEmpty()
+        // Clickable rows/buttons merge their count into the tagged semantics node.
+        compose.onAllNodes(hasText(count.toString()) and
+            (hasTestTag(tag) or hasAnyAncestor(hasTestTag(tag)))).fetchSemanticsNodes().isNotEmpty()
     }
     private fun screenshot(name:String,dialog:Boolean=false) {compose.runOnIdle {
         val view=if(dialog) ShadowDialog.getLatestDialog().window!!.decorView else drawingView
