@@ -43,6 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notessync.app.data.local.model.AnalyticsEntry
+import com.notessync.app.ui.analytics.AnalyticsClock
+import com.notessync.app.ui.analytics.AnalyticsPeriodsSection
+import com.notessync.app.ui.analytics.AnalyticsTasksDialog
 import com.notessync.app.ui.analytics.AnalyticsSummary
 import com.notessync.app.ui.analytics.AnalyticsScopePicker
 import androidx.compose.runtime.remember
@@ -67,8 +70,13 @@ fun AnalyticsScreen(
     val computed by viewModel.state.collectAsStateWithLifecycle()
     val scope by viewModel.scope.collectAsStateWithLifecycle()
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
-    val state = remember(computed, scope, notebooks) { AnalyticsSummary.visible(computed, scope, notebooks) }
-    val choices = remember(notebooks) { notebooks.orEmpty().filter { !it.isDeleted && !it.isProtected } }
+    val period by viewModel.period.collectAsStateWithLifecycle()
+    val request by viewModel.listRequest.collectAsStateWithLifecycle()
+    val state = remember(computed, scope, notebooks, period, request) { AnalyticsSummary.visible(computed, scope, notebooks, period, request) }
+    val choices = remember(notebooks) { notebooks.orEmpty().filter { !it.isDeleted && !it.isProtected && !it.isDiary } }
+    AnalyticsClock(viewModel, state)
+    request?.let { query -> AnalyticsTasksDialog(query, state.taskPage, viewModel::closeList,
+        viewModel::selectPage) { row -> viewModel.openTask(row, onOpenNote) } }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,6 +106,7 @@ fun AnalyticsScreen(
                 return@Column
             }
             SummarySection(state)
+            AnalyticsPeriodsSection(state, period, viewModel::selectPeriod, viewModel::showList)
             if (state.totalCompleted == 0) {
                 Text(if (state.totalEntries == 0) uiText("В этом разделе пока нет записей.")
                     else uiText("Выполненных задач пока нет.\nОтметьте задачу выполненной — и здесь появится статистика."),
@@ -137,7 +146,7 @@ fun AnalyticsScreen(
             if (state.recentCompleted.isNotEmpty()) {
                 SectionCard(title = uiText("Последние выполненные")) {
                     state.recentCompleted.forEach { note ->
-                        CompletedRow(note = note, onClick = { onOpenNote(note.id) })
+                        CompletedRow(note = note, onClick = { viewModel.openRecent(note, onOpenNote) })
                     }
                 }
             }

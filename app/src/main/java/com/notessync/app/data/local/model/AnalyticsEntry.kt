@@ -13,7 +13,9 @@ data class AnalyticsEntry(
     val taskColor: String = "violet",
     val isDeleted: Boolean = false,
     val isPurged: Boolean = false,
-    val isProtected: Boolean = false
+    val isProtected: Boolean = false,
+    val taskDueAt: Long? = null,
+    val syncId: String = ""
 )
 
-data class AnalyticsNotebook(val id: Long, val name: String, val isProtected: Boolean = false, val isDeleted: Boolean = false)
+data class AnalyticsNotebook(val id: Long, val name: String, val isProtected: Boolean = false, val isDeleted: Boolean = false, val isDiary: Boolean = false)

@@ -1,0 +1,39 @@
+{
+  "request": "2026-11-27-post-queue",
+  "stage_gate": [
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97
+  ],
+  "phase": "implementation",
+  "current_stage": 87,
+  "audit": {
+    "target_active_ms": 10800000,
+    "active_ms": 0,
+    "started_at": null,
+    "completed_at": null,
+    "intervals": []
+  },
+  "optimization": {
+    "target_active_ms": 10800000,
+    "active_ms": 0,
+    "started_at": null,
+    "completed_at": null,
+    "intervals": []
+  },
+  "exclude": [
+    "pauses",
+    "CI queue/waiting",
+    "idle",
+    "overlapping time counted twice"
+  ],
+  "supersedes": "Unstarted 1h audit + 1h optimization request; historical windows stay closed"
+}
