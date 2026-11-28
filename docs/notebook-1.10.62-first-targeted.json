@@ -1,0 +1,18 @@
+{
+  "stage": 88,
+  "run_id": 46095927970,
+  "job_id": 140827128600,
+  "source": "641258a7b59e980e842e62f449fc12381214022b",
+  "app_source": "35459208fc503faf153b66c05294d18c3d6b6ef0",
+  "tests": 35,
+  "failures": 1,
+  "ignored": 0,
+  "build_duration": "7m53s",
+  "artifact_id": 15243298159,
+  "archive_bytes": 70705,
+  "archive_sha256": "b058d82b48a50a8a25d5bd76c933f5b2fdc4e7a5b5b725b55875f9f26f8adf98",
+  "digest_matches_api": true,
+  "failure": "NotebookActivityNavigationTest task checkbox fixture expected an obsolete content description. Production currently says Выполнить задачу: <title>. Assertion corrected to actual label without removal or timeout increase.",
+  "full_ci": false,
+  "installable_62": false
+}

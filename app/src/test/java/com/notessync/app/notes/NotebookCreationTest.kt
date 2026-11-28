@@ -162,4 +162,30 @@ class NotebookCreationTest {
         val saved = db.noteDao().getById(vm.currentNoteId)!!
         assertEquals(work.id, saved.notebookId); assertEquals("Keep this draft", saved.content); assertEquals("Renamed", vm.notebookName)
     }
+
+    @Test fun `explicitly choosing the original notebook overrides an external move even with unchanged text`() = runTest(dispatcher) {
+        val work = book("Work"); val personal = book("Personal")
+        val source = NoteEntity(content = "Original", notebookId = work.id).let { it.copy(id = db.noteDao().upsert(it)) }
+        val vm = editor(id = source.id)
+        db.noteDao().update(source.copy(notebookId = personal.id))
+        vm.assignNotebook(work); assertTrue(vm.saveNow(force = true))
+        val after = db.noteDao().getById(source.id)!!
+        assertEquals(work.id, after.notebookId); assertEquals(source.content, after.content)
+        assertEquals(source.createdAt, after.createdAt); assertEquals(source.syncId, after.syncId)
+    }
+
+    @Test fun `assignment write failure reports safely and preserves the destination for retry`() = runTest(dispatcher) {
+        val work = book("Work"); val personal = book("Personal")
+        val source = NoteEntity(content = "Keep this document", notebookId = work.id).let { it.copy(id = db.noteDao().upsert(it)) }
+        val vm = editor(id = source.id)
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER notebook_assign_fail BEFORE UPDATE ON notes BEGIN SELECT RAISE(FAIL, 'disk fixture'); END")
+        vm.assignNotebook(personal)
+        while (vm.message != EditorMessage.SAVE_FAILED) { dispatcher.scheduler.runCurrent(); delay(1) }
+        assertFalse(vm.accessDenied); assertEquals(source, db.noteDao().getById(source.id)); assertEquals("Personal", vm.notebookName)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER notebook_assign_fail")
+        assertTrue(vm.saveNow(force = true))
+        val after = db.noteDao().getById(source.id)!!
+        assertEquals(personal.id, after.notebookId); assertEquals(source.content, after.content)
+        assertEquals(source.createdAt, after.createdAt); assertEquals(source.syncId, after.syncId)
+    }
 }

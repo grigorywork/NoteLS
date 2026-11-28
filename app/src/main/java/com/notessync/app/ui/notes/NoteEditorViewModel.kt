@@ -415,7 +415,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             val previous = lastSavedNote
             val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
-            if (previous != null && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
+            if (previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
                     updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {
                 lastSavedNote = previous.copy(isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
@@ -686,7 +686,13 @@ class NoteEditorViewModel @JvmOverloads constructor(
         notebookTarget = notebook?.let { NotebookTarget(it.id, it.syncId) }
         notebookChoiceDirty = true
         notebookChoiceVersion++
-        viewModelScope.launch { saveNow() }
+        viewModelScope.launch {
+            try { saveNow() }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                message = EditorMessage.SAVE_FAILED
+            }
+        }
     }
 
     private val tags = EditorTags(db, viewModelScope, saveMutex, object : EditorTagsParent {

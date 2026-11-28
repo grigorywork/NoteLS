@@ -1,3 +1,7 @@
+##88:первыйtarget35/1отказ,обязательныеfollow-upприменены
+
+Main/testсновазамораживаютсянаповторныйtarget. ПослеCI46095927970(компиляцияmain/testуспех/35тестов1UIотказ)исправленоожиданиесуществующеголейблагалочкивтесте,productionlabelне менялся. No-opfreshparentguard+обработкаSQLошибкиassignNotebookУЖЕпримененыс2новымиNativeкейсами. Итого10NativeRoomroute+2ActivityUI/ожидаемыйfull905НЕpass. Featurecodex/notebook-1.10.62свежийcheckpointполучитьпередпродолжением;старый3545920не братьповерхнового. Mainприложениеverified61/87закрыт,62покаНЕinstaller. Отчётnotebook-1.10.62.md/first-targeted.json. Остальнаяочередь89–97/новые3h+3hпослеВСЕХещё0ms/батареяобязательна;68/iPhone/новыеИИне начинать.
+
 ## В работе88 — кандидат1.10.62/code85,28ноября
 
 СозданиеизвыбранногоблокнотапередаётегоID+syncId;load/transactionпроверяютсвежийдоступ,старыеunfiledнеперемещаются;saveнеоткатываетвнешнееперемещение/clearNotebook. Подготовлены8NativeRoom/route+2NativeMainActivityрегрессии,покаНЕскомпилированы/НЕпроверены. Featurecodex/notebook-1.10.62. [Отчёт](notebook-1.10.62.md). Mainприложение61проверено,62НЕinstaller/88НЕзакрыт. ПроверятьтольковGHA,app/testзаморозитьприCI,диагностическийworkflowнепереноситьвmain.
