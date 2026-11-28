@@ -1,3 +1,11 @@
+## Подготовка финальной проверки
+
+Повторный целевой CI 46149245608/job140991970075 выполняется на d678e9ecce4ae1dc84d04049d9b3bc2b09707558, app/test точно соответствуют feature f9fbaca8a6dde2ead77848760daf8d081e857d20. Ожидаются 56 тестов; пока не объявлены успешными.
+
+Подготовлен scripts/release_editor_dates_probe.py: проверяет настоящий footer слева/справа, ввод текста и autosave, соответствие дат сохранённой DB, сохранение createdAt/блокнота/identity, повторное открытие и обычное завершение процесса, отсутствие изменения дат от no-op. Работает только в disposable rooted qemu. Workflow вызывает его на API28 и API35 для versionCode≥89, дополнительно к прежним settings/launcher/running/subtasks gates; условия передаются одной shell-командой. Пока прошли только Python syntax и sh -n inline-команд. На Android скрипт ещё не запускался, его подготовка не закрывает этап.
+
+Для независимой проверки будущего APK в scratch/notels-stage92 подготовлен verifier_stage92.py: прежние ZIP/API/exact3/SUMS/source/version/nondebug/v2/v3/единственный signer/pin guards, Room20 из trusted source и actual compiled DEX identity/8 entity DDL/indexes, новые footer markers/узкий date query. Проверка release пока не исполнялась. Локальных SDK/Gradle сборок нет; официальные build-tools35 используются только для чтения APK.
+
 ## Этап 92: первый целевой прогон — 55 из 56, тестовая фикстура исправлена
 
 Кандидат 1.10.66/code89/Room20. CI 46144810199 подтвердил компиляцию приложения и тестов; 56 тестов, 1 сбой, 0 пропусков. Девять из десяти новых тестов прошли, включая оба NativeCompose: RU 320dp и EN шрифт 1.6 с клавиатурой 240dp. Оба изображения осмотрены и сохранены в docs/design/editor-dates-1.10.66. Lint/assemble не достигнуты, полный 986/Signed/actual release ещё не проверялись. Версия 66 не установочная, этап 92 не закрыт.

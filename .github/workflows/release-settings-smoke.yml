@@ -78,6 +78,7 @@ jobs:
           for version in [2,3]: assert re.search(rf'Verified using v{version} scheme .*: true',signed)
           badging=subprocess.check_output([str(tools/'aapt2'),'dump','badging',str(apk)],text=True)
           assert "package: name='com.notessync.app'" in badging and 'application-debuggable' not in badging
+          version_code=int(re.search(r"versionCode='(\d+)'",badging).group(1))
           out=pathlib.Path('release-settings-probe');out.mkdir(exist_ok=True)
           source=os.environ['EXPECTED_SOURCE']
           subprocess.run(['git','fetch','--depth=1','origin',source],check=True)
@@ -87,7 +88,7 @@ jobs:
           assert json.loads(schema)['database']['version']==room
           (out/'room-schema.json').write_bytes(schema)
           (out/'input.json').write_text(json.dumps({'signed_run_id':os.environ['SIGNED_RUN_ID'],'source':os.environ['EXPECTED_SOURCE'],'apk_sha256':digest,'certificate_sha256':pin,'non_debuggable':True},indent=2))
-          with open(os.environ['GITHUB_OUTPUT'],'a') as stream: stream.write('apk_path='+str(apk)+'\n'); stream.write('room_version='+str(room)+'\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream: stream.write('apk_path='+str(apk)+'\n'); stream.write('room_version='+str(room)+'\n'); stream.write('version_code='+str(version_code)+'\n')
           PY
       - name: Enable emulator KVM access
         run: |
@@ -108,6 +109,7 @@ jobs:
             python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api28
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api28 --schema-json release-settings-probe/room-schema.json
             if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api28 --schema-json release-settings-probe/room-schema.json; fi
+            if [ '${{ steps.input.outputs.version_code }}' -ge 89 ]; then python3 scripts/release_editor_dates_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/editor-dates-api28 --schema-json release-settings-probe/room-schema.json; fi
       - name: Verify launcher choices on Android 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -122,6 +124,7 @@ jobs:
             python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api35
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api35 --schema-json release-settings-probe/room-schema.json
             if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api35 --schema-json release-settings-probe/room-schema.json; fi
+            if [ '${{ steps.input.outputs.version_code }}' -ge 89 ]; then python3 scripts/release_editor_dates_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/editor-dates-api35 --schema-json release-settings-probe/room-schema.json; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

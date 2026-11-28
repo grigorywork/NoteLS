@@ -2008,3 +2008,14 @@ GHAonly/no localSDKGradlebuilds; app/testзамораживатьприCI; RESTf
 
 Работа продолжается в чате 6b0a9b29-9cdc-83ed-9024-8bed96fec058; исходный чат idle. Следующий шаг — повторить целевые проверки, затем полный CI, подпись и независимая проверка APK вместе со свежими Android gates. Новый native probe дат ещё требуется. После 92 очередь 93–97, оба postqueue 3h окна ещё 0ms. GHA only, без локальных SDK/Gradle, прежняя подпись; app/test замораживать во время CI. Ниже история.
 
+
+
+2026-11-28T13:27:52.217693+00:00
+## Подготовка финальной проверки
+
+Повторный целевой CI 46149245608/job140991970075 выполняется на d678e9ecce4ae1dc84d04049d9b3bc2b09707558, app/test точно соответствуют feature f9fbaca8a6dde2ead77848760daf8d081e857d20. Ожидаются 56 тестов; пока не объявлены успешными.
+
+Подготовлен scripts/release_editor_dates_probe.py: проверяет настоящий footer слева/справа, ввод текста и autosave, соответствие дат сохранённой DB, сохранение createdAt/блокнота/identity, повторное открытие и обычное завершение процесса, отсутствие изменения дат от no-op. Работает только в disposable rooted qemu. Workflow вызывает его на API28 и API35 для versionCode≥89, дополнительно к прежним settings/launcher/running/subtasks gates; условия передаются одной shell-командой. Пока прошли только Python syntax и sh -n inline-команд. На Android скрипт ещё не запускался, его подготовка не закрывает этап.
+
+Для независимой проверки будущего APK в scratch/notels-stage92 подготовлен verifier_stage92.py: прежние ZIP/API/exact3/SUMS/source/version/nondebug/v2/v3/единственный signer/pin guards, Room20 из trusted source и actual compiled DEX identity/8 entity DDL/indexes, новые footer markers/узкий date query. Проверка release пока не исполнялась. Локальных SDK/Gradle сборок нет; официальные build-tools35 используются только для чтения APK.
+
