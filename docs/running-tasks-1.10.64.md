@@ -1,3 +1,11 @@
+## 90 готов к полному CI; ещё не закрыт — 28 ноября 2026
+
+Кандидат1.10.64/code87/Room19/data2/security3. Feature app/test source `457fbaedbe563700a2a94c3e92bd550bd05c42e0`. Repeat46115895824/job140889539093 SUCCESS: **86/0fail/0ignored**, lint0errors/27warnings/2info. ZIP/API/HTML/lintXML и обе RU/ENlargefont320 NativePNG проверены. [Proof](running-tasks-1.10.64-targeted-verification.json). Все22 новых и legacy clock/editor/alarm/metadata/settings/i18n/widget + real NoteSyncApp startup прошли. Аудитные fixes permission observer/Application context/silent orphan group/countdown clamp УЖЕ применены, не повторять.
+
+Теперь обычный main push CI: **936 ожидается, НЕpass до фактических отчётов**. Затем autoSigned прежнимSecret, independentZIPAPI/exact3/SUMS/source/package/version/nondebug/apksignerpin/compiledrunningmarkers/actualRoom19 и fresh actual minified GC+running SystemUI probe API28/35. Script/probe в source, но его Android результат ещё НЕ подтверждён. Никакой debug APK как обновления. Main/app/test заморожены до full/Signed/GC; docs-only main не двигать между ними, diagnostic --tests workflow не сливать. ЛокальныхSDKGradlebuilds нет, REST force=false/не дублировать исполнителя.
+
+Последний verified installer пока63/code86/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590. 64 ещё НЕ installer/90 НЕ закрыт; после полного закрытия90→91–97. 91 уточнён пользователем: маленький «+» добавляет подзадачу прямо в заметке/задаче, её таймер/секундомер справа. ПослеВСЕХ87–97 новые3h аудита→3h оптимизации оба0ms/не начаты; реализацию/CIwait/паузы не считать. Пользователь требует продолжать автономно без остановки ради отчёта. Батарея обязательна,68/iPhone/новыеИИ/paidinference не начинать, Secret/ключ не менять. Ниже история.
+
 ## Первый target успешен; аудитные улучшения применены, нужен повтор
 
 CI46114787586/job140886057838 на app11547ac: **84/0fail/0ignored**, lint0errors/28warnings/2info, build10m15s. ZIP468606bytes/artifact15251119450 SHA25693a3257863ab7a1389636505b0d5c4505686918c135222b20693ef0c940957e7=API/HTML/lintXML независимо проверены. Обе NativeCanvas PNG осмотрены: RU и ENlargefont320, это не телефон. Все21 новых кейса прошли; full935 не запускался/не подтверждён. [Proof](running-tasks-1.10.64-first-targeted.json).

@@ -1784,3 +1784,39 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T05:51:01.745903+00:00: 89 закрыт: full46109590690=914/0/0/lint0error, Signed46111373337/artifact15249629264 + independent actualRoom19 APK + GC46111819590/API28+35 проверены. Proofdocs/duration-1.10.63-verification.json. Следующий90/64code87, потом91–97; пользователь повторно требует продолжать автономно без остановки ради отчёта. ПослеВСЕХ3h+3hоба0ms, батареяобязательна.
+
+
+2026-11-28T06:09:30.045070+00:00: ## 90 в облачной проверке — 28 ноября 2026
+
+Feature `codex/running-tasks-1.10.64` checkpoint `11547ac641979f51a969625f06079d9e1075c19d`, кандидат1.10.64/code87/Room19. Не реализовывать заново. Единственный target CI46114787586/job140886057838/source`c2ec57ef268c4ef0456a027569633536d119d678` на `codex/running90-targeted` выполняется; app/test ровно11547ac, только command workflow диагностический. Результаты компиляции/тестов/lint ещё НЕ подтверждены. App/test заморожены, второго Gradle/исполнителя не запускать, diagnostic workflow НЕ сливать вmain.
+
+Реализованы system-native ongoing chronometer/countdown/timeoutAfter, pause/complete immutable non-exported receiver, fresh metadata-only identity/generation/access transaction, always-masked private/diary, event observer/settings+permissions/boot/time-change, editor external timing merge/no-op adoption. Нового service/worker/repeating alarm/wakelock/per-second app loop нет. До20 задач/40 notices, system live format описан в help. Подготовлен21 новый тест, полный935 ожидается НЕpass. Report/guide в feature docs/running-tasks-1.10.64.md и running-task-notifications-guide.md.
+
+ПОСЛЕ текущего target обязательный follow-up аудита: при системном запрете уведомлений не подписываться на Room вообще (сейчас enabled app toggle проверен, permission ещё только в render); добавить NativeAPI35 guard regression. См. /workspace/scratch/notels-stage90/pending-audit.md, это ещё НЕ применено. В след. target включить EditorSyncPauseTest из-за startup NoteSyncApp. Native APK release probe scripts/release_running_task_probe.py + изменения release-settings-smoke.yml подготовлены локально вне app/test, ещё НЕ закоммичены/не выполнялись; сохранить WIP, не объявлять физическим измерением. Сначала фактические отказы, потом follow-up/audit/target/NativePNG/full/Signed/independentAPKRoom19/freshGC+actual running probe. Только после полного закрытия90→91–97.
+
+Main verified63/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590,89 закрыт. Новый64 ещё НЕ installer. ПослеВСЕХ87–97 новые3h аудита→3hоптимизации оба0ms, реализацию/паузы/CIwait не считать. Пользователь повторно потребовал непрерывно автономно продолжать; не заканчивать ради отчёта, реальные паузы пережить checkpoint+той же automation без дублей. Батарея обязательна;68/iPhone/новыеИИ/реальныйpaidinference не начинать, Secret/ключ не менять, локальныхSDKGradlebuilds нет/RESTforce=false. Ниже история.
+
+
+
+2026-11-28T06:18:00.446166+00:00: ## 90: первый target84/0, улучшения применены, повтор идёт — 28 ноября
+
+Свежий feature `codex/running-tasks-1.10.64` checkpoint `457fbaedbe563700a2a94c3e92bd550bd05c42e0` включает11547ac/fde2bf4; не брать старое поверх него. Кандидат1.10.64/code87/Room19/data2/security3. Первый target46114787586/job140886057838 на app11547ac SUCCESS:84/0fail/0ignored, lint0errors/28warnings/2info, build10m15s. Artifact15251119450 ZIP468606bytesSHA25693a3257863ab7a1389636505b0d5c4505686918c135222b20693ef0c940957e7=API/HTML/lintXML. Обе RU/ENlargefont320 NativePNG осмотрены/в feature docs/design/running-tasks-1.10.64. Это не физический телефон. Proofdocs/running-tasks-1.10.64-first-targeted.json.
+
+Аудитные follow-up УЖЕ ПРИМЕНЕНЫ: permission denied отключает сам Room observer; NativeAPI35 grant/revoke/rebind; Owner типApplication убирает новую StaticFieldLeak без suppress; удалён forced GROUP_KEY_SILENT от setSilent(true), остаётся LOW soundnull/vibrationfalse + group assertion; настройки рядом с длительностью; negative countdown clamp и regression. НЕ повторять pending fixes из нижней истории. Новых22, full936 ожидается НЕpass.
+
+Идёт единственный repeat46115895824/job140889539093 на `codex/running90-targeted2`, source`84c4bd4ef6a6e1d2282b7ea46472addf3f938d3d`; app/test ровно457fbaed, только android.yml command диагностический. Ожидаемые86 включают EditorSyncPauseTest, результат компиляции/тестов/lint пока НЕ подтверждён. App/test заморожены; не второй Gradle/исполнитель, diagnostic workflow НЕ сливать вmain. После repeat/audit обычный full→autoSigned→independentAPK/actualRoom19→freshGC/actualrunningProbe, только потом закрыть90→91–97.
+
+Actual minified probe scripts/release_running_task_probe.py и normal release-settings-smoke.yml API28/35 УЖЕ в fde2bf4/feature; это не untracked. Проверен только Python syntax/hostfixtureSQL/dumpsample; Android probe ещё не запускался и не объявлен успехом. Disposable rooted qemu fixtures только, реальные SystemUI counters/processkill(notforcestop)/pause/complete/private masking/document+notebook preservation; production backdoor нет. Логи/metadata в scratch/notels-stage90; pending-audit.md помечен APPLIED.
+
+Новое уточнение пользователя для91 сохранено docs/requests-2026-11-27.md: маленький «+» добавляет подзадачу прямо в заметке/задаче; её таймер/секундомер справа. Не новый этап. Main приложение остаётся verified63/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590;64 ещё НЕ installer/90 НЕ закрыт. 87–89 не повторять. Пользователь требует продолжать автономно без остановки ради отчёта. ПослеВСЕХ87–97 новые3h аудита→3h оптимизации оба0ms. Батарея обязательна;68/iPhone/новыеИИ/платныевызовы не начинать, Secret/ключ не менять, локальныхSDKGradlebuilds нет/RESTforce=false. Ниже история.
+
+
+
+## 90 готов к полному CI; ещё не закрыт — 28 ноября 2026
+
+Кандидат1.10.64/code87/Room19/data2/security3. Feature app/test source `457fbaedbe563700a2a94c3e92bd550bd05c42e0`. Repeat46115895824/job140889539093 SUCCESS: **86/0fail/0ignored**, lint0errors/27warnings/2info. ZIP/API/HTML/lintXML и обе RU/ENlargefont320 NativePNG проверены. [Proof](docs/running-tasks-1.10.64-targeted-verification.json). Все22 новых и legacy clock/editor/alarm/metadata/settings/i18n/widget + real NoteSyncApp startup прошли. Аудитные fixes permission observer/Application context/silent orphan group/countdown clamp УЖЕ применены, не повторять.
+
+Теперь обычный main push CI: **936 ожидается, НЕpass до фактических отчётов**. Затем autoSigned прежнимSecret, independentZIPAPI/exact3/SUMS/source/package/version/nondebug/apksignerpin/compiledrunningmarkers/actualRoom19 и fresh actual minified GC+running SystemUI probe API28/35. Script/probe в source, но его Android результат ещё НЕ подтверждён. Никакой debug APK как обновления. Main/app/test заморожены до full/Signed/GC; docs-only main не двигать между ними, diagnostic --tests workflow не сливать. ЛокальныхSDKGradlebuilds нет, REST force=false/не дублировать исполнителя.
+
+Последний verified installer пока63/code86/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590. 64 ещё НЕ installer/90 НЕ закрыт; после полного закрытия90→91–97. 91 уточнён пользователем: маленький «+» добавляет подзадачу прямо в заметке/задаче, её таймер/секундомер справа. ПослеВСЕХ87–97 новые3h аудита→3h оптимизации оба0ms/не начаты; реализацию/CIwait/паузы не считать. Пользователь требует продолжать автономно без остановки ради отчёта. Батарея обязательна,68/iPhone/новыеИИ/paidinference не начинать, Secret/ключ не менять. Ниже история.
+
