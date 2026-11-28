@@ -77,6 +77,10 @@ class RunningTaskQueryActionsTest {
         assertEquals(30_000L, done.taskCountdownMillis); assertEquals(book, done.notebookId); assertEquals(note.syncId, done.syncId)
         db.noteDao().update(com.notessync.app.ui.tasks.TaskCompletion.toggle(done, now + 1))
         val returned = db.noteDao().getById(note.id)!!; assertFalse(returned.isCompleted); assertEquals(book, returned.notebookId)
+        val corrupt = returned.copy(taskTimerStartedAt = now, taskCountdownMillis = -20)
+        db.noteDao().update(corrupt)
+        assertTrue(RunningTaskActions.apply(app, control(corrupt, action = RunningAction.COMPLETE), now + 1))
+        assertEquals(0L, db.noteDao().getById(note.id)!!.taskCountdownMillis)
     }
     @Test fun `restarted clock reused numeric id and late expiry refuse stale actions without writes`() = runBlocking {
         val note = save(NoteEntity(title = "Task", isTask = true, taskTimerStartedAt = now - 10, taskCountdownEndAt = now + 100))

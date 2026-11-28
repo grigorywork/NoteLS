@@ -20,7 +20,6 @@ import com.notessync.app.settings.SettingsState
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun EditorSettings(state: SettingsState, settings: SettingsRepository) {
-    RunningTaskSettings(state, settings)
     SettingsCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             SettingsToggle(uiText("Выполненные — в отдельный раздел"), state.archiveCompletedTasks,
@@ -43,6 +42,7 @@ internal fun EditorSettings(state: SettingsState, settings: SettingsRepository) 
                 style = MaterialTheme.typography.bodySmall)
         }
     }
+    RunningTaskSettings(state, settings)
     SettingsCard(Modifier.fillMaxWidth()) {
         SettingsToggle(uiText("Камера в редакторе"), state.cameraCapture, settings::setCameraCapture)
     }

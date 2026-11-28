@@ -2,6 +2,7 @@ package com.notessync.app.tasks.running
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Application
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -40,7 +41,7 @@ object RunningTaskNotifications {
         Preferences(it.runningTaskNotifications, it.uiLanguage == UiLanguage.ENGLISH, it.automaticDurationUnits)
     }
     @Synchronized fun start(context: Context) {
-        val app = context.applicationContext
+        val app = context.applicationContext as Application
         if (owner?.app === app && owner?.job?.isActive == true) return
         stop()
         owner = Owner(app).also { it.start() }
@@ -66,7 +67,7 @@ object RunningTaskNotifications {
                 setSound(null, null); enableVibration(false); setShowBadge(false)
             })
     }
-    private class Owner(val app: Context) {
+    private class Owner(val app: Application) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val revision = MutableStateFlow(0L)
         var job: Job? = null
@@ -76,7 +77,7 @@ object RunningTaskNotifications {
                 combine(SettingsRepository.get(app).state.map { Preferences(it.runningTaskNotifications,
                     it.uiLanguage == UiLanguage.ENGLISH, it.automaticDurationUnits) }.distinctUntilChanged(), revision) { prefs, stamp -> prefs to stamp }
                     .flatMapLatest { (prefs, _) ->
-                        if (!prefs.enabled) flowOf(emptyList())
+                        if (!prefs.enabled || !canNotify(app)) flowOf(emptyList())
                         else AppDatabase.get(app).noteDao().observeRunningTasks(System.currentTimeMillis()).distinctUntilChanged()
                     }.collectLatest {
                         val next = withTimeout(8_000) { refreshNow(app) }
@@ -150,7 +151,7 @@ object RunningTaskNotifications {
             .setContentTitle(uiText("Идущие задачи")).setContentText(label).build()
         val builder = NotificationCompat.Builder(context, CHANNEL).setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle(title).setContentText(if (native) label else uiText("Время при обновлении: %1\$s", TaskDurationStyle(units, english).format(amount)))
-            .setContentIntent(content).setOnlyAlertOnce(true).setSilent(true).setOngoing(true)
+            .setContentIntent(content).setOnlyAlertOnce(true).setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(public)
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH).setWhen(whenAt).setShowWhen(native)
             .setUsesChronometer(native).setChronometerCountDown(countdown)

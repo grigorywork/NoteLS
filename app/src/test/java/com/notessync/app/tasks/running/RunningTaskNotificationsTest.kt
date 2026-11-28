@@ -43,6 +43,7 @@ class RunningTaskNotificationsTest {
         assertTrue(watch.flags and Notification.FLAG_ONGOING_EVENT != 0); assertTrue(watch.flags and Notification.FLAG_ONLY_ALERT_ONCE != 0)
         assertEquals(Notification.VISIBILITY_PRIVATE, watch.visibility); assertEquals(NotificationManager.IMPORTANCE_LOW, manager.getNotificationChannel(RunningTaskNotifications.CHANNEL).importance)
         assertFalse(manager.getNotificationChannel(RunningTaskNotifications.CHANNEL).canShowBadge())
+        assertNull("Do not force orphan children into NotificationCompat silent group", watch.group)
         assertEquals(2, watch.actions.size); assertEquals(2, countdown.actions.size)
         val watchIntent = shadowOf(watch.actions[0].actionIntent).savedIntent
         val countdownIntent = shadowOf(countdown.actions[0].actionIntent).savedIntent
@@ -111,4 +112,21 @@ class RunningTaskNotificationsTest {
         manager.createNotificationChannel(NotificationChannel(RunningTaskNotifications.CHANNEL, "muted", NotificationManager.IMPORTANCE_NONE))
         RunningTaskNotifications.refreshNow(app); assertTrue(manager.activeNotifications.isEmpty())
     }
+    @Test @Config(sdk = [35]) fun `permission denied owner resumes from fresh Room metadata only after an explicit foreground grant request`() = runBlocking {
+        shadowOf(app).denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val now = System.currentTimeMillis()
+        val note = NoteEntity(title = "Before grant", isTask = true, taskTimerStartedAt = now - 1)
+            .let { it.copy(id = db.noteDao().upsert(it)) }
+        RunningTaskNotifications.start(app); RunningTaskNotifications.refreshNow(app)
+        assertTrue(manager.activeNotifications.isEmpty())
+        db.noteDao().update(note.copy(title = "Latest while denied"))
+        shadowOf(app).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        RunningTaskNotifications.request(app)
+        withTimeout(10_000) { while (manager.activeNotifications.singleOrNull()?.notification?.extras?.getString(Notification.EXTRA_TITLE) != "Latest while denied") delay(10) }
+        shadowOf(app).denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        RunningTaskNotifications.request(app)
+        withTimeout(10_000) { while (manager.activeNotifications.isNotEmpty()) delay(10) }
+        assertEquals("Latest while denied", db.noteDao().getById(note.id)!!.title)
+    }
+
 }

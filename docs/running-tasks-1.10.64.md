@@ -1,3 +1,9 @@
+## Первый target успешен; аудитные улучшения применены, нужен повтор
+
+CI46114787586/job140886057838 на app11547ac: **84/0fail/0ignored**, lint0errors/28warnings/2info, build10m15s. ZIP468606bytes/artifact15251119450 SHA25693a3257863ab7a1389636505b0d5c4505686918c135222b20693ef0c940957e7=API/HTML/lintXML независимо проверены. Обе NativeCanvas PNG осмотрены: RU и ENlargefont320, это не телефон. Все21 новых кейса прошли; full935 не запускался/не подтверждён. [Proof](running-tasks-1.10.64-first-targeted.json).
+
+После этого аудита применено: system-permission denied отменяет саму Room подписку; NativeAPI35 regression проверяет fresh grant/revoke/rebind. Owner хранит тип Application вместо generic Context, устраняя новый StaticFieldLeak без suppress. Убран NotificationCompat.setSilent(true), навязывавший orphan GROUP_KEY_SILENT; LOW channel уже soundnull/vibrationfalse/badgefalse, добавлена проверка отсутствия навязанной group. Настройки уведомления сразу после часов/дней. Completion clamp повреждённого отрицательного countdown. Тесты/таймауты не ослаблены. Теперь22 новых, full936 ожидается НЕpass; повтор целевых с EditorSyncPauseTest обязателен, свежая компиляция ещё НЕ проверена.
+
 # Этап90: идущая задача в уведомлениях
 
 Кандидат1.10.64/code87/Room19/data2/security3. Реализация подготовлена; компиляция, тесты, lint и установочный APK ещё НЕ подтверждены. Последний проверенный выпуск63/code86, этап89 закрыт. Проверки только GitHub Actions, не локальные SDK/Gradle builds.

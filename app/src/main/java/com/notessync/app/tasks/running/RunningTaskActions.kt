@@ -21,7 +21,7 @@ internal object RunningTaskActions {
             db.noteDao().updateRunningTask(row.id, row.syncId,
                 if (pauseWatch) RunningClockTime.elapsed(row.taskElapsedMillis, row.taskTimerStartedAt, now) else row.taskElapsedMillis,
                 if (pauseWatch) null else row.taskTimerStartedAt,
-                if (pauseCountdown) row.taskCountdownEndAt?.let { RunningClockTime.remaining(it, now) } ?: row.taskCountdownMillis else row.taskCountdownMillis,
+                if (pauseCountdown) row.taskCountdownEndAt?.let { RunningClockTime.remaining(it, now) } ?: row.taskCountdownMillis.coerceAtLeast(0) else row.taskCountdownMillis,
                 if (pauseCountdown) null else row.taskCountdownEndAt, complete, if (complete) now else null, now) == 1
         }
         if (changed) {

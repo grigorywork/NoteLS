@@ -1,0 +1,41 @@
+{
+  "artifact_id": 15251119450,
+  "archive_sha256": "93a3257863ab7a1389636505b0d5c4505686918c135222b20693ef0c940957e7",
+  "archive_bytes": 468606,
+  "workflow_run": {
+    "id": 46114787586,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/running90-targeted",
+    "head_sha": "c2ec57ef268c4ef0456a027569633536d119d678"
+  },
+  "tests": 84,
+  "failures": 0,
+  "ignored": 0,
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 28,
+    "Information": 2
+  },
+  "screenshots": {
+    "duration-preview/settings-en-large-320.png": "715c7ae5f1545c6950596e0289426ea7b8e8d14b38725a7047e736ac291280c1",
+    "duration-preview/settings-ru-320.png": "db95d8d1af0276dd4717544dce9c8a733ed391fd328471356378dc46e2326653",
+    "duration-preview/analytics-minutes-320.png": "48f6602fac5443459ff074f256d1fa0d507a3b8f3293446e839037b8779105c3",
+    "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+    "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+    "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+    "running-task-preview/settings-en-large-320.png": "5cd59a143f0d550cad3a2523e1a59016cfcabd0b69cd70aa3ee990e11258ede5",
+    "running-task-preview/settings-ru-320.png": "f77945975d571db37c478ed8897f2ae32d35c62a15e921557ab05aa33710124a",
+    "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+    "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+    "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc"
+  },
+  "stage": 90,
+  "run_id": 46114787586,
+  "job_id": 140886057838,
+  "app_source": "11547ac641979f51a969625f06079d9e1075c19d",
+  "build": "10m15s",
+  "status": "target-only-success-before-audit-followup",
+  "physical_phone": false
+}
