@@ -78,10 +78,12 @@ def boolean_extra(record, key):
 
 def tap_notification_action(title, label):
     ui.adb('shell', 'cmd', 'statusbar', 'expand-notifications')
+    other_titles = {'Running probe watch', 'Running probe countdown', 'Защищённая запись'} - {title}
     def action(root):
         path = ui.match_path(root, title)
         assert path, 'Task notification missing from live SystemUI: '+title
         for parent in reversed(path):
+            if any(n.get('text') in other_titles for n in parent.iter()): break
             matches = [n for n in parent.iter() if n.get('text') == label]
             if len(matches) == 1:
                 local = ui.match_path(parent, label)
@@ -94,6 +96,7 @@ def tap_notification_action(title, label):
         path = ui.match_path(root, title); assert path
         expanded = False
         for parent in reversed(path):
+            if any(n.get('text') in other_titles for n in parent.iter()): break
             arrows = [n for n in parent.iter() if n.get('resource-id', '').endswith('/expand_button') and n.get('clickable') == 'true']
             if len(arrows) == 1:
                 arrow = ui.bounds(arrows[0]); assert arrow
