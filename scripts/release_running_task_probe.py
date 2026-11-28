@@ -84,7 +84,7 @@ def tap_notification_action(title, label):
         assert path, 'Task notification missing from live SystemUI: '+title
         for parent in reversed(path):
             if any(n.get('text') in other_titles for n in parent.iter()): break
-            matches = [n for n in parent.iter() if n.get('text') == label]
+            matches = [n for n in parent.iter() if n.get('text') == label or n.get('content-desc') == label]
             if len(matches) == 1:
                 local = ui.match_path(parent, label)
                 node = next((n for n in reversed(local or ()) if n.get('clickable') == 'true'), None)
