@@ -151,6 +151,10 @@ class LiveHierarchy:
         subprocess.run([str(tools/'zipalign'),'-f','4',str(unsigned),str(aligned)],check=True)
         subprocess.run([str(tools/'apksigner'),'sign','--ks',str(key),'--ks-pass','pass:'+password,
                         '--key-pass','pass:'+password,'--out',str(helper),str(aligned)],check=True)
+        # Each probe invocation has its own disposable fixture key; remove ONLY the previous helper.
+        installed = subprocess.run(['adb','shell','pm','path',PACKAGE],capture_output=True,text=True,timeout=15)
+        if installed.stdout.strip().startswith('package:'):
+            assert 'Success' in ui.adb('uninstall',PACKAGE)
         ui.adb('install','-r','-t',helper)
         self.prepared = True
 

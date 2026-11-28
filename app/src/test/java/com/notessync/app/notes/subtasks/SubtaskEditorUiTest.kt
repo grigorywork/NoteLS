@@ -61,7 +61,7 @@ class SubtaskEditorUiTest {
                 }
             }
         }
-        compose.waitUntil(15_000) { vm.isReady };return vm
+        compose.waitUntil(15_000) { compose.waitForIdle(); vm.isReady };return vm
     }
     private fun add(vm:NoteEditorViewModel):String {
         compose.onNodeWithTag("add-subtask").performScrollTo().performClick()

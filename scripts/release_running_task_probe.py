@@ -76,9 +76,9 @@ def boolean_extra(record, key):
     return bool(re.search(re.escape(key) + r'\s*[=:]\s*(?:Boolean\s*)?\(?true\)?', record, re.I))
 
 
-def tap_notification_action(title, label):
+def tap_notification_action(title, label, other_titles=None):
     ui.adb('shell', 'cmd', 'statusbar', 'expand-notifications')
-    other_titles = {'Running probe watch', 'Running probe countdown', 'Защищённая запись'} - {title}
+    other_titles = (other_titles or {'Running probe watch', 'Running probe countdown', 'Защищённая запись'}) - {title}
     def action(root):
         path = ui.match_path(root, title)
         assert path, 'Task notification missing from live SystemUI: '+title
@@ -120,7 +120,7 @@ def tap_notification_action(title, label):
 
 
 def main():
-    parser = argparse.ArgumentParser(); parser.add_argument('--apk', required=True); parser.add_argument('--output', required=True)
+    parser = argparse.ArgumentParser(); parser.add_argument('--apk', required=True); parser.add_argument('--output', required=True); parser.add_argument('--schema-json', default='app/schemas/com.notessync.app.data.local.AppDatabase/19.json')
     args = parser.parse_args()
     global OUT
     OUT = Path(args.output); OUT.mkdir(parents=True, exist_ok=True); ui.OUT = OUT
@@ -134,7 +134,8 @@ def main():
     wait(lambda: subprocess.run(['adb', 'shell', 'test', '-s', remote], capture_output=True).returncode == 0, 'Room database was not initialized')
     ui.adb('shell', 'am', 'force-stop', PACKAGE)
     connection, remote, target = copy_database(OUT/'fixture-input')
-    expected = json.loads(Path('app/schemas/com.notessync.app.data.local.AppDatabase/19.json').read_text())['database']['identityHash']
+    profile = json.loads(Path(args.schema_json).read_text())['database']; expected = profile['identityHash']
+    assert connection.execute('PRAGMA user_version').fetchone() == (profile['version'],)
     assert connection.execute('SELECT identity_hash FROM room_master_table WHERE id=42').fetchone() == (expected,)
     now = int(ui.adb('shell', 'date', '+%s').strip()) * 1000
     book = insert(connection, 'notebooks', {'syncId':f'running-probe-book-{sdk}', 'name':'Running probe notebook', 'createdAt':now, 'updatedAt':now})
