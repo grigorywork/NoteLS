@@ -1,0 +1,25 @@
+{
+  "artifact_id": 15252788380,
+  "archive_sha256": "7974792b06a4a2db83864074619594aec89698260b22fc6908fcd4085b76a4e1",
+  "archive_bytes": 110966,
+  "workflow_run": {
+    "id": 46118737337,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/running90-targeted4",
+    "head_sha": "b05a78b0c80060c2382a40a83fce75f3bc5b602a"
+  },
+  "tests": 107,
+  "failures": 77,
+  "ignored": 0,
+  "build": "FAILED5m35s",
+  "status": "dependency-download-failure-before-test-body",
+  "all_failures_http429": true,
+  "source_app": "496d7d86bfa8018b51a8c96de1f3acace46f5e7f",
+  "run_id": 46118737337,
+  "job_id": 140898296991,
+  "lint_and_assemble_confirmed": false,
+  "sdk_failed_cases": {
+    "9-robolectric-4913185-2-i7": 77
+  }
+}
