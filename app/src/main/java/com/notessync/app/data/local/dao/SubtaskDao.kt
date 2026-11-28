@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubtaskDao {
+    @Query("SELECT COUNT(*) FROM note_subtasks")
+    suspend fun countAll(): Long
     @Query(com.notessync.app.data.subtasks.SUBTASK_RUNNING)
     fun observeRunning(now: Long): Flow<List<com.notessync.app.tasks.running.RunningTaskEntry>>
     @Query(com.notessync.app.data.subtasks.SUBTASK_RUNNING)

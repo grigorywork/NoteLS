@@ -443,6 +443,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val now = System.currentTimeMillis()
         val submittedSubtasks = subtasks
         var committedSubtasks = lastSavedSubtasks
+        var subtaskAlarmChanged = false
         val tablesSnapshot = tables
         val unknownSnapshot = unsupportedTables
         val baseNote = NoteEntity(
@@ -508,6 +509,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
             val mergedSubtasks = com.notessync.app.notes.subtasks.Subtasks.merge(submittedSubtasks, lastSavedSubtasks, freshSubtasks)
                 .let { rows -> if (note.isTask && note.isCompleted) rows.map { it.paused(now) } else rows }
             val subtaskChanges = mergedSubtasks != freshSubtasks
+            subtaskAlarmChanged = freshSubtasks.map { it.copy(text = "", elapsedMillis = 0, startedAt = null) } !=
+                mergedSubtasks.map { it.copy(text = "", elapsedMillis = 0, startedAt = null) } ||
+                (freshSubtasks.isNotEmpty() && note.isTask && note.isCompleted && fresh?.isCompleted != true)
             committedSubtasks = mergedSubtasks
             if (!subtaskChanges && previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
@@ -516,7 +520,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
                 return@withTransaction false
             }
-            if (subtaskChanges) com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
+            if (subtaskAlarmChanged) com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
             if ((fresh?.reminderAt != note.reminderAt || fresh?.taskCountdownEndAt != note.taskCountdownEndAt ||
                     fresh?.isTask != note.isTask || fresh?.isCompleted != note.isCompleted) &&
                 (fresh?.reminderAt != null || fresh?.taskCountdownEndAt != null || note.reminderAt != null || note.taskCountdownEndAt != null)) {
@@ -551,7 +555,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         // Observers must not see the new ID before the insert transaction commits.
         _noteIdFlow.value = currentNoteId
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
-        runCatching { com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(app, db) }
+        if (subtaskAlarmChanged) runCatching { com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(app, db) }
         BackupManager.noteChanged()
         return true
     }

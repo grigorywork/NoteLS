@@ -85,7 +85,7 @@ class PrivateDiaryPersistenceTest {
             old.version = 18
         }
         val migrated = db.noteDao().getById(1)!!
-        assertEquals(19, db.openHelper.readableDatabase.version)
+        assertEquals(AppDatabase.VERSION, db.openHelper.readableDatabase.version)
         assertFalse(db.notebookDao().getById(1)!!.isDiary); assertFalse(db.notebookDao().getById(1)!!.isProtected)
         assertEquals("Original 😀", migrated.content); assertEquals("legacy-notes", migrated.syncId)
         assertEquals(1L, migrated.notebookId); assertEquals(20_000L, migrated.dayKey); assertEquals(77L, migrated.taskElapsedMillis)

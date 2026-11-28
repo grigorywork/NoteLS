@@ -6,6 +6,9 @@ import com.notessync.app.notes.subtasks.Subtasks
 
 /** Validate the staged migrated database before live restore; at most100 rows retained at a time. */
 internal fun validateSubtaskSnapshot(db: SupportSQLiteDatabase, cancelled: () -> Unit) {
+    db.query("SELECT COUNT(*) FROM note_subtasks s JOIN notes n ON n.id = s.noteId WHERE n.isPurged = 1 OR ((n.isDeleted = 1 OR (n.isTask = 1 AND n.isCompleted = 1)) AND (s.startedAt IS NOT NULL OR s.countdownEndAt IS NOT NULL))").use {
+        require(it.moveToFirst() && it.getLong(0) == 0L) { "Invalid closed parent subtasks" }
+    }
     db.query("SELECT noteId,id,position,text,completed,elapsedMillis,startedAt,countdownMillis,countdownEndAt,countdownFinishedAt FROM note_subtasks ORDER BY noteId,position,id").use { c ->
         var parent = -1L; var total = 0; val rows = mutableListOf<Subtask>()
         while (c.moveToNext()) {
