@@ -23,7 +23,31 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      # Keep the exact official Robolectric runtime artifacts between successful runs;
+      # Maven fetch/verification and the configured upstream/version remain unchanged.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: ${{ runner.os }}-notels-robolectric-${{ hashFiles('scripts/robolectric-runtime-pins.json') }}
       - uses: gradle/actions/setup-gradle@v4
+      - name: Verify and prepare exact Robolectric runtimes
+        run: |
+          python3 scripts/test_prepare_robolectric_runtime.py
+          python3 scripts/prepare_robolectric_runtime.py
+      - name: Compile disposable native widget host probe
+        run: |
+          python3 - <<'PYPROBE'
+          import ast, os, pathlib, subprocess, tempfile
+          module=ast.parse(pathlib.Path('scripts/calendar_widget_host_probe.py').read_text())
+          java=next(ast.literal_eval(node.value) for node in module.body if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='JAVA' for target in node.targets))
+          android=pathlib.Path(os.environ['ANDROID_HOME'])/'platforms/android-35/android.jar'
+          assert android.is_file(), 'Native helper must compile against the actual Android35 platform'
+          with tempfile.TemporaryDirectory(prefix='calendar-host-compile-') as folder:
+              root=pathlib.Path(folder); source=root/'HostActivity.java'; source.write_text(java)
+              subprocess.run(['javac','--release','8','-cp',str(android),'-d',str(root/'classes'),str(source)],check=True)
+              assert (root/'classes/com/notessync/calendarhostprobe/HostActivity.class').is_file()
+          print('Disposable widget host Java compiled; actual Android execution remains a separate release gate')
+          PYPROBE
       - name: Tests, lint and compilation
         run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
       - uses: actions/upload-artifact@v4
@@ -46,6 +70,7 @@ jobs:
             app/build/reports/subtask-preview/
             app/build/reports/editor-dates-preview/
             app/build/reports/calendar-typography-preview/
+            app/build/reports/robolectric-runtime/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
