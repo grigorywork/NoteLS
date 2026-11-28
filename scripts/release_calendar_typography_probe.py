@@ -99,6 +99,19 @@ def open_widget_settings():
     running.wait(lambda:paths(ui.tree(),'Текст календарных виджетов'),'Widget typography controls missing')
 
 
+def calendar_snapshot(label):
+    output=ui.adb('shell','am','start','-W','-n',ui.PACKAGE+'/.MainActivity',
+        '-a','com.notessync.app.OPEN_PLANNER','-d','notels://planner')
+    assert 'Status: ok' in output and 'Error:' not in output,output
+    root=running.wait(lambda:(root if paths(root,'Показать дела дня') else None)
+        if (root:=ui.tree()) is not None else None,'Actual calendar did not open')
+    assert paths(root,'Календарь') and paths(root,'Сегодня'), 'Calendar title/actions missing'
+    assert any('Typography visible' in node.get('text','') for node in root.iter()), 'Actual selected-day entry missing'
+    assert not any('PRIVATE_CALENDAR_SECRET' in node.get('text','') for node in root.iter()), 'Calendar exposed protected fixture'
+    ui.snapshot(label)
+    return {'actual_calendar_screen':True,'selected_day_fixture_visible':True,'private_text_absent':True,'screenshot':label+'.png'}
+
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--apk',required=True);parser.add_argument('--output',required=True)
     parser.add_argument('--schema-json',required=True);args=parser.parse_args()
@@ -130,6 +143,7 @@ def main():
         tap('Крупный',anchor='Сбросить текст календаря')
         calendar=wait_preferences({'calendar_font':'PT_SANS','calendar_text_size':'LARGE'})
         ui.snapshot('calendar-settings-selected-320')
+        calendar_ui=calendar_snapshot('calendar-selected-320')
         open_widget_settings();tap('Зелёные и зачёркнутые')
         host.prepare()
         events=[host_snapshot(kind,'default',1.0,'widget-'+kind+'-default') for kind in ['month','week']]
@@ -154,6 +168,7 @@ def main():
         final=wait_preferences({'calendar_text_size':'NORMAL','calendar_widget_font':'DEFAULT','calendar_widget_text_size':'NORMAL'})
         assert 'calendar_font' not in final,final
         ui.snapshot('calendar-settings-reset-320')
+        calendar_reset_ui=calendar_snapshot('calendar-reset-320')
         # Remove only synthetic raw fixture copies from successful evidence archives.
         shutil.rmtree(OUT/'fixture-input')
         result={'status':'success','apk_sha256':hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
@@ -161,7 +176,8 @@ def main():
             'sdk':int(ui.adb('shell','getprop','ro.build.version.sdk').strip()),'room_version':schema['version'],
             'room_identity':schema['identityHash'],'calendar_selected':calendar,'independent_saved':saved,
             'widget_reset':reset,'calendar_reset':final,'events':events,'native_widget_width_dp':320,
-            'real_ui_controls':True,'restart_persistence':True,'large_system_font':1.6}
+            'real_ui_controls':True,'restart_persistence':True,'large_system_font':1.6,
+            'calendar_ui':calendar_ui,'calendar_reset_ui':calendar_reset_ui}
         (OUT/'calendar-typography-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2))
         print(json.dumps(result,ensure_ascii=False))
     except BaseException:

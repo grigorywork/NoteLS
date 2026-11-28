@@ -87,7 +87,9 @@ public class HostActivity extends Activity {
                 "day_entries".equals(id)?11f:"week_title".equals(id)||id.startsWith("week_day_")?14f:0f;
             if(base>0 && text.length()>0) {
                 textCount++;
-                if(Math.abs(node.getDouble("size_px")-android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,base*factor,getResources().getDisplayMetrics()))>.1)correct=false;
+                float expectedSize=android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,base*factor,getResources().getDisplayMetrics());
+                node.put("expected_size_px",expectedSize);
+                if(Math.abs(node.getDouble("size_px")-expectedSize)>.1)correct=false;
                 if(node.getInt("width")<=0 || node.getInt("height")<=0)correct=false;
                 JSONArray families=node.getJSONArray("families");
                 if("default".equals(family)) { if(families.length()!=0)correct=false; }
