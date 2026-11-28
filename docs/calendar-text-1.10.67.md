@@ -1,3 +1,7 @@
+## Исправление capture: первый прогон заблокирован Maven, повтор того же исходника
+
+CI46166158086/attempt1/job141044030515:80/51/0, все51 failures — HTTP429 repo.maven.apache.org при загрузке android-all-instrumented9-robolectric-4913185-2-i7 ДО sandbox initialization. 29 plain tests прошли; app/test compilation прошла, runtimefix покаНЕподтверждён. Artifact15272285786 ZIP81927 SHA6ab1c4f6be57849fdd26fe1279a982eb5c430478b40d7c9bc421ce5ce1276caa=API/HTML/allfailurecauses. Proof calendar-text-1.10.67-transform-infrastructure-first.json. ПовторёнТОТЖЕjob/sourcee4b7ad/app-testa325, attempt2/job141046111173 идёт; никакиепродукт/tests/assertions/timeouts/репозиторийMavenнеизменены. НетвторогоGradle. После80/0→normalfull1000EXPECTED→Signed/independentAPK/freshnative93. NativeJava/runtime93ещёНЕpass. Нижеистория.
+
 ## Этап 93: гонка capture/own-save доказана и исправлена, target ожидается
 
 RedCI46165539176/job141042139755 на unchangedproduction176287f:2/1/0, exactTransformException.STALE line705; realRoomreadbarrier показал ownsavecompleted=true ДО сравненияoldsnapshot. Protectedrevocationcasepass. Artifact15271397163 ZIP6565 SHA55da4cdebd8e1b2f79c7266ada6c84e745cf1f63af6422a2b1ad5bb9992f2fec=API/HTML; proofdocs/calendar-text-1.10.67-transform-red.json. Исходныйfull997/1 UI-timeout остаётся exactcauseнеполностьюизолирован, negativeproofсохранён.

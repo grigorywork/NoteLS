@@ -1,0 +1,184 @@
+{
+  "stage": 93,
+  "status": "infrastructure-failure-not-product-test-result",
+  "run": 46166158086,
+  "attempt": 1,
+  "job": 141044030515,
+  "source": "e4b7ad5695cb28cc3b13ca6fed8ec9f0d8b7a214",
+  "app_test_source": "a32522822c965c51a39265c0350b106e9855242a",
+  "artifact": {
+    "id": 15272285786,
+    "name": "verification-reports",
+    "size_in_bytes": 81927,
+    "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15272285786",
+    "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15272285786/zip",
+    "expired": false,
+    "created_at": "2026-11-28T16:43:08Z",
+    "expires_at": "2027-02-26T16:37:37Z",
+    "updated_at": "2026-11-28T16:43:08Z",
+    "digest": "sha256:6ab1c4f6be57849fdd26fe1279a982eb5c430478b40d7c9bc421ce5ce1276caa",
+    "workflow_run": {
+      "id": 46166158086,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/calendar-text93-transform-targeted",
+      "head_sha": "e4b7ad5695cb28cc3b13ca6fed8ec9f0d8b7a214"
+    }
+  },
+  "archive_sha256": "6ab1c4f6be57849fdd26fe1279a982eb5c430478b40d7c9bc421ce5ce1276caa",
+  "tests": 80,
+  "failures": 51,
+  "ignored": 0,
+  "passed": 29,
+  "all_51_failures_cause": "HTTP429 repo.maven.apache.org org.robolectric/android-all-instrumented/9-robolectric-4913185-2-i7 before Android sandbox initialization",
+  "test_bodies_of_failed_cases_executed": false,
+  "app_and_test_compilation": "passed",
+  "runtime_fix_verified": false,
+  "class_reports": [
+    {
+      "name": "com.notessync.app.ai.QuickTransformEditorUiTest",
+      "tests": 4,
+      "failures": 4,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformCaptureSaveRaceTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformSessionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.EditorTransformTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.UiCatalogTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.WidgetLanguageTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyCalendarUiTest",
+      "tests": 1,
+      "failures": 1,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyPreferencesTest",
+      "tests": 4,
+      "failures": 4,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyUiTest",
+      "tests": 2,
+      "failures": 2,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CompactSettingsUiTest",
+      "tests": 5,
+      "failures": 5,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.SettingsGroupsUiTest",
+      "tests": 4,
+      "failures": 4,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.calendar.CalendarMathTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.WidgetActivityNavigationTest",
+      "tests": 1,
+      "failures": 1,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CalendarTypographyWidgetTest",
+      "tests": 4,
+      "failures": 4,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetQueryTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetUpdatesTest",
+      "tests": 2,
+      "failures": 2,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetViewsTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetDatesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetQueryTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetUpdatesTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetViewsTest",
+      "tests": 3,
+      "failures": 3,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetCompletedStyleTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewColorTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    }
+  ],
+  "retry": "same job/source, no app/tests/assertions/timeout changes"
+}
