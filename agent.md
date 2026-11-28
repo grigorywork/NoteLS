@@ -2032,3 +2032,14 @@ GHAonly/no localSDKGradlebuilds; app/testзамораживатьприCI; RESTf
 
 Исполнитель чат6b0a9b29-9cdc-83ed-9024-8bed96fec058; исходный чат и fallback не дублировать. GHA only/no localSDKGradle, RESTforce=false+lease/no resetcleanforcepush/losttree, постоянный Secret/pin сохранять.68/iPhone/newAI/paidcalls не начинать. После всей очереди93–97 оба новых postqueue3h окна пока0ms; implementation/CIwait/idle не считать. Ниже история.
 
+
+
+2026-11-28T14:57:32.674111+00:00
+## Этап 92: полный CI и подпись проверены; Android15 требует повторной диагностики запуска
+
+Runtime/source7fb62a619a041d97d220df4e14255c77aac68a71, кандидат1.10.66/code89/Room20. Full46153497475/job141004994303 SUCCESS986/0/0/lint0errors27warnings2info/build22m40s. Signed46155533140/identity141011229103/release141011263900 SUCCESS7m48s/13guards0fail8.843s. ZIP/API/exact3/SUMS/source/package/version/nondebug/min26target35/actualapksigner v2v3/1signer/pin/newDEX/actualRoom20identity+8entities25DDL независимо подтверждены. APK SHAa23ec1084c230bf5b76c883874c8897bfcdd9c6e1b56470ff904b321f6e711ba. Proofs пока scratch/notels-stage92/full.zip.verification.json иsigned.zip.verification.json; app/test не менять, новыйfull/подпись не нужны.
+
+Actualrelease46156266780/job141013494940 FAILED на последнем новом datesprobeAPI35: Footer missing after ordinary process death. SettingsARTGC3 +launcher/running/subtasksAPI28+35 и datesAPI28 SUCCESS; API35доkill подтвердил ввод/autosave/DBdate/createdAt/reopen. Сохранённая синтетическая DB содержит правильную заметку/блокнот/даты. FailureXML/PNG показывают домашнийэкранPixelLauncher. Предыдущий скрипт не подтверждал фактический HOME-переход и очисткустарогоProcessRecord, не сохранялвыводamstart; причина отсутствияeditor ещё не классифицирована как product илиharness. Negativeproof docs/editor-dates-1.10.66-release-first.json. 92НЕзакрыт/66ещёНЕвыдаватькакполностьюпроверенныйinstaller/93не начинать.
+
+Только scripts/release_editor_dates_probe.py усилен: ждёт фактический HOMEroot доkill, PIDabsent+исчезновениестарогоProcessRecord+HOMEпослеkill, сохраняеткаждыйamstartи требуетStatusok, новыйPID/тежеfooter/DB/no-op/dateidentityassertions; вfailureдобавленыactivity/process/exit/crashdiagnostics. Таймауты и первоначальныеassertions сохранены, повторныхlaunchпопыток нет. Syntax/exactHOME/processregexhostchecks прошли, AndroidрезультатпокаНЕподтверждён. Далее manual release-settings-smoke.yml вmain на ТОМЖЕ Signed46155533140/source7fb, безapprebuild/resign/full. Новыйmainможетбытьтолькоscripts/docs, обязателенgitdiffapp/testemptyотruntime7fb. ПослеfreshactualобеихAPI ивсехпроверок →close92→93–97. Обаpostqueue3h0ms/GHAonly/Secretpinunchanged/no resetcleanforcepush/не дублироватьисполнителя. Ниже история.
+

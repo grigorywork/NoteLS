@@ -9,11 +9,28 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 import release_settings_gc_probe as ui
 import release_running_task_probe as running
-from release_subtasks_probe import open_parent, replace_database
+from release_subtasks_probe import replace_database
 from live_hierarchy_probe import LiveHierarchy
 
 OUT = Path('release-settings-probe/editor-dates')
 DATE = re.compile(r'\d{1,2}\.\d{1,2}\.\d{2,4},?\s+\d{1,2}:\d{2}')
+
+
+def open_parent(id, identity, label):
+    output=ui.adb('shell','am','start','-W','-n',ui.PACKAGE+'/.MainActivity',
+        '-a','com.notessync.app.widget.OPEN_NOTE','--el','widgetNoteId',id,'--es','widgetNoteSyncId',identity)
+    (OUT/(label+'-start.txt')).write_text(output)
+    assert 'Status: ok' in output and 'Error:' not in output, 'Explicit editor launch failed: '+output
+
+
+def home_visible(home):
+    # HOME dispatch is asynchronous. Confirm the actual focused launcher before killing the background app.
+    return ui.tree().get('root-package')==home
+
+
+def old_process_record_absent(pid):
+    dump=ui.adb('shell','dumpsys','activity','processes')
+    return not re.search(r'ProcessRecord\{[^}\n]*\s'+re.escape(pid)+r':'+re.escape(ui.PACKAGE)+r'/',dump)
 
 
 def footer(root):
@@ -78,7 +95,7 @@ def main():
     id=running.insert(connection,'notes',{'syncId':identity,'notebookId':book,'content':'Dates body original',
         'createdAt':now-2*86_400_000,'updatedAt':now-86_400_000})
     replace_database(connection,target,remote)
-    open_parent(id,identity)
+    open_parent(id,identity,'initial')
     before=running.wait(visible_footer,'Committed footer did not appear')
     assert matches(before['created'],now-2*86_400_000,zone), before
     assert matches(before['modified'],now-86_400_000,zone), before
@@ -97,13 +114,21 @@ def main():
     assert saved['syncId']==identity and saved['notebookId']==book and not saved['isDeleted']
     assert saved['content']=='Dates body original Saved' and saved['createdAt']==now-2*86_400_000
     assert saved['updatedAt']>now-86_400_000 and matches(edited['modified'],saved['updatedAt'],zone)
-    open_parent(id,identity)
+    open_parent(id,identity,'reopen')
     restored=running.wait(visible_footer,'Footer not restored after reopen')
     assert restored['created']==edited['created'] and restored['modified']==edited['modified']
-    ui.adb('shell','input','keyevent','HOME'); pid=running.process_id(); assert re.fullmatch(r'\d+',pid)
+    resolved=ui.adb('shell','cmd','package','resolve-activity','--brief','-a','android.intent.action.MAIN','-c','android.intent.category.HOME')
+    home=re.findall(r'([\w.]+)/[\w.$]+',resolved)[-1]
+    ui.adb('shell','input','keyevent','HOME')
+    running.wait(lambda:home_visible(home),'HOME did not finish moving the fixture into background')
+    pid=running.process_id(); assert re.fullmatch(r'\d+',pid)
+    (OUT/'before-process-death-activities.txt').write_text(ui.adb('shell','dumpsys','activity','activities'))
     ui.adb('shell','kill','-9',pid); running.wait(lambda:not running.process_id(),'Fixture process is still running')
-    open_parent(id,identity)
+    running.wait(lambda:old_process_record_absent(pid),'ActivityManager still holds the killed process record')
+    running.wait(lambda:home_visible(home),'Launcher did not regain focus after fixture process death')
+    open_parent(id,identity,'process-death')
     restarted=running.wait(visible_footer,'Footer missing after ordinary process death')
+    assert running.process_id()!=pid and re.fullmatch(r'\d+',running.process_id()), 'Require a new live app process'
     assert restarted['created']==edited['created'] and restarted['modified']==edited['modified']
     ui.snapshot('dates-restarted')
     ui.tap('Назад'); running.wait(lambda:ui.match_path(ui.tree(),'Новая заметка'),'No-op exit did not complete')
@@ -118,7 +143,8 @@ def main():
         'room_version':schema['version'],'room_identity':schema['identityHash'],'minified_installed_apk':True,
         'actual_android_emulator':True,'actual_footer_left_right':True,'actual_text_edit_autosave':True,
         'visible_date_matches_committed_database':True,'created_preserved':True,'no_op_dates_unchanged':True,
-        'reopen_process_death_preserves_dates':True,'notebook_document_identity_preserved':True,'physical_phone':False}
+        'reopen_process_death_preserves_dates':True,'notebook_document_identity_preserved':True,
+        'background_home_confirmed':True,'dead_process_record_absent':True,'launch_status_ok_after_death':True,'physical_phone':False}
     (OUT/'dates-result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))
 
 
@@ -129,4 +155,10 @@ if __name__=='__main__':
         (OUT/'dates-failure.json').write_text(json.dumps({'status':'failure','error_type':type(error).__name__,'message':str(error)}))
         try:ui.snapshot('dates-failure')
         except BaseException:pass
+        for name,args in [('failure-activities',('shell','dumpsys','activity','activities')),
+                          ('failure-processes',('shell','dumpsys','activity','processes')),
+                          ('failure-exit-info',('shell','dumpsys','activity','exit-info',ui.PACKAGE)),
+                          ('failure-crash-log',('logcat','-b','crash','-d','-v','brief'))]:
+            try:(OUT/(name+'.txt')).write_text(ui.adb(*args))
+            except BaseException:pass
         raise
