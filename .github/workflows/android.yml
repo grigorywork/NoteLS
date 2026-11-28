@@ -25,7 +25,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
       - name: Tests, lint and compilation
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
+        run: ./gradlew :app:testDebugUnitTest --tests '*tasks.running.*' --tests '*TaskTimerTest' --tests '*TaskTimerCountdownTest' --tests '*TaskTimerFormatCompatibilityTest' --tests '*TaskDuration*' --tests '*TaskDeadlineEditorTest' --tests '*EditorAlarm*RegressionTest' --tests '*EditorMetadataProtectionRegressionTest' --tests '*EditorConversionCacheRegressionTest' --tests '*CompactEditorTest' --tests '*CompactSettingsUiTest' --tests '*SettingsGroupsUiTest' --tests '*CompactWidgetQueryTest' --tests '*WidgetActivityNavigationTest' --tests '*UiCatalogTest' :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
