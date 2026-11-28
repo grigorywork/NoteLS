@@ -92,12 +92,17 @@ def tap_notification_action(title, label):
             if len(matches) > 1: break
         return None
     root = ui.tree(); box = action(root)
-    if box is None:
+    # SystemUI may nest a collapsed app group and a collapsed individual task.
+    # Reveal both through their native arrows; never tap another task's action.
+    for _ in range(3):
+        if box is not None: break
         path = ui.match_path(root, title); assert path
         expanded = False
         for parent in reversed(path):
-            if any(n.get('text') in other_titles for n in parent.iter()): break
-            arrows = [n for n in parent.iter() if n.get('resource-id', '').endswith('/expand_button') and n.get('clickable') == 'true']
+            arrows = [n for n in parent.iter()
+                      if n.get('resource-id', '').endswith('/expand_button')
+                      and n.get('clickable') == 'true'
+                      and n.get('content-desc') == 'Expand']
             if len(arrows) == 1:
                 arrow = ui.bounds(arrows[0]); assert arrow
                 ui.adb('shell', 'input', 'tap', (arrow[0]+arrow[2])//2, (arrow[1]+arrow[3])//2)
@@ -109,7 +114,7 @@ def tap_notification_action(title, label):
             height = int(re.findall(r'\d+', ui.adb('shell','wm','size'))[-1])
             ui.adb('shell', 'input', 'swipe', (area[0]+area[2])//2, area[1]+5,
                    (area[0]+area[2])//2, min(area[3]+220,height-100), 300)
-        box = action(ui.tree())
+        root = ui.tree(); box = action(root)
     assert box, 'Unique action missing for '+title+': '+label
     ui.adb('shell', 'input', 'tap', (box[0]+box[2])//2, (box[1]+box[3])//2)
 
