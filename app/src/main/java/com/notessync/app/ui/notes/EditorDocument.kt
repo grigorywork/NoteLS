@@ -102,7 +102,8 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
     private fun restoreHistory(backwards: Boolean) {
         if (!historyEnabled || !canEdit()) return
         atomicInput = false
-        val state = if (backwards) history.undo(snapshot()) else history.redo(snapshot())
+        val state = try { if (backwards) history.undo(snapshot()) else history.redo(snapshot()) }
+        catch (_: SubtaskHistoryLimitReached) { report(EditorMessage.SUBTASK_LIMIT); return }
         state?.let {
             Snapshot.withMutableSnapshot {
                 titleField = TextFieldValue(it.title, TextRange(it.cursor.title.start, it.cursor.title.end))

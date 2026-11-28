@@ -1,0 +1,116 @@
+{
+  "stage": 91,
+  "status": "full-ci-intentionally-cancelled-for-confirmed-audit-fixes",
+  "run_id": 46129066158,
+  "source": "b669b0063069d1c05e9edd7b5077ad19126fa2bf",
+  "job": {
+    "id": 140930035604,
+    "name": "verify",
+    "status": "completed",
+    "conclusion": "cancelled",
+    "run_id": 46129066158,
+    "logs_url": null,
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2
+      },
+      {
+        "name": "Run actions/setup-java@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3
+      },
+      {
+        "name": "Run gradle/actions/setup-gradle@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4
+      },
+      {
+        "name": "Tests, lint and compilation",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "number": 5
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7
+      },
+      {
+        "name": "Prepare cloud debug APK (not an installed-app update)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 8
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9
+      },
+      {
+        "name": "Post Run gradle/actions/setup-gradle@v4",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 16
+      },
+      {
+        "name": "Post Run actions/setup-java@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19
+      }
+    ]
+  },
+  "full_pass_confirmed": false,
+  "installer_produced": false,
+  "findings": [
+    {
+      "kind": "new-note-child-write-rollback-poisons-editor-id",
+      "proof": "VM published currentNoteId/createdHere/SavedState before replaceSubtasks. Child insert/capacity failure rolls back parent but leaves positive editor ID; next save marks note deleted on missing fresh row. Stage identity/cache and publish after withTransaction returns."
+    },
+    {
+      "kind": "history-capacity-overflow-after-valid-sync",
+      "proof": "Remote additions/text growth can fill100/64000 limits after local deletion/edit; undo/redo then checked() throws after history stack already moved. Validate prospective result first, typed UI limit report, preserve remote rows/current/history and retry."
+    }
+  ],
+  "regressions_added": 7,
+  "previous_target": {
+    "run_id": 46128233297,
+    "tests": 106,
+    "failures": 0,
+    "ignored": 0,
+    "lint_errors": 0
+  },
+  "new_expected_full_tests": 976,
+  "new_results_confirmed": false
+}

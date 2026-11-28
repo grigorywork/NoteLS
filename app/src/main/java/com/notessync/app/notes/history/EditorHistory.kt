@@ -26,6 +26,8 @@ data class EditorSnapshot(
 )
 enum class EditKind { INPUT, COMPOSITION, TABLE_INPUT, ATOMIC }
 enum class HistoryResult { UNCHANGED, RECORDED, TOO_LARGE }
+class SubtaskHistoryLimitReached(cause: IllegalArgumentException) :
+    IllegalStateException("Subtask history exceeds limits", cause)
 
 class EditorHistory(
     private val maxSteps: Int = 50,
@@ -71,15 +73,19 @@ class EditorHistory(
 
     fun undo(current: EditorSnapshot): EditorSnapshot? {
         breakGroup()
-        val entry = undo.removeLastOrNull() ?: return null
+        val entry = undo.lastOrNull() ?: return null
+        val restored = entry.apply(current, backwards = true)
+        undo.removeLast()
         redo.addLast(entry)
-        return entry.apply(current, backwards = true)
+        return restored
     }
     fun redo(current: EditorSnapshot): EditorSnapshot? {
         breakGroup()
-        val entry = redo.removeLastOrNull() ?: return null
+        val entry = redo.lastOrNull() ?: return null
+        val restored = entry.apply(current, backwards = false)
+        redo.removeLast()
         undo.addLast(entry)
-        return entry.apply(current, backwards = false)
+        return restored
     }
 
     private data class Patch(val start: Int, val removed: String, val inserted: String) {
@@ -156,8 +162,12 @@ class EditorHistory(
             return EditorSnapshot(newTitle, newContent, if (backwards) beforeFormat else afterFormat,
                 cursor.copy(title = cursor.title.bounded(newTitle.length), content = cursor.content.bounded(newContent.length)),
                 tables?.let { if (backwards) it.before else it.after } ?: current.tables,
-                subtasks?.let { Subtasks.history(current.subtasks, if (backwards) it.after else it.before,
-                    if (backwards) it.before else it.after, System.currentTimeMillis()) } ?: current.subtasks)
+                subtasks?.let {
+                    try {
+                        Subtasks.history(current.subtasks, if (backwards) it.after else it.before,
+                            if (backwards) it.before else it.after, System.currentTimeMillis())
+                    } catch (limit: IllegalArgumentException) { throw SubtaskHistoryLimitReached(limit) }
+                } ?: current.subtasks)
         }
         fun merge(next: Entry): Entry? {
             if (subtasks != null || next.subtasks != null) return null

@@ -52,8 +52,25 @@ def main():
     replace_database(connection, target, remote)
     if sdk >= 33: ui.adb('shell', 'pm', 'grant', PACKAGE, 'android.permission.POST_NOTIFICATIONS')
     open_parent(parent, parent_sync)
-    ui.tap('Добавить подзадачу', scroll=True)
-    focused = [n for n in ui.tree().iter() if n.get('focused') == 'true' and n.get('class') == 'android.widget.EditText']
+    def enabled_inline_plus():
+        path = ui.match_path(ui.tree(), 'Добавить подзадачу')
+        if path:
+            button = next((n for n in reversed(path) if n.get('clickable') == 'true'), None)
+            return ui.bounds(button) if button is not None and all(n.get('enabled') != 'false' for n in path) else None
+        size = [int(x) for x in re.findall(r'\d+', ui.adb('shell', 'wm', 'size'))][-2:]
+        ui.adb('shell', 'input', 'swipe', size[0]//2, int(size[1]*.78), size[0]//2, int(size[1]*.35), 350)
+        return None
+    plus = running.wait(enabled_inline_plus, 'Inline plus did not become visible and enabled')
+    ui.adb('shell', 'input', 'tap', (plus[0]+plus[2])//2, (plus[1]+plus[3])//2)
+    def focused_inline_child():
+        root = ui.tree()
+        focused = [n for n in root.iter() if n.get('focused') == 'true' and n.get('class') == 'android.widget.EditText']
+        watch = ui.match_path(root, 'Запустить секундомер подзадачи')
+        if len(focused) != 1 or not watch: return None
+        field, control = ui.bounds(focused[0]), ui.bounds(watch[-1])
+        # Identify the new child row, rather than accepting an old focused document field.
+        return focused if field and control and field[2] <= control[0] and max(field[1],control[1]) < min(field[3],control[3]) else None
+    focused = running.wait(focused_inline_child, 'Inline plus did not focus its editable subtask field')
     assert len(focused) == 1, 'Inline plus must focus exactly one editable subtask field'
     ui.adb('shell', 'input', 'text', 'Subtask%styped')
     running.wait(lambda: ui.match_path(ui.tree(), 'Subtask typed'), 'Actual subtask text was not entered')
@@ -77,20 +94,21 @@ def main():
     private = running.insert(connection, 'notes', {'syncId':f'subtask-probe-private-{sdk}','title':'PRIVATE_PARENT_FIXTURE',
         'content':'Private parent body','isProtected':1,'createdAt':now,'updatedAt':now})
     running.insert(connection, 'note_subtasks', {'noteId':private,'id':'private-item','position':0,'text':'PRIVATE_SUBTASK_FIXTURE',
-        'completed':0,'elapsedMillis':0,'startedAt':now-1000,'countdownMillis':0})
+        'completed':0,'elapsedMillis':0,'countdownMillis':1800_000,'countdownEndAt':now+1800_000})
     replace_database(connection, target, remote)
     ui.adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/.MainActivity')
     tags = {'watch':f'notels:running:{parent}:{watch_id}:STOPWATCH',
             'countdown':f'notels:running:{parent}:sibling-countdown:COUNTDOWN',
-            'private':f'notels:running:{private}:private-item:STOPWATCH'}
+            'private':f'notels:running:{private}:private-item:COUNTDOWN'}
     live = running.wait(lambda: (r if all(t in r for t in tags.values()) else None) if (r:=running.records()) else None,
                         'Child native notifications missing')
     for name, tag in tags.items(): assert running.boolean_extra(live[tag], 'android.showChronometer'), name
     assert running.boolean_extra(live[tags['countdown']], 'android.chronometerCountDown')
+    assert running.boolean_extra(live[tags['private']], 'android.chronometerCountDown')
     assert 'PRIVATE_SUBTASK_FIXTURE' not in running.notification_dump() and 'PRIVATE_PARENT_FIXTURE' not in running.notification_dump()
     assert 'ServiceRecord{' not in ui.adb('shell','dumpsys','activity','services',PACKAGE)
     alarms = ui.adb('shell','dumpsys','alarm'); (OUT/'native-alarms.txt').write_text(alarms)
-    assert alarms.count('tag=*walarm*:com.notessync.app.SUBTASK_DEADLINE') == 1, 'Require exactly one nearest child alarm'
+    assert alarms.count('tag=*walarm*:com.notessync.app.SUBTASK_DEADLINE') == 1, 'Require exactly one child alarm for two running countdowns'
     (OUT/'native-child-notifications.txt').write_text('\n'.join(live[t] for t in tags.values()))
     ui.adb('shell','cmd','statusbar','expand-notifications');ui.snapshot('subtask-native')
     ui.adb('shell','input','keyevent','HOME');pid=running.process_id();assert re.fullmatch(r'\d+',pid)
@@ -113,13 +131,13 @@ def main():
     assert saved['isTask']==0 and saved['isCompleted']==0 and saved['isDeleted']==0
     assert rows[watch_id]['text']=='Subtask typed' and rows[watch_id]['startedAt'] is None and rows[watch_id]['elapsedMillis']>=3600_000 and rows[watch_id]['completed']==0
     assert rows['sibling-countdown']['completed']==1 and rows['sibling-countdown']['countdownEndAt'] is None
-    assert secret['startedAt'] is not None and secret['completed']==0
+    assert secret['startedAt'] is None and secret['countdownMillis']==1800_000 and secret['countdownEndAt']==now+1800_000 and secret['completed']==0
     for folder in ['fixture-ui','fixture-native','fixture-result']:
         for file in (OUT/folder).iterdir():file.unlink()
         (OUT/folder).rmdir()
     result={'status':'success','api':sdk,'room_schema':profile['version'],'room_identity':profile['identityHash'],
         'apk_sha256':hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),'minified_installed_apk':True,'actual_android_emulator':True,
-        'actual_inline_plus_created_saved':True,'native_child_chronometers':True,'native_countdown':True,'one_nearest_platform_alarm':True,
+        'actual_inline_plus_created_saved':True,'native_child_chronometers':True,'native_countdown':True,'one_platform_alarm_for_two_countdowns':True,
         'no_app_service':True,'process_death_keeps_counters':True,'actual_child_pause_complete':True,'parent_document_notebook_preserved':True,
         'parent_not_completed':True,'sibling_and_private_guards':True,'physical_phone':False,'battery_measured':False}
     (OUT/'subtask-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps(result))

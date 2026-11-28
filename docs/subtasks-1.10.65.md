@@ -1,3 +1,11 @@
+## Full остановлен для двух подтверждённых аудитных исправлений
+
+Full46129066158/job140930035604/sourceb669 штатно CANCELLED доinstaller. Полного969pass НЕТ; stage91 НЕ закрыт/65 НЕinstallable. Предыдущийtarget106/0/lint0 остаётся фактом для старого app/d1a. [Cancellation proof](subtasks-1.10.65-cancelled-full.json).
+
+Исправления: новыйparentID/SavedState/createdAt/cache теперь публикуются только ПОСЛЕ успешного parent+children transaction commit; SQLошибка/глобальныйлимит сохраняют новыйредактор повторяемым и не теряютdraft.2NativeSQLtrigger regressions проверяют новую и существующую запись, rollbackобоихдокументов/детей и retryтого жеVM. Историяundo/redo вычисляет и валидирует результат ДО перемещениястеков; превышение100пунктов/64000текста после remoteSync сообщаетSUBTASK_LIMIT, сохраняя текущиепункты/удалённыеизистории/чужиеизменения/стек и возможность retry.5pure regressions count/textundo+redo/UIreport+retry. Теперь36новых/full976 ОЖИДАЕТСЯ, НЕpass дофактическогоCI.
+
+Actualreleaseprobe усилен:3Nativeуведомления сохраняются, но два из них countdown15/30мин; проверяется одинplatformalarmдлядвух. Resultkey one_platform_alarm_for_two_countdowns точен; ближайшийdeadline отдельно доказываетNativeRoomcase, не выдавать одинdumpзаизмерениенужноговремени. Tinyplus readiness/focus ждут в прежнем bounded15s, проверяетсяновоеchildfield по соседнемуstopwatch; assertions/PID/liveclocks/private/docguards сохранены. Это покаPythonSyntax/hostSQL, не actualAndroidpass.
+
 ## 91 готов к полному CI; этап ещё не закрыт
 
 Кандидат **1.10.65/code88/Room20/data2/security3**. Целевой CI46128233297/job140927516028 SUCCESS: **106/0fail/0ignored**, lint0errors/27warnings/2info, assembleDebug/build6m13s. ZIPartifact15257260883 size252755 SHA2564967804b10bf23d5f80771345bd92e32b45ac5cc3fc4eec4fc1dfd1ce03dcf91=API/HTML/lintXML проверены; обе subtask NativePNG точно равны ранее осмотренным. Все29новых/77прежних кейсов прошли. Source app/testd1a3486a080b9f89998b9c1282445c217b555e89, productionapp506a; UIidle-pumpfix сохранил15s/assertions. Отрицательныеtarget1/2сохранены. Proof docs/subtasks-1.10.65-targeted-verification.json.

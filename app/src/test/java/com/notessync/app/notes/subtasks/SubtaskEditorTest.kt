@@ -71,4 +71,33 @@ class SubtaskEditorTest {
         assertNull(db.subtaskDao().get(note.id).single().startedAt);assertTrue(db.noteDao().getById(note.id)!!.isCompleted)
         vm.toggleSubtaskStopwatch(id);assertNull(vm.subtasks.single().startedAt)
     }
+    @Test fun `failed first child insert leaves parent identity and SavedState unpublished and the same draft can retry`()=runBlocking {
+        val state=SavedStateHandle()
+        val vm=NoteEditorViewModel(app,state);store.put("new-editor",vm)
+        withTimeout(15_000) { while(!vm.isReady) delay(5) }
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_new_child BEFORE INSERT ON note_subtasks BEGIN SELECT RAISE(ABORT, 'fixture'); END")
+        val child=vm.addSubtask()!!;vm.editSubtask(child,"Keep new child");vm.onContentChange(TextFieldValue("Keep new body"))
+        val failure=runCatching { vm.saveNow(true) }.exceptionOrNull()
+        assertNotNull("Fixture must abort the entire parent+child write",failure)
+        assertTrue(failure!!.stackTraceToString().contains("fixture"))
+        assertEquals(-1L,vm.currentNoteId);assertNull(state.get<Long>("noteId"));assertNull(state.get<Boolean>("createdHere"))
+        assertTrue(db.noteDao().getChangedSince(0).isEmpty());assertEquals("Keep new body",vm.contentField.text);assertEquals("Keep new child",vm.subtasks.single().text)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER reject_new_child")
+        assertTrue(vm.saveNow(true));assertTrue(vm.currentNoteId>0);assertEquals(vm.currentNoteId,state.get<Long>("noteId"))
+        assertEquals("Keep new body",db.noteDao().getById(vm.currentNoteId)!!.content);assertEquals(child,db.subtaskDao().get(vm.currentNoteId).single().id)
+        assertTrue(vm.flushOnExit());assertFalse(db.noteDao().getById(vm.currentNoteId)!!.isDeleted)
+    }
+    @Test fun `child update failure rolls back the existing parent and a retry still writes both pending drafts`()=runBlocking {
+        val note=NoteEntity(content="Original body").let { it.copy(id=db.noteDao().upsert(it)) }
+        db.withTransaction { replaceSubtasks(db,note.id,listOf(Subtask("a","Original child"))) }
+        val vm=open(note.id)
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_existing_child BEFORE INSERT ON note_subtasks BEGIN SELECT RAISE(ABORT, 'fixture'); END")
+        vm.onContentChange(TextFieldValue("Pending body"));vm.editSubtask("a","Pending child")
+        val failure=runCatching { vm.saveNow(true) }.exceptionOrNull()
+        assertNotNull(failure);assertTrue(failure!!.stackTraceToString().contains("fixture"))
+        assertEquals(note,db.noteDao().getById(note.id));assertEquals("Original child",db.subtaskDao().get(note.id).single().text)
+        assertEquals(note.id,vm.currentNoteId);assertEquals("Pending body",vm.contentField.text);assertEquals("Pending child",vm.subtasks.single().text)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER reject_existing_child")
+        assertTrue(vm.saveNow(true));assertEquals("Pending body",db.noteDao().getById(note.id)!!.content);assertEquals("Pending child",db.subtaskDao().get(note.id).single().text)
+    }
 }

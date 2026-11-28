@@ -480,6 +480,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val encodedTables = withContext(Dispatchers.Default) { tablesSnapshot?.encode() ?: unknownSnapshot }
         var accepted = false
         var acceptedNotebook: NotebookEntity? = null
+        var committedNote: NoteEntity? = null
+        var insertedParent = false
         val didWrite = db.withTransaction {
             val fresh = if (exists) noteDao.getById(currentNoteId) else null
             if (exists && (fresh == null || fresh.isDeleted || fresh.isPurged || fresh.syncId != syncId)) { deleted = true; return@withTransaction false }
@@ -515,7 +517,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             if (!subtaskChanges && previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
                     updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {
-                lastSavedNote = com.notessync.app.ui.tasks.mergeExternalTaskTiming(previous, previous, fresh).copy(
+                committedNote = com.notessync.app.ui.tasks.mergeExternalTaskTiming(previous, previous, fresh).copy(
                     isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
                 return@withTransaction false
             }
@@ -525,17 +527,25 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 (fresh?.reminderAt != null || fresh?.taskCountdownEndAt != null || note.reminderAt != null || note.taskCountdownEndAt != null)) {
                 com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
             }
-            if (exists) noteDao.update(note) else {
-                val newId = noteDao.upsert(note)
-                currentNoteId = newId
+            val writtenId = if (exists) {
+                noteDao.update(note)
+                currentNoteId
+            } else noteDao.upsert(note).also { insertedParent = true }
+            com.notessync.app.data.subtasks.replaceSubtasks(db, writtenId, committedSubtasks)
+            committedNote = note.copy(id = writtenId)
+            true
+        }
+        // Publish identity/SavedState/cache only after parent AND child transaction commits.
+        // A child capacity/SQL/commit failure must leave a new editor retryable with its draft intact.
+        if (accepted) committedNote?.let { committed ->
+            if (insertedParent) {
+                currentNoteId = committed.id
                 createdHere = true
-                savedState["noteId"] = newId
+                savedState["noteId"] = committed.id
                 savedState["createdHere"] = true
             }
-            com.notessync.app.data.subtasks.replaceSubtasks(db, currentNoteId, committedSubtasks)
-            createdAt = note.createdAt
-            lastSavedNote = note.copy(id = currentNoteId)
-            true
+            createdAt = committed.createdAt
+            lastSavedNote = committed
         }
         if (accepted) {
             document.subtasks = com.notessync.app.notes.subtasks.Subtasks.merge(subtasks, submittedSubtasks, committedSubtasks)
