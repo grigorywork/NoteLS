@@ -66,9 +66,11 @@ class CalendarFactory(
         language = settings.uiLanguage
         coloredTasks = settings.widgetColoredTasks
         completedStyle = settings.widgetCompletedStyle
+        typography = settings.calendarWidgetTypography
     }
 
     private var language = com.notessync.app.i18n.UiLanguage.RUSSIAN
+    private var typography = com.notessync.app.settings.CalendarWidgetTypography()
     private var coloredTasks: Boolean = false
     private var completedStyle: WidgetCompletedStyle = WidgetCompletedStyle.BOTH
 
@@ -78,7 +80,7 @@ class CalendarFactory(
         val cell = cells[position]
         val today = LocalDate.now()
         val views = RemoteViews(context.packageName, R.layout.widget_day_cell)
-        views.setTextViewText(R.id.day_number, cell.date.dayOfMonth.toString())
+        CalendarWidgetText.set(views, R.id.day_number, cell.date.dayOfMonth.toString(), 13f, typography)
 
         val color = when {
             cell.date == today -> Color.parseColor("#7C4DFF") // сегодня — фиолетовый акцент
@@ -88,7 +90,7 @@ class CalendarFactory(
         views.setTextColor(R.id.day_number, color)
         views.setTextColor(R.id.day_entries, color)
         val entries = dayEntries[cell.date.toEpochDay()] ?: WidgetDaySnapshot(emptyList(), 0)
-        views.setTextViewText(R.id.day_entries, styledPreview(entries))
+        CalendarWidgetText.set(views, R.id.day_entries, styledPreview(entries), 11f, typography)
 
         // Тап по любой дате (даже соседнего месяца) — быстрая заметка этого дня.
         val fillIn = Intent().putExtra(

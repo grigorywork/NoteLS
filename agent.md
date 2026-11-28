@@ -2056,3 +2056,8 @@ Actualrelease46156266780/job141013494940 FAILED на последнем ново
 
 Следующий этап93: настройки текста/шрифта/размера календаря и виджета, будущая1.10.67/code90. Реализация93 ещё не начата; затем94–97 автономно. После ВСЕХ87–97 новые3h activeaudit→3hfixopt оба0ms, implementation/CIwait/idle/overlap исключать. Исполнитель чат6b0a9b29-9cdc-83ed-9024-8bed96fec058; sourcefallbackвыключен/не дублировать. GHAonly/no localSDKGradle, RESTforce=false+lease/no resetcleanforcepush/losttree. PermanentSecret/pin не менять/неbootstrap/key/loginrequests;68/iPhone/newAI/paidcalls не начинать. APK: https://github.com/grigorywork/NoteLS/actions/runs/46155533140/artifacts/15267344989 . Нижние записи — история.
 
+
+## Этап 93 реализован, проверки ожидаются
+
+Ветка codex/calendar-text-1.10.67: кандидат1.10.67/code90/Room20/data2/security3. Независимые font/size/preview/reset календаря и месячного/недельного виджетов, сохранение SharedPreferences, системные Parcelable RemoteViews шрифты с сохранением color/strike/bold, bounded grid scroll, cache identities и no-op guards. Compact notes widget сохраняет прежнее оформление. 11 новых тестов подготовлены, НЕpass до GHA; normal android.yml без --tests, добавлен только reportpath calendar-typography-preview. Отчёт docs/calendar-text-1.10.67.md. Этап93 НЕзакрыт, verifiedinstaller остаётся66/code89. Далееtarget/audit→normalfull997EXPECTED→Signed→independentAPK→freshnative28+35 incl93.94–97 не начинать до полного успеха93. Postqueue3h+3h оба0ms. GHAonly/Secretpinunchanged/no resetcleanforcepush/не дублироватьисполнителя. Ниже история.
+

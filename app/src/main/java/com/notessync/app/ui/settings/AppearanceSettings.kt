@@ -178,6 +178,8 @@ internal fun AppearanceSettings(state: SettingsState, settings: SettingsReposito
         }
     }
 
+    CalendarTypographySettings(state, settings)
+
     LauncherIconSettings()
     PlannerShortcutSettings()
 

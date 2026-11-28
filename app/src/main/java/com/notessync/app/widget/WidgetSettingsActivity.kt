@@ -74,6 +74,7 @@ class WidgetSettingsActivity : ComponentActivity() {
                             .padding(20.dp)
                     ) {
                         Text(uiText("Виджет"), style = MaterialTheme.typography.titleLarge)
+                        com.notessync.app.ui.settings.CalendarWidgetTypographySettings(state, settings)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             uiText("Прозрачность фона"),

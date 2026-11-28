@@ -1,3 +1,7 @@
+## Этап 93 реализован, проверки ожидаются
+
+Ветка codex/calendar-text-1.10.67: кандидат1.10.67/code90/Room20/data2/security3. Независимые font/size/preview/reset календаря и месячного/недельного виджетов, сохранение SharedPreferences, системные Parcelable RemoteViews шрифты с сохранением color/strike/bold, bounded grid scroll, cache identities и no-op guards. Compact notes widget сохраняет прежнее оформление. 11 новых тестов подготовлены, НЕpass до GHA; normal android.yml без --tests, добавлен только reportpath calendar-typography-preview. Отчёт docs/calendar-text-1.10.67.md. Этап93 НЕзакрыт, verifiedinstaller остаётся66/code89. Далееtarget/audit→normalfull997EXPECTED→Signed→independentAPK→freshnative28+35 incl93.94–97 не начинать до полного успеха93. Postqueue3h+3h оба0ms. GHAonly/Secretpinunchanged/no resetcleanforcepush/не дублироватьисполнителя. Ниже история.
+
 ## Этап 92 закрыт — NoteLS 1.10.66/code89
 
 Проверенный runtime source 7fb62a619a041d97d220df4e14255c77aac68a71, Room20/data2/security3. Внизу редактора дата создания слева, дата изменения справа. Даты берутся из сохранённой базы, обновляются после успешной записи; no-op и SQLrollback не меняют отображение. Сохранены свежий createdAt, доступ/identity, блокноты, подзадачи, история, backup/sync. RU/EN, крупный шрифт и IME проверены; фоновых тиков для дат нет.

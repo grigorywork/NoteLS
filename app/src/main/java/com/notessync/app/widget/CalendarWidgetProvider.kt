@@ -91,7 +91,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
             val month = currentMonth(context, id)
             val selected = selectedDay(context, id)
             val signature = "$month|$selected|${settings.widgetAlpha}|${settings.uiLanguage}|" +
-                "${settings.widgetColoredTasks}|${settings.widgetCompletedStyle}|${LocalDate.now()}"
+                "${settings.widgetColoredTasks}|${settings.widgetCompletedStyle}|${settings.calendarWidgetTypography}|${LocalDate.now()}"
             val now = System.currentTimeMillis()
             if (!force && rendered[id] == signature) {
                 if (now - (lastNotifiedAt[id] ?: 0L) < NOTIFY_THROTTLE_MS) return
@@ -103,11 +103,11 @@ class CalendarWidgetProvider : AppWidgetProvider() {
 
             val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
                 .replaceFirstChar { it.uppercase(locale) }
-            views.setTextViewText(R.id.widget_month_title, "$monthName, ${month.year}")
+            CalendarWidgetText.set(views, R.id.widget_month_title, "$monthName, ${month.year}", 16f, settings.calendarWidgetTypography)
             val weekdayViews = intArrayOf(R.id.widget_weekday_mon, R.id.widget_weekday_tue, R.id.widget_weekday_wed,
                 R.id.widget_weekday_thu, R.id.widget_weekday_fri, R.id.widget_weekday_sat, R.id.widget_weekday_sun)
             val weekdayLabels = arrayOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
-            weekdayViews.forEachIndexed { index, viewId -> views.setTextViewText(viewId, UiCatalog.translate(language, weekdayLabels[index])) }
+            weekdayViews.forEachIndexed { index, viewId -> CalendarWidgetText.set(views, viewId, UiCatalog.translate(language, weekdayLabels[index]), 12f, settings.calendarWidgetTypography) }
             views.setContentDescription(R.id.widget_prev, UiCatalog.translate(language, "Предыдущий месяц"))
             views.setContentDescription(R.id.widget_next, UiCatalog.translate(language, "Следующий месяц"))
             views.setContentDescription(R.id.widget_menu_button, UiCatalog.translate(language, "Настройки виджета"))

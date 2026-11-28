@@ -43,10 +43,10 @@ object WeeklyWidgetUpdates {
         stop()
         return Owner(app, ids).also { owner = it; it.start() }
     }
-    private data class Request(val preferences: CompactWidgetPreferences, val ids: Set<Int>, val revision: Long)
+    private data class Request(val preferences: WeeklyWidgetPreferences, val ids: Set<Int>, val revision: Long)
     private data class Frame(val selection: WeekSelection, val days: Map<Long, WidgetDaySnapshot>, val today: java.time.LocalDate)
     private data class Snapshot(val request: Request, val frames: Map<Int, Frame>)
-    private data class Key(val frame: Frame, val preferences: CompactWidgetPreferences, val revision: Long)
+    private data class Key(val frame: Frame, val preferences: WeeklyWidgetPreferences, val revision: Long)
     private class Owner(val app: Application, initial: Set<Int>) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val ids = MutableStateFlow(initial)
@@ -66,7 +66,7 @@ object WeeklyWidgetUpdates {
         fun start() { scope.launch {
             try {
                 val db = AppDatabase.get(app)
-                combine(changes(db), SettingsRepository.get(app).state.map(CompactWidgetPreferences::from).distinctUntilChanged(), ids, revision) {
+                combine(changes(db), SettingsRepository.get(app).state.map(WeeklyWidgetPreferences::from).distinctUntilChanged(), ids, revision) {
                     _, preferences, widgets, stamp -> Request(preferences, widgets, stamp)
                 }.mapLatest { request ->
                     val today = java.time.LocalDate.now()
@@ -93,7 +93,7 @@ object WeeklyWidgetUpdates {
                             currentCoroutineContext().ensureActive()
                             val key = Key(frame, request.preferences, request.revision)
                             if (cache[id] != key) {
-                                manager.updateAppWidget(id, WeeklyWidgetViews.build(app, id, frame.selection, frame.days, request.preferences, frame.today))
+                                manager.updateAppWidget(id, WeeklyWidgetViews.build(app, id, frame.selection, frame.days, request.preferences.common, frame.today, typography = request.preferences.typography))
                                 cache[id] = key
                             }
                         }
@@ -104,11 +104,11 @@ object WeeklyWidgetUpdates {
             catch (_: Exception) {
                 render.withLock {
                     currentCoroutineContext().ensureActive()
-                    val preferences = CompactWidgetPreferences.from(SettingsRepository.get(app).state.value)
+                    val preferences = WeeklyWidgetPreferences.from(SettingsRepository.get(app).state.value)
                     val manager = AppWidgetManager.getInstance(app)
                     ids.value.forEach { id ->
                         currentCoroutineContext().ensureActive()
-                        runCatching { manager.updateAppWidget(id, WeeklyWidgetViews.build(app, id, WeeklyWidgetProvider.state(app, id), emptyMap(), preferences, failed = true)) }
+                        runCatching { manager.updateAppWidget(id, WeeklyWidgetViews.build(app, id, WeeklyWidgetProvider.state(app, id), emptyMap(), preferences.common, failed = true, typography = preferences.typography)) }
                     }
                     failed.set(true)
                     ack.value = revision.value

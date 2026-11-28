@@ -2,6 +2,8 @@ package com.notessync.app.ui.screens
 
 import com.notessync.app.i18n.uiText
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -91,6 +94,8 @@ fun CalendarScreen(
     val weeks = remember(state.cells) { state.cells.chunked(7) }
     var showMonth by rememberSaveable(agendaMode) { mutableStateOf(!agendaMode) }
 
+    MaterialTheme(typography = com.notessync.app.ui.theme.scaledTypography(
+        settings.fontScale * settings.calendarTextSize.scale, settings.calendarFont ?: settings.appFont)) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -120,11 +125,9 @@ fun CalendarScreen(
         }
 
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
+        val gridMaxHeight = maxHeight * 0.7f
+        Column(modifier = Modifier.fillMaxSize()) {
             if (showMonth) {
                 Row(
                     modifier = Modifier
@@ -162,12 +165,14 @@ fun CalendarScreen(
                     }
                 }
 
-                Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 10.dp).heightIn(max = gridMaxHeight)
+                    .verticalScroll(rememberScrollState())) {
                     weeks.forEach { week ->
                         Row(modifier = Modifier.fillMaxWidth()) {
                             week.forEach { cell ->
                                 CalendarDayCell(
                                     cell = cell,
+                                    textScale = settings.fontScale * settings.calendarTextSize.scale,
                                     selected = cell.date == state.selectedDate,
                                     today = cell.date == LocalDate.now(),
                                     entries = state.notesByDay[cell.date.toEpochDay()].orEmpty(),
@@ -232,12 +237,15 @@ fun CalendarScreen(
                 item { Spacer(Modifier.height(88.dp)) }
             }
         }
+        }
+    }
     }
 }
 
 @Composable
 private fun CalendarDayCell(
     cell: CalendarCell,
+    textScale: Float,
     selected: Boolean,
     today: Boolean,
     entries: List<NoteEntity>,
@@ -300,7 +308,7 @@ private fun CalendarDayCell(
     Column(
         modifier = modifier
             .padding(1.dp)
-            .height(66.dp)
+            .height((66 * (textScale * androidx.compose.ui.platform.LocalDensity.current.fontScale).coerceAtLeast(1f)).dp)
             .clip(shape)
             .background(background)
             .border(1.dp, borderColor, shape)
@@ -318,8 +326,8 @@ private fun CalendarDayCell(
             Text(
                 text = preview,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 9.sp,
-                    lineHeight = 11.sp
+                    fontSize = (9 * textScale).sp,
+                    lineHeight = (11 * textScale).sp
                 ),
                 maxLines = 3,
                 overflow = TextOverflow.Clip,

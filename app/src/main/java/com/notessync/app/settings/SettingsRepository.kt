@@ -149,6 +149,10 @@ data class SettingsState(
     val widgetColoredTasks: Boolean = false,
     // Этап 34: шрифт интерфейса.
     val appFont: AppFont = AppFont.SYSTEM,
+    // Null inherits the app font; widget typography is independent of Compose.
+    val calendarFont: AppFont? = null,
+    val calendarTextSize: CalendarTextSize = CalendarTextSize.NORMAL,
+    val calendarWidgetTypography: CalendarWidgetTypography = CalendarWidgetTypography(),
     // Этап 37: классика или матовое стекло.
     val interfaceStyle: InterfaceStyle = InterfaceStyle.CLASSIC,
     val glassAppearance: GlassAppearance = GlassAppearance(),
@@ -227,6 +231,11 @@ class SettingsRepository private constructor(context: Context) : SharedPreferenc
         voiceStructure = enumPref(KEY_VOICE_STRUCTURE, VoiceStructure.POINTS),
         widgetColoredTasks = prefs.getBoolean(KEY_WIDGET_COLORED_TASKS, false),
         appFont = enumPref(KEY_APP_FONT, AppFont.SYSTEM),
+        calendarFont = runCatching { prefs.getString("calendar_font", null)?.let { enumValueOf<AppFont>(it) } }.getOrNull(),
+        calendarTextSize = enumPref("calendar_text_size", CalendarTextSize.NORMAL),
+        calendarWidgetTypography = CalendarWidgetTypography(
+            enumPref("calendar_widget_font", CalendarWidgetFont.DEFAULT),
+            enumPref("calendar_widget_text_size", CalendarTextSize.NORMAL)),
         interfaceStyle = enumPref(KEY_INTERFACE_STYLE, InterfaceStyle.CLASSIC),
         glassAppearance = GlassAppearance(
             transparency = runCatching { prefs.getFloat("glass_transparency", 0.5f) }.getOrDefault(0.5f),
@@ -318,6 +327,21 @@ fun setFormattingBarPosition(value: FormattingBarPosition) { prefs.edit().putStr
             .putString("drawer_quote_font", v.font.name).putFloat("drawer_quote_size", v.size)
             .putLong("drawer_quote_text_color", v.textColor).putLong("drawer_quote_background", v.backgroundColor).apply()
         _state.value = read()
+    }
+
+    fun setCalendarTypography(font: AppFont?, size: CalendarTextSize) {
+        if (_state.value.calendarFont == font && _state.value.calendarTextSize == size) return
+        prefs.edit().putString("calendar_font", font?.name).putString("calendar_text_size", size.name).apply()
+        _state.value = read()
+    }
+
+    fun setCalendarWidgetTypography(value: CalendarWidgetTypography) {
+        if (_state.value.calendarWidgetTypography == value) return
+        prefs.edit().putString("calendar_widget_font", value.font.name)
+            .putString("calendar_widget_text_size", value.size.name).apply()
+        _state.value = read()
+        // One user event updates installed month/week widgets. Compact notes keep their style.
+        com.notessync.app.widget.CalendarWidgetProvider.refreshAll(appContext, force = true)
     }
 
     fun setAppFont(font: AppFont) {

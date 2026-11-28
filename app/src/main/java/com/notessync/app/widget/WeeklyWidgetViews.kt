@@ -20,11 +20,22 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
+internal data class WeeklyWidgetPreferences(
+    val common: CompactWidgetPreferences,
+    val typography: com.notessync.app.settings.CalendarWidgetTypography
+) {
+    companion object {
+        fun from(state: com.notessync.app.settings.SettingsState) = WeeklyWidgetPreferences(
+            CompactWidgetPreferences.from(state), state.calendarWidgetTypography)
+    }
+}
+
 internal object WeeklyWidgetViews {
     val rows = intArrayOf(R.id.week_day_0, R.id.week_day_1, R.id.week_day_2, R.id.week_day_3,
         R.id.week_day_4, R.id.week_day_5, R.id.week_day_6)
     fun build(context: Context, id: Int, selection: WeekSelection, days: Map<Long, WidgetDaySnapshot>,
-        preferences: CompactWidgetPreferences, today: LocalDate = LocalDate.now(), failed: Boolean = false): RemoteViews {
+        preferences: CompactWidgetPreferences, today: LocalDate = LocalDate.now(), failed: Boolean = false,
+        typography: com.notessync.app.settings.CalendarWidgetTypography = com.notessync.app.settings.CalendarWidgetTypography()): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_week)
         fun text(key: String) = UiCatalog.translate(preferences.language, key)
         views.setInt(R.id.week_bg, "setImageAlpha", (preferences.alpha * 255).roundToInt())
@@ -34,7 +45,7 @@ internal object WeeklyWidgetViews {
         val caption = if (failed) text("Не удалось обновить записи. Откройте NoteLS.") else
             if (first.month == last.month && first.year == last.year) "${first.dayOfMonth}–${last.dayOfMonth}\n${first.format(DateTimeFormatter.ofPattern("MMM yyyy", preferences.language.locale))}"
             else "${first.format(DateTimeFormatter.ofPattern("dd.MM.yy", preferences.language.locale))}\n–${last.format(DateTimeFormatter.ofPattern("dd.MM.yy", preferences.language.locale))}"
-        views.setTextViewText(R.id.week_title, caption)
+        CalendarWidgetText.set(views, R.id.week_title, caption, 14f, typography)
         views.setContentDescription(R.id.week_title, text("Текущая неделя") + ". " + range + if (failed) ". $caption" else "")
         listOf(R.id.week_prev to WeeklyWidgetProvider.PREVIOUS, R.id.week_next to WeeklyWidgetProvider.NEXT,
             R.id.week_title to WeeklyWidgetProvider.CURRENT).forEach { (viewId, action) ->
@@ -85,7 +96,7 @@ internal object WeeklyWidgetViews {
                     color?.let { builder.setSpan(ForegroundColorSpan(it), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
                     if (line.isCompleted && preferences.completed.usesStrike) builder.setSpan(StrikethroughSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
-                views.setTextViewText(viewId, builder)
+                CalendarWidgetText.set(views, viewId, builder, 14f, typography)
                 views.setContentDescription(viewId, date.format(full) + ". " + builder)
                 views.setOnClickPendingIntent(viewId, dayIntent(context, id, "row/$index", date.toEpochDay(), quick = false))
             }

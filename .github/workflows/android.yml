@@ -45,6 +45,7 @@ jobs:
             app/build/reports/running-task-preview/
             app/build/reports/subtask-preview/
             app/build/reports/editor-dates-preview/
+            app/build/reports/calendar-typography-preview/
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4

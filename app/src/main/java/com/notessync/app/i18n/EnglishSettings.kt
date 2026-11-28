@@ -1,6 +1,13 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addSettingsEnglish() {
+    put("Текст календаря", "Calendar text")
+    put("Текст календарных виджетов", "Calendar widget text")
+    put("Как в приложении", "Follow app font")
+    put("Пн · 12 · Заметки и задачи", "Mon · 12 · Notes and tasks")
+    put("В виджетах доступны системные шрифты. Размер ограничен сеткой календаря.", "Widgets support system fonts. Text size is bounded by the calendar grid.")
+    put("Сбросить текст календаря", "Reset calendar text")
+    put("Сбросить текст виджетов", "Reset widget text")
     put("Планировщик", "Planner")
     put("Открыть календарь", "Open calendar")
     put("Ярлык планировщика", "Planner shortcut")
