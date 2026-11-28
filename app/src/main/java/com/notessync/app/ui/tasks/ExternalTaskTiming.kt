@@ -19,3 +19,9 @@ internal fun mergeExternalTaskTiming(local: NoteEntity, previous: NoteEntity?, f
         reminderAt = if (externalCompletion || local.reminderAt == previous.reminderAt) fresh.reminderAt else local.reminderAt
     )
 }
+
+/** Copy only committed task metadata into a cached document baseline, never uncommitted editor controls. */
+internal fun NoteEntity.withTaskMetadata(value: com.notessync.app.data.local.model.TaskMetadataSnapshot) = copy(
+    isTask = value.isTask, isCompleted = value.isCompleted, taskElapsedMillis = value.taskElapsedMillis,
+    taskTimerStartedAt = value.taskTimerStartedAt, taskCountdownMillis = value.taskCountdownMillis,
+    taskCountdownEndAt = value.taskCountdownEndAt, taskCompletedAt = value.taskCompletedAt, reminderAt = value.reminderAt)

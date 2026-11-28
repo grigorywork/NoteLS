@@ -40,6 +40,7 @@ import com.notessync.app.security.PasswordRecord
 import com.notessync.app.security.ProtectionSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
@@ -49,6 +50,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import com.notessync.app.ui.tasks.withTaskMetadata
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.debounce
@@ -294,9 +297,57 @@ class NoteEditorViewModel @JvmOverloads constructor(
             isReady = true
             accessLoaded.value = true
             startAutosave()
+            startTaskMetadataObserver()
             }
         }
     }
+
+    private fun adoptTaskTiming(expected: NoteEntity, value: NoteEntity) {
+        if (taskElapsedMillis == expected.taskElapsedMillis && taskTimerStartedAt == expected.taskTimerStartedAt) {
+            taskElapsedMillis = value.taskElapsedMillis; taskTimerStartedAt = value.taskTimerStartedAt
+        }
+        if (taskCountdownMillis == expected.taskCountdownMillis && taskCountdownEndAt == expected.taskCountdownEndAt) {
+            taskCountdownMillis = value.taskCountdownMillis; taskCountdownEndAt = value.taskCountdownEndAt
+        }
+        if (isCompleted == expected.isCompleted && taskCompletedAt == expected.taskCompletedAt) {
+            isCompleted = value.isCompleted; taskCompletedAt = value.taskCompletedAt
+        }
+        if (reminderAt == expected.reminderAt) reminderAt = value.reminderAt
+    }
+
+    private fun startTaskMetadataObserver() { viewModelScope.launch {
+        try {
+            combine(_noteIdFlow, snapshotFlow { isTask }) { id, task -> if (task) id else -1L }
+                .distinctUntilChanged().flatMapLatest { id -> if (id > 0) noteDao.observeTaskMetadata(id) else kotlinx.coroutines.flow.flowOf(null) }
+                .distinctUntilChanged().collectLatest { signal ->
+                    if (signal == null) return@collectLatest
+                    protection.awaitIdle()
+                    saveMutex.withLock {
+                        if (!isReady || isClosing || deleted || accessDenied || !isTask) return@withLock
+                        val id = currentNoteId
+                        val fresh = db.withTransaction {
+                            val access = noteDao.getAccess(id) ?: return@withTransaction null
+                            if (!access.allowed(id, syncId, ProtectionSession.state.value)) return@withTransaction null
+                            val book = access.notebookId?.let { db.notebookDao().getById(it) }
+                            if ((access.notebookId != null && book == null) || book?.isDeleted == true || (book?.isDiary == true && !com.notessync.app.notes.diary.DiaryPrivacy.valid(book))) return@withTransaction null
+                            noteDao.getTaskMetadata(id)?.takeIf { it.id == id && it.syncId == syncId && it.isTask }
+                        } ?: return@withLock
+                        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                        if (!isReady || isClosing || deleted || accessDenied || !isTask) return@withLock
+                        val previous = lastSavedNote?.takeIf { it.id == id && it.syncId == syncId && it.isTask } ?: return@withLock
+                        val local = previous.copy(isTask = isTask, isCompleted = isCompleted, taskCompletedAt = taskCompletedAt,
+                            taskElapsedMillis = taskElapsedMillis, taskTimerStartedAt = taskTimerStartedAt,
+                            taskCountdownMillis = taskCountdownMillis, taskCountdownEndAt = taskCountdownEndAt, reminderAt = reminderAt)
+                        val committed = previous.withTaskMetadata(fresh)
+                        val merged = com.notessync.app.ui.tasks.mergeExternalTaskTiming(local, previous, committed)
+                        // Cache only what Room committed; a local accepted control can still be waiting to save.
+                        lastSavedNote = committed
+                        adoptTaskTiming(local, merged)
+                    }
+                }
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (_: Exception) { /* A failed read cannot overwrite the document. Save/reopen still uses fresh guards. */ }
+    } }
 
     private fun startAutosave() {
         viewModelScope.launch {
@@ -442,18 +493,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         if (accepted) lastSavedNote?.let { isProtected = it.isProtected; passwordHash = it.passwordHash; passwordSalt = it.passwordSalt }
         // A notification command may have changed timing while this editor was open.
         // Do not clobber a newer UI gesture that arrived while the transaction was saving.
-        if (accepted) lastSavedNote?.let { saved ->
-            if (taskElapsedMillis == baseNote.taskElapsedMillis && taskTimerStartedAt == baseNote.taskTimerStartedAt) {
-                taskElapsedMillis = saved.taskElapsedMillis; taskTimerStartedAt = saved.taskTimerStartedAt
-            }
-            if (taskCountdownMillis == baseNote.taskCountdownMillis && taskCountdownEndAt == baseNote.taskCountdownEndAt) {
-                taskCountdownMillis = saved.taskCountdownMillis; taskCountdownEndAt = saved.taskCountdownEndAt
-            }
-            if (isCompleted == baseNote.isCompleted && taskCompletedAt == baseNote.taskCompletedAt) {
-                isCompleted = saved.isCompleted; taskCompletedAt = saved.taskCompletedAt
-            }
-            if (reminderAt == baseNote.reminderAt) reminderAt = saved.reminderAt
-        }
+        if (accepted) lastSavedNote?.let { adoptTaskTiming(baseNote, it) }
         if (accepted && notebookChoiceVersion == choiceVersion) {
             notebookId = acceptedNotebook?.id; notebookName = acceptedNotebook?.name
             notebookTarget = acceptedNotebook?.let { NotebookTarget(it.id, it.syncId) }

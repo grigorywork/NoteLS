@@ -1,3 +1,11 @@
+## Target3 успешен, live-editor follow-up применён — нужен повтор
+
+46117374360/job140894106165/source1ecb2fdb/app8652 SUCCESS:87/0fail/0ignored, lint0errors27warnings2info,build10m49s. Artifact15252354199 ZIP469729bytesSHA256fe899f79e09c72d0637ddc01a7801e1fcf5b7bd9b28eb1036a14fdab912c4d14=API/HTML/lintXML;2NativePNG равны осмотренным. Новый case действительно доставленного ReminderReceiver подтвердил сохранение отдельного напоминания после обоих pause/удаление при complete. [Proof](running-tasks-1.10.64-third-targeted.json).
+
+Ещё одно требование90: остановка/выполнение из шторки должны сразу отражаться в уже открытом редакторе, не ждать следующего текста/save/reopen. Добавлен event-driven per-editor TaskMetadataSnapshot (без body/title/password/updatedAt), подписка только для текущей задачи/id, сравнение скалярных полей; обычные заметки не подключают Room-подписку. Fresh identity/access/parent-deleted/DiaryPrivacy проверены в read transaction после protection.awaitIdle и под saveMutex; свежий повторный read вместо доверия устаревшему Flow. Никаких per-second polling/timers/jobs.
+
+Cache принимает только committed task metadata, оставляя baseline документа/версии и явные несохранённые локальные действия; общий adoption helper сохраняет поздние жесты UI при IO-save. Live изменение не трогает текст/историю/блокнот. Три новых Native editor regression: livepause без save и без лишней версии, livecomplete с несохранённым текстом, explicit resume после livepause. Scratch draft apply_live_fix.py УЖЕ применён, не запускать повторно. Теперь26новых/full940/target90 ожидаются, НЕpass до реальных отчётов. Повтор требуется, fresh compile ещё не подтверждён;64неinstaller/90не закрыт.
+
 ## Дополнительная ошибка найдена аудитом до выпуска
 
 Repeat46115895824/job140889539093 прошёл86/0/0/lint0errors27warnings2info/build9m45s; ZIP/API/HTML/lintXML и2NativePNG проверены, PNG равны осмотренным. Однако следующий source audit установил: общий AlarmReconciler.refreshNotes после любой PAUSE отменял ещё и уже доставленное напоминание той же задачи. Это вывод по коду, не падение уже прошедших86 тестов.

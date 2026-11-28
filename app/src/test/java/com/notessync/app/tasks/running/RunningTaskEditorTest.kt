@@ -59,4 +59,45 @@ class RunningTaskEditorTest {
         val saved = db.noteDao().getById(note.id)!!; assertTrue(saved.isCompleted); assertEquals(completed.taskCompletedAt, saved.taskCompletedAt)
         assertEquals("Text preserved after completion", saved.content); assertNull(saved.taskTimerStartedAt); assertNull(saved.taskCountdownEndAt)
     }
+    @Test fun `open editor follows a notification pause immediately without a text edit or save and keeps its no-op timestamp`() = runBlocking {
+        val now = System.currentTimeMillis()
+        val note = NoteEntity(title = "Live pause", content = "Unchanged text", isTask = true,
+            taskElapsedMillis = 1000, taskTimerStartedAt = now - 5000).let { it.copy(id = db.noteDao().upsert(it)) }
+        val vm = open(note)
+        assertTrue(RunningTaskActions.apply(app, RunningControl(note.id, note.syncId, RunningClock.STOPWATCH, note.taskTimerStartedAt!!, RunningAction.PAUSE), now))
+        val committed = db.noteDao().getById(note.id)!!
+        withTimeout(15_000) { while (vm.taskTimerStartedAt != null || vm.taskElapsedMillis != committed.taskElapsedMillis) delay(5) }
+        assertEquals("Unchanged text", vm.contentField.text)
+        assertEquals(committed, db.noteDao().getById(note.id))
+        assertTrue(vm.saveNow(force = true))
+        assertEquals("A metadata-only adoption must retain a no-op save", committed, db.noteDao().getById(note.id))
+    }
+    @Test fun `live completion adopts both counters and reminder without losing an unsaved editor draft`() = runBlocking {
+        val now = System.currentTimeMillis()
+        val note = NoteEntity(title = "Live complete", content = "Old body", isTask = true,
+            taskTimerStartedAt = now - 5000, taskCountdownEndAt = now + 60_000,
+            taskCountdownMillis = 60_000, reminderAt = now + 90_000).let { it.copy(id = db.noteDao().upsert(it)) }
+        val vm = open(note); vm.onContentChange(TextFieldValue("Unsaved draft survives completion"))
+        assertTrue(RunningTaskActions.apply(app, RunningControl(note.id, note.syncId, RunningClock.STOPWATCH, note.taskTimerStartedAt!!, RunningAction.COMPLETE), now))
+        withTimeout(15_000) { while (!vm.isCompleted || vm.taskTimerStartedAt != null || vm.taskCountdownEndAt != null || vm.reminderAt != null) delay(5) }
+        assertEquals("Unsaved draft survives completion", vm.contentField.text); assertEquals(now, vm.taskCompletedAt)
+        assertTrue(vm.saveNow(force = true))
+        val saved = db.noteDao().getById(note.id)!!; assertTrue(saved.isCompleted)
+        assertEquals("Unsaved draft survives completion", saved.content); assertEquals(now, saved.taskCompletedAt)
+        assertNull(saved.taskTimerStartedAt); assertNull(saved.taskCountdownEndAt); assertNull(saved.reminderAt)
+    }
+    @Test fun `explicit editor resume after a live pause is not reset by the metadata observer baseline`() = runBlocking {
+        val now = System.currentTimeMillis()
+        val note = NoteEntity(title = "Resume", isTask = true, taskTimerStartedAt = now - 2000)
+            .let { it.copy(id = db.noteDao().upsert(it)) }
+        val vm = open(note)
+        assertTrue(RunningTaskActions.apply(app, RunningControl(note.id, note.syncId, RunningClock.STOPWATCH, note.taskTimerStartedAt!!, RunningAction.PAUSE), now))
+        withTimeout(15_000) { while (vm.taskTimerStartedAt != null) delay(5) }
+        vm.toggleTaskTimer(); assertTrue(vm.saveNow(force = true))
+        val resumed = db.noteDao().getById(note.id)!!
+        assertNotNull("An explicit local start must remain committed", resumed.taskTimerStartedAt)
+        assertEquals(resumed.taskTimerStartedAt, vm.taskTimerStartedAt); assertFalse(resumed.isCompleted)
+        assertTrue(vm.saveNow(force = true)); assertEquals(resumed, db.noteDao().getById(note.id))
+    }
+
 }

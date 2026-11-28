@@ -23,6 +23,12 @@ internal const val RUNNING_TASKS_SQL = RUNNING_TASK_SELECT + "AND (notes.taskTim
 @Dao
 interface NoteDao {
 
+    @Query("SELECT id, syncId, isTask, isCompleted, taskElapsedMillis, taskTimerStartedAt, taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, reminderAt FROM notes WHERE id = :id")
+    fun observeTaskMetadata(id: Long): Flow<com.notessync.app.data.local.model.TaskMetadataSnapshot?>
+
+    @Query("SELECT id, syncId, isTask, isCompleted, taskElapsedMillis, taskTimerStartedAt, taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, reminderAt FROM notes WHERE id = :id")
+    suspend fun getTaskMetadata(id: Long): com.notessync.app.data.local.model.TaskMetadataSnapshot?
+
     @Query(RUNNING_TASKS_SQL)
     fun observeRunningTasks(now: Long): Flow<List<com.notessync.app.tasks.running.RunningTaskEntry>>
 
