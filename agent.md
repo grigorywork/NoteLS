@@ -1766,3 +1766,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T02:24:32.834763+00:00:88repeat46096891823/job140830200621=37/0fail/0ignored/lint0error27warnings2info/build9m52s,ZIP/API/HTML/lintXMLпроверены. 10NativeRoomroute/2MainActivityUIпрошли;аудитныеfixesnofreshnoop/SQLassignretryпримененыисрегрессиями. App/testf93a909,normalworkflowсохранёнбездиагностического--tests. Готовобычныйmainfull905ожидаемыйНЕpass/62неinstaller/88незакрыт. Доfull/Signed/independentRoom19APK/freshGCне89. ПослеВСЕХ3h+3hещё0ms,батареяобязательна.
+
+
+2026-11-28T04:09:41.678086+00:00:88ЗАКРЫТ1.10.62code85/Room19/sourcecebd4e4. Full46097931933=905/0/0/lint0error/build20m28s; Signed46099655259/artifact15244784669 и freshGC46100198012 успешны. ZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19 независимо проверены; proofnotebook-1.10.62-verification.json. Не физический телефон/не батарейный замер. Далее89/63code86, после ВСЕЙ очереди новые3h+3h ещё0ms. Подпись/Secret/модели прежние.
