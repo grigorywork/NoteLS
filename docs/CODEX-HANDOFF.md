@@ -1,12 +1,28 @@
-##88:первыйtarget35/1отказ,обязательныеfollow-upприменены
+##88 готов к обычному полномуCI,28ноября2026
 
-Main/testсновазамораживаютсянаповторныйtarget. ПослеCI46095927970(компиляцияmain/testуспех/35тестов1UIотказ)исправленоожиданиесуществующеголейблагалочкивтесте,productionlabelне менялся. No-opfreshparentguard+обработкаSQLошибкиassignNotebookУЖЕпримененыс2новымиNativeкейсами. Итого10NativeRoomroute+2ActivityUI/ожидаемыйfull905НЕpass. Featurecodex/notebook-1.10.62свежийcheckpointполучитьпередпродолжением;старый3545920не братьповерхнового. Mainприложениеverified61/87закрыт,62покаНЕinstaller. Отчётnotebook-1.10.62.md/first-targeted.json. Остальнаяочередь89–97/новые3h+3hпослеВСЕХещё0ms/батареяобязательна;68/iPhone/новыеИИне начинать.
+Кандидат1.10.62/code85/Room19/data2/security3. Featurecodex/notebook-1.10.62/app-sourcef93a90925dc7d3272061fb3518b2c902d6d8685d. RepeatCI46096891823/job140830200621/source8ae155e76627150f44eed6376375757533d830b7SUCCESS:**37тестов/0отказов/0пропусков**,lint0error27warnings2info,build9m52s. Artifact15244032056 ZIP103854bytesSHA256b5fe5584fa0e0f284fbca5cb213c806b14c7f8469e0c6bfd1024401fe172d2d8=API/HTML/lintXMLпроверены. Все10новыхNativeRoomrouteи2NativeMainActivityUIпрошли;этоНЕфизическийтелефон. App/testтотжеfeature,толькодиагностическийworkflowдругой;вmainсохраняетсяОБЫЧНЫЙполныйcommandбез--tests. [Отчёт](notebook-1.10.62.md),[целеваяпроверка](notebook-1.10.62-targeted-verification.json),[инструкция](notebook-creation-guide.md).
 
-## В работе88 — кандидат1.10.62/code85,28ноября
+Аудит88завершёнсfixes:свежаяidentityродителя/неттихогоfallback/внешнийmoveclearнеоткатывается/явныйвыборучитываетfreshparentдажебезправкитекста/SQLassignmentfailureбезuncaughtипотеривыбора/Cancelledнеподавлять/selectionversion/diaryguard. Не применятьэтиfixesповторно. ПослеfullCIожидается905,покаНЕpass;потомautoSigned/independentZIPAPIexact3SUMS/source/package/version/nondebug/actualapksignerpin/новыйDEX/actualRoom19/freshminifiedGC. **88НЕзакрыт/62НЕпроверенныйinstaller**,последнийverified61/source2e1502e/893/Signed46086854266/GC46087472043. Не менятьapp/testприCI,mainнепродвигатьdocs-onlyмеждуfullCI/Signed/GC. Только после полногозакрытия88→89–97.
 
-СозданиеизвыбранногоблокнотапередаётегоID+syncId;load/transactionпроверяютсвежийдоступ,старыеunfiledнеперемещаются;saveнеоткатываетвнешнееперемещение/clearNotebook. Подготовлены8NativeRoom/route+2NativeMainActivityрегрессии,покаНЕскомпилированы/НЕпроверены. Featurecodex/notebook-1.10.62. [Отчёт](notebook-1.10.62.md). Mainприложение61проверено,62НЕinstaller/88НЕзакрыт. ПроверятьтольковGHA,app/testзаморозитьприCI,диагностическийworkflowнепереноситьвmain.
+ПослеВСЕХэтаповновые3hактивногоаудита→3hисправлений/оптимизацииещё0ms;паузы/CIqueue/ожидание/простой/перекрытияисключать,старыеокнанеповторять. Батареяобязательна;здесьнетновыхфоновыхзадач/периодическогоопроса.68/iPhone/новыеИИне начинать,подпись/Secretне менять. RESTforce=false/локальныхSDKGradlebuildsнет/не дублироватьживуюработу. Пользовательпродолжаетздесь,переноспозже. Нижниезаписиисторические.
 
-Следом89–97;послеВСЕХновые3hаудита→3hоптимизацииещё0ms. Энергопотреблениеобязательно,68/iPhone/новыеИИне начинать,signingSecret/pinне менять. Нижниезаписиисторические.
+##88:аудитныеfixesУЖЕприменены,повторныйtargetидёт
+
+Свежийfeature `codex/notebook-1.10.62` checkpoint `f93a90925dc7d3272061fb3518b2c902d6d8685d`, предыдущие3545920/46373e3включены. ПослеfirstCI46095927970=35/1UIlabelотказ/0ignored(8NativeRoomиActivitynotecreateпрошли)исправленТЕСТнасущийlabel«Выполнить задачу: …»,неизменёнproductionlabel/15s. ZIP70705bytesSHA256b058d82b48a50a8a25d5bd76c933f5b2fdc4e7a5b5b725b55875f9f26f8adf98=APIпроверен;компиляцияmain/testуспех/lintassembleнеподтверждены.
+
+No-opguardсfresh.notebookId==local.notebookIdиобработкаSQLassignNotebook→SAVE_FAILED/retry/CancellationпробросУЖЕприменены,добавлены2Nativeрегрессии. НЕприменятьэтиfixesповторно. ИдётrepeatCI46096891823/source8ae155e76627150f44eed6376375757533d830b7в `codex/notebook88-targeted`;app/testровноf93a909/толькокомандаworkflowдиагностическая. Теперь10NativeRoom/route+2ActivityUI;target37ожидается/покаНЕpass,full905ожидается/НЕpass. App/testзамороженыдозавершения,диагностическийworkflowНЕсливатьвmain. Mainappverified61/62НЕinstaller/88НЕзакрыт. Сначалафактическипроверитьповтор,потомещёаудит/обычныйfull/Signed/independentAPKRoom19/freshGC,толькопотом89–97.
+
+ПослеВСЕХновые3hаудита→3hоптимизацииещё0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,ключ/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживогоисполнителя. [Отчёт](notebook-1.10.62.md),[первыйотрицательныйtarget](notebook-1.10.62-first-targeted.json). Нижниезаписиисторические.
+
+## В работе88, актуально28ноября2026
+
+Mainприложениепокаverified61/source2e1502e; stage87закрыт/893/0/0/Signed46086854266/releaseGC46087472043. Незавершённый88/кандидат1.10.62/code85/Room19сохранёнв `codex/notebook-1.10.62` checkpoint`35459208fc503faf153b66c05294d18c3d6b6ef0` (предыдущий46373e3 уже включён). Сначалаfetchсвежуюветку/локальноедерево/живуюработу,неповторять88сначала. [Отчёт](notebook-1.10.62.md).
+
+ИдётединственныйtargetCI[46095927970](https://github.com/grigorywork/NoteLS/actions/runs/46095927970)/job140827128600 наdiagnostic `codex/notebook88-targeted` source`641258a7b59e980e842e62f449fc12381214022b`. App/testровно3545920, ТОЛЬКОкомандаworkflowфильтрует9классов+lint/assemble. Main/testзамороженыдозавершения,результатпокаНЕподтверждён. Новые8NativeRoom/route+2ActivityNativeUIнеобъявлятьpass. ДиагностическийworkflowНЕсливатьвmain.
+
+АудитУЖЕнашёлобязательныйfollow-upПОСЛЕживогоCI: no-opguardвpersistNowсравниваетlocal/lastSavedNote,нонепроверяетfresh.notebookId. Сценарий:loadedWork→внешнийDBmovePersonal→явныйвыборWorkбезправкитекста;local==previousможетпропуститьназначение. Добавитьfresh?.notebookId==local.notebookIdкno-opguardи9-йNativecaseсэтимсценарием,потомповторtarget. ПокаНЕисправлено/неповодослаблятьasserts/таймауты. Только послеаудита/подходящихпроверокобычныйmainfull(904ожидаетсяпосле9-гокейса,НЕpass)/Signed/independentAPKRoom19/freshreleaseGC;потом89.
+
+Очередь89–97,батареяобязательна. Новые3hаудита→3hоптимизацииПОСЛЕВСЕХещё0ms.68/iPhone/новыеИИ/платныеinferenceне начинать,signingSecret/pinпрежние;локальныхSDKGradlebuildsнет,RESTforce=false. Пользовательпродолжаетздесь,переноспозже.
 
 ## Этап87 закрыт28ноября2026 — проверенная1.10.61/code84/Room19
 

@@ -1,3 +1,19 @@
+## Приоритет28ноября:88 готов к полномуCI, НЕ закрыт
+
+Repeat46096891823=37/0/0/lint0error/build9m52s,10Native+2ActivityUIпрошли,аудитныеfixesприменены. Далееобычныйfull905(ожидаетсяНЕpass)→Signed→independentAPKactualRoom19→freshGC;потом89–97. Последнийverified61/87закрыт. Свежийdocs/NEXT-CHAT.md/отчётnotebook-1.10.62.md. App/testзаморозитьприCI/mainнепродвигатьdocs-onlyмеждуfull/Signed/GC;локальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживуюработу. ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,подписьне менять.
+
+##88:аудитныеfixesУЖЕприменены,повторныйtargetидёт
+
+Свежийfeature `codex/notebook-1.10.62` checkpoint `f93a90925dc7d3272061fb3518b2c902d6d8685d`, предыдущие3545920/46373e3включены. ПослеfirstCI46095927970=35/1UIlabelотказ/0ignored(8NativeRoomиActivitynotecreateпрошли)исправленТЕСТнасущийlabel«Выполнить задачу: …»,неизменёнproductionlabel/15s. ZIP70705bytesSHA256b058d82b48a50a8a25d5bd76c933f5b2fdc4e7a5b5b725b55875f9f26f8adf98=APIпроверен;компиляцияmain/testуспех/lintassembleнеподтверждены.
+
+No-opguardсfresh.notebookId==local.notebookIdиобработкаSQLassignNotebook→SAVE_FAILED/retry/CancellationпробросУЖЕприменены,добавлены2Nativeрегрессии. НЕприменятьэтиfixesповторно. ИдётrepeatCI46096891823/source8ae155e76627150f44eed6376375757533d830b7в `codex/notebook88-targeted`;app/testровноf93a909/толькокомандаworkflowдиагностическая. Теперь10NativeRoom/route+2ActivityUI;target37ожидается/покаНЕpass,full905ожидается/НЕpass. App/testзамороженыдозавершения,диагностическийworkflowНЕсливатьвmain. Mainappverified61/62НЕinstaller/88НЕзакрыт. Сначалафактическипроверитьповтор,потомещёаудит/обычныйfull/Signed/independentAPKRoom19/freshGC,толькопотом89–97.
+
+ПослеВСЕХновые3hаудита→3hоптимизацииещё0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,ключ/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживогоисполнителя. [Отчёт](notebook-1.10.62.md),[первыйотрицательныйtarget](notebook-1.10.62-first-targeted.json). Нижниезаписиисторические.
+
+## Приоритет28ноября:88впроверке,неповторять87
+
+Verified61/source2e1502e/893/0/0/SignedGCпроверены. WIP88/62code85вcodex/notebook-1.10.62/3545920;единственныйtarget46095927970идёт,app/testзаморожены. ПослеCIобязательныйno-opfreshparentguardfollow-up+регрессияописанывверхомdocs/NEXT-CHAT.md. ЛокальныхSDKGradlebuildsнет,RESTforce=false,нетпараллельногоисполнителя. После88очередь89–97,послеВСЕХновые3hаудита→3hоптимизацииоба0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,подписьне менять.
+
 ## Приоритет28ноября2026:87 закрыт, далее88–97
 
 Проверенная1.10.61/code84/Room19/source2e1502e:полный893/0/0/lint0error/Signed46086854266/actualreleaseGC46087472043 и независимыйAPKпроверены. Доказательстваdocs/analytics-1.10.61-verification.json. Следующий88/1.10.62code85:принадлежностьсоздаваемыхзаписейблокнотам;затем89–97. ПослеВСЕХновые3hактивногоаудита→3hоптимизации,оба0ms/неначаты,ожиданиеCI/паузы/простойисключать. Батареяобязательна. Не повторять87/старыеокна;68/iPhone/новыеИИне начинать;ключ/Secretне менять;локальныхSDKGradlebuildsнет;RESTforce=false;app/testприCIзаморожены. Пользовательразрешилпродолжатьздесьбезвопросов.

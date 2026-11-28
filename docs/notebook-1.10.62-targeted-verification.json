@@ -1,0 +1,34 @@
+{
+  "artifact_id": 15244032056,
+  "archive_sha256": "b5fe5584fa0e0f284fbca5cb213c806b14c7f8469e0c6bfd1024401fe172d2d8",
+  "archive_bytes": 103854,
+  "workflow_run": {
+    "id": 46096891823,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/notebook88-targeted",
+    "head_sha": "8ae155e76627150f44eed6376375757533d830b7"
+  },
+  "tests": 37,
+  "failures": 0,
+  "ignored": 0,
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 27,
+    "Information": 2
+  },
+  "screenshots": {
+    "navigation-preview/agenda.png": "1ece71415c2794d6e9689c81bd4079de0ad149000831918985899e555c20b570",
+    "navigation-preview/completed.png": "955447b7711c69d4e7b9fdd46c812e25db1ab744bd976bef171c3b5cbc749f87",
+    "navigation-preview/drawer.png": "7faf4a066f5fbde562877a4294f1540858c08c1159a2b1b1313fc809796aceab"
+  },
+  "stage": 88,
+  "job_id": 140830200621,
+  "build_duration": "9m52s",
+  "app_source": "f93a90925dc7d3272061fb3518b2c902d6d8685d",
+  "diagnostic_only_workflow": true,
+  "full_ci": false,
+  "installable_62": false,
+  "physical_phone_tested": false
+}

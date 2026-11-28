@@ -1759,7 +1759,10 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 2026-11-28T01:52:03.145411+00:00:87ЗАКРЫТ1.10.61code84/Room19/source2e1502e;fullCI46084992355=893/0fail/0ignored/lint0error, Signed46086854266/artifact15239850994иfreshreleaseGC46087472043API28/35успех. НезависимоZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19проверены;proofanalytics-1.10.61-verification.json. Нефизическийтелефон/неизмерениебатареи. Следующий88/62code85,потом89–97;послеВСЕХновые3h+3hещё0ms. Подпись/Secret/AIне менялись.
 
 
-2026-11-28T01:59:17.734324+00:00:88НАЧАТ/кандидат1.10.62code85;parentID+syncIdroute/новыйcreationcallback/freshload+transaction/selectionversion/externalmoveguard,8NativeRoomroute+2ActivityUIподготовленыНЕпроверены. Последнийinstaller61/source2e1502e/893/SignedGCпроверены. Room19/Secret/AIне менялись;локальныхSDKGradlebuildsнет. ПослеВСЕЙочереди3h+3hещё0ms.
+2026-11-28T02:02:15.961958+00:00: WIP88/62code85checkpoint3545920вудалённойcodex/notebook-1.10.62;target46095927970/job140827128600/source641258aпокаидёт/app-testзаморожены. ПослеCIобязателенfresh.notebookId==local.notebookIdno-opguard+9-йNativecaseвозвратаявноговыбораприexternalmove,поканеприменены. Неpromote88безаудита. Последнийinstaller61/source2e1502eполностьюпроверен. ПослеВСЕХ3h+3hещё0ms.
 
 
-2026-11-28T02:11:29.360799+00:00:88target46095927970=35/1UIlabelотказ/0ignored,все8NativeиActivitynotecreateпрошли. LabelтестаисправленнасущийВыполнитьзадачу;послепрогонапримененыfreshparentnoopguard/SQLassigncatch+2новыхNativecases. Повторtargetпредстоит;full905ожидаетсяНЕpass. Последнийverified61;послеВСЕХновые3h+3hещё0ms.
+2026-11-28T02:13:24.262162+00:00:88followupfixesПРИМЕНЕНЫвf93a909(guardfreshparent/SQLassignmentcatch+2Nativecases),UIlabelтестанасущийисправлен;repeat46096891823/source8ae155eпокаидёт,target37/full905НЕpass. Sourcecheckpointудалённыйсохранён,неповторятьpendingfixизстаройзаписи. Mainapp61verified/62неinstaller. ПослеВСЕХ3h+3hещё0ms.
+
+
+2026-11-28T02:24:32.834763+00:00:88repeat46096891823/job140830200621=37/0fail/0ignored/lint0error27warnings2info/build9m52s,ZIP/API/HTML/lintXMLпроверены. 10NativeRoomroute/2MainActivityUIпрошли;аудитныеfixesnofreshnoop/SQLassignretryпримененыисрегрессиями. App/testf93a909,normalworkflowсохранёнбездиагностического--tests. Готовобычныйmainfull905ожидаемыйНЕpass/62неinstaller/88незакрыт. Доfull/Signed/independentRoom19APK/freshGCне89. ПослеВСЕХ3h+3hещё0ms,батареяобязательна.
