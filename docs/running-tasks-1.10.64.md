@@ -1,3 +1,11 @@
+## 90 готов к полному CI; ещё не закрыт — 28 ноября 2026
+
+Кандидат1.10.64/code87/Room19/data2/security3. Feature app/test source `496d7d86bfa8018b51a8c96de1f3acace46f5e7f`. Repeat46119321480/job140900101480 SUCCESS: **107/0fail/0ignored**, lint0errors/27warnings/2info. ZIP/API/HTML/lintXML и обе RU/ENlargefont320 NativePNG проверены. [Proof](running-tasks-1.10.64-targeted-verification.json). Все26 новых и legacy clock/editor/alarm/metadata/settings/i18n/widget + real NoteSyncApp startup прошли. Аудитные fixes permission observer/Application context/silent orphan group/countdown clamp/reminder pause/live editor committed-cache observer УЖЕ применены, не повторять.
+
+Теперь обычный main push CI: **940 ожидается, НЕpass до фактических отчётов**. Затем autoSigned прежнимSecret, independentZIPAPI/exact3/SUMS/source/package/version/nondebug/apksignerpin/compiledrunningmarkers/actualRoom19 и fresh actual minified GC+running SystemUI probe API28/35. Script/probe в source, но его Android результат ещё НЕ подтверждён. Никакой debug APK как обновления. Main/app/test заморожены до full/Signed/GC; docs-only main не двигать между ними, diagnostic --tests workflow не сливать. ЛокальныхSDKGradlebuilds нет, REST force=false/не дублировать исполнителя.
+
+Последний verified installer пока63/code86/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590. 64 ещё НЕ installer/90 НЕ закрыт; после полного закрытия90→91–97. 91 уточнён пользователем: маленький «+» добавляет подзадачу прямо в заметке/задаче, её таймер/секундомер справа. ПослеВСЕХ87–97 новые3h аудита→3h оптимизации оба0ms/не начаты; реализацию/CIwait/паузы не считать. Пользователь требует продолжать автономно без остановки ради отчёта. Батарея обязательна,68/iPhone/новыеИИ/paidinference не начинать, Secret/ключ не менять. Ниже история.
+
 ## Target3 успешен, live-editor follow-up применён — нужен повтор
 
 46117374360/job140894106165/source1ecb2fdb/app8652 SUCCESS:87/0fail/0ignored, lint0errors27warnings2info,build10m49s. Artifact15252354199 ZIP469729bytesSHA256fe899f79e09c72d0637ddc01a7801e1fcf5b7bd9b28eb1036a14fdab912c4d14=API/HTML/lintXML;2NativePNG равны осмотренным. Новый case действительно доставленного ReminderReceiver подтвердил сохранение отдельного напоминания после обоих pause/удаление при complete. [Proof](running-tasks-1.10.64-third-targeted.json).

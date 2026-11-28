@@ -1,15 +1,15 @@
 {
-  "artifact_id": 15251274808,
-  "archive_sha256": "c6b056a89c19babacac11e2167555c07506109be9539652fea8ef904fbbcd723",
-  "archive_bytes": 469478,
+  "artifact_id": 15253850292,
+  "archive_sha256": "2ef0fb96f7c96b3bcebb32ab1bca433b8d015548e74b2c38c71f601da7e5d5da",
+  "archive_bytes": 476202,
   "workflow_run": {
-    "id": 46115895824,
+    "id": 46119321480,
     "repository_id": 1453932868,
     "head_repository_id": 1453932868,
-    "head_branch": "codex/running90-targeted2",
-    "head_sha": "84c4bd4ef6a6e1d2282b7ea46472addf3f938d3d"
+    "head_branch": "codex/running90-targeted4",
+    "head_sha": "b05a78b0c80060c2382a40a83fce75f3bc5b602a"
   },
-  "tests": 86,
+  "tests": 107,
   "failures": 0,
   "ignored": 0,
   "lint": {
@@ -19,10 +19,10 @@
     "Information": 2
   },
   "screenshots": {
-    "duration-preview/analytics-minutes-320.png": "48f6602fac5443459ff074f256d1fa0d507a3b8f3293446e839037b8779105c3",
+    "duration-preview/analytics-minutes-320.png": "3084f3170e64a4424cdfadd7771d378ddb06abb9ba73aa41248e8917f8a9ca8f",
     "duration-preview/settings-en-large-320.png": "117294dfdb2afaf49ba2e39dc174215347e79c87a6056327f2a4b5873c155795",
-    "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
     "duration-preview/settings-ru-320.png": "52fcb273d33931726233c171dc46886db1217b2ac5d078e352aa16d5042a80f6",
+    "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
     "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
     "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
     "running-task-preview/settings-en-large-320.png": "5cd59a143f0d550cad3a2523e1a59016cfcabd0b69cd70aa3ee990e11258ede5",
@@ -31,11 +31,11 @@
     "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
     "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc"
   },
-  "build": "9m45s",
+  "build": "8m35s",
   "stage": 90,
-  "app_source": "457fbaedbe563700a2a94c3e92bd550bd05c42e0",
-  "run_id": 46115895824,
-  "job_id": 140889539093,
+  "app_source": "496d7d86bfa8018b51a8c96de1f3acace46f5e7f",
+  "run_id": 46119321480,
+  "job_id": 140900101480,
   "status": "target-only-success-full-and-signed-pending",
   "native_images_reviewed": true,
   "physical_phone": false
