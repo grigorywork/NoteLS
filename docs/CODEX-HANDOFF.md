@@ -1,3 +1,11 @@
+##88:аудитныеfixesУЖЕприменены,повторныйtargetидёт
+
+Свежийfeature `codex/notebook-1.10.62` checkpoint `f93a90925dc7d3272061fb3518b2c902d6d8685d`, предыдущие3545920/46373e3включены. ПослеfirstCI46095927970=35/1UIlabelотказ/0ignored(8NativeRoomиActivitynotecreateпрошли)исправленТЕСТнасущийlabel«Выполнить задачу: …»,неизменёнproductionlabel/15s. ZIP70705bytesSHA256b058d82b48a50a8a25d5bd76c933f5b2fdc4e7a5b5b725b55875f9f26f8adf98=APIпроверен;компиляцияmain/testуспех/lintassembleнеподтверждены.
+
+No-opguardсfresh.notebookId==local.notebookIdиобработкаSQLassignNotebook→SAVE_FAILED/retry/CancellationпробросУЖЕприменены,добавлены2Nativeрегрессии. НЕприменятьэтиfixesповторно. ИдётrepeatCI46096891823/source8ae155e76627150f44eed6376375757533d830b7в `codex/notebook88-targeted`;app/testровноf93a909/толькокомандаworkflowдиагностическая. Теперь10NativeRoom/route+2ActivityUI;target37ожидается/покаНЕpass,full905ожидается/НЕpass. App/testзамороженыдозавершения,диагностическийworkflowНЕсливатьвmain. Mainappverified61/62НЕinstaller/88НЕзакрыт. Сначалафактическипроверитьповтор,потомещёаудит/обычныйfull/Signed/independentAPKRoom19/freshGC,толькопотом89–97.
+
+ПослеВСЕХновые3hаудита→3hоптимизацииещё0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,ключ/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживогоисполнителя. [Отчёт](notebook-1.10.62.md),[первыйотрицательныйtarget](notebook-1.10.62-first-targeted.json). Нижниезаписиисторические.
+
 ## В работе88, актуально28ноября2026
 
 Mainприложениепокаverified61/source2e1502e; stage87закрыт/893/0/0/Signed46086854266/releaseGC46087472043. Незавершённый88/кандидат1.10.62/code85/Room19сохранёнв `codex/notebook-1.10.62` checkpoint`35459208fc503faf153b66c05294d18c3d6b6ef0` (предыдущий46373e3 уже включён). Сначалаfetchсвежуюветку/локальноедерево/живуюработу,неповторять88сначала. [Отчёт](notebook-1.10.62.md).

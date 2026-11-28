@@ -1760,3 +1760,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T02:02:15.961958+00:00: WIP88/62code85checkpoint3545920вудалённойcodex/notebook-1.10.62;target46095927970/job140827128600/source641258aпокаидёт/app-testзаморожены. ПослеCIобязателенfresh.notebookId==local.notebookIdno-opguard+9-йNativecaseвозвратаявноговыбораприexternalmove,поканеприменены. Неpromote88безаудита. Последнийinstaller61/source2e1502eполностьюпроверен. ПослеВСЕХ3h+3hещё0ms.
+
+
+2026-11-28T02:13:24.262162+00:00:88followupfixesПРИМЕНЕНЫвf93a909(guardfreshparent/SQLassignmentcatch+2Nativecases),UIlabelтестанасущийисправлен;repeat46096891823/source8ae155eпокаидёт,target37/full905НЕpass. Sourcecheckpointудалённыйсохранён,неповторятьpendingfixизстаройзаписи. Mainapp61verified/62неinstaller. ПослеВСЕХ3h+3hещё0ms.
