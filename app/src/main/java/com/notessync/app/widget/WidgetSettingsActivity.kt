@@ -41,6 +41,7 @@ import kotlin.math.roundToInt
  */
 class WidgetSettingsActivity : ComponentActivity() {
 
+    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -82,7 +83,7 @@ class WidgetSettingsActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             SettingsRepository.WIDGET_ALPHA_PRESETS.forEach { preset ->
                                 val label = "${(preset * 100).roundToInt()}%"
                                 val selected =
