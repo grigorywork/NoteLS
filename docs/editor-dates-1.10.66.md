@@ -1,3 +1,13 @@
+## Этап 92 готов к полному CI; ещё не закрыт
+
+Кандидат 1.10.66/code89/Room20/data2/security3. Повторный целевой CI 46149245608/job140991970075 успешен: 56 тестов, 0 сбоев/пропусков, lint без ошибок, assembleDebug успешен. ZIP/API/HTML/lintXML проверены независимо; обе NativeCompose PNG равны осмотренным RU320 и ENfont1.6+IME240. Все 10 новых тестов прошли. Proof docs/editor-dates-1.10.66-targeted-verification.json. App/test source 25bba5e07f348feb003c5d8548ba6c05aef99cb7, production app44a51b1. Первый сбой 46144810199 сохранён: исправлена только тестовая фикстура softDelete/update вместо REPLACE, parent FK и assertions усилены, 15s не изменены.
+
+Далее обычный полный main CI: 986 ОЖИДАЕТСЯ, не pass до отчёта. Main/app/test/docs заморожены до full/Signed/actual release GC. После full: autoSigned прежним Secret, независимая ZIP/API/exact3/SUMS/source/package/version/nondebug/apksigner v2/v3/один signer/pin/newDEX/actualRoom20, свежие actual minified Android28/35 settings/launcher/running/subtasks и НОВЫЙ editor_dates probe. Он пока проверен только Python syntax/sh-n, на Android не исполнялся. Только после полного успеха закрывать92 и переходить93–97. Последний verifiedinstaller65;66 ещё не установочная.
+
+Даты берутся только из committedDB через узкую проекцию со свежим доступом/identity; абсолютные строки без тиков. Создание слева, изменение справа; новые drafts показывают «—» до commit. SQLrollback/no-op не меняют дату, freshcreatedAt сохраняется. Native probe проверяет actual text autosave/DB/footer/reopen/process death/no-op/notebook/identity. Нормальный full android.yml сохранён, diagnostic --tests не сливать.
+
+Исполнитель чат6b0a9b29-9cdc-83ed-9024-8bed96fec058; исходный чат и fallback не дублировать. GHA only/no localSDKGradle, RESTforce=false+lease/no resetcleanforcepush/losttree, постоянный Secret/pin сохранять.68/iPhone/newAI/paidcalls не начинать. После всей очереди93–97 оба новых postqueue3h окна пока0ms; implementation/CIwait/idle не считать. Ниже история.
+
 ## Подготовка финальной проверки
 
 Повторный целевой CI 46149245608/job140991970075 выполняется на d678e9ecce4ae1dc84d04049d9b3bc2b09707558, app/test точно соответствуют feature f9fbaca8a6dde2ead77848760daf8d081e857d20. Ожидаются 56 тестов; пока не объявлены успешными.
