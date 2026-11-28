@@ -1771,7 +1771,13 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 2026-11-28T04:09:41.678086+00:00:88ЗАКРЫТ1.10.62code85/Room19/sourcecebd4e4. Full46097931933=905/0/0/lint0error/build20m28s; Signed46099655259/artifact15244784669 и freshGC46100198012 успешны. ZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19 независимо проверены; proofnotebook-1.10.62-verification.json. Не физический телефон/не батарейный замер. Далее89/63code86, после ВСЕЙ очереди новые3h+3h ещё0ms. Подпись/Secret/модели прежние.
 
 
-2026-11-28T04:18:41.606813+00:00:89НАЧАТ1.10.63/code86/Room19;defaulttrueautomatic_duration_units/newpureTaskDurationStyle/themedrootpolicy/sharedstopwatchcountdownanalytics;legacyTaskTimer.format/audioнеизменны. Подготовлены4pure/2prefs/3UI,компиляцияипроверкиещёненачаты,full914ожидаетсяНЕpass. Main62verified,ключ/Secret/Room/модели не менялись;послеВСЕХ3h+3hещё0ms.
+2026-11-28T04:20:41.932505+00:00:WIP89/63code86 checkpointde2b1fc вcodex/duration-1.10.63; target46107006914/sourcea3b0430 идёт, compile/test/lint/assembleНЕподтверждены. Main62verified/88закрыт; app/testзаморожены,localSDKGradleнет;full914ожидаетсяНЕpass, послеВСЕХ3h+3hещё0ms.
 
 
-2026-11-28T04:33:29.289412+00:00:89firsttarget46107006914=51/0fail/0ignored,ноlintStateFlowValueCalledInComposition1error,НЕpass. ЗаменёнrootinitialvalueнаcollectAsStateWithLifecycle+remember2fields безlintSuppress/assertweakening. 3NativePNGосмотрены/320RUEN+analyticsminutes;repeatещёпредстоит. Main62verified,63неinstaller,afterall3h+3h0ms.
+2026-11-28T04:36:07.372560+00:00:89firsttarget46107006914=51/0/0ноlint1ErrorStateFlowValueCalledInComposition/build9m3s. FixУЖЕв62ee827/удалённойdurationветке,compile/testповтора46108181195/source7d7d2a3поканеизвестны;app/testзаморожены. 3NativePNGосмотрены,rawms/audio/schema/keyне менялись. Main62verified/63неinstaller/89незакрыт,afterall3h+3h0ms.
+
+
+2026-11-28T04:46:07.444650+00:00:89repeat2=51/27fail/0ignored,все27HTTP429MavenCentralSDKдоtelтеста провереныHTML,НЕкодовыйотказ/НЕpass. Новыйrun46108755335/job140867333989sourceТОТЖЕ7d7d2a3/app62ee827идёт,исходникизаморожены;репозитории/таймауты/проверкине менялись. Main62verified/63неinstaller,3h+3hещё0ms.
+
+
+2026-11-28T04:53:07.598994+00:00:89fresh46108755335/job140867333989=51/0fail/0ignored/lint0error27warnings2info/build7m18s,ZIP/API/HTML/lintXMLпроверены. 3NativePNGравныосмотренным. НакодеТОМЖЕ7d7d2a3/app62ee827HTTP429разрешился,источникзависимостей/таймауты/проверкине менялись. Готовобычныйmainfull914ожидаемыйНЕpass/63неinstaller/89незакрыт;потомSigned/independentAPKRoom19/freshGC→90. Main62lastverified;afterall3h+3h0ms.
