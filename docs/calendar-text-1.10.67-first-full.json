@@ -1,0 +1,1456 @@
+{
+  "stage": 93,
+  "status": "failed",
+  "run": 46163391015,
+  "job": 141035485789,
+  "source": "c2d5649d6690924f47406ec7b2187030b779538a",
+  "artifact": {
+    "id": 15271112568,
+    "name": "verification-reports",
+    "size_in_bytes": 1640094,
+    "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15271112568",
+    "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15271112568/zip",
+    "expired": false,
+    "created_at": "2026-11-28T16:23:37Z",
+    "expires_at": "2027-02-26T16:06:49Z",
+    "updated_at": "2026-11-28T16:23:37Z",
+    "digest": "sha256:bb276b064726f80d987ed3951ec39bb031dcaea8fbf9ba28aad8b83631f32f01",
+    "workflow_run": {
+      "id": 46163391015,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "c2d5649d6690924f47406ec7b2187030b779538a"
+    }
+  },
+  "archive_sha256": "bb276b064726f80d987ed3951ec39bb031dcaea8fbf9ba28aad8b83631f32f01",
+  "tests": 997,
+  "failures": 1,
+  "ignored": 0,
+  "passed": 996,
+  "class_reports": [
+    {
+      "name": "com.notessync.app.ai.EditorTransformTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.FreeModelsSecretsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.FreeModelsSettingsTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.FreeModelsUiTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.GroqQwenTransportTest",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.FreeModelsTransportTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.GroqSecretsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.GroqSessionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.GroqSettingsTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.OpenAiTransportTest",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.QuickTransformEditorUiTest",
+      "tests": 4,
+      "failures": 1,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.QuickTransformAvailabilityTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformSecretsTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.QwenUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformSessionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformSettingsTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ai.TransformUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AudioCaptureTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AndroidAudioCaptureTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AudioEditorPersistenceTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AudioExchangeTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AudioFilesTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.audio.AudioPlaybackTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.attachments.CameraCaptureTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.attachments.PhotoFileWriterTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.BackupArchiveTest",
+      "tests": 11,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.BackupManagerIntegrationTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.BackupPolicyTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.EncryptedBackupIntegrationTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.audit.BackupAfterNoteQueueRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.audit.BackupConcurrentAttachmentRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.audit.BackupDirectoryBudgetRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.audit.BackupMetadataRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.crypto.BackupBiometricVaultTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.crypto.EncryptedBackupStreamsTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.backup.crypto.audit.BackupKeyRotationRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.local.audit.LegacyMigrationRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.quotes.QuoteImportTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.quotes.QuoteLibraryTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.data.quotes.QuotesBackupTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.LanguageUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.WidgetLanguageTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.UiCatalogTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.launcher.LauncherIconSelectionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.launcher.LauncherIconUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.launcher.LauncherIconsTest",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.launcher.PlannerShortcutTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.launcher.PlannerShortcutUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.FirstPhotoQueryTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.FormattingPersistenceTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.MarkdownLiteTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.NavigationDataTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.NotePreviewTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.MarkdownEditTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.NoteVisibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.NotebookCreationTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.NotesQueryTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.TextFormattingTest",
+      "tests": 14,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.actions.NoteActionsTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.audit.HomeQueryProjectionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.audit.NotePreviewFormattingRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.audit.StaleCardActionsRegressionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.diary.DiaryActivityUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.diary.DiaryScreenUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.diary.PrivateDiaryPersistenceTest",
+      "tests": 17,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.history.EditorHistoryTest",
+      "tests": 13,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.photos.PhotoDisplaySizeTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.photos.PhotoPersistenceTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtaskEditorTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtaskEditorUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtaskHistoryTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtaskNotificationsTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtaskPersistenceTest",
+      "tests": 9,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.subtasks.SubtasksTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.tables.NoteTablesTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.tables.TableStyleHistoryTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.tables.TableStylesTest",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.notes.tables.TablesPersistenceTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.ReminderTimeTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.AlarmDeliveryApi26Test",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.AlarmDeliveryApi28Test",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.AlarmDeliveryApi35Test",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.AlarmIdentityRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.BootCountdownRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.reminders.audit.ReminderFreshStateRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.ListTaskProtectionTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.PasswordProtectorTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.audit.LegacyTaskIdentityRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.audit.TaskStalePasswordRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.biometrics.NotebookBiometricControllerTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.security.biometrics.NotebookBiometricKeySpecTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyCalendarUiTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyPreferencesTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.GlassPreferencesTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CompactSettingsUiTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.GlassSettingsUiTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.SettingsGroupsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.TaskDurationPreferencesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.TaskDurationUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.AutoSyncUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.AutomaticEngineTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.ConflictResolverTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.EditorSyncPauseTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.FrameTransportTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.HashingLimitTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.PairingHandshakeTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SessionCryptoTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.StreamingRoomTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.StreamingSessionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncAcknowledgementTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncControllerTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncFileConflictTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncQrTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncResourcesTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncRoomSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncSessionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncSafetyTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.SyncUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.TaskSyncPayloadTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.TrustStoreTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.WifiLinkTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.audit.DeletedNotebookRelationsRegressionTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.audit.SyncAlarmCommitSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.sync.audit.SyncAlarmRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineCacheTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineClockTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineConflictTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineEditorTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineListUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlinePersistenceTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineQueryTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.TaskDeadlineUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningClockTimeTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningTaskEditorTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningTaskNotificationsTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningTaskPreferencesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningTaskQueryActionsTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.tasks.running.RunningTaskSettingsUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsMathTest",
+      "tests": 14,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsPeriodsProjectionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsPeriodsTest",
+      "tests": 9,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsProjectionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsPeriodsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsSummaryTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.analytics.AnalyticsUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.backup.BackupCoordinatorTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.backup.BackupPasswordUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.calendar.CalendarMathTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.CompactEditorTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.EditorDateTextTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.EditorDatesUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.FormattingPanelPositionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.SelectionMenuPositionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.TableDialogBaselineTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.editor.TaskEntryDedupTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.MainActivityLaunchTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.NotebookActivityNavigationTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.PlannerActivityNavigationTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.WidgetActivityNavigationTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.CameraEditorTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.EditorDatesPersistenceTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.EditorPendingCommandsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.EditorHistoryActionsTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.EditorScaffoldTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.HomeActionsTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.NavigationSectionsUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.NoteEditorHistoryTest",
+      "tests": 17,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.NotesCardsLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.PhotoAttachmentGridTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.VoiceEditorTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.VoiceInputButtonTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audio.AudioEditorUiTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorAlarmCancellationRegressionTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorAlarmFreshBindingRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorAlarmLifetimeRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorMetadataProtectionRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorMediaOwnershipRegressionTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorConversionCacheRegressionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorProtectionRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EditorTagOwnershipRegressionTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EmptyProtectionExitRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.EmptyTimerTaskRegressionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.md.CyrillicListsTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.audit.LocalChangeVersionRegressionTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.md.MarkdownStage25Test",
+      "tests": 18,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.md.MarkdownStage27Test",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.md.MarkdownVisualTransformationTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.md.ParagraphEditTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.photos.PhotoBitmapLoaderTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.photos.PhotoPreviewTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.tables.TableEditorTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.tables.TableStylesUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.text.FormattedTextTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.text.ParagraphLayoutTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.notes.text.TableCellRenderingTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.quotes.DrawerQuoteTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.quotes.QuoteLibraryUiTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.quotes.QuotesDataTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.CountdownTargetTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskCompletionTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskDurationTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskTimerFormatCompatibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskTimerTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskTimerCountdownTest",
+      "tests": 7,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.TaskPaletteAccentTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.tasks.VisibleClockTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.theme.AccentSchemeTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.theme.GlassThemeTest",
+      "tests": 9,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.theme.GlassAppearanceTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.theme.TypographyFontTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.voice.AndroidVoiceRecognizerTest",
+      "tests": 12,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.voice.TextStructurerTest",
+      "tests": 9,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.voice.VoiceContinuityRegressionTest",
+      "tests": 10,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.voice.VoiceSessionTest",
+      "tests": 9,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.voice.VoiceSettingsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetQueryTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CalendarTypographyWidgetTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetUpdatesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetViewsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.QuickTaskStoreTest",
+      "tests": 8,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.DayTaskActionsTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.QuickTaskUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.QuickTaskViewModelTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetDatesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetQueryTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetUpdatesTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetViewsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetCompletedStyleTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewColorTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.audit.DayReopenAlarmRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    }
+  ],
+  "new_calendar_cases": [
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyCalendarUiTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyPreferencesTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CalendarTypographyWidgetTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    }
+  ],
+  "failure": "QuickTransformEditorUiTest.hiding shortcut: 15000ms awaiting preview AFTER insert menu click, line116; editor initialization passed",
+  "original_failure_exact_cause": "Not fully isolated by original evidence; no failure UI snapshot was recorded",
+  "source_audit": "captureTransformSource reads and compares revisions before saveMutex; overlapping own save can make either access snapshot or lastSavedNote stale. Separate deterministic real Room read-barrier regression prepared to verify this race. No assertion or timeout weakened.",
+  "lint_and_assemble": "Not confirmed; test task failed",
+  "signed_and_actual_native93": "Not run"
+}
