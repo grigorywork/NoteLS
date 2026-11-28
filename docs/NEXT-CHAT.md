@@ -1,3 +1,13 @@
+## В работе88, актуально28ноября2026
+
+Mainприложениепокаverified61/source2e1502e; stage87закрыт/893/0/0/Signed46086854266/releaseGC46087472043. Незавершённый88/кандидат1.10.62/code85/Room19сохранёнв `codex/notebook-1.10.62` checkpoint`35459208fc503faf153b66c05294d18c3d6b6ef0` (предыдущий46373e3 уже включён). Сначалаfetchсвежуюветку/локальноедерево/живуюработу,неповторять88сначала. [Отчёт](notebook-1.10.62.md).
+
+ИдётединственныйtargetCI[46095927970](https://github.com/grigorywork/NoteLS/actions/runs/46095927970)/job140827128600 наdiagnostic `codex/notebook88-targeted` source`641258a7b59e980e842e62f449fc12381214022b`. App/testровно3545920, ТОЛЬКОкомандаworkflowфильтрует9классов+lint/assemble. Main/testзамороженыдозавершения,результатпокаНЕподтверждён. Новые8NativeRoom/route+2ActivityNativeUIнеобъявлятьpass. ДиагностическийworkflowНЕсливатьвmain.
+
+АудитУЖЕнашёлобязательныйfollow-upПОСЛЕживогоCI: no-opguardвpersistNowсравниваетlocal/lastSavedNote,нонепроверяетfresh.notebookId. Сценарий:loadedWork→внешнийDBmovePersonal→явныйвыборWorkбезправкитекста;local==previousможетпропуститьназначение. Добавитьfresh?.notebookId==local.notebookIdкno-opguardи9-йNativecaseсэтимсценарием,потомповторtarget. ПокаНЕисправлено/неповодослаблятьasserts/таймауты. Только послеаудита/подходящихпроверокобычныйmainfull(904ожидаетсяпосле9-гокейса,НЕpass)/Signed/independentAPKRoom19/freshreleaseGC;потом89.
+
+Очередь89–97,батареяобязательна. Новые3hаудита→3hоптимизацииПОСЛЕВСЕХещё0ms.68/iPhone/новыеИИ/платныеinferenceне начинать,signingSecret/pinпрежние;локальныхSDKGradlebuildsнет,RESTforce=false. Пользовательпродолжаетздесь,переноспозже.
+
 ## Этап87 закрыт28ноября2026 — проверенная1.10.61/code84/Room19
 
 Source `2e1502ef5b9c544c2bdfb581d59e8b3019516a0b`. ПолныйCI46084992355/job140792370402:**893теста/0отказов/0пропусков**, lint0error/27warnings/2info,build20m8s. Signed46086854266/identity140798331610/release140798367781SUCCESS,build5m52s/13contracts0fail. Artifact15239850994 ZIP19019502bytesSHA2568d87deac2107ecfd10b6b4c0225263775f05b946ef473fcfbba2812166686591=API;APK31122287bytesSHA256a9aae4e2df26d16baa94d866953065f8e307a02389918f294a32af99e963c506=SUMS/CI. Source/package/version/nondebug/actualapksigner v2/v3/1signer/прежнийpin/новыеcompiledDEXmarkers/actualRoom19identity61703504e840fea926257eeba0d419e1независимопроверены. ТриanalyticsNativePNGравныосмотреннымtarget. FreshactualminifiedreleaseGC46087472043/job140800331017/artifact15239652519SUCCESS:ARTGCиlauncherAPI28/35,хешAPKтотже;нефизическийтелефон/небатарейныйзамер. [Доказательства](analytics-1.10.61-verification.json),[отчёт](analytics-1.10.61.md).
