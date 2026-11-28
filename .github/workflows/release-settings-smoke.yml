@@ -110,6 +110,7 @@ jobs:
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api28 --schema-json release-settings-probe/room-schema.json
             if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api28 --schema-json release-settings-probe/room-schema.json; fi
             if [ '${{ steps.input.outputs.version_code }}' -ge 89 ]; then python3 scripts/release_editor_dates_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/editor-dates-api28 --schema-json release-settings-probe/room-schema.json; fi
+            if [ '${{ steps.input.outputs.version_code }}' -ge 90 ]; then python3 scripts/release_calendar_typography_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/calendar-typography-api28 --schema-json release-settings-probe/room-schema.json; fi
       - name: Verify launcher choices on Android 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -125,6 +126,7 @@ jobs:
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api35 --schema-json release-settings-probe/room-schema.json
             if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api35 --schema-json release-settings-probe/room-schema.json; fi
             if [ '${{ steps.input.outputs.version_code }}' -ge 89 ]; then python3 scripts/release_editor_dates_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/editor-dates-api35 --schema-json release-settings-probe/room-schema.json; fi
+            if [ '${{ steps.input.outputs.version_code }}' -ge 90 ]; then python3 scripts/release_calendar_typography_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/calendar-typography-api35 --schema-json release-settings-probe/room-schema.json; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
