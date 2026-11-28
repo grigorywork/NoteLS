@@ -691,21 +691,24 @@ class NoteEditorViewModel @JvmOverloads constructor(
     val focusedTableSelection: EditorSelection? get() = document.focusedTableSelection
 
     suspend fun captureTransformSource(): com.notessync.app.ai.EditorTransformSource {
-        if (!loaded || isClosing || accessDenied || deleted) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
-        val preview = contentField.text
-        val selection = contentField.selection
-        val length = if (selection.collapsed) preview.length else selection.max - selection.min
-        if (length > com.notessync.app.ai.TransformLimits.INPUT) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.TOO_LARGE)
-        com.notessync.app.ai.TransformLimits.input(if (selection.collapsed) preview else preview.substring(selection.min, selection.max))
-        val settings = SettingsRepository.get(app).state.value
-        if (!settings.aiEnabled) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.DISABLED)
-        if (exists) {
-            val access = noteDao.getTransformAccess(currentNoteId)
-            if (access == null || access.syncId != syncId || !access.allowed(ProtectionSession.state.value)) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
-            if (lastSavedNote?.updatedAt != access.updatedAt) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.STALE)
-        }
-        saveNow(force = true)
+        // A local save publishes its DB revision and cache while holding this same mutex.
+        // Reading before that publication can falsely report STALE for our own editor write.
+        protection.awaitIdle()
         return saveMutex.withLock {
+            if (!loaded || isClosing || accessDenied || deleted) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+            val preview = contentField.text
+            val selection = contentField.selection
+            val length = if (selection.collapsed) preview.length else selection.max - selection.min
+            if (length > com.notessync.app.ai.TransformLimits.INPUT) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.TOO_LARGE)
+            com.notessync.app.ai.TransformLimits.input(if (selection.collapsed) preview else preview.substring(selection.min, selection.max))
+            val settings = SettingsRepository.get(app).state.value
+            if (!settings.aiEnabled) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.DISABLED)
+            if (exists) {
+                val access = noteDao.getTransformAccess(currentNoteId)
+                if (access == null || access.syncId != syncId || !access.allowed(ProtectionSession.state.value)) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
+                if (lastSavedNote?.updatedAt != access.updatedAt) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.STALE)
+            }
+            withContext(NonCancellable) { persistNow(force = true) }
             val access = noteDao.getTransformAccess(currentNoteId)
                 ?: throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)
             if (!access.allowed(ProtectionSession.state.value) || access.syncId != syncId) throw com.notessync.app.ai.TransformException(com.notessync.app.ai.TransformProblem.ACCESS)

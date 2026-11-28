@@ -83,4 +83,13 @@ class TransformCaptureSaveRaceTest {
         assertTrue(failure is TransformException);assertEquals(TransformProblem.ACCESS,(failure as TransformException).problem)
         assertEquals(locked,dao.getById(vm.currentNoteId));assertEquals("Unsaved local edit",vm.contentField.text)
     }
+    @Test fun `external content revision still rejects capture without overwriting peer text`()=runBlocking {
+        vm.onContentChange(TextFieldValue("Original"));assertTrue(vm.saveNow(force=true))
+        val dao=AppDatabase.get(app).noteDao();val original=dao.getById(vm.currentNoteId)!!
+        val peer=original.copy(content="External peer edit",updatedAt=original.updatedAt+1)
+        dao.update(peer);vm.onContentChange(TextFieldValue("Unsaved local edit"))
+        val failure=runCatching{vm.captureTransformSource()}.exceptionOrNull()
+        assertTrue(failure is TransformException);assertEquals(TransformProblem.STALE,(failure as TransformException).problem)
+        assertEquals(peer,dao.getById(vm.currentNoteId));assertEquals("Unsaved local edit",vm.contentField.text)
+    }
 }

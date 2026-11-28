@@ -71,7 +71,17 @@ class QuickTransformEditorUiTest {
     @After fun after() { store.clear(); compose.waitForIdle(); AppDatabase.closeInstance()
         settings.apply { setAiEnabled(false); setQuickTransformButton(true); setUiLanguage(UiLanguage.RUSSIAN); setFontScale(SettingsRepository.FONT_NORMAL) } }
     private fun await(condition: () -> Boolean) {
-        compose.waitUntil(15_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); condition() }
+        try {
+            compose.waitUntil(15_000) { ShadowSystemClock.advanceBy(Duration.ofMillis(50)); compose.waitForIdle(); condition() }
+        } catch (failure: Throwable) {
+            // Preserve the original timeout; record every live root and the actual alert/problem on failure.
+            runCatching {
+                val roots = compose.onAllNodes(isRoot(), useUnmergedTree = true)
+                roots.fetchSemanticsNodes().indices.forEach { index -> System.err.println(roots[index].printToString()) }
+                if (::view.isInitialized) screenshot("quick-transform-failure")
+            }
+            throw failure
+        }
     }
     private fun editor(lowRam: Boolean = false): NoteEditorViewModel {
         shadowOf(app.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).setIsLowRamDevice(lowRam)
