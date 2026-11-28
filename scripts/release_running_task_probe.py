@@ -8,6 +8,7 @@ import subprocess
 import time
 from pathlib import Path
 import release_settings_gc_probe as ui
+from live_hierarchy_probe import LiveHierarchy
 
 PACKAGE = ui.PACKAGE
 OUT = Path('release-settings-probe/running-tasks')
@@ -116,6 +117,8 @@ def main():
     global OUT
     OUT = Path(args.output); OUT.mkdir(parents=True, exist_ok=True); ui.OUT = OUT
     assert ui.adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Never inject fixtures into a physical/user device'
+    live = LiveHierarchy(); live.prepare()
+    ui.tree = live.tree  # Public UiAutomation capture stays fresh while native chronometers keep ticking.
     ui.adb('root'); ui.adb('wait-for-device'); ui.adb('install', '-r', args.apk)
     ui.adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/.MainActivity')
     sdk = int(ui.adb('shell', 'getprop', 'ro.build.version.sdk').strip())
