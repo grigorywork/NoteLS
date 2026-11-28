@@ -1,0 +1,177 @@
+{
+  "stage": 93,
+  "status": "failed",
+  "run": 46161600218,
+  "job": 141029920552,
+  "source": "06dbceb774994ca6f6c456115b95013bd7507006",
+  "app_test_source": "176287f34952513af5e269efd11ff40439a892ee",
+  "artifact": {
+    "id": 15269927939,
+    "node_id": "MDg6QXJ0aWZhY3QxNTI2OTkyNzkzOQ==",
+    "name": "verification-reports",
+    "size_in_bytes": 192982,
+    "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15269927939",
+    "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15269927939/zip",
+    "expired": false,
+    "digest": "sha256:a7e0245ed4b7126fccd9a3c06001502449a74b5dd1d18d4020832728aa5a1378",
+    "created_at": "2026-11-28T15:52:02Z",
+    "updated_at": "2026-11-28T15:52:02Z",
+    "expires_at": "2027-02-26T15:46:12Z",
+    "workflow_run": {
+      "id": 46161600218,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "codex/calendar-text93-targeted",
+      "head_sha": "06dbceb774994ca6f6c456115b95013bd7507006"
+    }
+  },
+  "archive_sha256": "a7e0245ed4b7126fccd9a3c06001502449a74b5dd1d18d4020832728aa5a1378",
+  "tests": 66,
+  "failures": 2,
+  "ignored": 0,
+  "passed": 64,
+  "new_tests": 11,
+  "new_passed": 10,
+  "class_reports": [
+    {
+      "name": "com.notessync.app.i18n.UiCatalogTest",
+      "tests": 6,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.i18n.WidgetLanguageTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyCalendarUiTest",
+      "tests": 1,
+      "failures": 1,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyPreferencesTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CalendarTypographyUiTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.CompactSettingsUiTest",
+      "tests": 5,
+      "failures": 1,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.settings.SettingsGroupsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.calendar.CalendarMathTest",
+      "tests": 5,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.ui.navigation.WidgetActivityNavigationTest",
+      "tests": 1,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CalendarTypographyWidgetTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetQueryTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetUpdatesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.CompactWidgetViewsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetDatesTest",
+      "tests": 2,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetQueryTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetUpdatesTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WeeklyWidgetViewsTest",
+      "tests": 3,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetCompletedStyleTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    },
+    {
+      "name": "com.notessync.app.widget.WidgetDayPreviewColorTest",
+      "tests": 4,
+      "failures": 0,
+      "ignored": 0
+    }
+  ],
+  "failures_diagnosis": [
+    {
+      "test": "CalendarTypographyCalendarUiTest",
+      "actual": "16.1sp day-number via merged cell semantics",
+      "expected": "10.35sp entry preview",
+      "fix": "Select actual unmerged entry Text; same 9*1.15sp assertion, no timeout change; add real calendar screenshot and reachable-cell assertion"
+    },
+    {
+      "test": "CompactSettingsUiTest",
+      "actual": "Two Standard text matches (app font chip + new widget font dropdown)",
+      "fix": "Require actual app-font RadioButton semantics; retain every-option assertion and positive publication wait"
+    }
+  ],
+  "product_source_unchanged_for_fix": true,
+  "lint_and_assemble": "not confirmed because test task failed",
+  "screenshots": {
+    "calendar-typography-preview/calendar-ru-320.png": "d0e8537a4e51bad32012bd330fa676661da751d7d14c467c40a7b1be84e6ad57",
+    "calendar-typography-preview/widgets-en-large-320.png": "823d581181b890f492ac2f0a066a81452ff17c3e6efca91aea698cb6565b13a8"
+  },
+  "screenshot_review": "Both native Compose PNG inspected; RU320 and ENlarge controls fit and remain accessible; Android release not yet tested"
+}

@@ -80,7 +80,8 @@ class CompactSettingsUiTest {
     }
     @Test fun `font chips retain every option selected state persistence and font licences`() {
         content(); open("appearance")
-        for (font in AppFont.entries) compose.onNodeWithText(font.label).assertExists()
+        for (font in AppFont.entries) compose.onNode(hasText(font.label) and
+            SemanticsMatcher.expectValue(SemanticsProperties.Role, androidx.compose.ui.semantics.Role.RadioButton)).assertExists()
         compose.onNodeWithText("Montserrat").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(AppFont.MONTSERRAT, settings.state.value.appFont) }
         // Repository emission precedes lifecycle collection and the rendered font frame.

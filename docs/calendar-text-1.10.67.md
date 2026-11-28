@@ -14,3 +14,5 @@
 
 
 Подготовлен отдельный release93 probe: настоящий UI выбирает PT Sans/LARGE календаря и MONO/LARGE виджетов, затем реальный AppWidgetHost отдельного disposable helper APK проверяет месячную коллекцию и неделю (320dp), размеры через native SP conversion, Parcelable семейство и color/strike/bold, отсутствие protected fixture, повторное открытие и reset при systemfont1.6. Helper не инструментирует/не отражает код NoteLS; временная подпись только отдельного helper, подпись NoteLS не меняется. Проверяются actualRoom20/identity перед синтетическим fixture, после успеха rawDB удаляется из evidence. Workflow добавляет этот probe на API28/35 для code>=90. Пока подтверждены только Python syntax и shell parsing, **не Java compilation/native Android pass**.
+
+Первый target46161600218:66/2/0,64pass; ошибки выбора узлов тестами исправлены без изменения продукта/таймаутов/размерных assertions. Proof calendar-text-1.10.67-first-targeted.json. Повтор ещё не пройден.

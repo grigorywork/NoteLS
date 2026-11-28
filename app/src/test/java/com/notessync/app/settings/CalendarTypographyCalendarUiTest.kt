@@ -1,6 +1,12 @@
 package com.notessync.app.settings
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.View
+import java.io.File
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
@@ -34,6 +40,7 @@ class CalendarTypographyCalendarUiTest {
     @get:Rule val compose=createComposeRule()
     private val app get()=RuntimeEnvironment.getApplication()
     private val models=ViewModelStore()
+    private lateinit var view:View
     @Before fun before() {
         AppDatabase.closeInstance();app.deleteDatabase("notessync.db")
         SettingsRepository::class.java.getDeclaredField("instance").apply{isAccessible=true;set(null,null)}
@@ -49,8 +56,10 @@ class CalendarTypographyCalendarUiTest {
         val date=LocalDate.now()
         runBlocking { AppDatabase.get(app).noteDao().upsert(NoteEntity(title="Calendar text sample",dayKey=date.toEpochDay())) }
         val vm=CalendarViewModel(app).also { models.put("calendar",it) }
-        compose.setContent { NoteSyncTheme { Box(Modifier.requiredSize(320.dp,640.dp)) { CalendarScreen({}, {_,_->},{_,_->},vm) } } }
+        compose.setContent { view=LocalView.current;NoteSyncTheme { Box(Modifier.requiredSize(320.dp,640.dp).testTag("calendar-viewport")) { CalendarScreen({}, {_,_->},{_,_->},vm) } } }
         compose.waitUntil(15_000) { compose.waitForIdle();compose.onAllNodesWithText("Calendar text sample").fetchSemanticsNodes().size>=2 }
+        compose.onAllNodesWithText("Calendar text sample",useUnmergedTree=true)[0].performScrollTo().assertIsDisplayed()
+        screenshot()
         val weekday=layout("Пн")
         assertEquals(appFontFamily(AppFont.SERIF),weekday.layoutInput.style.fontFamily)
         assertEquals((9*1.15f).sp,layoutPreview().layoutInput.style.fontSize)
@@ -59,10 +68,19 @@ class CalendarTypographyCalendarUiTest {
         assertEquals(9.sp,layoutPreview().layoutInput.style.fontSize)
         assertEquals(appFontFamily(AppFont.MONO),layout("Пн").layoutInput.style.fontFamily)
     }
+    private fun screenshot() {
+        val bounds=compose.onNodeWithTag("calendar-viewport").fetchSemanticsNode().boundsInRoot
+        compose.runOnIdle {
+            val bitmap=Bitmap.createBitmap(bounds.width.toInt(),bounds.height.toInt(),Bitmap.Config.ARGB_8888)
+            val canvas=Canvas(bitmap);canvas.translate(-bounds.left,-bounds.top);view.draw(canvas)
+            val path=File("build/reports/calendar-typography-preview/calendar-screen-serif-large-320.png").apply{parentFile?.mkdirs()}
+            path.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
+        }
+    }
     private fun layoutPreview():TextLayoutResult {
         // The other occurrence is the agenda title; the dense cell uses labelSmall.
         val results=mutableListOf<TextLayoutResult>()
-        compose.onAllNodesWithText("Calendar text sample")[0].performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+        compose.onAllNodesWithText("Calendar text sample",useUnmergedTree=true)[0].performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
         return results.single()
     }
 }
