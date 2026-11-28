@@ -54,7 +54,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.LinearProgressIndicator
 import com.notessync.app.ui.analytics.AnalyticsState
 import com.notessync.app.ui.analytics.AnalyticsViewModel
-import com.notessync.app.ui.tasks.TaskTimer
+import com.notessync.app.ui.tasks.LocalTaskDurationStyle
 import com.notessync.app.ui.tasks.taskColorOption
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -211,21 +211,22 @@ private fun StreakSection(state: AnalyticsState) {
 
 @Composable
 private fun TimeSection(state: AnalyticsState) {
+    val durationStyle = LocalTaskDurationStyle.current
     SectionCard(title = uiText("Время выполненных задач")) {
         Text(
-            uiText("Всего: %1\$s", (TaskTimer.format(state.totalElapsedMillis))),
+            uiText("Всего: %1\$s", (durationStyle.format(state.totalElapsedMillis))),
             style = MaterialTheme.typography.titleMedium
         )
         if (state.averageElapsedMillis > 0L) {
             Text(
-                uiText("Среднее на задачу: %1\$s", (TaskTimer.format(state.averageElapsedMillis))),
+                uiText("Среднее на задачу: %1\$s", (durationStyle.format(state.averageElapsedMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         state.fastestTitle?.let { title ->
             Text(
-                uiText("Самая быстрая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (TaskTimer.format(state.fastestMillis))),
+                uiText("Самая быстрая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (durationStyle.format(state.fastestMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -234,7 +235,7 @@ private fun TimeSection(state: AnalyticsState) {
         }
         state.slowestTitle?.let { title ->
             Text(
-                uiText("Самая долгая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (TaskTimer.format(state.slowestMillis))),
+                uiText("Самая долгая: %1\$s — %2\$s", (title.ifBlank { uiText("Без названия") }), (durationStyle.format(state.slowestMillis))),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -246,6 +247,7 @@ private fun TimeSection(state: AnalyticsState) {
 
 @Composable
 private fun CompletedRow(note: AnalyticsEntry, onClick: () -> Unit) {
+    val durationStyle = LocalTaskDurationStyle.current
     androidx.compose.material3.TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Icon(
             Icons.Default.CheckCircle,
@@ -266,7 +268,7 @@ private fun CompletedRow(note: AnalyticsEntry, onClick: () -> Unit) {
                     java.time.Instant.ofEpochMilli(note.taskCompletedAt ?: note.updatedAt)
                         .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                 ) + if (note.taskElapsedMillis > 0L) {
-                    " · " + TaskTimer.format(note.taskElapsedMillis)
+                    " · " + durationStyle.format(note.taskElapsedMillis)
                 } else "",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

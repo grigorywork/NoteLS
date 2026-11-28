@@ -149,26 +149,28 @@ fun NoteSyncTheme(
     val typography = remember(fontScale, appFont) { scaledTypography(fontScale, appFont) }
 
     LocalizedUiContent {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = typography
-        ) {
-            CompositionLocalProvider(
-                LocalGlassTheme provides GlassTheme(
-                    enabled = glass,
-                    dark = darkTheme,
-                    borderColor = glassBorderColor(darkTheme),
-                    appearance = glassAppearance.safe(),
-                    externalBackdrop = !glassBackdrop
-                )
+        com.notessync.app.ui.tasks.TaskDurationContent {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = typography
             ) {
-                if (glass && glassBackdrop) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        AuroraBackground(dark = darkTheme, accent = colorScheme.primary, appearance = glassAppearance)
+                CompositionLocalProvider(
+                    LocalGlassTheme provides GlassTheme(
+                        enabled = glass,
+                        dark = darkTheme,
+                        borderColor = glassBorderColor(darkTheme),
+                        appearance = glassAppearance.safe(),
+                        externalBackdrop = !glassBackdrop
+                    )
+                ) {
+                    if (glass && glassBackdrop) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AuroraBackground(dark = darkTheme, accent = colorScheme.primary, appearance = glassAppearance)
+                            content()
+                        }
+                    } else {
                         content()
                     }
-                } else {
-                    content()
                 }
             }
         }

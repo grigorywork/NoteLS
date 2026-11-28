@@ -32,6 +32,17 @@ internal fun EditorSettings(state: SettingsState, settings: SettingsRepository) 
         SettingsToggle(uiText("Сразу выбирать время быстрой задачи"), state.quickTaskTime, settings::setQuickTaskTime)
     }
     SettingsCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            SettingsToggle(uiText("Часы и дни в таймерах"), state.automaticDurationUnits,
+                settings::setAutomaticDurationUnits, padded = false)
+            Text(uiText("Выключено: суммарные минуты и секунды."), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(uiText("Пример: %1\$s", com.notessync.app.ui.tasks.TaskDurationStyle(state.automaticDurationUnits,
+                state.uiLanguage == com.notessync.app.i18n.UiLanguage.ENGLISH).format(86_400_000L, compact = true)),
+                style = MaterialTheme.typography.bodySmall)
+        }
+    }
+    SettingsCard(Modifier.fillMaxWidth()) {
         SettingsToggle(uiText("Камера в редакторе"), state.cameraCapture, settings::setCameraCapture)
     }
     SettingsCard(Modifier.fillMaxWidth()) {

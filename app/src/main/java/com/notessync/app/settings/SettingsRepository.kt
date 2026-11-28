@@ -157,7 +157,8 @@ data class SettingsState(
     // Этап 39: частота автобэкапа и время последнего (0 — ещё не делался).
     val backupFrequency: BackupFrequency = BackupFrequency.EVERY_10_DAYS,
     val lastBackupAt: Long = 0L,
-    val lastAutoBackupAt: Long = 0L
+    val lastAutoBackupAt: Long = 0L,
+    val automaticDurationUnits: Boolean = true
 )
 
 /** Настройки приложения (Этап 6): тема и размер шрифта. */
@@ -207,6 +208,7 @@ class SettingsRepository private constructor(context: Context) : SharedPreferenc
         formattingBarPosition = enumPref("formatting_bar_position", FormattingBarPosition.BOTTOM),
         showTaskPriorities = prefs.getBoolean("show_priorities", true),
         archiveCompletedTasks = runCatching { prefs.getBoolean("archive_completed_tasks", false) }.getOrDefault(false),
+        automaticDurationUnits = runCatching { prefs.getBoolean("automatic_duration_units", true) }.getOrDefault(true),
         drawerQuote = runCatching { DrawerQuoteAppearance(
             prefs.getBoolean("drawer_quote_enabled", true), prefs.getString("drawer_quote_text", "").orEmpty(),
             enumPref("drawer_quote_font", AppFont.SYSTEM), prefs.getFloat("drawer_quote_size", 16f),
@@ -306,6 +308,7 @@ class SettingsRepository private constructor(context: Context) : SharedPreferenc
 fun setFormattingBarPosition(value: FormattingBarPosition) { prefs.edit().putString("formatting_bar_position", value.name).apply(); _state.value = read() }
     fun setShowTaskPriorities(value: Boolean) { prefs.edit().putBoolean("show_priorities", value).apply(); _state.value = read() }
     fun setArchiveCompletedTasks(value: Boolean) { prefs.edit().putBoolean("archive_completed_tasks", value).apply(); _state.value = read() }
+    fun setAutomaticDurationUnits(value: Boolean) { prefs.edit().putBoolean("automatic_duration_units", value).apply(); _state.value = read() }
     fun setDrawerQuoteAppearance(value: DrawerQuoteAppearance) {
         val v = value.safe()
         prefs.edit().putBoolean("drawer_quote_enabled", v.enabled).putString("drawer_quote_text", v.customText)

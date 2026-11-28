@@ -187,4 +187,7 @@ internal fun MutableMap<String, String>.addFeaturesEnglish() {
     put("Предыдущая страница", "Previous page")
     put("Следующая страница", "Next page")
     put("Страница %1\$s из %2\$s", "Page %1\$s of %2\$s")
+    put("Часы и дни в таймерах", "Hours and days in timers")
+    put("Выключено: суммарные минуты и секунды.", "When off: total minutes and seconds.")
+    put("Пример: %1\$s", "Example: %1\$s")
 }

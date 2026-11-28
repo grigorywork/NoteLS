@@ -34,6 +34,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
@@ -66,6 +69,8 @@ fun TaskTimerIndicator(
             infiniteRepeatable(tween(60_000, easing = LinearEasing)), label = "stopwatch-hand")
     } else remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val color = if (contentColor == Color.Unspecified) LocalContentColor.current else contentColor
+    val durationStyle = LocalTaskDurationStyle.current
+    val elapsed = TaskTimer.elapsedAt(elapsedMillis, startedAt, now)
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = icon,
@@ -74,11 +79,13 @@ fun TaskTimerIndicator(
             modifier = Modifier.size(if (compact) 18.dp else 24.dp).graphicsLayer { rotationZ = angle.value }
         )
         Text(
-            text = TaskTimer.format(TaskTimer.elapsedAt(elapsedMillis, startedAt, now)).let { if (compact) it.removePrefix("00:") else it },
+            text = durationStyle.format(elapsed, compact),
             style = (if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall).copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
             maxLines = if (compact) 1 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis,
             color = color,
             modifier = Modifier.padding(start = if (compact) 3.dp else 6.dp)
+                .semantics { contentDescription = durationStyle.format(elapsed) }
         )
     }
 }
@@ -113,6 +120,7 @@ fun CountdownIndicator(
         ) { now = System.currentTimeMillis() }
     }
     val remaining = TaskTimer.countdownRemaining(countdownMillis, endAt, now)
+    val durationStyle = LocalTaskDurationStyle.current
     val finished = TaskTimer.countdownFinished(countdownMillis, endAt, now)
     val rotation = if (canAnimate && running && !finished) {
         val transition = rememberInfiniteTransition(label = "countdownRotation")
@@ -152,11 +160,13 @@ fun CountdownIndicator(
             modifier = Modifier.size(if (compact) 18.dp else 24.dp).then(if (animateIcon) Modifier.graphicsLayer { rotationZ = rotation.value } else Modifier)
         )
         Text(
-            text = if (finished) uiText("Время вышло") else TaskTimer.format(remaining).let { if (compact) it.removePrefix("00:") else it },
+            text = if (finished) uiText("Время вышло") else durationStyle.format(remaining, compact),
             style = (if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall).copy(fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace),
             maxLines = if (compact) 1 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis,
             color = color,
             modifier = Modifier.padding(start = if (compact) 3.dp else 6.dp)
+                .semantics { contentDescription = if (finished) uiText("Время вышло") else durationStyle.format(remaining) }
         )
     }
 }

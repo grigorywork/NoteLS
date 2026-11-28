@@ -1,3 +1,13 @@
+## В работе89 — кандидат1.10.63/code86,28ноября2026
+
+Настройка «Часы и дни в таймерах» defaulttrue, выключение показывает суммарные минуты:секунды. Под часом MM:SS, при60мин1ч00м, при24ч1д00ч00м. Полный вид хранит ненулевые секунды, компактный при>=1ч оставляет минуты; полный accessibility-label точен. RU/EN, без Locale.setDefault/переполнения formatter, сырые миллисекунды/даты/Room19 не меняются. TaskTimer.format и формат аудиозаписей остаются прежними.
+
+Один event-driven/lifecycle settings subscription на themed root через composition local, не на карточку/тик. Новый formatter используется секундомером/обратным отсчётом/аналитикой. Новых таймеров/фоновыхjobs/wakelock/периодическогоопроса нет; существующий foreground visible clock не менялся. Уведомление идущей задачи относится к следующему90, его ещё нет.
+
+Подготовлены4pure/2prefs/3NativeUI=9новыхрегрессий; expectedfull914НЕpass. ЛокальныхSDKGradlebuildsнет, пока компиляция/тестыНЕподтверждены. Featurecodex/duration-1.10.63; baselinee571a62/verified62. Mainapp62проверено,63НЕinstaller/89НЕзакрыт. Послеtarget/аудит→fullCI/lint/APK→autoSigned/independentAPKactualRoom19→freshreleaseGC,только потом90–97.
+
+ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms/неначаты,паузы/CIqueue/ожидание/простойисключать. Батареяобязательна,68/iPhone/новыеИИне начинать/подписьне менять. App/testприCIзаморожены,RESTforce=false,не дублироватьживуюработу. Ниже история.
+
 ## Этап88 закрыт — NoteLS1.10.62/code85, 28ноября2026
 
 Проверенный runtime: `cebd4e4fa40de369b5e79e01d10792ba5817152e`, Room19/data2/security3. ПолныйCI46097931933/job140833512833: **905 тестов, 0 отказов, 0 пропусков**, lint0errors/27warnings/2info, build20m28s. Signed46099655259/identity140838969511/release140838998555 успешен, build5m52s/13signingcontracts0fail. Artifact15244784669: ZIP19019458bytes SHA25643e6918184e0683481ecc306c53017c2507f0fc26011ddf1673b9afe8a444310=API; APK31122287bytes SHA2564c32d8f7633b6b0ced6bd96f643561f4b9d807ef1e050024192187d0107a0835=SUMS/CI. Независимо проверены состав3файла, source/package/version/nondebug, настоящий apksigner v2/v3/один signer/прежний pin, новые compiled DEX markers и actual Room19. Fresh actual minified release-GC46100198012/job140840661063/artifact15245650013 успешен, ARTGC/settings/launcherAPI28+35 проверены для того же APKhash. Это CI-эмуляторы, не физический телефон и не замер батареи.

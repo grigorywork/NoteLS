@@ -23,8 +23,8 @@ android {
         applicationId = "com.notessync.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 85
-        versionName = "1.10.62"
+        versionCode = 86
+        versionName = "1.10.63"
         resourceConfigurations += listOf("ru", "en")
     }
 
