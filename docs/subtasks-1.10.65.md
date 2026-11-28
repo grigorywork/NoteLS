@@ -1,3 +1,9 @@
+## Live-windowfix подтверждён; childprobe ещё не запускался из-за shell-формы
+
+GC46138012854/job140957546614/probe7b0: settingsARTGC3/launcherAPI28/runningAPI28actualnative+PIDabsent+NMSpausecomplete+private+document SUCCESSsamee251APK. getWindowsreadinessfix реальноскомпилирован/отработалнаAndroid28. Затем runnerвыполнилстрокуifотдельнымsh-cиупалexpectingfi; subtaskprobe/API35неисполнялись, этоНЕappfailure/НЕполныйgate. ZIPartifact15260453340/1320626bytesSHA2564e809cff73aa70df8d4b58526eae71b51d76a887efe88b8cd27916eb56374015=API/results independentlychecked. [Proof](subtasks-1.10.65-release-second.json).
+
+Workflow-onlyfix: законченныйif/then/python/fi наоднойфизическойстрокекакожидаетemulator-runner, дляобеихAPI. ВерсионныйguardдлястарыхRoom19сохраняется, всепроверкиsourceRoom20должныисполниться. Shellsyntaxпроверенаsh-n, app/test/APK/подписьнеизменены/source1aa; manualfreshGCнаSigned46132635507/source1aa, безновогополногоCI/пересборки. 91не закрыт/65не выдан какустановочный.
+
 ## Полный CI и подписанный APK проверены; финальный native gate в исправлении
 
 Full46130808203/job140935300955/source1aa09afa: **976/0fail/0ignored**, lint0error/27warnings/2info, build22m48s. Report15257804462 ZIP1496180bytes SHA25687d110f9eb0cef76c9b655763c85596414d9099fd73c15c6a3f2bec8f69617e9=API/HTML/lintXML,225classcounts/36newcases checked,2subtaskPNGравныосмотренным.

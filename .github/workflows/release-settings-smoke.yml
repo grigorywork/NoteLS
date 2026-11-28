@@ -107,9 +107,7 @@ jobs:
             python3 scripts/release_settings_gc_probe.py --apk '${{ steps.input.outputs.apk_path }}'
             python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api28
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api28 --schema-json release-settings-probe/room-schema.json
-            if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then
-              python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api28 --schema-json release-settings-probe/room-schema.json
-            fi
+            if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api28 --schema-json release-settings-probe/room-schema.json; fi
       - name: Verify launcher choices on Android 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -123,9 +121,7 @@ jobs:
             set -e
             python3 scripts/release_launcher_icon_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/launcher-api35
             python3 scripts/release_running_task_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/running-api35 --schema-json release-settings-probe/room-schema.json
-            if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then
-              python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api35 --schema-json release-settings-probe/room-schema.json
-            fi
+            if [ '${{ steps.input.outputs.room_version }}' -ge 20 ]; then python3 scripts/release_subtasks_probe.py --apk '${{ steps.input.outputs.apk_path }}' --output release-settings-probe/subtasks-api35 --schema-json release-settings-probe/room-schema.json; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
