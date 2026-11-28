@@ -86,8 +86,13 @@ class EditorDatesPersistenceTest {
         val book = NotebookEntity(name="Book").let { it.copy(id=db.notebookDao().upsert(it)) }
         val note = insert(NoteEntity(content="Body", notebookId=book.id))
         val vm = open(note.id)
-        db.notebookDao().upsert(book.copy(isDeleted=true)); waitFor { vm.editorDates == null }
-        db.notebookDao().upsert(book.copy(isProtected=true)); waitFor { vm.editorDates == null }
+        db.notebookDao().softDelete(book.id)
+        assertEquals(book.id, db.noteDao().getById(note.id)!!.notebookId)
+        waitFor { vm.editorDates == null }
+        db.notebookDao().update(book); waitFor { vm.editorDates != null }
+        db.notebookDao().update(book.copy(isProtected=true))
+        assertEquals(book.id, db.noteDao().getById(note.id)!!.notebookId)
+        waitFor { vm.editorDates == null }
         ProtectionSession.unlockNotebook(book.id); waitFor { vm.editorDates != null }
         db.noteDao().update(note.copy(isDeleted=true)); waitFor { vm.editorDates == null }
     }

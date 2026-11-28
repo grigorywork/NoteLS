@@ -1,0 +1,27 @@
+{
+  "stage": 92,
+  "status": "targeted-failure-fixture-corrected-not-rerun",
+  "run_id": 46144810199,
+  "job_id": 140978390628,
+  "source": "1c5fa5e161549f2f942e990b1e64dbfe463879d7",
+  "feature_app_test_source": "44a51b189f42e88ec90b9214864b9c1c7a407cb9",
+  "artifact_id": 15263497251,
+  "archive_bytes": 150232,
+  "archive_sha256": "0edfb72735eb2c455a8102a9d9999fffde5e5069a0fef769871cb1a3b5170d62",
+  "tests": 56,
+  "failures": 1,
+  "ignored": 0,
+  "new_tests": 10,
+  "new_passed": 9,
+  "main_test_compile": "success",
+  "lint_assemble": "not_reached",
+  "build": "8m37s",
+  "failure": "EditorDatesPersistenceTest notebook deletion and protection revoke ordinary note dates live line89 timeout15000ms",
+  "diagnosis": "Fixture used NotebookDao.upsert(REPLACE), deleting the old parent row and triggering ON DELETE SET NULL on the note. Correct soft deletion uses softDelete; protection/restoration use update. Added assertions that parent relation stays intact and awaited visible dates before protection. No product changes, assertions removed, or timeout increases.",
+  "actual_android_release_check": false,
+  "physical_phone": false,
+  "screenshots": {
+    "docs/design/editor-dates-1.10.66/dates-ru-320.png": "2c4eecf714744f80505e499807c6948cb7f1a3f860879b8fdee9805e5204416c",
+    "docs/design/editor-dates-1.10.66/dates-en-large-ime-320.png": "1ecb6163dfb051f7b4370de0c021da53ab487077edf35e9250c20a9cb1064dfa"
+  }
+}
