@@ -1,3 +1,13 @@
+##89:первыйtarget51/0, lint-fix УЖЕприменён, повтор идёт
+
+Featurecodex/duration-1.10.63 checkpoint`62ee82774572d08d7ebe8e8c2f036e1436c250de`, de2b1fcвключён; взять свежийcheckpoint, не делать89 сначала. ПервыйCI46107006914/job140861904373/sourcea3b0430c2f0afc992e3775a36bd7fd6edcdb4afc: **51тест/0отказов/0пропусков**, включая все9новых. Однакоlint1Error StateFlowValueCalledInComposition на первоначальном repository.state.value, buildFAILED9m3s; это НЕуспешныйCI/assembleнеподтверждён. Artifact15248167430 ZIP357706bytesSHA256ea90837979359732de0ca6208b3916aab576fe8995c8188f8c3aa0979ce97593=API проверен. [Отрицательныйtarget](duration-1.10.63-first-targeted.json).
+
+В62ee827 providerУЖЕпереведён на repository.state.collectAsStateWithLifecycle()+remember2полей. Не применятьfixповторно; нетSuppress/ослабленияassertions/15s. Все3NativePNGосмотрены, новыйрежимRU/EN/аналитикаработалвтестах; этоNativeCanvas, не телефон. Дляпоследующегообщегоаудита в reportсохранёнкандидат320dpпереносацветовойлегендыаналитики, не начало3hокна/не новаястадия.
+
+ИДЁТ единственныйrepeatCI46108181195 на `codex/duration89-targeted`, source`7d7d2a3874e565cfa09b3b178f5c2312a7b2416e`;app/testровно62ee827,толькокомандаworkflowдиагностическая. App/testзамороженыдозавершения,второйGradleне запускать. Результатповтора покаНЕподтверждён,full914ожидаетсяНЕpass. ДиагностическийworkflowНЕсливатьmain. Послеrepeat/audit→обычныйfull/Signed/independentAPKactualRoom19/freshGC→закрытие89→90–97. Mainпокаverified62/sourcecebd4e4/905/Signed46099655259/GC46100198012,63НЕinstaller. [Отчёт](duration-1.10.63.md),[инструкция](task-duration-guide.md).
+
+ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms. Батареяобязательна,68/iPhone/новыеИИне начинать,подпись/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживуюработу. Нижние записи исторические.
+
 ##89 начат и сохранён, целевойCI идёт —28ноября2026
 
 Кандидат1.10.63/code86/Room19/data2/security3 в удалённой `codex/duration-1.10.63`, checkpoint`de2b1fc8132fae91f6a22492e81c50c1c4cbb3cb`. Mainприложениепокаverified62/sourcecebd4e4; 88 закрыт/905/0/0/Signed46099655259/releaseGC46100198012. Не повторять88 и не терять feature89. [Отчёт](duration-1.10.63.md).

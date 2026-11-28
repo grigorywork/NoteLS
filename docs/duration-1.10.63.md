@@ -1,13 +1,3 @@
-##89 начат и сохранён, целевойCI идёт —28ноября2026
-
-Кандидат1.10.63/code86/Room19/data2/security3 в удалённой `codex/duration-1.10.63`, checkpoint`de2b1fc8132fae91f6a22492e81c50c1c4cbb3cb`. Mainприложениепокаverified62/sourcecebd4e4; 88 закрыт/905/0/0/Signed46099655259/releaseGC46100198012. Не повторять88 и не терять feature89. [Отчёт](duration-1.10.63.md).
-
-Реализованы TaskDurationStyle, настройка automatic_duration_units defaulttrue с guarded чтением/persistence/preview, один event-driven lifecycle subscription на themed root, общий формат секундомер/countdown/аналитика. Под часом MM:SS, после60мин1ч00м/24ч1д00ч00м; компактный >=1ч без секунд, полный/accessibility сохраняет ненулевые секунды. Выключение — общее число минут:секунды. LegacyTaskTimer.format/audio/сырые длительности/даты/Room19/подпись не менялись. Нового ticker/jobs/wakelock нет; существующие foreground часы не тронуты. Уведомления задачи — будущий90, ещё не реализован.
-
-Идёт единственныйtargetCI46107006914 на `codex/duration89-targeted`, source`a3b0430c2f0afc992e3775a36bd7fd6edcdb4afc`;app/testровноde2b1fc, только командаworkflow фильтруетduration/legacytimer/clock/compacteditor/settings/analytics/i18n плюсlint/assemble. **Компиляция/тесты покаНЕподтверждены**. Новые4pure/2prefs/3NativeUI=9, full914ожидаетсяНЕpass. App/testзамороженыдозавершения, второйGradleне запускать. ДиагностическийworkflowНЕсливатьmain; официальныйsource только добавляет duration-preview uploadpath, полныйcommandсохранён. После результата диагностика/audit/NativePNG→обычныйfullCI/Signed/independentAPKactualRoom19/freshGC, только потом закрытие89→90–97.
-
-ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms/неначаты; паузы/ожиданиеCI/простой/перекрытияисключать. Батареяобязательна,68/iPhone/новыеИИ/платныеinferenceне начинать,подпись/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживуюработу. Нижние записи исторические.
-
 ## В работе89 — кандидат1.10.63/code86,28ноября2026
 
 Настройка «Часы и дни в таймерах» defaulttrue, выключение показывает суммарные минуты:секунды. Под часом MM:SS, при60мин1ч00м, при24ч1д00ч00м. Полный вид хранит ненулевые секунды, компактный при>=1ч оставляет минуты; полный accessibility-label точен. RU/EN, без Locale.setDefault/переполнения formatter, сырые миллисекунды/даты/Room19 не меняются. TaskTimer.format и формат аудиозаписей остаются прежними.
@@ -20,3 +10,11 @@
 
 
 Примеры:1ч02м/1ч 02м 03с;1д00ч00м/1440:00. Настройкаразмещенавкомпактнойгруппередакторасpreview. Проверкиboundary59:59→1ч,23:59:59→день/LongMINMAX/ENlocale/prefsreload-corrupt/UIclocks+analytics/сохранениесырыхданных.
+
+## Первый target: тесты успешны, lint остановил сборку
+
+46107006914/job140861904373/sourcea3b0430c2f0afc992e3775a36bd7fd6edcdb4afc:51tests/0fail/0ignored, включая все4pure/2prefs/3UI и прежниеclock/format/editor/settings/i18n. Lint1Error StateFlowValueCalledInComposition на начальном чтении repository.state.value в TaskDurationUi.kt:25; assemble/Signed не подтверждены, это НЕ успешныйCI. ZIP357706bytes/artifact15248167430 SHA256ea90837979359732de0ca6208b3916aab576fe8995c8188f8c3aa0979ce97593=API проверен. Все3 duration NativePNG осмотрены: RUtoggle/ENlargefont320/analyticsminutes. Это NativeCanvas, не телефон.
+
+Исправление: вместо прямого чтения начального StateFlow.value корневойprovider использует штатный repository.state.collectAsStateWithLifecycle(), а TaskDurationStyle запоминается только по нужным2полям. Остаётся одна event/lifecycle подписка на themed root, нет новыхпериодическихjobs/опроса/переключателейнакаждыйтик. Lintнеподавлялся/assertions/таймаутыне менялись. Повтор51+lint/assemble ещёпредстоит. Guide task-duration-guide.md.
+
+Для будущего общего аудита послеВСЕХ: проверить перенос легенды цвета в аналитике на320dp (Nativeanalytics-minutesPNG показывает разрыв Фиолетовый передпоследнейбуквой); это не изменение formatter, не физическийтелефон/не объявленный фикс и не начало3hокна.
