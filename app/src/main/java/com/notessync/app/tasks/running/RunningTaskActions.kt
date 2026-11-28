@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.withTransaction
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.reminders.AlarmReconciler
+import com.notessync.app.reminders.RoomNoteAlarmCommands
 import com.notessync.app.widget.CalendarWidgetProvider
 
 /** Atomic metadata-only command: a stale notification never writes an old document over new text. */
@@ -26,7 +27,15 @@ internal object RunningTaskActions {
         }
         if (changed) {
             // Durable recovery was set before commit; foreground recovery can retry a failed alarm update.
-            runCatching { AlarmReconciler.refreshNotes(context, db, setOf(control.id)) }
+            val alarms = RoomNoteAlarmCommands(context, db)
+            // A pause must not dismiss the separate, possibly already-delivered reminder.
+            // cancel() rechecks identity and current target, preserving a newer restart after commit.
+            if (control.action == RunningAction.COMPLETE) {
+                runCatching { alarms.cancel(control.id, control.syncId, timer = false, current = { true }) }
+            }
+            if (control.action == RunningAction.COMPLETE || control.clock == RunningClock.COUNTDOWN) {
+                runCatching { alarms.cancel(control.id, control.syncId, timer = true, current = { true }) }
+            }
             CalendarWidgetProvider.refreshAll(context)
         }
         return changed

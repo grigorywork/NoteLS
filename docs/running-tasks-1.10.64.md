@@ -1,3 +1,11 @@
+## Дополнительная ошибка найдена аудитом до выпуска
+
+Repeat46115895824/job140889539093 прошёл86/0/0/lint0errors27warnings2info/build9m45s; ZIP/API/HTML/lintXML и2NativePNG проверены, PNG равны осмотренным. Однако следующий source audit установил: общий AlarmReconciler.refreshNotes после любой PAUSE отменял ещё и уже доставленное напоминание той же задачи. Это вывод по коду, не падение уже прошедших86 тестов.
+
+Полный CI46116864622/job140892553856 на54a714fd был остановлен через штатный cancel и завершился cancelled; autoSigned46117055705/GC46117059814 skipped. Полного936 результата нет/64 неinstaller/90 не закрыт. После подтверждённой остановки исходники разморожены для исправления.
+
+Исправлено: stopwatch pause вообще не меняет alarms, countdown pause отменяет только countdown, completion отменяет оба вида через RoomNoteAlarmCommands с повторной fresh identity/target проверкой. Durable recovery остаётся для реальных alarm changes. Новый Native regression сначала действительно доставляет ReminderReceiver уведомление, затем проверяет его сохранение после двух видов паузы, отсутствие лишнего перепланирования countdown и намеренное удаление при completion. Теперь23 новых/full937 ожидается НЕpass. Следующий target87 ожидаемых проверок перед полнымCI обязателен; assertions/timeouts не ослаблялись.
+
 ## 90 готов к полному CI; ещё не закрыт — 28 ноября 2026
 
 Кандидат1.10.64/code87/Room19/data2/security3. Feature app/test source `457fbaedbe563700a2a94c3e92bd550bd05c42e0`. Repeat46115895824/job140889539093 SUCCESS: **86/0fail/0ignored**, lint0errors/27warnings/2info. ZIP/API/HTML/lintXML и обе RU/ENlargefont320 NativePNG проверены. [Proof](running-tasks-1.10.64-targeted-verification.json). Все22 новых и legacy clock/editor/alarm/metadata/settings/i18n/widget + real NoteSyncApp startup прошли. Аудитные fixes permission observer/Application context/silent orphan group/countdown clamp УЖЕ применены, не повторять.

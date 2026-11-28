@@ -1,6 +1,13 @@
 package com.notessync.app.tasks.running
 
 import android.app.Application
+import android.app.AlarmManager
+import android.app.NotificationManager
+import com.notessync.app.reminders.ReminderReceiver
+import com.notessync.app.reminders.ReminderScheduler
+import com.notessync.app.reminders.createReminderChannel
+import com.notessync.app.reminders.audit.deliverReminder
+import org.robolectric.Shadows.shadowOf
 import com.notessync.app.data.local.AppDatabase
 import com.notessync.app.data.local.dao.RUNNING_TASKS_SQL
 import com.notessync.app.data.local.entity.*
@@ -22,7 +29,12 @@ class RunningTaskQueryActionsTest {
     private val app get() = RuntimeEnvironment.getApplication()
     private val db get() = AppDatabase.get(app)
     private val now = 1_900_000_000_000L
-    @Before fun before() { AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ProtectionSession.lockAll() }
+    @Before fun before() {
+        AppDatabase.closeInstance(); app.deleteDatabase("notessync.db"); ProtectionSession.lockAll()
+        app.getSystemService(NotificationManager::class.java).cancelAll()
+        val alarms = app.getSystemService(AlarmManager::class.java)
+        shadowOf(alarms).scheduledAlarms.toList().forEach { it.operation?.let { pending -> alarms.cancel(pending) } }
+    }
     @After fun after() { AppDatabase.closeInstance(); ProtectionSession.lockAll() }
     private suspend fun save(note: NoteEntity) = note.copy(id = db.noteDao().upsert(note))
     private fun control(note: NoteEntity, clock: RunningClock = RunningClock.STOPWATCH, action: RunningAction = RunningAction.PAUSE) =
@@ -115,4 +127,33 @@ class RunningTaskQueryActionsTest {
         try { RunningTaskActions.apply(app, control(note), now + 1); fail("Expected write failure") } catch (_: android.database.sqlite.SQLiteException) { }
         assertEquals(paused, db.noteDao().getById(note.id))
     }
+    @Test fun `pausing either clock preserves its delivered reminder while completion clears it`() = runBlocking {
+        val time = System.currentTimeMillis()
+        val note = save(NoteEntity(title = "Reminder and two clocks", isTask = true, taskTimerStartedAt = time - 5000,
+            taskCountdownMillis = 60_000, taskCountdownEndAt = time + 60_000, reminderAt = time - 1000))
+        app.createReminderChannel()
+        deliverReminder(app, ReminderScheduler.deliveryIntent(app, note.id, false, note.reminderAt!!, note.syncId))
+        val manager = app.getSystemService(NotificationManager::class.java)
+        fun reminderShown() = manager.activeNotifications.any { it.tag == ReminderScheduler.notificationTag(note.id, false) }
+        assertTrue("Fixture must deliver the actual reminder before the pause", reminderShown())
+        assertTrue(ReminderScheduler.scheduleTimer(app, note.id, note.title, note.taskCountdownEndAt!!, note.syncId))
+        val alarms = app.getSystemService(AlarmManager::class.java)
+        fun countdownTargets() = shadowOf(alarms).scheduledAlarms.filter {
+            val intent = shadowOf(it.operation).savedIntent
+            intent.getLongExtra(ReminderReceiver.EXTRA_NOTE_ID, -1) == note.id && intent.getBooleanExtra(ReminderReceiver.EXTRA_IS_TIMER, false)
+        }.map { it.triggerAtMs }
+        assertEquals(listOf(note.taskCountdownEndAt), countdownTargets())
+        assertTrue(RunningTaskActions.apply(app, control(note), time))
+        assertTrue("Stopwatch pause must leave delivered reminder visible", reminderShown())
+        assertEquals("Stopwatch pause must not reschedule its unrelated countdown", listOf(note.taskCountdownEndAt), countdownTargets())
+        assertTrue(RunningTaskActions.apply(app, control(note, RunningClock.COUNTDOWN), time + 1))
+        assertTrue("Countdown pause must leave delivered reminder visible", reminderShown())
+        assertTrue(countdownTargets().isEmpty())
+        val restarted = db.noteDao().getById(note.id)!!.copy(taskTimerStartedAt = time + 2)
+        db.noteDao().update(restarted)
+        assertTrue(RunningTaskActions.apply(app, control(restarted, action = RunningAction.COMPLETE), time + 3))
+        assertFalse("Completion clears the reminder intentionally", reminderShown())
+        assertTrue(db.noteDao().getById(note.id)!!.isCompleted)
+    }
+
 }
