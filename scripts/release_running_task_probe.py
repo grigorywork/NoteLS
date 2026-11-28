@@ -159,7 +159,9 @@ def main():
     ui.adb('shell', 'kill', '-9', pid)
     wait(lambda: not process_id(), 'Fixture process did not stop')
     time.sleep(1)
+    assert not process_id(), 'Application restarted before the native-counter verification'
     assert all(tag in records() for tag in expected_tags.values()), 'System counter did not survive ordinary process death'
+    assert not process_id(), 'Counter verification requires the app process to remain absent'
     tap_notification_action('Running probe watch', 'Пауза')
     wait(lambda: expected_tags['watch'] not in records(), 'Notification pause did not remove the selected counter')
     assert expected_tags['countdown'] in records(), 'Pausing stopwatch changed the other task'
