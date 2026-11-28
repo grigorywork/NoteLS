@@ -101,7 +101,8 @@ fun NotesListScreen(
     onDeletedEventHandled: () -> Unit = {},
     viewModel: NotesViewModel = viewModel(),
     onOpenAgenda: () -> Unit = onOpenCalendar,
-    onOpenDiary: () -> Unit = {}
+    onOpenDiary: () -> Unit = {},
+    onCreateEntry: ((Boolean, com.notessync.app.data.local.entity.NotebookEntity?) -> Unit)? = null
 ) {
     val settingsContext = androidx.compose.ui.platform.LocalContext.current
     val settingsRepository = remember { SettingsRepository.get(settingsContext) }
@@ -129,6 +130,17 @@ fun NotesListScreen(
     val notebooks by viewModel.notebooks.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val protectionState by ProtectionSession.state.collectAsStateWithLifecycle()
+    val creationNotebookId = (filter as? NoteFilter.Notebook)?.id
+    val creationNotebook = notebooks.firstOrNull { it.id == creationNotebookId }
+    val creationTarget = creationNotebook?.let { com.notessync.app.notes.NotebookTarget(it.id, it.syncId) }
+    val creationAvailable = creationNotebookId == null || creationTarget?.allows(creationNotebook, protectionState) == true
+    val createEntry: (Boolean) -> Unit = { task ->
+        // Reject callbacks retained across a filter switch or a session lock.
+        if (viewModel.filter.value == filter && (creationNotebookId == null ||
+                creationTarget?.allows(creationNotebook, ProtectionSession.state.value) == true)) {
+            if (onCreateEntry != null) onCreateEntry(task, creationNotebook) else onOpenEditor(-1L, task)
+        }
+    }
     val lockedTasks = lockedResult?.takeIf {
         it.scope.filter == filter && it.scope.archiveCompleted == displaySettings.archiveCompletedTasks &&
             it.scope.session == listSession && it.scope.protection == protectionState
@@ -241,15 +253,15 @@ fun NotesListScreen(
                 )
             },
             floatingActionButton = {
-                if (filter != NoteFilter.Trash && filter != NoteFilter.Completed && selected.isEmpty()) Column(horizontalAlignment = Alignment.End) {
+                if (filter != NoteFilter.Trash && filter != NoteFilter.Completed && selected.isEmpty() && creationAvailable) Column(horizontalAlignment = Alignment.End) {
                     SmallFloatingActionButton(
-                        onClick = { onOpenEditor(-1L, true) },
+                        onClick = { createEntry(true) },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {
                         Icon(Icons.Default.CheckBox, contentDescription = uiText("Новая задача"))
                     }
-                    FloatingActionButton(onClick = { onOpenEditor(-1L, false) }) {
+                    FloatingActionButton(onClick = { createEntry(false) }) {
                         Icon(Icons.Default.Add, contentDescription = uiText("Новая заметка"))
                     }
                 }

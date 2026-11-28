@@ -1757,3 +1757,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T01:52:03.145411+00:00:87ЗАКРЫТ1.10.61code84/Room19/source2e1502e;fullCI46084992355=893/0fail/0ignored/lint0error, Signed46086854266/artifact15239850994иfreshreleaseGC46087472043API28/35успех. НезависимоZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19проверены;proofanalytics-1.10.61-verification.json. Нефизическийтелефон/неизмерениебатареи. Следующий88/62code85,потом89–97;послеВСЕХновые3h+3hещё0ms. Подпись/Secret/AIне менялись.
+
+
+2026-11-28T01:59:17.734324+00:00:88НАЧАТ/кандидат1.10.62code85;parentID+syncIdroute/новыйcreationcallback/freshload+transaction/selectionversion/externalmoveguard,8NativeRoomroute+2ActivityUIподготовленыНЕпроверены. Последнийinstaller61/source2e1502e/893/SignedGCпроверены. Room19/Secret/AIне менялись;локальныхSDKGradlebuildsнет. ПослеВСЕЙочереди3h+3hещё0ms.

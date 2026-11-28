@@ -1,3 +1,9 @@
+## В работе88 — кандидат1.10.62/code85,28ноября
+
+СозданиеизвыбранногоблокнотапередаётегоID+syncId;load/transactionпроверяютсвежийдоступ,старыеunfiledнеперемещаются;saveнеоткатываетвнешнееперемещение/clearNotebook. Подготовлены8NativeRoom/route+2NativeMainActivityрегрессии,покаНЕскомпилированы/НЕпроверены. Featurecodex/notebook-1.10.62. [Отчёт](notebook-1.10.62.md). Mainприложение61проверено,62НЕinstaller/88НЕзакрыт. ПроверятьтольковGHA,app/testзаморозитьприCI,диагностическийworkflowнепереноситьвmain.
+
+Следом89–97;послеВСЕХновые3hаудита→3hоптимизацииещё0ms. Энергопотреблениеобязательно,68/iPhone/новыеИИне начинать,signingSecret/pinне менять. Нижниезаписиисторические.
+
 ## Этап87 закрыт28ноября2026 — проверенная1.10.61/code84/Room19
 
 Source `2e1502ef5b9c544c2bdfb581d59e8b3019516a0b`. ПолныйCI46084992355/job140792370402:**893теста/0отказов/0пропусков**, lint0error/27warnings/2info,build20m8s. Signed46086854266/identity140798331610/release140798367781SUCCESS,build5m52s/13contracts0fail. Artifact15239850994 ZIP19019502bytesSHA2568d87deac2107ecfd10b6b4c0225263775f05b946ef473fcfbba2812166686591=API;APK31122287bytesSHA256a9aae4e2df26d16baa94d866953065f8e307a02389918f294a32af99e963c506=SUMS/CI. Source/package/version/nondebug/actualapksigner v2/v3/1signer/прежнийpin/новыеcompiledDEXmarkers/actualRoom19identity61703504e840fea926257eeba0d419e1независимопроверены. ТриanalyticsNativePNGравныосмотреннымtarget. FreshactualminifiedreleaseGC46087472043/job140800331017/artifact15239652519SUCCESS:ARTGCиlauncherAPI28/35,хешAPKтотже;нефизическийтелефон/небатарейныйзамер. [Доказательства](analytics-1.10.61-verification.json),[отчёт](analytics-1.10.61.md).

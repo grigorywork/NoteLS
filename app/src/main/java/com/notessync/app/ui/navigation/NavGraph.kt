@@ -41,10 +41,12 @@ object Routes {
     const val DIARY = "diary"
     const val AGENDA = "agenda" // Legacy in-app route; no Daily Planner menu item.
     const val QUOTES = "quotes"
-    const val EDITOR = "editor?noteId={noteId}&isTask={isTask}&dayKey={dayKey}"
+    const val EDITOR = "editor?noteId={noteId}&isTask={isTask}&dayKey={dayKey}&notebookId={notebookId}&notebookSyncId={notebookSyncId}"
 
-    fun editor(noteId: Long = -1L, isTask: Boolean = false, dayKey: Long = -1L) =
-        "editor?noteId=$noteId&isTask=$isTask&dayKey=$dayKey"
+    fun editor(noteId: Long = -1L, isTask: Boolean = false, dayKey: Long = -1L,
+        notebookId: Long = -1L, notebookSyncId: String = "") =
+        "editor?noteId=$noteId&isTask=$isTask&dayKey=$dayKey" +
+            if (notebookId > 0) "&notebookId=$notebookId&notebookSyncId=${android.net.Uri.encode(notebookSyncId)}" else ""
 }
 
 @Composable
@@ -110,6 +112,10 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
                 onOpenEditor = { noteId, isTask ->
                     navigate(Routes.editor(noteId, isTask))
                 },
+                onCreateEntry = { isTask, book ->
+                    navigate(Routes.editor(isTask = isTask, notebookId = book?.id ?: -1L,
+                        notebookSyncId = book?.syncId.orEmpty()))
+                },
                 deletedNoteEvents = backStackEntry.savedStateHandle.getStateFlow<com.notessync.app.data.local.model.NoteIdentity?>("deleted_note_event", null),
                 onDeletedEventHandled = {
                     backStackEntry.savedStateHandle["deleted_note_event"] = null
@@ -121,7 +127,9 @@ fun AppNavHost(widgetRequest: WidgetNoteRequest? = null, onWidgetHandled: (Long)
             arguments = listOf(
                 navArgument("noteId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("isTask") { type = NavType.BoolType; defaultValue = false },
-                navArgument("dayKey") { type = NavType.LongType; defaultValue = -1L }
+                navArgument("dayKey") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("notebookId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("notebookSyncId") { type = NavType.StringType; defaultValue = "" }
             )
         ) {
             NoteEditorScreen(

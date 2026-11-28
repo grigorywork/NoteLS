@@ -5,6 +5,7 @@ import com.notessync.app.data.local.model.nextChangeTimestamp
 import com.notessync.app.i18n.uiText
 import com.notessync.app.audio.*
 import com.notessync.app.notes.actions.NoteActions
+import com.notessync.app.notes.NotebookTarget
 import kotlinx.coroutines.flow.combine
 import com.notessync.app.notes.text.*
 import com.notessync.app.notes.tables.*
@@ -175,6 +176,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
         private set
     private val accessLoaded = MutableStateFlow(false)
     private var notebookId: Long? = null
+    private var notebookTarget: NotebookTarget? = null
+    private var notebookChoiceDirty = false
+    private var notebookChoiceVersion = 0L
     // Новая запись из календаря сразу закрепляется за выбранным днём.
     private var dayKey: Long? = savedState.get<Long>("dayKey")?.takeIf { it != -1L }
     private var passwordHash: String? = null
@@ -266,11 +270,25 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     taskDueAt = note.taskDueAt
                     reminderAt = note.reminderAt
                     notebookId = note.notebookId
+                    notebookTarget = notebook?.let { NotebookTarget(it.id, it.syncId) }
                     dayKey = note.dayKey
                     notebookName = notebook?.name
                     createdAt = note.createdAt
                     syncId = note.syncId
                     noteTags = tagDao.getTagNamesForNote(note.id)
+                }
+            }
+            if (currentNoteId == -1L) {
+                val parentId = savedState.get<Long>("notebookId")?.takeIf { it > 0 }
+                if (parentId != null) {
+                    val target = NotebookTarget(parentId, savedState.get<String>("notebookSyncId").orEmpty())
+                    val book = db.notebookDao().getById(parentId)
+                    if (!target.allows(book, ProtectionSession.state.value)) {
+                        accessDenied = true
+                        return@load
+                    }
+                    notebookId = book!!.id; notebookName = book.name; notebookTarget = target
+                    notebookChoiceDirty = true
                 }
             }
             isReady = true
@@ -368,18 +386,32 @@ class NoteEditorViewModel @JvmOverloads constructor(
             updatedAt = now,
             dirty = true
         )
+        val chosenTarget = notebookTarget
+        val choiceDirty = notebookChoiceDirty
+        val choiceVersion = notebookChoiceVersion
         val encodedTables = withContext(Dispatchers.Default) { tablesSnapshot?.encode() ?: unknownSnapshot }
         var accepted = false
+        var acceptedNotebook: NotebookEntity? = null
         val didWrite = db.withTransaction {
             val fresh = if (exists) noteDao.getById(currentNoteId) else null
             if (exists && (fresh == null || fresh.isDeleted || fresh.isPurged || fresh.syncId != syncId)) { deleted = true; return@withTransaction false }
             if (fresh != null && !NoteActions(app, db).canAccess(fresh)) { accessDenied = true; return@withTransaction false }
-            accepted = true
             val freshBook = fresh?.notebookId?.let { db.notebookDao().getById(it) }
             val privateParent = freshBook?.takeIf { it.isDiary }
-            if (privateParent != null) { isDiaryEntry = true; notebookId = privateParent.id; notebookName = privateParent.name }
+            // An external move/deletion wins over stale editor metadata, unless the user chose a destination.
+            // A diary cannot be moved out through a stale ordinary-editor choice.
+            val useFreshParent = fresh != null && (!choiceDirty || privateParent != null)
+            val targetId = if (useFreshParent) fresh?.notebookId else baseNote.notebookId
+            val targetBook = if (useFreshParent) freshBook else targetId?.let { db.notebookDao().getById(it) }
+            val targetIdentity = if (useFreshParent) targetBook?.let { NotebookTarget(it.id, it.syncId) } else chosenTarget
+            if (targetId != null && (targetIdentity == null || !targetIdentity.allows(targetBook,
+                    ProtectionSession.state.value, allowDiary = privateParent?.id == targetId))) {
+                accessDenied = true
+                return@withTransaction false
+            }
+            accepted = true; acceptedNotebook = targetBook
             val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false,
-                notebookId = privateParent?.id ?: baseNote.notebookId)
+                notebookId = targetId)
             val previous = lastSavedNote
             val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
@@ -406,6 +438,12 @@ class NoteEditorViewModel @JvmOverloads constructor(
             true
         }
         if (accepted) lastSavedNote?.let { isProtected = it.isProtected; passwordHash = it.passwordHash; passwordSalt = it.passwordSalt }
+        if (accepted && notebookChoiceVersion == choiceVersion) {
+            notebookId = acceptedNotebook?.id; notebookName = acceptedNotebook?.name
+            notebookTarget = acceptedNotebook?.let { NotebookTarget(it.id, it.syncId) }
+            notebookChoiceDirty = false
+            if (acceptedNotebook?.isDiary == true) isDiaryEntry = true
+        }
         if (!didWrite) return accepted
         // Observers must not see the new ID before the insert transaction commits.
         _noteIdFlow.value = currentNoteId
@@ -641,9 +679,13 @@ class NoteEditorViewModel @JvmOverloads constructor(
     }
 
     fun assignNotebook(notebook: NotebookEntity?) {
-        if (isDiaryEntry || notebook?.isDiary == true || !loaded || accessDenied || isClosing) return
+        if (isDiaryEntry || (notebook != null && !NotebookTarget(notebook.id, notebook.syncId)
+                .allows(notebook, ProtectionSession.state.value)) || !loaded || accessDenied || isClosing) return
         notebookId = notebook?.id
         notebookName = notebook?.name
+        notebookTarget = notebook?.let { NotebookTarget(it.id, it.syncId) }
+        notebookChoiceDirty = true
+        notebookChoiceVersion++
         viewModelScope.launch { saveNow() }
     }
 
