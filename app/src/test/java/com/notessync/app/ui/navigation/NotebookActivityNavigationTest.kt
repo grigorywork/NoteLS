@@ -77,7 +77,7 @@ class NotebookActivityNavigationTest {
         create(true, "Рабочая задача", "Содержимое задачи")
         val saved = runBlocking { AppDatabase.get(app).noteDao().observeAll().first().single { it.title == "Рабочая задача" } }
         assertEquals(work.id, saved.notebookId); assertTrue(saved.isTask)
-        compose.onNodeWithContentDescription("Отметить как выполненную задачу: ${saved.title}").performClick()
+        compose.onNodeWithContentDescription("Выполнить задачу: ${saved.title}").performClick()
         await { runBlocking { AppDatabase.get(app).noteDao().getById(saved.id)?.isCompleted == true } }
         val after = runBlocking { AppDatabase.get(app).noteDao().getById(saved.id)!! }
         assertEquals(saved.notebookId, after.notebookId); assertEquals(saved.createdAt, after.createdAt)

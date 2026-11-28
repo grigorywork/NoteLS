@@ -1760,3 +1760,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T01:59:17.734324+00:00:88НАЧАТ/кандидат1.10.62code85;parentID+syncIdroute/новыйcreationcallback/freshload+transaction/selectionversion/externalmoveguard,8NativeRoomroute+2ActivityUIподготовленыНЕпроверены. Последнийinstaller61/source2e1502e/893/SignedGCпроверены. Room19/Secret/AIне менялись;локальныхSDKGradlebuildsнет. ПослеВСЕЙочереди3h+3hещё0ms.
+
+
+2026-11-28T02:11:29.360799+00:00:88target46095927970=35/1UIlabelотказ/0ignored,все8NativeиActivitynotecreateпрошли. LabelтестаисправленнасущийВыполнитьзадачу;послепрогонапримененыfreshparentnoopguard/SQLassigncatch+2новыхNativecases. Повторtargetпредстоит;full905ожидаетсяНЕpass. Последнийverified61;послеВСЕХновые3h+3hещё0ms.
