@@ -29,17 +29,18 @@ class RunningTaskReceiver : BroadcastReceiver() {
             Intent(context, RunningTaskReceiver::class.java).setAction(ACTION).setData(
                 Uri.Builder().scheme("notels").authority("running-task").appendPath(control.id.toString())
                     .appendPath(control.syncId).appendPath(control.clock.name).appendPath(control.expectedAt.toString())
-                    .appendPath(control.action.name).build())
+                    .appendPath(control.action.name).apply { control.subtaskId?.let { appendPath("subtask"); appendPath(it) } }.build())
         internal fun read(intent: Intent): RunningControl? {
             if (intent.action != ACTION) return null
             val data = intent.data ?: return null
             if (data.scheme != "notels" || data.authority != "running-task" || data.query != null || data.fragment != null) return null
             val parts = data.pathSegments
-            if (parts.size != 5) return null
+            if (parts.size != 5 && parts.size != 7) return null
+            val child = if (parts.size == 7) parts[6].takeIf { parts[5] == "subtask" && com.notessync.app.notes.subtasks.Subtasks.validId(it) } ?: return null else null
             val id = parts[0].toLongOrNull()?.takeIf { it > 0 } ?: return null
             val sync = parts[1].takeIf { it.length in 1..160 && it.isNotBlank() } ?: return null
             val at = parts[3].toLongOrNull()?.takeIf { it > 0 } ?: return null
-            return runCatching { RunningControl(id, sync, RunningClock.valueOf(parts[2]), at, RunningAction.valueOf(parts[4])) }.getOrNull()
+            return runCatching { RunningControl(id, sync, RunningClock.valueOf(parts[2]), at, RunningAction.valueOf(parts[4]), child) }.getOrNull()
         }
     }
 }

@@ -17,7 +17,7 @@ internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS sy
 internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes INDEXED BY index_notes_dayKey WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
 
 // The existing task_due index narrows to unfinished live tasks before bounded scalar reads.
-internal const val RUNNING_TASK_SELECT = "SELECT notes.id, notes.syncId, CASE WHEN notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1 THEN '' ELSE SUBSTR(notes.title, 1, 256) END AS title, (notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1) AS hidden, notes.taskElapsedMillis, notes.taskTimerStartedAt, notes.taskCountdownMillis, notes.taskCountdownEndAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.isDeleted = 0 AND notes.isPurged = 0 AND notes.isTask = 1 AND notes.isCompleted = 0 AND COALESCE(notebooks.isDeleted, 0) = 0 AND LENGTH(notes.syncId) BETWEEN 1 AND 160 AND TRIM(notes.syncId) != '' "
+internal const val RUNNING_TASK_SELECT = "SELECT notes.id, notes.syncId, NULL AS subtaskId, NULL AS subtaskFinishedAt, CASE WHEN notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1 THEN '' ELSE SUBSTR(notes.title, 1, 256) END AS title, (notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1) AS hidden, notes.taskElapsedMillis, notes.taskTimerStartedAt, notes.taskCountdownMillis, notes.taskCountdownEndAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.isDeleted = 0 AND notes.isPurged = 0 AND notes.isTask = 1 AND notes.isCompleted = 0 AND COALESCE(notebooks.isDeleted, 0) = 0 AND LENGTH(notes.syncId) BETWEEN 1 AND 160 AND TRIM(notes.syncId) != '' "
 internal const val RUNNING_TASKS_SQL = RUNNING_TASK_SELECT + "AND (notes.taskTimerStartedAt IS NOT NULL OR notes.taskCountdownEndAt > :now) ORDER BY notes.id LIMIT 20"
 
 @Dao
@@ -79,7 +79,20 @@ interface NoteDao {
     suspend fun upsert(note: NoteEntity): Long
 
     @Update
-    suspend fun update(note: NoteEntity)
+    suspend fun updateRow(note: NoteEntity)
+
+    @androidx.room.Transaction
+    suspend fun update(note: NoteEntity) {
+        updateRow(note)
+        if (note.isPurged) clearSubtasks(note.id)
+        else if (note.isDeleted || (note.isTask && note.isCompleted)) pauseSubtasks(note.id, System.currentTimeMillis())
+    }
+
+    @Query("DELETE FROM note_subtasks WHERE noteId = :id")
+    suspend fun clearSubtasks(id: Long)
+
+    @Query("UPDATE note_subtasks SET elapsedMillis = CASE WHEN startedAt > 0 AND startedAt < :now THEN CASE WHEN elapsedMillis > 9223372036854775807 - (:now - startedAt) THEN 9223372036854775807 ELSE elapsedMillis + (:now - startedAt) END ELSE elapsedMillis END, startedAt = NULL, countdownMillis = CASE WHEN countdownEndAt IS NULL THEN countdownMillis WHEN countdownEndAt > :now THEN countdownEndAt - :now ELSE 0 END, countdownEndAt = NULL WHERE noteId = :id AND (startedAt IS NOT NULL OR countdownEndAt IS NOT NULL)")
+    suspend fun pauseSubtasks(id: Long, now: Long)
 
     @Query("UPDATE notes SET isProtected = :isProtected, passwordHash = :hash, passwordSalt = :salt, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :timestamp) ELSE updatedAt END, dirty = 1 WHERE id = :id")
     suspend fun updateTaskProtection(id: Long, isProtected: Boolean, hash: String?, salt: String?, timestamp: Long)

@@ -29,21 +29,23 @@ import com.notessync.app.data.backup.BackupManager
         NoteTagCrossRef::class,
         AttachmentEntity::class,
         CustomQuoteEntity::class,
-        QuoteLibraryState::class
+        QuoteLibraryState::class,
+        com.notessync.app.data.local.entity.SubtaskEntity::class
     ],
-    version = 19,
+    version = 20,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun customQuoteDao(): CustomQuoteDao
+    abstract fun subtaskDao(): com.notessync.app.data.local.dao.SubtaskDao
     abstract fun noteDao(): NoteDao
     abstract fun notebookDao(): NotebookDao
     abstract fun tagDao(): TagDao
     abstract fun attachmentDao(): AttachmentDao
 
     companion object {
-        const val VERSION = 19
+        const val VERSION = 20
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -196,6 +198,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS note_subtasks (noteId INTEGER NOT NULL, id TEXT NOT NULL, position INTEGER NOT NULL, text TEXT NOT NULL, completed INTEGER NOT NULL, elapsedMillis INTEGER NOT NULL, startedAt INTEGER, countdownMillis INTEGER NOT NULL, countdownEndAt INTEGER, countdownFinishedAt INTEGER, PRIMARY KEY(noteId,id), FOREIGN KEY(noteId) REFERENCES notes(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_note_subtasks_noteId ON note_subtasks(noteId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_note_subtasks_startedAt ON note_subtasks(startedAt)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_note_subtasks_countdownEndAt ON note_subtasks(countdownEndAt)")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: build(context, "notessync.db").also { database ->
@@ -218,7 +229,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ).addMigrations(
                         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19
+                        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20
                     ).addCallback(LegacyIdentityRepair).build()
 
         // Этап 39: закрыть и сбросить синглтон перед подменой файла БД

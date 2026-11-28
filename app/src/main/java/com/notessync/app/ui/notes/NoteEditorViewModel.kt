@@ -88,6 +88,9 @@ class NoteEditorViewModel @JvmOverloads constructor(
     var isClosing by mutableStateOf(false)
         private set
     private var lastSavedNote: NoteEntity? = null
+    private var lastSavedSubtasks: List<com.notessync.app.notes.subtasks.Subtask> = emptyList()
+    val subtasks get() = document.subtasks
+    val hasSubtasks get() = subtasks.isNotEmpty()
 
     private val document = EditorDocument(SettingsRepository.get(application).state.value.editorHistory,
         canEdit = { loaded && !accessDenied && !deleted && !isClosing }, report = { message = it })
@@ -214,6 +217,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                             audioCapture.cancel(); audioPlayback.stop()
                             titleField = TextFieldValue(""); contentField = TextFieldValue("")
                             formatting = TextFormatting(); tables = null; unsupportedTables = ""
+                            document.subtasks = emptyList(); lastSavedSubtasks = emptyList()
                             noteTags = emptyList(); notebookName = null; document.clearHistory()
                         }
                     }
@@ -256,6 +260,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     formatting = withContext(Dispatchers.Default) { TextFormatting.decode(note.textFormat, note.content.length) }
                     tables = withContext(Dispatchers.Default) { NoteTables.decode(note.tablesData) }
                     unsupportedTables = if (tables == null) note.tablesData else ""
+                    document.subtasks = com.notessync.app.notes.subtasks.Subtasks.checked(db.subtaskDao().get(note.id).map { it.item() })
+                    lastSavedSubtasks = document.subtasks
                     taskPriority = note.taskPriority
                     isFavorite = note.isFavorite
                     isTask = note.isTask
@@ -276,7 +282,8 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     notebookTarget = notebook?.let { NotebookTarget(it.id, it.syncId) }
                     dayKey = note.dayKey
                     notebookName = notebook?.name
-                    createdAt = note.createdAt
+                    com.notessync.app.data.subtasks.replaceSubtasks(db, currentNoteId, committedSubtasks)
+            createdAt = note.createdAt
                     syncId = note.syncId
                     noteTags = tagDao.getTagNamesForNote(note.id)
                 }
@@ -298,6 +305,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             accessLoaded.value = true
             startAutosave()
             startTaskMetadataObserver()
+            startSubtaskObserver()
             }
         }
     }
@@ -349,11 +357,37 @@ class NoteEditorViewModel @JvmOverloads constructor(
         catch (_: Exception) { /* A failed read cannot overwrite the document. Save/reopen still uses fresh guards. */ }
     } }
 
+    private fun startSubtaskObserver() { viewModelScope.launch {
+        try {
+            _noteIdFlow.flatMapLatest { id ->
+                if (id > 0) db.subtaskDao().observe(id) else kotlinx.coroutines.flow.flowOf(emptyList())
+            }.distinctUntilChanged().collectLatest {
+                protection.awaitIdle()
+                saveMutex.withLock {
+                    if (!isReady || isClosing || deleted || accessDenied || currentNoteId <= 0) return@withLock
+                    val committed = db.withTransaction {
+                        val access = noteDao.getAccess(currentNoteId) ?: return@withTransaction null
+                        if (!access.allowed(currentNoteId, syncId, ProtectionSession.state.value)) return@withTransaction null
+                        val book = access.notebookId?.let { db.notebookDao().getById(it) }
+                        if ((access.notebookId != null && book == null) || book?.isDeleted == true ||
+                            (book?.isDiary == true && !com.notessync.app.notes.diary.DiaryPrivacy.valid(book))) return@withTransaction null
+                        com.notessync.app.notes.subtasks.Subtasks.checked(db.subtaskDao().get(currentNoteId).map { row -> row.item() })
+                    } ?: return@withLock
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                    if (isClosing || accessDenied || deleted) return@withLock
+                    document.subtasks = com.notessync.app.notes.subtasks.Subtasks.merge(subtasks, lastSavedSubtasks, committed)
+                    lastSavedSubtasks = committed
+                }
+            }
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (_: Exception) { /* Save/reopen rechecks access and identity; never publish stale data. */ }
+    } }
+
     private fun startAutosave() {
         viewModelScope.launch {
             snapshotFlow {
                 AutosaveKey(
-                    title, contentField.text, formatting, tables, taskPriority, isFavorite, reminderAt, taskDueAt,
+                    title, contentField.text, formatting, tables, subtasks, taskPriority, isFavorite, reminderAt, taskDueAt,
                     isTask, isCompleted, taskColor, noteColor, taskElapsedMillis, taskTimerStartedAt,
                     taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, isProtected
                 )
@@ -375,6 +409,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         val content: String,
         val formatting: TextFormatting,
         val tables: NoteTables?,
+        val subtasks: List<com.notessync.app.notes.subtasks.Subtask>,
         val taskPriority: Int,
         val favorite: Boolean,
         val reminderAt: Long?,
@@ -403,9 +438,11 @@ class NoteEditorViewModel @JvmOverloads constructor(
 
     private suspend fun persistNow(force: Boolean): Boolean {
         if (deleted) return false
-        if (!force && !exists && title.isBlank() && contentField.text.isBlank() && !hasTables) return true
+        if (!force && !exists && title.isBlank() && contentField.text.isBlank() && !hasTables && !hasSubtasks) return true
 
         val now = System.currentTimeMillis()
+        val submittedSubtasks = subtasks
+        var committedSubtasks = lastSavedSubtasks
         val tablesSnapshot = tables
         val unknownSnapshot = unsupportedTables
         val baseNote = NoteEntity(
@@ -467,13 +504,19 @@ class NoteEditorViewModel @JvmOverloads constructor(
             val merged = com.notessync.app.ui.tasks.mergeExternalTaskTiming(local, previous, fresh)
             val note = if (fresh == null) merged else merged.copy(isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
-            if (previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
+            val freshSubtasks = if (exists) db.subtaskDao().get(currentNoteId).map { it.item() } else emptyList()
+            val mergedSubtasks = com.notessync.app.notes.subtasks.Subtasks.merge(submittedSubtasks, lastSavedSubtasks, freshSubtasks)
+                .let { rows -> if (note.isTask && note.isCompleted) rows.map { it.paused(now) } else rows }
+            val subtaskChanges = mergedSubtasks != freshSubtasks
+            committedSubtasks = mergedSubtasks
+            if (!subtaskChanges && previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
                     updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {
                 lastSavedNote = com.notessync.app.ui.tasks.mergeExternalTaskTiming(previous, previous, fresh).copy(
                     isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
                 return@withTransaction false
             }
+            if (subtaskChanges) com.notessync.app.reminders.AlarmReconciler.requireRecovery(app)
             if ((fresh?.reminderAt != note.reminderAt || fresh?.taskCountdownEndAt != note.taskCountdownEndAt ||
                     fresh?.isTask != note.isTask || fresh?.isCompleted != note.isCompleted) &&
                 (fresh?.reminderAt != null || fresh?.taskCountdownEndAt != null || note.reminderAt != null || note.taskCountdownEndAt != null)) {
@@ -490,6 +533,10 @@ class NoteEditorViewModel @JvmOverloads constructor(
             lastSavedNote = note.copy(id = currentNoteId)
             true
         }
+        if (accepted) {
+            document.subtasks = com.notessync.app.notes.subtasks.Subtasks.merge(subtasks, submittedSubtasks, committedSubtasks)
+            lastSavedSubtasks = committedSubtasks
+        }
         if (accepted) lastSavedNote?.let { isProtected = it.isProtected; passwordHash = it.passwordHash; passwordSalt = it.passwordSalt }
         // A notification command may have changed timing while this editor was open.
         // Do not clobber a newer UI gesture that arrived while the transaction was saving.
@@ -504,6 +551,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         // Observers must not see the new ID before the insert transaction commits.
         _noteIdFlow.value = currentNoteId
         if (dayKey != null) CalendarWidgetProvider.refreshAll(app, force)
+        runCatching { com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(app, db) }
         BackupManager.noteChanged()
         return true
     }
@@ -518,7 +566,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
         return try {
             protection.awaitIdle()
             // Freeze edits while the final write is pending, so exit cannot drop a late edit.
-            if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables) saveNow(force = true)
+            if (exists || title.isNotBlank() || contentField.text.isNotBlank() || hasTables || hasSubtasks) saveNow(force = true)
             timing.awaitIdle()
             tags.awaitIdle()
             discardIfEmptyOnExit()
@@ -531,6 +579,28 @@ class NoteEditorViewModel @JvmOverloads constructor(
             false
         }
     }
+
+    fun addSubtask() = document.addSubtask()
+    fun editSubtask(id: String, text: String) = document.editSubtask(id, text)
+    fun removeSubtask(id: String) = document.removeSubtask(id)
+    fun toggleSubtask(id: String) = document.toggleSubtask(id, System.currentTimeMillis())
+    fun toggleSubtaskStopwatch(id: String) = document.changeSubtaskClock(id) { row ->
+        if (isTask && isCompleted) return@changeSubtaskClock row
+        val now = System.currentTimeMillis()
+        if (row.startedAt == null) row.copy(startedAt = now) else row.copy(
+            elapsedMillis = com.notessync.app.tasks.running.RunningClockTime.elapsed(row.elapsedMillis, row.startedAt, now), startedAt = null)
+    }
+    fun startSubtaskCountdown(id: String, millis: Long) {
+        if ((isTask && isCompleted) || millis !in 1..com.notessync.app.tasks.running.RunningClockTime.MAX_NATIVE_MILLIS) return
+        document.changeSubtaskClock(id) { it.copy(countdownMillis = millis, countdownFinishedAt = null,
+            countdownEndAt = System.currentTimeMillis().let { now -> if (millis > Long.MAX_VALUE - now) Long.MAX_VALUE else now + millis }) }
+    }
+    fun pauseSubtaskCountdown(id: String) = document.changeSubtaskClock(id) { row ->
+        row.copy(countdownMillis = row.countdownEndAt?.let { com.notessync.app.tasks.running.RunningClockTime.remaining(it, System.currentTimeMillis()) } ?: row.countdownMillis,
+            countdownEndAt = null)
+    }
+    fun resumeSubtaskCountdown(id: String) { subtasks.find { it.id == id }?.let { startSubtaskCountdown(id, it.countdownMillis) } }
+    fun clearSubtaskCountdown(id: String) = document.changeSubtaskClock(id) { it.copy(countdownMillis = 0, countdownEndAt = null, countdownFinishedAt = null) }
 
     // ---------- Форматирование (Этап 3) ----------
 
@@ -789,13 +859,13 @@ class NoteEditorViewModel @JvmOverloads constructor(
     // ---------- Удаление / выход ----------
 
     suspend fun discardIfEmptyOnExit() = saveMutex.withLock {
-        if (loaded && createdHere && !deleted && !accessDenied && title.isBlank() && contentField.text.isBlank() && !hasTables && reminderAt == null && taskDueAt == null && exists) {
+        if (loaded && createdHere && !deleted && !accessDenied && title.isBlank() && contentField.text.isBlank() && !hasTables && !hasSubtasks && reminderAt == null && taskDueAt == null && exists) {
             withContext(NonCancellable) {
                 db.withTransaction {
                     val fresh = accessibleParent() ?: return@withTransaction
                     if (fresh.title.isBlank() && fresh.content.isBlank() && fresh.tablesData.isBlank() && fresh.reminderAt == null && fresh.taskDueAt == null &&
                         fresh.taskElapsedMillis <= 0 && fresh.taskTimerStartedAt == null && fresh.taskCountdownMillis <= 0 && fresh.taskCountdownEndAt == null &&
-                        attachmentDao.countByNoteId(currentNoteId) == 0) {
+                        attachmentDao.countByNoteId(currentNoteId) == 0 && db.subtaskDao().get(currentNoteId).isEmpty()) {
                         noteDao.softDelete(currentNoteId); deleted = true
                     }
                 }

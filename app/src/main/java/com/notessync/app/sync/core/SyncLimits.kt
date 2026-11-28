@@ -17,6 +17,7 @@ internal object SyncLimits {
             require(!book.deleted && book.isProtected && com.notessync.app.notes.diary.DiaryPrivacy.validCredentials(book.passwordHash, book.passwordSalt)) { "Invalid diary metadata" }
         }
         for (note in set.notes) if (note.diary == true) require(!note.notebookSyncId.isNullOrBlank()) { "Missing diary parent" }
+        for (note in set.notes) note.subtasks?.let { com.notessync.app.notes.subtasks.Subtasks.checked(it) }
         val seen = HashSet<String>()
         for (note in set.notes) for (meta in note.attachments) {
             attachment(meta)

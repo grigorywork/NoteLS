@@ -63,6 +63,7 @@
         </activity-alias>
 
         <!-- Напоминания (Этап 3). -->
+        <receiver android:name=".data.subtasks.SubtaskAlarmReceiver" android:exported="false" />
         <receiver android:name=".tasks.running.RunningTaskReceiver" android:exported="false" />
         <receiver android:name=".tasks.running.RunningTaskTimeReceiver" android:exported="false">
             <intent-filter>

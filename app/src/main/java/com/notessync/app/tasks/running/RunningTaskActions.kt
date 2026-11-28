@@ -11,6 +11,7 @@ import com.notessync.app.widget.CalendarWidgetProvider
 internal object RunningTaskActions {
     suspend fun apply(context: Context, control: RunningControl, now: Long = System.currentTimeMillis()): Boolean {
         val db = AppDatabase.get(context)
+        if (control.subtaskId != null) return com.notessync.app.data.subtasks.SubtaskActions.apply(context, control, now, db)
         val changed = db.withTransaction {
             val row = db.noteDao().getRunningTask(control.id) ?: return@withTransaction false
             if (!row.matches(control)) return@withTransaction false
@@ -19,11 +20,13 @@ internal object RunningTaskActions {
             val pauseWatch = complete || control.clock == RunningClock.STOPWATCH
             val pauseCountdown = complete || control.clock == RunningClock.COUNTDOWN
             if (pauseCountdown || complete) AlarmReconciler.requireRecovery(context)
-            db.noteDao().updateRunningTask(row.id, row.syncId,
+            val applied = db.noteDao().updateRunningTask(row.id, row.syncId,
                 if (pauseWatch) RunningClockTime.elapsed(row.taskElapsedMillis, row.taskTimerStartedAt, now) else row.taskElapsedMillis,
                 if (pauseWatch) null else row.taskTimerStartedAt,
                 if (pauseCountdown) row.taskCountdownEndAt?.let { RunningClockTime.remaining(it, now) } ?: row.taskCountdownMillis.coerceAtLeast(0) else row.taskCountdownMillis,
                 if (pauseCountdown) null else row.taskCountdownEndAt, complete, if (complete) now else null, now) == 1
+            if (applied && complete) db.noteDao().pauseSubtasks(row.id, now)
+            applied
         }
         if (changed) {
             // Durable recovery was set before commit; foreground recovery can retry a failed alarm update.
@@ -36,6 +39,7 @@ internal object RunningTaskActions {
             if (control.action == RunningAction.COMPLETE || control.clock == RunningClock.COUNTDOWN) {
                 runCatching { alarms.cancel(control.id, control.syncId, timer = true, current = { true }) }
             }
+            if (control.action == RunningAction.COMPLETE) runCatching { com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(context, db) }
             CalendarWidgetProvider.refreshAll(context)
         }
         return changed

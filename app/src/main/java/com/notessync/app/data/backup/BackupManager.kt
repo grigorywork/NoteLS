@@ -40,7 +40,7 @@ object BackupManager {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val revision = AtomicLong(0)
     private var backedUpRevision = 0L
-    private val tables = listOf("notebooks", "tags", "notes", "note_tag_cross_ref", "attachments", "custom_quotes", "quote_library_state")
+    private val tables = listOf("notebooks", "tags", "notes", "note_tag_cross_ref", "attachments", "custom_quotes", "quote_library_state", "note_subtasks")
 
     fun noteChanged() { revision.incrementAndGet() }
 
@@ -184,6 +184,7 @@ object BackupManager {
                     } catch (_: com.notessync.app.notes.diary.DiarySnapshotException) {
                         error(uiText("Некорректный дневник в резервной копии"))
                     }
+                    com.notessync.app.data.subtasks.validateSubtaskSnapshot(packed) { job.ensureActive() }
                     val count = packed.query("SELECT COUNT(*) FROM notes WHERE isDeleted = 0").use {
                         check(it.moveToFirst()); it.getLong(0)
                     }

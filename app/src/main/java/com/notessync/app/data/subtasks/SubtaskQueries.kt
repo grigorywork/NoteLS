@@ -1,0 +1,5 @@
+package com.notessync.app.data.subtasks
+
+internal const val SUBTASK_FROM = " FROM note_subtasks s JOIN notes n ON n.id = s.noteId LEFT JOIN notebooks b ON b.id = n.notebookId WHERE n.isDeleted = 0 AND n.isPurged = 0 AND (n.isTask = 0 OR n.isCompleted = 0) AND COALESCE(b.isDeleted,0) = 0 AND s.completed = 0 AND LENGTH(n.syncId) BETWEEN 1 AND 160 AND TRIM(n.syncId) != '' "
+internal const val SUBTASK_ENTRY = "SELECT n.id, n.syncId, s.id AS subtaskId, s.countdownFinishedAt AS subtaskFinishedAt, CASE WHEN n.isProtected = 1 OR COALESCE(b.isProtected,0) = 1 OR COALESCE(b.isDiary,0) = 1 THEN '' ELSE SUBSTR(s.text,1,256) END AS title, (n.isProtected = 1 OR COALESCE(b.isProtected,0) = 1 OR COALESCE(b.isDiary,0) = 1) AS hidden, s.elapsedMillis AS taskElapsedMillis, s.startedAt AS taskTimerStartedAt, s.countdownMillis AS taskCountdownMillis, s.countdownEndAt AS taskCountdownEndAt" + SUBTASK_FROM
+internal const val SUBTASK_RUNNING = SUBTASK_ENTRY + "AND (s.startedAt IS NOT NULL OR s.countdownEndAt > :now) ORDER BY n.id,s.position,s.id LIMIT 20"

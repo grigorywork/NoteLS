@@ -11,7 +11,7 @@ class RunningTaskTimeReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_TIME_CHANGED && intent.action != Intent.ACTION_TIMEZONE_CHANGED) return
         val pending = goAsync() ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            try { withTimeout(8_000) { RunningTaskNotifications.rebase(context.applicationContext) } }
+            try { withTimeout(8_000) { RunningTaskNotifications.rebase(context.applicationContext); com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(context.applicationContext) } }
             catch (_: Exception) { /* Real foreground entry retries. */ }
             finally { pending.finish() }
         }

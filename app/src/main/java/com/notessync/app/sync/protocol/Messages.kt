@@ -56,6 +56,8 @@ data class NoteDto(
     val textFormat: String = "",
     // Null: legacy peer without tables support. Empty string: explicit table removal.
     val tablesData: String? = null,
+    // Null is a legacy peer: preserve existing children. Empty explicitly removes them.
+    val subtasks: List<com.notessync.app.notes.subtasks.Subtask>? = null,
     val taskElapsedMillis: Long = 0L,
     val taskTimerStartedAt: Long? = null,
     // Аудит 2026-11-11: обратный отсчёт и дата выполнения тоже синхронизируются.

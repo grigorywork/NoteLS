@@ -59,6 +59,7 @@ internal object AlarmReconciler {
             }
             if (!unchanged) return@withLock // The new revision keeps its own pending cursor0.
         }
+        com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(context, db)
         synchronized(stateLock) {
             if (p.getLong("revision", 0) == state.revision) {
                 check(p.edit().putBoolean("pending", false).putLong("cursor", 0).commit())
@@ -80,6 +81,7 @@ internal object AlarmReconciler {
                 }
             }
         }
+        com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(context, db)
     }
     private fun publish(context: Context, note: NoteAlarmSnapshot) {
         val title = if (note.hidden) uiText("Защищённая запись") else note.title.ifBlank { uiText("Без названия") }

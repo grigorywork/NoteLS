@@ -80,7 +80,7 @@ class RoomSyncDataSource(
     }
 
     override suspend fun getChangesSince(since: Long): ChangeSet = withContext(Dispatchers.IO) {
-        data class Captured(val note: NoteEntity, val notebook: String?, val tags: List<String>, val files: List<AttachmentEntity>, val diary: Boolean)
+        data class Captured(val note: NoteEntity, val notebook: String?, val tags: List<String>, val files: List<AttachmentEntity>, val diary: Boolean, val subtasks: List<com.notessync.app.notes.subtasks.Subtask>)
         // One consistent SQL snapshot; no file open/hash is performed while holding this transaction.
         val snapshot = db.withTransaction {
             val notebooks = db.notebookDao().getChangedSince(since).toMutableList()
@@ -94,15 +94,16 @@ class RoomSyncDataSource(
                 val ids = group.map { it.note.id }
                 val files = db.attachmentDao().getForSyncNotes(ids).groupBy { it.noteId }
                 val tags = db.tagDao().getForSyncNotes(ids).groupBy { it.noteId }
+                val children = db.subtaskDao().getForNotes(ids).groupBy { it.noteId }
                 for (row in group) notes.add(Captured(row.note, row.linkedNotebookSyncId,
-                    tags[row.note.id].orEmpty().map { it.name }, files[row.note.id].orEmpty(), row.linkedNotebookDiary))
+                    tags[row.note.id].orEmpty().map { it.name }, files[row.note.id].orEmpty(), row.linkedNotebookDiary, children[row.note.id].orEmpty().map { it.item() }))
             }
             notebooks.map { it.toDto() } to notes
         }
         val notes = ArrayList<NoteDto>(snapshot.second.size)
         for (row in snapshot.second) {
             currentCoroutineContext().ensureActive()
-            notes.add(row.note.toDto(row.notebook, row.tags, row.files.mapNotNull { it.toDto(row.note.syncId) }, row.diary))
+            notes.add(row.note.toDto(row.notebook, row.tags, row.files.mapNotNull { it.toDto(row.note.syncId) }, row.diary, row.subtasks))
         }
         ChangeSet(notebooks = snapshot.first, notes = notes)
     }
@@ -161,10 +162,11 @@ class RoomSyncDataSource(
                     val localSnapshot = local?.toDto(
                         if (mayConflict) local.notebookId?.let { db.notebookDao().getById(it)?.syncId } else null,
                         if (mayConflict) db.tagDao().getTagNamesForNote(local.id) else emptyList(),
-                        if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList(), localBook?.isDiary == true)
+                        if (mayConflict) localFiles.mapNotNull { it.toDto(local.syncId) } else emptyList(), localBook?.isDiary == true, db.subtaskDao().get(local.id).map { it.item() })
                     val resolution = ConflictResolver.resolve(localSnapshot, dto, local?.dirty ?: false)
                     val alarmsRelevant = local?.reminderAt != null || local?.taskCountdownEndAt != null ||
-                        dto.reminderAt != null || dto.taskCountdownEndAt != null
+                        dto.reminderAt != null || dto.taskCountdownEndAt != null || dto.subtasks?.isNotEmpty() == true ||
+                        (local != null && db.subtaskDao().get(local.id).isNotEmpty())
                     if (alarmsRelevant && resolution != ConflictResolver.Resolution.KeepLocal && !recoveryMarked) {
                         AlarmReconciler.requireRecovery(context)
                         recoveryMarked = true
@@ -259,6 +261,9 @@ class RoomSyncDataSource(
             db.noteDao().update(entity)
             existing.id
         }
+        val children = if (entity.isPurged) emptyList() else (dto.subtasks ?: db.subtaskDao().get(localId).map { it.item() })
+            .let { rows -> if (entity.isDeleted || (entity.isTask && entity.isCompleted)) rows.map { it.paused(System.currentTimeMillis()) } else rows }
+        com.notessync.app.data.subtasks.replaceSubtasks(db, localId, children)
         ProtectionSession.lockTask(dto.syncId)
 
         val previousAttachments = db.attachmentDao().getByNoteId(localId).associateBy { it.syncId }
@@ -424,13 +429,15 @@ class RoomSyncDataSource(
         notebookSyncId: String?,
         tagNames: List<String>,
         attachments: List<AttachmentDto>,
-        diary: Boolean = false
+        diary: Boolean = false,
+        subtasks: List<com.notessync.app.notes.subtasks.Subtask> = emptyList()
     ) = NoteDto(
         syncId = syncId,
         title = title,
         content = content,
         textFormat = textFormat,
         tablesData = tablesData,
+        subtasks = subtasks,
         favorite = isFavorite,
         pinned = isPinned, purged = isPurged, noteColor = noteColor,
         deleted = isDeleted,

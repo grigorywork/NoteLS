@@ -1,5 +1,7 @@
 package com.notessync.app.notes.history
 
+import com.notessync.app.notes.subtasks.Subtask
+import com.notessync.app.notes.subtasks.Subtasks
 import com.notessync.app.notes.tables.NoteTables
 import com.notessync.app.notes.tables.TableCellRef
 import com.notessync.app.notes.text.FormatKind
@@ -20,7 +22,7 @@ data class EditorCursor(
 )
 data class EditorSnapshot(
     val title: String, val content: String, val formatting: TextFormatting, val cursor: EditorCursor,
-    val tables: NoteTables = NoteTables()
+    val tables: NoteTables = NoteTables(), val subtasks: List<Subtask> = emptyList()
 )
 enum class EditKind { INPUT, COMPOSITION, TABLE_INPUT, ATOMIC }
 enum class HistoryResult { UNCHANGED, RECORDED, TOO_LARGE }
@@ -46,10 +48,11 @@ class EditorHistory(
         val title = Patch.between(before.title, after.title, before.cursor.title, after.cursor.title)
         val content = Patch.between(before.content, after.content, before.cursor.content, after.cursor.content)
         if (title == null && content == null && before.formatting == after.formatting &&
-            before.cursor.pending == after.cursor.pending && before.tables == after.tables) return HistoryResult.UNCHANGED
+            before.cursor.pending == after.cursor.pending && before.tables == after.tables && before.subtasks == after.subtasks) return HistoryResult.UNCHANGED
         val entry = Entry(title, content, before.formatting, after.formatting,
             before.cursor, after.cursor, kind, clockMillis(),
-            if (before.tables == after.tables) null else TableChange(before.tables, after.tables))
+            if (before.tables == after.tables) null else TableChange(before.tables, after.tables),
+            subtasks = if (before.subtasks == after.subtasks) null else SubtaskChange(before.subtasks, after.subtasks))
         redo.forEach { estimatedBytes -= it.bytes }; redo.clear()
         if (entry.bytes > maxBytes) { clear(); return HistoryResult.TOO_LARGE }
         val previous = undo.lastOrNull()
@@ -123,6 +126,7 @@ class EditorHistory(
         }
     }
 
+    private data class SubtaskChange(val before: List<Subtask>, val after: List<Subtask>)
     private data class TableChange(val before: NoteTables, val after: NoteTables)
 
     private data class Entry(
@@ -130,7 +134,7 @@ class EditorHistory(
         val beforeFormat: TextFormatting, val afterFormat: TextFormatting,
         val beforeCursor: EditorCursor, val afterCursor: EditorCursor,
         val kind: EditKind, val time: Long,
-        val tables: TableChange? = null, val tableEvents: Int = 1
+        val tables: TableChange? = null, val tableEvents: Int = 1, val subtasks: SubtaskChange? = null
     ) {
         // Conservative accounting budget, not a measurement of ART/PSS. Shared marks are charged twice.
         val bytes: Long = 256L + listOfNotNull(title, content).sumOf {
@@ -139,10 +143,11 @@ class EditorHistory(
             128L + 2L * (it.kind.length + it.value.length)
         } } + listOf(beforeCursor, afterCursor).sumOf { cursor -> cursor.pending.entries.sumOf {
             96L + 2L * (it.value?.length ?: 0)
-        } } + (tables?.let { it.before.estimatedBytes + it.after.estimatedBytes } ?: 0L)
+        } } + (tables?.let { it.before.estimatedBytes + it.after.estimatedBytes } ?: 0L) +
+            (subtasks?.let { (it.before + it.after).sumOf { row -> 160L + 2L * (row.id.length + row.text.length) } } ?: 0L)
 
         val isNoOp: Boolean get() = listOfNotNull(title, content).all { it.removed == it.inserted } &&
-            beforeFormat == afterFormat && beforeCursor.pending == afterCursor.pending && (tables == null || tables.before == tables.after)
+            beforeFormat == afterFormat && beforeCursor.pending == afterCursor.pending && (tables == null || tables.before == tables.after) && (subtasks == null || subtasks.before == subtasks.after)
 
         fun apply(current: EditorSnapshot, backwards: Boolean): EditorSnapshot {
             val newTitle = title?.apply(current.title, backwards) ?: current.title
@@ -150,9 +155,12 @@ class EditorHistory(
             val cursor = if (backwards) beforeCursor else afterCursor
             return EditorSnapshot(newTitle, newContent, if (backwards) beforeFormat else afterFormat,
                 cursor.copy(title = cursor.title.bounded(newTitle.length), content = cursor.content.bounded(newContent.length)),
-                tables?.let { if (backwards) it.before else it.after } ?: current.tables)
+                tables?.let { if (backwards) it.before else it.after } ?: current.tables,
+                subtasks?.let { Subtasks.history(current.subtasks, if (backwards) it.after else it.before,
+                    if (backwards) it.before else it.after, System.currentTimeMillis()) } ?: current.subtasks)
         }
         fun merge(next: Entry): Entry? {
+            if (subtasks != null || next.subtasks != null) return null
             if (kind == EditKind.ATOMIC || kind != next.kind || next.time - time !in 0..1_000 ||
                 afterCursor != next.beforeCursor || beforeCursor.pending != next.afterCursor.pending) return null
             if (kind == EditKind.TABLE_INPUT && tables != null && next.tables != null &&

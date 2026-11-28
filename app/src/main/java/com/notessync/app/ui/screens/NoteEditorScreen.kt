@@ -266,6 +266,7 @@ fun NoteEditorScreen(
     LaunchedEffect(viewModel.message) {
         val current = viewModel.message ?: return@LaunchedEffect
         val text = when (current) {
+            EditorMessage.SUBTASK_LIMIT -> uiText("Достигнут предел подзадач или их текста.")
             EditorMessage.TABLE_LIMIT -> uiText("Достигнут предел таблиц или текста ячейки.")
             EditorMessage.SAVE_FAILED -> uiText("Не удалось сохранить заметку. Повторите попытку.")
             EditorMessage.HISTORY_LIMIT -> uiText("Изменение слишком велико для истории. Текст сохранён в редакторе.")
@@ -410,6 +411,7 @@ fun NoteEditorScreen(
 
             EditorTextFields(viewModel, ui, settingsState, historyKeys, titleFocus, contentFocus, captureState.busy, voiceState, voiceClosing,
                 inputMinHeight, viewportHeight, selectionToolbar)
+            EditorSubtasks(viewModel, settingsState)
 
         }
         }

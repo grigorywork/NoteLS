@@ -78,7 +78,10 @@ object RunningTaskNotifications {
                     it.uiLanguage == UiLanguage.ENGLISH, it.automaticDurationUnits) }.distinctUntilChanged(), revision) { prefs, stamp -> prefs to stamp }
                     .flatMapLatest { (prefs, _) ->
                         if (!prefs.enabled || !canNotify(app)) flowOf(emptyList())
-                        else AppDatabase.get(app).noteDao().observeRunningTasks(System.currentTimeMillis()).distinctUntilChanged()
+                        else AppDatabase.get(app).let { db ->
+                            val now = System.currentTimeMillis()
+                            combine(db.noteDao().observeRunningTasks(now), db.subtaskDao().observeRunning(now)) { notes, children -> notes + children }.distinctUntilChanged()
+                        }
                     }.collectLatest {
                         val next = withTimeout(8_000) { refreshNow(app) }
                         // A single nearest-deadline boundary, never a periodic ticker. SystemUI expires the PI independently.
@@ -104,7 +107,8 @@ object RunningTaskNotifications {
         val db = AppDatabase.get(context)
         db.withTransaction {
             val now = System.currentTimeMillis()
-            val rows = db.noteDao().getRunningTasks(now)
+            val rows = (db.noteDao().getRunningTasks(now) + db.subtaskDao().getRunning(now))
+                .sortedWith(compareBy({ it.id }, { it.subtaskId.orEmpty() })).take(20)
             val active = manager.activeNotifications.mapNotNull { it.tag?.takeIf { tag -> tag.startsWith(TAG_PREFIX) } }.toSet()
             val wanted = mutableSetOf<String>()
             var next: Long? = null
@@ -112,7 +116,7 @@ object RunningTaskNotifications {
                 listOf(RunningClock.STOPWATCH, RunningClock.COUNTDOWN).forEach { clock ->
                     val at = if (clock == RunningClock.STOPWATCH) row.taskTimerStartedAt else row.taskCountdownEndAt
                     if (at != null && (clock == RunningClock.STOPWATCH || at > now)) {
-                        val tag = "$TAG_PREFIX${row.id}:${clock.name}"
+                        val tag = "$TAG_PREFIX${row.id}:${row.subtaskId?.let { "$it:" }.orEmpty()}${clock.name}"
                         wanted += tag
                         val key = Key(row, clock, prefs)
                         currentCoroutineContext().ensureActive()
@@ -139,7 +143,7 @@ object RunningTaskNotifications {
         channel(context)
         val countdown = clock == RunningClock.COUNTDOWN
         val label = uiText(if (countdown) "Таймер" else "Секундомер")
-        val title = if (row.hidden) uiText("Защищённая запись") else row.title.ifBlank { uiText("Задача") }
+        val title = if (row.hidden) uiText("Защищённая запись") else row.title.ifBlank { uiText(if (row.subtaskId == null) "Задача" else "Подзадача") }
         val amount = if (countdown) RunningClockTime.remaining(requireNotNull(row.taskCountdownEndAt), now)
             else RunningClockTime.elapsed(row.taskElapsedMillis, row.taskTimerStartedAt, now)
         val native = amount <= RunningClockTime.MAX_NATIVE_MILLIS && (countdown || (row.taskTimerStartedAt ?: Long.MAX_VALUE) <= now)
@@ -159,7 +163,7 @@ object RunningTaskNotifications {
         if (!row.hidden && (if (countdown) row.taskCountdownEndAt else row.taskTimerStartedAt)?.let { it > 0 } == true) {
             val at = requireNotNull(if (countdown) row.taskCountdownEndAt else row.taskTimerStartedAt)
             listOf(RunningAction.PAUSE, RunningAction.COMPLETE).forEach { action ->
-                val control = RunningControl(row.id, row.syncId, clock, at, action)
+                val control = RunningControl(row.id, row.syncId, clock, at, action, row.subtaskId)
                 val pi = PendingIntent.getBroadcast(context, 0, RunningTaskReceiver.intent(context, control), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 builder.addAction(NotificationCompat.Action.Builder(0, uiText(if (action == RunningAction.PAUSE) "Пауза" else "Выполнить"), pi)
                     .setAuthenticationRequired(true).build())

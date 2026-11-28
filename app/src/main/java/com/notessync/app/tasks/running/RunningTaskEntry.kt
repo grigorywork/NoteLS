@@ -4,16 +4,16 @@ package com.notessync.app.tasks.running
 data class RunningTaskEntry(
     val id: Long, val syncId: String, val title: String, val hidden: Boolean,
     val taskElapsedMillis: Long, val taskTimerStartedAt: Long?,
-    val taskCountdownMillis: Long, val taskCountdownEndAt: Long?
+    val taskCountdownMillis: Long, val taskCountdownEndAt: Long?, val subtaskId: String? = null, val subtaskFinishedAt: Long? = null
 )
 
 internal enum class RunningClock { STOPWATCH, COUNTDOWN }
 internal enum class RunningAction { PAUSE, COMPLETE }
 internal data class RunningControl(val id: Long, val syncId: String, val clock: RunningClock,
-    val expectedAt: Long, val action: RunningAction)
+    val expectedAt: Long, val action: RunningAction, val subtaskId: String? = null)
 
 internal fun RunningTaskEntry.matches(control: RunningControl): Boolean =
-    !hidden && id == control.id && syncId == control.syncId && control.expectedAt > 0 &&
+    !hidden && id == control.id && syncId == control.syncId && subtaskId == control.subtaskId && control.expectedAt > 0 &&
         (if (control.clock == RunningClock.STOPWATCH) taskTimerStartedAt else taskCountdownEndAt) == control.expectedAt
 
 /** System chronometers are used for ordinary intervals; corrupt/extreme dates remain bounded static text. */

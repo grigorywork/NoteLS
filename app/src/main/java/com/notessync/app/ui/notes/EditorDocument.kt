@@ -17,6 +17,7 @@ import java.util.UUID
 
 internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdit: () -> Boolean,
     private val report: (EditorMessage) -> Unit) {
+    var subtasks by mutableStateOf<List<com.notessync.app.notes.subtasks.Subtask>>(emptyList())
     var formatting by mutableStateOf(TextFormatting())
     var tables by mutableStateOf<NoteTables?>(NoteTables())
     var unsupportedTables = ""
@@ -37,7 +38,7 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
 
     private fun snapshot() = EditorSnapshot(title, contentField.text, formatting, EditorCursor(
         EditorSelection(titleField.selection.start, titleField.selection.end),
-        EditorSelection(contentField.selection.start, contentField.selection.end), editorField, pendingFormatting, tableCell, tableSelection), tables ?: NoteTables())
+        EditorSelection(contentField.selection.start, contentField.selection.end), editorField, pendingFormatting, tableCell, tableSelection), tables ?: NoteTables(), subtasks)
 
     private fun publishHistory() { canUndo = history.canUndo; canRedo = history.canRedo }
 
@@ -108,6 +109,7 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
                 contentField = TextFieldValue(it.content, TextRange(it.cursor.content.start, it.cursor.content.end))
                 formatting = it.formatting; pendingFormatting = it.cursor.pending; editorField = it.cursor.field
                 if (tables != null) tables = it.tables
+                subtasks = it.subtasks
                 tableCell = it.cursor.cell; tableSelection = it.cursor.cellSelection
                 historyRestoreVersion++
             }
@@ -181,6 +183,33 @@ internal class EditorDocument(initialHistoryEnabled: Boolean, private val canEdi
             // Длина текста не меняется (префиксы равной длины) — курсор остаётся на месте.
             edit { updateContent(TextFieldValue(it, contentField.selection)) }
         }
+    }
+
+    fun addSubtask(): String? {
+        if (!canEdit() || subtasks.size >= com.notessync.app.notes.subtasks.Subtasks.MAX_ITEMS) {
+            report(EditorMessage.SUBTASK_LIMIT); return null
+        }
+        val id = UUID.randomUUID().toString()
+        edit { subtasks = subtasks + com.notessync.app.notes.subtasks.Subtask(id) }
+        return id
+    }
+    fun editSubtask(id: String, text: String) {
+        val next = subtasks.map { if (it.id == id) it.copy(text = text) else it }
+        try { com.notessync.app.notes.subtasks.Subtasks.checked(next) }
+        catch (_: IllegalArgumentException) { report(EditorMessage.SUBTASK_LIMIT); return }
+        edit { subtasks = next }
+    }
+    fun removeSubtask(id: String) = edit { subtasks = subtasks.filterNot { it.id == id } }
+    fun toggleSubtask(id: String, now: Long) = edit {
+        subtasks = subtasks.map { if (it.id == id) it.paused(now).copy(completed = !it.completed) else it }
+    }
+    /** Clock events are not text undo steps; undoing text cannot resurrect a stale running intent. */
+    fun changeSubtaskClock(id: String, change: (com.notessync.app.notes.subtasks.Subtask) -> com.notessync.app.notes.subtasks.Subtask) {
+        if (!canEdit()) return
+        val next = subtasks.map { if (it.id == id && !it.completed) change(it) else it }
+        try { com.notessync.app.notes.subtasks.Subtasks.checked(next) }
+        catch (_: IllegalArgumentException) { report(EditorMessage.SUBTASK_LIMIT); return }
+        history.breakGroup(); subtasks = next
     }
 
     // ---------- Табличные блоки ----------

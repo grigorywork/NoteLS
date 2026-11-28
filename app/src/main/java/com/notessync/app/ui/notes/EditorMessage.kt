@@ -6,6 +6,7 @@ enum class EditorMessage {
     FORMATTING_LIMIT,
     HISTORY_LIMIT,
     TABLE_LIMIT,
+    SUBTASK_LIMIT,
     SAVE_FAILED,
     PHOTO_TOO_LARGE,
     PHOTO_IMPORT_FAILED,
