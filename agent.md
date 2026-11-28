@@ -1754,3 +1754,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-27T23:53:14.150615+00:00: target87 повтор46084088740/job140789503700=49/0fail/0ignored,lint0error27warnings2info/build7m9s; ZIP/API/HTML/lintXMLпроверены,3NativePNGосмотрены/320RU+ENlargefont. Helpermergedsemanticsисправленбезослабленияasserts/15s;app/testf425049. ГотовитсяобычныйполныйmainCI893ожидаемыйНЕpass;61НЕinstaller/87НЕзакрыт. Main/testзаморозить,не менятьdocs-onlymainмеждуfull/Signed/GC. ПослеВСЕЙочереди87–97новые3h+3hещё0ms,батареяобязательна. Automation071fe347сноваenabled,next2026-11-28T01:49:41Z,безпараллельногоисполнителя.
+
+
+2026-11-28T01:52:03.145411+00:00:87ЗАКРЫТ1.10.61code84/Room19/source2e1502e;fullCI46084992355=893/0fail/0ignored/lint0error, Signed46086854266/artifact15239850994иfreshreleaseGC46087472043API28/35успех. НезависимоZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19проверены;proofanalytics-1.10.61-verification.json. Нефизическийтелефон/неизмерениебатареи. Следующий88/62code85,потом89–97;послеВСЕХновые3h+3hещё0ms. Подпись/Secret/AIне менялись.

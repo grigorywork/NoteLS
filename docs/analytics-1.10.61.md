@@ -1,3 +1,11 @@
+## Этап87 закрыт28ноября2026 — проверенная1.10.61/code84/Room19
+
+Source `2e1502ef5b9c544c2bdfb581d59e8b3019516a0b`. ПолныйCI46084992355/job140792370402:**893теста/0отказов/0пропусков**, lint0error/27warnings/2info,build20m8s. Signed46086854266/identity140798331610/release140798367781SUCCESS,build5m52s/13contracts0fail. Artifact15239850994 ZIP19019502bytesSHA2568d87deac2107ecfd10b6b4c0225263775f05b946ef473fcfbba2812166686591=API;APK31122287bytesSHA256a9aae4e2df26d16baa94d866953065f8e307a02389918f294a32af99e963c506=SUMS/CI. Source/package/version/nondebug/actualapksigner v2/v3/1signer/прежнийpin/новыеcompiledDEXmarkers/actualRoom19identity61703504e840fea926257eeba0d419e1независимопроверены. ТриanalyticsNativePNGравныосмотреннымtarget. FreshactualminifiedreleaseGC46087472043/job140800331017/artifact15239652519SUCCESS:ARTGCиlauncherAPI28/35,хешAPKтотже;нефизическийтелефон/небатарейныйзамер. [Доказательства](analytics-1.10.61-verification.json),[отчёт](analytics-1.10.61.md).
+
+Следующий88:созданиезаписейввыбранномблокноте,кандидат1.10.62/code85. Реализация88ещёненачата;87неповторять. Затем89–97по[очереди](requests-2026-11-27.md); послеВСЕХновые3hактивногоаудита→3hисправлений/оптимизации,оба0ms/неначаты. Паузы/CIqueue/ожидание/простой/перекрытияисключать;старые1h+1hзаменены/историческиеокнанеповторять. Энергопотреблениеобязательно.68/iPhone/новыеИИ/платныеinferenceне начинать,подпись/Secretне менять. RESTforce=false/локальныхSDKGradlebuildsнет/app-testзамороженыприCI/не дублироватьживуюработу. Пользовательпродолжаетздесь,переноспозже.
+
+APK: https://github.com/grigorywork/NoteLS/actions/runs/46086854266/artifacts/15239850994 —вZIPустановочный.apk/README/SUMS; временныйHTTPSURLобновитьпередфинальнойвыдачей. СтарыеworkspaceAPKссылкиуклиентанескачиваются.
+
 # Этап87 — аналитика, кандидат1.10.61/code84/Room19
 
 База603c51c (verified60/b1491b9,876/0). После нового разрешения пользователя основнойmain получил только очередь/документациюc7dbde4, создана feature codex/analytics-1.10.61. ЛокальныхSDK/Gradle builds нет. Реализация пока НЕпроверена/НЕустановочная;87 не закрыт.
