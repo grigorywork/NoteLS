@@ -20,8 +20,16 @@ internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1
 internal const val RUNNING_TASK_SELECT = "SELECT notes.id, notes.syncId, NULL AS subtaskId, NULL AS subtaskFinishedAt, CASE WHEN notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1 THEN '' ELSE SUBSTR(notes.title, 1, 256) END AS title, (notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1) AS hidden, notes.taskElapsedMillis, notes.taskTimerStartedAt, notes.taskCountdownMillis, notes.taskCountdownEndAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.isDeleted = 0 AND notes.isPurged = 0 AND notes.isTask = 1 AND notes.isCompleted = 0 AND COALESCE(notebooks.isDeleted, 0) = 0 AND LENGTH(notes.syncId) BETWEEN 1 AND 160 AND TRIM(notes.syncId) != '' "
 internal const val RUNNING_TASKS_SQL = RUNNING_TASK_SELECT + "AND (notes.taskTimerStartedAt IS NOT NULL OR notes.taskCountdownEndAt > :now) ORDER BY notes.id LIMIT 20"
 
+internal const val EDITOR_DATES_SQL = "SELECT n.id, n.syncId, n.isDeleted, n.isPurged, n.isProtected, n.notebookId, COALESCE((b.isProtected OR b.isDiary), 0) AS notebookProtected, COALESCE(b.isDiary, 0) AS notebookDiary, n.createdAt, n.updatedAt, COALESCE(b.isDeleted, 0) AS notebookDeleted, (n.notebookId IS NOT NULL AND b.id IS NULL) AS notebookMissing FROM notes n LEFT JOIN notebooks b ON b.id = n.notebookId WHERE n.id = :id"
+
 @Dao
 interface NoteDao {
+    @Query(EDITOR_DATES_SQL)
+    fun observeEditorDates(id: Long): Flow<com.notessync.app.data.local.model.EditorDatesSnapshot?>
+
+    @Query(EDITOR_DATES_SQL)
+    suspend fun getEditorDates(id: Long): com.notessync.app.data.local.model.EditorDatesSnapshot?
+
     @Query("SELECT n.id,n.syncId,n.isProtected,n.isDeleted,n.isPurged,n.isTask,n.isCompleted,n.notebookId,b.syncId AS notebookSyncId,COALESCE(b.isProtected,0) AS notebookProtected,COALESCE(b.isDeleted,0) AS notebookDeleted,COALESCE(b.isDiary,0) AS diary FROM notes n LEFT JOIN notebooks b ON b.id=n.notebookId WHERE n.id IN (:ids) ORDER BY n.id")
     fun observeSubtaskAlertPrivacy(ids: List<Long>): Flow<List<com.notessync.app.data.subtasks.SubtaskAlertPrivacy>>
 

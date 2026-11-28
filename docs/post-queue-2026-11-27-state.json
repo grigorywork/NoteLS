@@ -36,5 +36,6 @@
     "overlapping time counted twice"
   ],
   "supersedes": "Unstarted 1h audit + 1h optimization request; historical windows stay closed",
-  "updated_at": "2026-11-28T11:18:26.194890+00:00"
+  "updated_at": "2026-11-28T12:26:39.991252+00:00",
+  "executor_thread": "6b0a9b29-9cdc-83ed-9024-8bed96fec058"
 }

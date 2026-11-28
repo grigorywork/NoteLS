@@ -1,6 +1,8 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addEditorEnglish() {
+    put("Создано", "Created")
+    put("Изменено", "Modified")
     put("Полное оформление", "All formatting")
     put("Панель сверху", "Toolbar at top")
     put("Панель снизу", "Toolbar at bottom")

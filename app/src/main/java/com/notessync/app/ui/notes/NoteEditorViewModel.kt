@@ -88,6 +88,10 @@ class NoteEditorViewModel @JvmOverloads constructor(
     var isClosing by mutableStateOf(false)
         private set
     private var lastSavedNote: NoteEntity? = null
+    private var committedDates by mutableStateOf<com.notessync.app.data.local.model.EditorDatesSnapshot?>(null)
+    internal val editorDates get() = committedDates?.takeIf {
+        isReady && !accessDenied && !deleted && it.allowed(currentNoteId, syncId, ProtectionSession.state.value)
+    }
     private var lastSavedSubtasks: List<com.notessync.app.notes.subtasks.Subtask> = emptyList()
     val subtasks get() = document.subtasks
     val hasSubtasks get() = subtasks.isNotEmpty()
@@ -305,6 +309,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
             startAutosave()
             startTaskMetadataObserver()
             startSubtaskObserver()
+            startDatesObserver()
             }
         }
     }
@@ -380,6 +385,34 @@ class NoteEditorViewModel @JvmOverloads constructor(
             }
         } catch (cancel: CancellationException) { throw cancel }
         catch (_: Exception) { /* Save/reopen rechecks access and identity; never publish stale data. */ }
+    } }
+
+    private fun startDatesObserver() { viewModelScope.launch {
+        try {
+            val dates = _noteIdFlow.flatMapLatest { id -> if (id > 0) noteDao.observeEditorDates(id) else flowOf(null) }
+            combine(dates, ProtectionSession.state) { row, _ -> row }.collectLatest {
+                saveMutex.withLock {
+                    if (!isReady || accessDenied || deleted || currentNoteId <= 0) {
+                        committedDates = null
+                        return@withLock
+                    }
+                    // Invalidations and unlock events may queue during a save; use fresh transaction state.
+                    val fresh = db.withTransaction {
+                        val row = noteDao.getEditorDates(currentNoteId) ?: return@withTransaction null
+                        if (!row.allowed(currentNoteId, syncId, ProtectionSession.state.value)) return@withTransaction null
+                        if (row.access.notebookDiary && row.access.notebookId?.let {
+                                db.notebookDao().getById(it)?.let(com.notessync.app.notes.diary.DiaryPrivacy::valid)
+                            } != true) return@withTransaction null
+                        row
+                    }
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                    committedDates = fresh?.takeIf {
+                        !accessDenied && !deleted && it.allowed(currentNoteId, syncId, ProtectionSession.state.value)
+                    }
+                }
+            }
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (_: Exception) { committedDates = null }
     } }
 
     private fun startAutosave() {
@@ -504,7 +537,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 notebookId = targetId)
             val previous = lastSavedNote
             val merged = com.notessync.app.ui.tasks.mergeExternalTaskTiming(local, previous, fresh)
-            val note = if (fresh == null) merged else merged.copy(isProtected = fresh.isProtected,
+            val note = if (fresh == null) merged else merged.copy(createdAt = fresh.createdAt, isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
             val freshSubtasks = if (exists) db.subtaskDao().get(currentNoteId).map { it.item() } else emptyList()
             val mergedSubtasks = com.notessync.app.notes.subtasks.Subtasks.merge(submittedSubtasks, lastSavedSubtasks, freshSubtasks)

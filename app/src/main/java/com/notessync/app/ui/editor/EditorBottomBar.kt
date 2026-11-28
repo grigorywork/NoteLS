@@ -36,9 +36,13 @@ internal fun EditorBottomBar(viewModel: NoteEditorViewModel, ui: EditorUiState, 
     notebooks: List<NotebookEntity>, recordingBusy: Boolean, voiceClosing: Boolean,
     onRecordAudio: () -> Unit, onGallery: () -> Unit, onCamera: () -> Unit, onReminder: () -> Unit,
     voiceIdle: Boolean = true, showFormatting: Boolean = true, panelOnTop: Boolean = false) {
-    Box(androidx.compose.ui.Modifier.navigationBarsPadding()) {
+    Column(androidx.compose.ui.Modifier.navigationBarsPadding()) {
         if (!panelOnTop) EditorFormattingPanel(viewModel, ui, settingsState, notebooks, "formatting-panel-bottom",
             showFormatting, recordingBusy, voiceClosing, onRecordAudio, onGallery, onCamera, onReminder, voiceIdle)
+        if (viewModel.isReady && !viewModel.accessDenied) {
+            val dates = viewModel.editorDates
+            EditorDatesFooter(dates?.createdAt, dates?.updatedAt)
+        }
     }
 }
 
