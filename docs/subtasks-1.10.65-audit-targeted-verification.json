@@ -1,0 +1,42 @@
+{
+  "artifact_id": 15258005335,
+  "archive_sha256": "965363854b1593b1fd64ed8cb7449f3f7f22504da5a1c21f90a749eda949e931",
+  "archive_bytes": 264356,
+  "workflow_run": {
+    "id": 46129928671,
+    "repository_id": 1453932868,
+    "head_repository_id": 1453932868,
+    "head_branch": "codex/subtasks91-targeted4",
+    "head_sha": "e7982e8771167cd3e6ec6b74249783e4c0beeb99"
+  },
+  "tests": 134,
+  "failures": 0,
+  "ignored": 0,
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 27,
+    "Information": 2
+  },
+  "screenshots": {
+    "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+    "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+    "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+    "running-task-preview/settings-en-large-320.png": "5cd59a143f0d550cad3a2523e1a59016cfcabd0b69cd70aa3ee990e11258ede5",
+    "running-task-preview/settings-ru-320.png": "f77945975d571db37c478ed8897f2ae32d35c62a15e921557ab05aa33710124a",
+    "subtask-preview/inline-en-large-ime-320.png": "90957031276d6081e41c11a0ff42ef54ba9d234fcf605df01f0835452584e952",
+    "subtask-preview/inline-ru-320.png": "d00a90422d90dabbf1355fe72f9b313be04622fc9947f5ba6d992ff275cccd98"
+  },
+  "stage": 91,
+  "status": "targeted-success-not-full-ci",
+  "run_id": 46129928671,
+  "job_id": 140932639302,
+  "build": "8m4s",
+  "app_test_source": "46b19101e1c395d810bb0f63169f579ddc96bde8",
+  "production_app_source": "46b19101e1c395d810bb0f63169f579ddc96bde8",
+  "new_cases": 36,
+  "expected_full_tests": 976,
+  "actual_release_probe_executed": false,
+  "physical_phone": false,
+  "battery_measured": false
+}
