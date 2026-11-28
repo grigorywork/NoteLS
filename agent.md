@@ -1882,3 +1882,18 @@ GC46122363033/job140909430375 FAILED на fresh UI hierarchy capture при дв
 
 Сначала фактическийnativeGC/диагностикаscript/ADB/SystemUI → independentartifactZIPAPI/results/settings/launcherAPI28+35/runningAPI28+35/sameAPKhash/PIDabsent/actualpausecomplete/private masking/document+notebook/dates сохранены → закрыть90/доказательства/main →91–97. Последнийполностьюverified пока63;64signature/fullужеverified, nativefinishpending. Новаяhelperпроверка не физическийphone/battery. 91маленький«+»добавляетподзадачуinline/timerstopwatchсправа. ПослеВСЕХ3hаудита→3hоптимизацииоба0ms/не начинатьсейчас. Автономнонеостанавливатьсярадиотчёта,ключне менять,68/iPhone/новыеИИне начинать,paidcallsнет. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не терятьдерево. Нижеистория.
 
+
+
+2026-11-28T08:20:40.092148+00:00
+## 90 закрыт; следующий91 — 28 ноября2026
+
+Verified installable **1.10.64/code87/Room19/data2/security3**, runtime/source45ef5c50dafc8be086423173b9a1e4f46eef4126. Full46120096686/job140902503798=**940/0fail/0ignored/lint0error27warnings2info/build21m39s**. Signed46121842645/identity140907857304/release140907881832SUCCESS/build5m53s/13guards0fail7.213s. Artifact15254103877 ZIP19035989bytes SHA25624c4ff345624f7b4296d04c59dc2506ccb444ccde2826ccc87a390aebac02487=API; APK31138671bytes SHA25613a6af11c1bc09abf06fe1e6e70a386f7e6c0d4c68adbb0f3c773dd47b43b4d9=SUMS/CI. Independently actualapksigner v2v3/1signer/previouspin, exact3unique/source/package/version/nondebug/newDEX/actualRoom19identity61703504e840fea926257eeba0d419e1/schemaSHA042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869 checked.
+
+Fresh actual minified releaseGC **46124703052/job140916629633 SUCCESS**, probe/source9ace51fc55985b13b5b66f50ee0590204c20c958 scripts-only (app/test identical45ef; APK/source still45ef). Artifact15254809597 ZIP2191469bytes SHA256f1f6519ed8bd0dac85e73b0d1f0f7585213a9169204780077a3e831f0c0e4c04=API. SettingsARTGC3events, launchersAPI28+35, runningnativeAPI28+35 ALL passed SAMEAPK: nativechronometers/countdown, noappservice, ordinaryprocessdeath/PIDabsent counters persist, actualSystemUIpause+complete, protected title mask/noactions, originaldocument/tables/format/notebook/createdAt preserved. Negative threeharness attempts retained; fix only fresh livecapture/exactaccessibilitylabel/nativegroup+childexpansion, no productionapp/resign/assertweakening/oldtimeoutincrease. Native screenshots inspected; no physicalphone/battery measurements. [Proof](docs/running-tasks-1.10.64-verification.json), [report](docs/running-tasks-1.10.64.md).
+
+Stage90 CLOSED; do not redo87–90 or oldWIP. Next **91**, future1.10.65/code88: small inline«+» adds subtask in current note/task, own stopwatch/timer at right; durable/history/backup/sync/access/notifications and battery guards. Implementation91 not started yet; read fresh docs/requests-2026-11-27.md. Then92–97. Existingcompletedarchive behavior unchanged,68/iPhone/newAI/paidinference excluded. Both new postqueue3h audit→3hoptimization still0ms; start AFTER ALL87–97, excludeCIwait/implementation/pauses. Keep permanent NOTELS_SIGNING_MATERIAL/pin, no login/key requests. No localSDKGradle builds; GitHubRESTforce=false, no reset/clean/forcepush/losttree/duplicateexecutor. Freezeapp/test during CI, eachstage full/Signed/independentAPK+freshnativegate before next. Continue autonomously without asking/stopping for report.
+
+APK stable https://github.com/grigorywork/NoteLS/actions/runs/46121842645/artifacts/15254103877 ; local /workspace/library-files/NoteLS-1.10.64-code87-permanent-signature.apk is NOT a client attachment. For delivery refresh HTTPSZIPURL via github_download_workflow_artifact, unzip/install.apk, never save ephemeralbearerURL inGit.
+
+Older entries below are history.
+
