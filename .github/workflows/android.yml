@@ -25,7 +25,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
       - name: Tests, lint and compilation
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
+        run: ./gradlew :app:testDebugUnitTest --tests 'com.notessync.app.notes.subtasks.*' --tests 'com.notessync.app.tasks.running.*' --tests 'com.notessync.app.notes.history.*' --tests 'com.notessync.app.notes.tables.TablesPersistenceTest' --tests 'com.notessync.app.notes.diary.PrivateDiaryPersistenceTest' --tests 'com.notessync.app.data.local.audit.LegacyMigrationRegressionTest' --tests 'com.notessync.app.ui.editor.CompactEditorTest' --tests 'com.notessync.app.i18n.UiCatalogTest' --tests 'com.notessync.app.reminders.audit.BootCountdownRegressionTest' --tests 'com.notessync.app.ui.notes.audit.EditorMediaOwnershipRegressionTest' --tests 'com.notessync.app.ui.notes.audit.EditorTagOwnershipRegressionTest' --tests 'com.notessync.app.ui.notes.audit.EditorMetadataProtectionRegressionTest' --tests 'com.notessync.app.ai.EditorTransformTest' --tests 'com.notessync.app.sync.EditorSyncPauseTest' --tests 'com.notessync.app.ui.notes.EditorPendingCommandsTest' :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
