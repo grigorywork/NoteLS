@@ -1,0 +1,174 @@
+{
+  "stage": 91,
+  "status": "native-root-acquisition-harness-failure",
+  "run_id": 46133305875,
+  "job_id": 140943030700,
+  "source": "1aa09afa5ccf8b7aefba0479accaf3e57b345555",
+  "artifact": {
+    "id": 15258712783,
+    "name": "release-settings-after-gc-1aa09afa5ccf8b7aefba0479accaf3e57b345555",
+    "size_in_bytes": 1315098,
+    "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15258712783",
+    "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15258712783/zip",
+    "expired": false,
+    "created_at": "2026-11-28T10:06:19Z",
+    "expires_at": "2027-02-26T10:03:04Z",
+    "updated_at": "2026-11-28T10:06:19Z",
+    "digest": "sha256:28d19c3b39de073568e3364fc88f181e42fe92ad7e30d4e797b00b06d3f806e8",
+    "workflow_run": {
+      "id": 46133305875,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "1aa09afa5ccf8b7aefba0479accaf3e57b345555"
+    }
+  },
+  "input": {
+    "signed_run_id": "46132635507",
+    "source": "1aa09afa5ccf8b7aefba0479accaf3e57b345555",
+    "apk_sha256": "e25127f7981d15d93aa4d0f5d2a3ae90b13510a97b9bda3faaf3b317f8a2ae2b",
+    "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+    "non_debuggable": true
+  },
+  "settings_gc": {
+    "status": "success",
+    "mode": "require-live",
+    "apk_sha256": "e25127f7981d15d93aa4d0f5d2a3ae90b13510a97b9bda3faaf3b317f8a2ae2b",
+    "minified_installed_apk": true,
+    "art_gc_confirmed": true,
+    "physical_phone": false,
+    "fresh_hierarchy_required": true,
+    "hierarchy_retries": 0,
+    "events": [
+      {
+        "label": "Светлая",
+        "key": "theme_mode",
+        "persisted": "LIGHT",
+        "ui_selected": true,
+        "ui_wait_ms": 1142
+      },
+      {
+        "label": "Крупный",
+        "key": "font_scale",
+        "persisted": "1.15",
+        "ui_selected": true,
+        "ui_wait_ms": 1144
+      },
+      {
+        "label": "Оранжевый",
+        "key": "accent_color",
+        "persisted": "ORANGE",
+        "ui_selected": true,
+        "ui_wait_ms": 1151
+      }
+    ]
+  },
+  "launcher_api28": {
+    "status": "success",
+    "apk_sha256": "e25127f7981d15d93aa4d0f5d2a3ae90b13510a97b9bda3faaf3b317f8a2ae2b",
+    "minified_installed_apk": true,
+    "actual_android_emulator": true,
+    "physical_phone": false,
+    "events": [
+      {
+        "tap_proof": {
+          "label": "Розовое стекло",
+          "row_bounds": [
+            84,
+            1365,
+            996,
+            1575
+          ],
+          "viewport_bounds": [
+            0,
+            231,
+            1080,
+            1794
+          ],
+          "tap": [
+            540,
+            1470
+          ]
+        },
+        "alias": "GlassIcon",
+        "selected": true,
+        "launcher_count": 1,
+        "process_survived_switch": true,
+        "relaunch_selected_component": true,
+        "persisted_after_process_restart": true
+      },
+      {
+        "tap_proof": {
+          "label": "Матовый",
+          "row_bounds": [
+            84,
+            916,
+            996,
+            1126
+          ],
+          "viewport_bounds": [
+            0,
+            231,
+            1080,
+            1794
+          ],
+          "tap": [
+            540,
+            1021
+          ]
+        },
+        "alias": "FrostedIcon",
+        "selected": true,
+        "launcher_count": 1,
+        "process_survived_switch": true,
+        "relaunch_selected_component": true,
+        "persisted_after_process_restart": true
+      },
+      {
+        "tap_proof": {
+          "label": "Лист с галочкой",
+          "row_bounds": [
+            84,
+            913,
+            996,
+            1123
+          ],
+          "viewport_bounds": [
+            0,
+            231,
+            1080,
+            1794
+          ],
+          "tap": [
+            540,
+            1018
+          ]
+        },
+        "alias": "PaperIcon",
+        "selected": true,
+        "launcher_count": 1,
+        "process_survived_switch": true,
+        "relaunch_selected_component": true,
+        "persisted_after_process_restart": true
+      }
+    ],
+    "same_apk_update_preserves_choice": true,
+    "main_activity_always_enabled": true
+  },
+  "running_failure": {
+    "status": "failure",
+    "error_type": "AssertionError",
+    "message": "No fresh valid non-idle UI hierarchy after5 attempts"
+  },
+  "findings": [
+    "NativeNMSclock/private/NoService assertions passed before capture. First5nonidlehelper captures sawNoRoot; errorhandlers nextcapture succeeded withliveSystemUI3rows, PNG/XMLinspected. Noapplicationfailureestablished.",
+    "Helperfix: publicUiAutomation.getWindows withFLAG_RETRIEVE_INTERACTIVE_WINDOWS beforegetRootInActiveWindow; visibleactive/focusedrootfallback. Androidbuiltinfiniteinitialwindowsnapshotreadiness, notwaitForIdle;5captures/freshnonce/ADB40stimeout/liveclocksunchanged. App/test/NoteLSsigningnotmodified.",
+    "API35/subtaskprobe/actualNMSactions notexecuted yet;65notinstallable/91notclosed."
+  ],
+  "references": [
+    "https://android.googlesource.com/platform/frameworks/base/+/android-9.0.0_r1/services/accessibility/java/com/android/server/accessibility/AbstractAccessibilityServiceConnection.java#376",
+    "https://android.googlesource.com/platform/frameworks/base/+/android-15.0.0_r1/services/accessibility/java/com/android/server/accessibility/AbstractAccessibilityServiceConnection.java#2205"
+  ],
+  "physical_phone": false,
+  "battery_measured": false
+}

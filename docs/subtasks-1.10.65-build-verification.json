@@ -1,0 +1,219 @@
+{
+  "stage": 91,
+  "status": "full-and-signed-verified-native-gate-pending",
+  "full_ci": {
+    "artifact_id": 15257804462,
+    "archive_sha256": "87d110f9eb0cef76c9b655763c85596414d9099fd73c15c6a3f2bec8f69617e9",
+    "archive_bytes": 1496180,
+    "workflow_run": {
+      "id": 46130808203,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "1aa09afa5ccf8b7aefba0479accaf3e57b345555"
+    },
+    "tests": 976,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 27,
+      "Information": 2
+    },
+    "screenshots": {
+      "analytics-preview/overdue-320.png": "34b6e61f2aae4a8f1c31c6c1f7377912fc39a185d2b76633ad2a2979f70b1988",
+      "analytics-preview/overdue-large-en-320.png": "1b765f93a96330efca63ad69ec9317a08ad893090dfc4f5d1ab340f6157e8592",
+      "analytics-preview/periods-320.png": "a799ae5fa84d245a954a0423b97e1e8e15bdc682f5851129f12b997fa093cbd2",
+      "diary-preview/password-320.png": "7def7b2781785a7416cd970c0e7264f33bd0a722653752f0fc64331e0fbc80bc",
+      "duration-preview/analytics-minutes-320.png": "1a61a58fb36ab37dc3649cf9fed41a6656c7cd62150e022c94e375fabd48b946",
+      "duration-preview/settings-en-large-320.png": "117294dfdb2afaf49ba2e39dc174215347e79c87a6056327f2a4b5873c155795",
+      "duration-preview/settings-ru-320.png": "52fcb273d33931726233c171dc46886db1217b2ac5d078e352aa16d5042a80f6",
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/quick-transform-editor-320.png": "1f2a4e04666ae1895a1bd91a33a9cdd9ed80e9575c3b310e5af489255b5ab095",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "1ece71415c2794d6e9689c81bd4079de0ad149000831918985899e555c20b570",
+      "navigation-preview/completed.png": "a47d99f5a77ac380ca2f58349961a7d2641c98afb14f88dd1b777617fff4289f",
+      "navigation-preview/drawer.png": "57f673580a83ed1f35a565e049ec647cdf1e8ae8e9eafa2bbf58ce5235405c66",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "running-task-preview/settings-ru-320.png": "f77945975d571db37c478ed8897f2ae32d35c62a15e921557ab05aa33710124a",
+      "running-task-preview/settings-en-large-320.png": "5cd59a143f0d550cad3a2523e1a59016cfcabd0b69cd70aa3ee990e11258ede5",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "1cd7072ea13137e5f0aad1cb84a40f3107b308da52868a80cc646e92dab9845b",
+      "settings-preview/launcher-icons-after-stale-callback.png": "06fdd006a4209408fd16e25bcae2c7e2c23e6a17f57ccfd5b00a871a80973355",
+      "settings-preview/launcher-icons-before-stale-callback.png": "ffc2155a0d90207e07d19a4f28ff0731ee6ac2a5aa220e09f0e3c1975574b4ae",
+      "settings-preview/launcher-icons-en-large-320.png": "7815f519db61b0cfee4201bda98f2f5f9f80134ac29b44cc81da040169d2b7be",
+      "settings-preview/launcher-icons-paper-restored-320.png": "76ba753b86c86e0d2f3b17f56d21b6e324144f27699ead58d9553762b1d1aa22",
+      "settings-preview/launcher-icons-ru-320.png": "61bd116bb3b20cab9226a2beaad0bdbd73bb4a09a0c301fc877e7f45ed71e9d5",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/planner-shortcut-320.png": "5fde2750091fcdc5cd0b1fc6f83b564cb3262cec7cacd93527c97d18e646445d",
+      "settings-preview/qwen-settings-320.png": "7987d4228f85ca0117bbf8879da3b31de166314c9fd3a33c2fbeea9eabbfc3b7",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "subtask-preview/inline-en-large-ime-320.png": "90957031276d6081e41c11a0ff42ef54ba9d234fcf605df01f0835452584e952",
+      "subtask-preview/inline-ru-320.png": "d00a90422d90dabbf1355fe72f9b313be04622fc9947f5ba6d992ff275cccd98",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    },
+    "subtask_screenshot_comparisons": {
+      "subtask-preview/inline-en-large-ime-320.png": {
+        "repository_path": "docs/design/subtasks-1.10.65/inline-en-large-ime-320.png",
+        "sha256": "90957031276d6081e41c11a0ff42ef54ba9d234fcf605df01f0835452584e952",
+        "byte_equal": true,
+        "bytes": 16982
+      },
+      "subtask-preview/inline-ru-320.png": {
+        "repository_path": "docs/design/subtasks-1.10.65/inline-ru-320.png",
+        "sha256": "d00a90422d90dabbf1355fe72f9b313be04622fc9947f5ba6d992ff275cccd98",
+        "byte_equal": true,
+        "bytes": 15468
+      }
+    },
+    "new_subtask_cases": 36,
+    "new_subtask_classes": {
+      "SubtaskEditorTest": {
+        "tests": 6,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "a new otherwise empty note with a plus-created child is saved and never discarded on exit",
+          "an external child pause is reflected live without losing typed row text or restarting on save",
+          "child update failure rolls back the existing parent and a retry still writes both pending drafts",
+          "explicit local child restart survives metadata observer and no-op saves retain parent timestamp",
+          "external removal cannot be resurrected by stale local text and parent completion keeps child clocks paused",
+          "failed first child insert leaves parent identity and SavedState unpublished and the same draft can retry"
+        ]
+      },
+      "SubtaskEditorUiTest": {
+        "tests": 3,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "deleting and undoing a child preserves main body and preview disables the inline add action",
+          "large English font and simulated IME keep the focused child and timing controls in the viewport",
+          "small inline plus creates an editable child and its two independent controls are to the right"
+        ]
+      },
+      "SubtaskHistoryTest": {
+        "tests": 7,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "editor reports a history capacity limit and preserves the document and retry action",
+          "redo rejects remote count overflow without losing rows or its retryable step",
+          "redo rejects remote text growth past the total limit and can retry after capacity is freed",
+          "structural history is memory bounded and restored running rows remain paused",
+          "subtask-only steps undo redo without changing main text or live timing",
+          "undo rejects remote count overflow without losing rows or its retryable step",
+          "undo rejects remote text growth past the total limit and can retry after capacity is freed"
+        ]
+      },
+      "SubtaskNotificationsTest": {
+        "tests": 6,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "all child countdowns share one nearest one-shot alarm and delivery preserves stopwatch and the next deadline",
+          "delivered child alarm survives watch pause and text edit but explicit timer removal and stale identity clear it",
+          "delivered public alerts disappear after note or notebook protection even when ongoing clocks are disabled",
+          "native actions contain parent child and expected clock identity and never alter sibling or parent document",
+          "protected timer delivery stays generic and a removed child or completed parent cannot accept stale commands",
+          "scalar child query masks unlocked protected titles excludes closed parents and bounds live rows"
+        ]
+      },
+      "SubtaskPersistenceTest": {
+        "tests": 9,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "child insertion failure during restore rolls back parent replacement too",
+          "children inherit parent identity and notebook and survive encrypted backup with their exact timing",
+          "completion trash and permanent deletion pause or remove children without changing document fields",
+          "conflict copy keeps local children and child identities are scoped to their new parent",
+          "invalid remote child payload is rejected before any entity in the batch is applied",
+          "malformed archived subtasks are rejected before current live note and children change",
+          "schema19 migration retains old documents and creates no implicit subtasks",
+          "staged snapshot validation rejects malformed row order instead of silently dropping a child",
+          "wire roundtrip includes children but legacy omission preserves them and explicit empty clears"
+        ]
+      },
+      "SubtasksTest": {
+        "tests": 5,
+        "failures": 0,
+        "ignored": 0,
+        "passed_names": [
+          "external completion retains accrued time despite an unsaved local restart and keeps draft text",
+          "history changes text and structure without resurrecting an externally stopped clock",
+          "limits reject duplicate or malformed identity overflow and invalid finished generations",
+          "pause saturates clock extremes and finishing metadata follows external state without losing typed text",
+          "typing retains an externally paused clock and removal while an explicit local restart wins"
+        ]
+      }
+    },
+    "class_report_count": 225,
+    "class_report_totals": {
+      "tests": 976,
+      "failures": 0,
+      "ignored": 0
+    },
+    "expected_source": "1aa09afa5ccf8b7aefba0479accaf3e57b345555",
+    "source_verified": true,
+    "job_id": 140935300955,
+    "job_status": "completed",
+    "job_conclusion": "success",
+    "build_duration": "22m 48s",
+    "build_log_evidence": "2026-11-28T09:53:49.9361996Z BUILD SUCCESSFUL in 22m 48s",
+    "tasks_command": "./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon",
+    "independent_subtask_class_review": true,
+    "stage91_closed": false
+  },
+  "signed": {
+    "artifact_id": 15257549558,
+    "archive_sha256": "4d0aa67ecdf0405046d5593cb725a8bcc3c436f74a2508f6014b021da647e96d",
+    "archive_bytes": 19069487,
+    "workflow_run": {
+      "id": 46132635507,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "1aa09afa5ccf8b7aefba0479accaf3e57b345555"
+    },
+    "source": "1aa09afa5ccf8b7aefba0479accaf3e57b345555",
+    "package": "com.notessync.app",
+    "version": "1.10.65",
+    "code": 88,
+    "apk_name": "NoteLS-1.10.65-code88-permanent-signature.apk",
+    "apk_bytes": 31187823,
+    "apk_sha256": "e25127f7981d15d93aa4d0f5d2a3ae90b13510a97b9bda3faaf3b317f8a2ae2b",
+    "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+    "verified_schemes": [
+      2,
+      3
+    ],
+    "signers": 1,
+    "debuggable": false,
+    "dex_sha256": {
+      "classes.dex": "b6c72553c6a4a1b712537c20d838717690b28fa028a5f31ae8062f8a225cf22f"
+    },
+    "readme_source_verified": true,
+    "min_sdk": 26,
+    "target_sdk": 35,
+    "physical_device_tested": false,
+    "room_schema": 20,
+    "room_identity": "8c092e0c7b1aa3fc45029ee351f31cb5",
+    "room_schema_sha256": "6f55d5410d8471bb0b8fab0debff56a3ff31aa5dc2743e90c5d235855dd1982f",
+    "analytics_period_dex_markers_verified": true,
+    "notebook_identity_dex_markers_verified": true,
+    "duration_dex_markers_verified": true,
+    "running_notification_dex_markers_verified": true,
+    "subtasks_dex_markers_verified": true
+  },
+  "native_failed_run": 46133305875,
+  "stage_closed": false
+}

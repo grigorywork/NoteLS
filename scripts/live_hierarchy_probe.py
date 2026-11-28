@@ -20,11 +20,14 @@ package com.notessync.fixtureprobe;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Xml;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
+import java.util.List;
 import org.xmlpull.v1.XmlSerializer;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,11 +43,12 @@ public final class ProbeInstrumentation extends Instrumentation {
         Bundle result = new Bundle();
         try {
             if (!nonce.matches("[a-f0-9]{32}")) throw new IllegalArgumentException("Missing nonce");
-            AccessibilityServiceInfo info = getUiAutomation().getServiceInfo();
-            info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS;
-            getUiAutomation().setServiceInfo(info);
-            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
-            if (root == null) throw new IllegalStateException("No live root");
+            UiAutomation automation = getUiAutomation();
+            AccessibilityServiceInfo info = automation.getServiceInfo();
+            info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+                | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+            automation.setServiceInfo(info);
+            AccessibilityNodeInfo root = liveRoot(automation);
             File base = getContext().getExternalFilesDir(null);
             if (base == null || (!base.isDirectory() && !base.mkdirs())) throw new IllegalStateException("No owned output directory");
             File output = new File(base, "live.xml");
@@ -55,6 +59,8 @@ public final class ProbeInstrumentation extends Instrumentation {
                 xml.startTag(null, "hierarchy");
                 xml.attribute(null, "nonce", nonce);
                 xml.attribute(null, "captured-uptime", Long.toString(SystemClock.uptimeMillis()));
+                xml.attribute(null, "root-package", text(root.getPackageName()));
+                xml.attribute(null, "window-id", Integer.toString(root.getWindowId()));
                 writeNode(xml, root, 0);
                 xml.endTag(null, "hierarchy");
                 xml.endDocument();
@@ -66,6 +72,31 @@ public final class ProbeInstrumentation extends Instrumentation {
             result.putString("status", "failure");
             result.putString("failure", error.toString());
             finish(Activity.RESULT_CANCELED, result);
+        }
+    }
+    private AccessibilityNodeInfo liveRoot(UiAutomation automation) {
+        // getWindows uses Android's finite initial-window-snapshot readiness, not waitForIdle.
+        // A newly connected service can otherwise see null during the live notification-shade transition.
+        List<AccessibilityWindowInfo> windows = automation.getWindows();
+        try {
+            AccessibilityNodeInfo active = automation.getRootInActiveWindow();
+            if (active != null) {
+                if (active.isVisibleToUser()) return active;
+                active.recycle();
+            }
+            for (int pass = 0; pass < 2; pass++) {
+                for (AccessibilityWindowInfo window : windows) {
+                    if (!(pass == 0 ? window.isActive() : window.isFocused())) continue;
+                    AccessibilityNodeInfo candidate = window.getRoot();
+                    if (candidate != null) {
+                        if (candidate.isVisibleToUser()) return candidate;
+                        candidate.recycle();
+                    }
+                }
+            }
+            throw new IllegalStateException("No live active or focused window root");
+        } finally {
+            for (AccessibilityWindowInfo window : windows) window.recycle();
         }
     }
     private static String text(CharSequence value) { return value == null ? "" : value.toString(); }
