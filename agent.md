@@ -1931,3 +1931,22 @@ Main/app/test/MAINdocsзаморожены до full/Signed/GC; диагност
 
 Нижние записи — история.
 
+
+
+2026-11-28T09:21:29.804535+00:00
+## 91: auditfixes46b, target4 выполняется —28ноября2026
+
+Локальнаяfeature/codex/subtasks-1.10.65 clean **46b19101e1c395d810bb0f63169f579ddc96bde8**. Candidate1.10.65/code88/Room20/data2/security3, НЕinstaller/91НЕзакрыт. Mainapp/sourceb669содержитпредыдущийкандидат, последнийVERIFIEDinstaller64/source45ef/full940/Signed46121842645/artifact15254103877/GC46124703052. НЕповторять90/старыеWIP91.
+
+Full46129066158/job140930035604/b669 был штатно CANCELLED после подтверждённых source-auditfindings, НЕполный969pass. AutoSigned46129453742 иGC46129457739 SKIPPED —installer65непроизводился. Proofвfeature docs/subtasks-1.10.65-cancelled-full.json. Старыйtarget3 46128233297=106/0/0/lint0/build6m13 остаётсявернымдляd1a, но не дляновыхправок.
+
+ALREADYAPPLIED46b:1)newparentID/createdHere/SavedState/createdAt/lastSavedNote публикуютсяТОЛЬКОпослеуспешноготранзакционногоparent+childrencommit. Раньше childINSERT/capacity abort откатывалSQLiteparent, нооставлялположительныйVMid, следующийsaveпомечалегоdeleted.2NativeSQLtriggercases проверяютdraft/ID/cache/rollback/new+existing/retry.2)Undo/redoсначала вычисляетвалидныйрезультат, затемдвигаетстек; превышение100/64000 послеvalidremoteSync ловитсяtypedSubtaskHistoryLimitReached→SUBTASK_LIMIT, current/remote/historyсохранены/retryработает.5purecasesдляcount/textundo+redo/UIreport/retry. Итого36новых/full976 ОЖИДАЕТСЯ, НЕpass. Не применятьfixповторно. Подзадачиinline+/clockright/DB20/wire/backup/privateobserver/onealarm всёсохранено.
+
+Native releaseprobe УЖЕусилен46b:3уведомления, public/private countdown15/30мин (дваrunningcountdown), one_platform_alarm_for_two_countdowns —точнаяactualпроверкаодногоalarmдлядвух; НЕобъявлятьизэтоготочноефактическоевремяближайшегосрабатывания(егоNativeRoomMINcaseпроверяетотдельно). Tiny+enabled/focusedchildreadiness bounded прежними15s/проверкагеометриипункта, исходныеPID/SQLprivacy/actions/parent+siblingguardsнеослаблены. RuntimeAndroidрезультатпокаНЕподтверждён, толькоPythonSyntax. Schema20sameidentity8c092e0c7b1aa3fc45029ee351f31cb5/schemaSHA6f55d5410d8471bb0b8fab0debff56a3ff31aa5dc2743e90c5d235855dd1982f.
+
+NEW target4 **46129928671**, diagnosticcodex/subtasks91-targeted4/sourcee7982e8771167cd3e6ec6b74249783e4c0beeb99, app/testexact46b, ТОЛЬКО--testsworkflowdiff. Expected134 NOTpass: предыдущие106 +7новых +21legacyMedia/Tags/MetadataProtection/Transform/SyncPause/PendingCommands. App/testFROZEN/не второйGradle/не дублироватьисполнителя. Readonlymultiagentreviewcompleted, disjointeditsсведеныв46b/агентыбольшеНЕпишут. CurrentrootдальшепроверяетCI. SначалаFRESHрезультат/diagnoseбезtimeoutincrease/assertweakening; затемaudit/PNGs/lint/assemble→mainnormalfull976→SignedexistingSecret→independentZIPAPI/exact3/SUMS/sourceversionnondebug/apksignerv2v3/1signer/pin/newDEX/actualRoom20→freshactualminifiedGCsettings/launcher/running/subtasksAPI28+35→close91→92–97. DiagnosticworkflowНЕсливать. Не двигатьmain/docsмеждубудущимfull/Signed/GC; текущийfullостановлендляfix, docs-onlyhandoffразрешён.
+
+Scratch notels-stage91/checkpoint5.json/targeted4.json/targeted4-dispatch.json актуальны; prepare_ready.py привязанкСТАРЫМleases/106source НЕзапускатькакесть; ready-commit/full-run.jsonстарыедляCANCELLEDb669. Ранееverifier_stage91.py подготовлен20, ci()проверилold106, release65ещёнет. Nativeprobeподготовлен,НЕпройденнаAndroid. Guide/report/negativeproofвfeature. СвежиедокументыmainonlyприreadymergeСОХРАНИТЬ.
+
+CodexGoalACTIVE, тажеAutomationfallbackбезновыхдублей; продолжатьавтономнобезвопросов/остановкирадиотчёта. ОбаpostqueueНОВЫХ3h-окна0ms,implementation/CIwaitне считать; начатьПОСЛЕВСЕХ87–97. Batteryessential: noappbackgroundpersecondpoll/service/wakelock/idleloops; нетphysicalphone/battery/stylusзамеров. ПостоянныйNOTELS_SIGNING_MATERIAL/pinне менять/неbootstrap/не проситьkey/login;68iPhone/newAI/paidinferenceне начинать. GitHubRESTforce=false/noresetcleanforcepush/losttree, локальныхSDKGradlebuildsНЕТ. Нижеистория.
+
