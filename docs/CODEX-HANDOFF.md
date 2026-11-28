@@ -1,3 +1,13 @@
+## Передача в новый чат состоялась; этап92 в целевом CI
+
+28ноября2026: пользователь поручил подхватить работу после этапа91. Исполнитель теперь чат6b0a9b29-9cdc-83ed-9024-8bed96fec058, /workspace/NoteLS. Исходный чат6af8f9a9-0620-8191-98f9-a99f3829107e и обаагента подтверждены idle/interrupted. Старыйfallback и проверка передачи выключены, не дублировать исполнителя.
+
+Этап91закрыт/verified65. Этап92candidate1.10.66/code89/Room20 реализован и сохранён в codex/editor-dates-1.10.66/**44a51b189f42e88ec90b9214864b9c1c7a407cb9**, дерево clean. Mainapp остаётся verified65. Даты создания слева/изменения справа снизу, committedDBonly/узкийaccessprojection/freshidentity+book+sessionguards/сохранениеfreshcreatedAt.10новыхNativeRoom/formatter/NativeComposecases. Candidate66ещёНЕinstaller/92НЕзакрыт.
+
+Единственный target **46144810199** выполняется: diagnosticcodex/editor-dates92-targeted/**1c5fa5e161549f2f942e990b1e64dbfe463879d7**, app/test EXACT44a; разницаТОЛЬКОworkflow --tests. Normalfullfeatureandroid.ymlсохранён. Не считать tests/lint/compile pass дофактическогоотчёта; не менятьapp/test/не второйGradle/не повторятьdispatch. Послеtarget→audit/screenshots→normalmainfull986ОЖИДАЕТСЯ→SignedexistingSecret→independentAPK/source/signature/actualRoom20→freshactualreleaseGCAPI28+35→close92. Guide/reportdocs/editor-dates-1.10.66.md. ДиагностическийworkflowНЕсливать.
+
+ПрипродолженииfetchFEATURE+freshMAIN; текущийMAINcommit docs-onlyhandoff поверхverified65, сохранитьmain-onlydocsприreadymerge. Не братьoldWIP91поверхнового. Очередь93–97/послеВСЕХ3hаудит→3hfixoptоба0ms; no implementation/CIwaitcount. Secret/pinunchanged/GHAonly/no localSDKGradle/RESTforce=false+lease/no resetcleanforcepush/losttree.68/iPhone/newAI/paidcallsне начинать. Нижние записи — история.
+
 ## Этап91 закрыт — NoteLS1.10.65/code88, 28ноября2026
 
 Проверенный runtime source **1aa09afa5ccf8b7aefba0479accaf3e57b345555**, Room20/data2/security3. Маленький «+» добавляет подзадачу прямо в заметку/задачу; отдельные секундомер и таймер находятся справа. Сохранение, история, backup/sync и приватность включены; старые записи/блокноты сохранены.
