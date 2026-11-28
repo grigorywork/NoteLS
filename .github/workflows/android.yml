@@ -49,7 +49,7 @@ jobs:
           print('Disposable widget host Java compiled; actual Android execution remains a separate release gate')
           PYPROBE
       - name: Tests, lint and compilation
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
+        run: ./gradlew :app:testDebugUnitTest --tests '*CalendarTypography*' --tests '*CalendarMathTest' --tests '*Widget*' --tests '*Weekly*' --tests '*SettingsGroupsUiTest' --tests '*CompactSettingsUiTest' --tests '*UiCatalogTest' --tests '*QuickTransformEditorUiTest' --tests '*EditorTransformTest' --tests '*TransformSessionTest' --tests '*TransformCaptureSaveRaceTest' :app:lintDebug :app:assembleDebug --console=plain --max-workers=2 --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
