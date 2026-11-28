@@ -282,8 +282,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                     notebookTarget = notebook?.let { NotebookTarget(it.id, it.syncId) }
                     dayKey = note.dayKey
                     notebookName = notebook?.name
-                    com.notessync.app.data.subtasks.replaceSubtasks(db, currentNoteId, committedSubtasks)
-            createdAt = note.createdAt
+                    createdAt = note.createdAt
                     syncId = note.syncId
                     noteTags = tagDao.getTagNamesForNote(note.id)
                 }
@@ -533,6 +532,7 @@ class NoteEditorViewModel @JvmOverloads constructor(
                 savedState["noteId"] = newId
                 savedState["createdHere"] = true
             }
+            com.notessync.app.data.subtasks.replaceSubtasks(db, currentNoteId, committedSubtasks)
             createdAt = note.createdAt
             lastSavedNote = note.copy(id = currentNoteId)
             true

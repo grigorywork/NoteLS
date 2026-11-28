@@ -42,12 +42,13 @@ object RunningTaskNotifications {
     }
     @Synchronized fun start(context: Context) {
         val app = context.applicationContext as Application
-        if (owner?.app === app && owner?.job?.isActive == true) return
+        if (owner?.app === app && owner?.job?.isActive == true && owner?.privacyJob?.isActive == true) return
         stop()
         owner = Owner(app).also { it.start() }
     }
     @Synchronized fun stop() { owner?.scope?.cancel(); owner = null; generation.incrementAndGet() }
-    fun request(context: Context) { start(context); synchronized(this) { owner?.let { it.revision.value++ } } }
+    fun request(context: Context) { start(context); synchronized(this) { owner?.let { it.revision.value++; it.alertRevision.value++ } } }
+    internal fun alertsChanged() { synchronized(this) { owner?.let { it.alertRevision.value++ } } }
 
     internal suspend fun rebase(context: Context) {
         rendering.withLock { cache.clear() }
@@ -70,9 +71,23 @@ object RunningTaskNotifications {
     private class Owner(val app: Application) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val revision = MutableStateFlow(0L)
+        val alertRevision = MutableStateFlow(0L)
+        var privacyJob: Job? = null
         var job: Job? = null
         @OptIn(ExperimentalCoroutinesApi::class)
-        fun start() { job = scope.launch {
+        fun start() {
+            privacyJob = scope.launch {
+                try {
+                    alertRevision.flatMapLatest {
+                        val ids = com.notessync.app.data.subtasks.SubtaskAlarms.alertParentIds(app)
+                        if (ids.isEmpty()) flowOf(emptyList()) else AppDatabase.get(app).noteDao().observeSubtaskAlertPrivacy(ids)
+                    }.distinctUntilChanged().collectLatest {
+                        withTimeout(8_000) { com.notessync.app.data.subtasks.SubtaskAlarms.reconcile(app) }
+                    }
+                } catch (cancel: CancellationException) { throw cancel }
+                catch (_: Exception) { /* A real foreground restarts a failed privacy binding. */ }
+            }
+            job = scope.launch {
             try {
                 combine(SettingsRepository.get(app).state.map { Preferences(it.runningTaskNotifications,
                     it.uiLanguage == UiLanguage.ENGLISH, it.automaticDurationUnits) }.distinctUntilChanged(), revision) { prefs, stamp -> prefs to stamp }

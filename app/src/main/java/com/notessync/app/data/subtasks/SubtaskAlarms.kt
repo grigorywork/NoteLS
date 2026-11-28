@@ -30,6 +30,11 @@ internal object SubtaskAlarms {
     internal val uri: Uri get() = Uri.parse("notels://subtask-alarm/nearest")
     private fun intent(context: Context) = Intent(context, SubtaskAlarmReceiver::class.java).setAction(ACTION).setData(uri)
 
+    internal fun alertParentIds(context: Context): List<Long> = context.getSystemService(NotificationManager::class.java)
+        .activeNotifications.filter { it.tag?.startsWith(PREFIX) == true }
+        .mapNotNull { it.tag.removePrefix(PREFIX).substringBefore(':').toLongOrNull()?.takeIf { id -> id > 0 } }
+        .distinct().sorted().take(20)
+
     suspend fun reconcile(context: Context, db: AppDatabase = AppDatabase.get(context)) = lock.withLock {
         db.withTransaction {
             cleanup(context, db)
@@ -54,6 +59,7 @@ internal object SubtaskAlarms {
     }
     private suspend fun cleanup(context: Context, db: AppDatabase) {
         val manager = context.getSystemService(NotificationManager::class.java)
+        var changed = false
         for (posted in manager.activeNotifications.filter { it.tag?.startsWith(PREFIX) == true }) {
             val parts = posted.tag.removePrefix(PREFIX).split(':')
             val parent = parts.getOrNull(0)?.toLongOrNull()
@@ -61,8 +67,9 @@ internal object SubtaskAlarms {
             // A delivered alert survives a stopwatch pause/text save; completion/removal/restart clears it.
             if (row == null || row.syncId != Uri.decode(parts.getOrNull(1).orEmpty()) ||
                 row.subtaskFinishedAt != posted.notification.extras.getLong("notels_subtask_deadline", 0) ||
-                (row.hidden && posted.notification.extras.getString(android.app.Notification.EXTRA_TITLE) != uiText("Защищённая запись"))) manager.cancel(posted.tag, posted.id)
+                (row.hidden && posted.notification.extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString() != uiText("Защищённая запись"))) { manager.cancel(posted.tag, posted.id); changed = true }
         }
+        if (changed) RunningTaskNotifications.alertsChanged()
     }
     suspend fun deliver(context: Context, db: AppDatabase = AppDatabase.get(context), now: Long = System.currentTimeMillis()) = lock.withLock {
         val rows = db.withTransaction {
@@ -103,5 +110,6 @@ internal object SubtaskAlarms {
             .setContentText(uiText("Таймер подзадачи завершён")).addExtras(android.os.Bundle().apply { putLong("notels_subtask_deadline", requireNotNull(row.subtaskFinishedAt)) }).setContentIntent(content).setAutoCancel(true)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(generic).build()
         manager.notify("$PREFIX${row.id}:${Uri.encode(row.syncId)}:${row.subtaskId}", 0, notification)
+        RunningTaskNotifications.alertsChanged()
     }
 }

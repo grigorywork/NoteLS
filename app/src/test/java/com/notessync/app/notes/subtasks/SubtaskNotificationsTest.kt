@@ -9,6 +9,8 @@ import com.notessync.app.reminders.createReminderChannel
 import com.notessync.app.security.ProtectionSession
 import com.notessync.app.tasks.running.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.delay
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -96,5 +98,23 @@ class SubtaskNotificationsTest {
         val command=RunningControl(public.id,public.syncId,RunningClock.STOPWATCH,now,RunningAction.COMPLETE,"a")
         db.noteDao().update(public.copy(isTask=true,isCompleted=true));assertFalse(RunningTaskActions.apply(app,command,now+100))
         db.noteDao().update(public.copy(isTask=true,isCompleted=false));assertFalse(RunningTaskActions.apply(app,command,now+100))
+    }
+    @Test fun `delivered public alerts disappear after note or notebook protection even when ongoing clocks are disabled`()=runBlocking {
+        val settings=com.notessync.app.settings.SettingsRepository.get(app);settings.setRunningTaskNotifications(false)
+        RunningTaskNotifications.start(app)
+        val now=System.currentTimeMillis();val note=parent()
+        db.withTransaction { replaceSubtasks(db,note.id,listOf(Subtask("a","Public child",countdownMillis=100,countdownEndAt=now+100))) }
+        SubtaskAlarms.deliver(app,db,now+100)
+        assertTrue(manager.activeNotifications.any { it.notification.extras.getString(Notification.EXTRA_TITLE)=="Public child" })
+        db.noteDao().updateTaskProtection(note.id,true,"fixture-hash","fixture-salt",now+200)
+        withTimeout(15_000) { while(manager.activeNotifications.any { it.notification.extras.getString(Notification.EXTRA_TITLE)=="Public child" }) delay(5) }
+        val book=db.notebookDao().upsert(NotebookEntity(name="Work"));val other=parent().copy(notebookId=book);db.noteDao().update(other)
+        db.withTransaction { replaceSubtasks(db,other.id,listOf(Subtask("b","Book child",countdownMillis=100,countdownEndAt=now+300))) }
+        SubtaskAlarms.deliver(app,db,now+300)
+        assertTrue(manager.activeNotifications.any { it.notification.extras.getString(Notification.EXTRA_TITLE)=="Book child" })
+        val before=db.notebookDao().getById(book)!!;db.notebookDao().update(before.copy(isProtected=true))
+        withTimeout(15_000) { while(manager.activeNotifications.any { it.notification.extras.getString(Notification.EXTRA_TITLE)=="Book child" }) delay(5) }
+        assertEquals("Book child",db.subtaskDao().get(other.id).single().text)
+        settings.setRunningTaskNotifications(true)
     }
 }

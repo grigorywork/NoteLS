@@ -39,4 +39,12 @@ class SubtasksTest {
         assertEquals("Typed", merged.text); assertEquals(200L, merged.countdownFinishedAt); assertNull(merged.countdownEndAt)
         assertEquals(0L, merged.countdownMillis)
     }
+    @Test fun `external completion retains accrued time despite an unsaved local restart and keeps draft text`() {
+        val before=Subtask("a","Old",elapsedMillis=100)
+        val local=before.copy(text="Draft",startedAt=200)
+        val completed=before.copy(completed=true,elapsedMillis=700,countdownMillis=500)
+        val merged=Subtasks.merge(listOf(local),listOf(before),listOf(completed)).single()
+        assertTrue(merged.completed);assertEquals(700L,merged.elapsedMillis);assertEquals(500L,merged.countdownMillis)
+        assertEquals("Draft",merged.text);assertNull(merged.startedAt);assertNull(merged.countdownEndAt)
+    }
 }

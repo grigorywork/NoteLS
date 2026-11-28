@@ -42,13 +42,14 @@ object Subtasks {
                 val watchChanged = row.elapsedMillis != before.elapsedMillis || row.startedAt != before.startedAt
                 val timerChanged = row.countdownMillis != before.countdownMillis || row.countdownEndAt != before.countdownEndAt || row.countdownFinishedAt != before.countdownFinishedAt
                 val completed = if (row.completed == before.completed) current.completed else row.completed
+                val externallyCompleted = current.completed && !before.completed && row.completed == before.completed
                 row.copy(text = if (row.text == before.text) current.text else row.text,
                     completed = completed,
-                    elapsedMillis = if (watchChanged) row.elapsedMillis else current.elapsedMillis,
+                    elapsedMillis = if (watchChanged && !externallyCompleted) row.elapsedMillis else current.elapsedMillis,
                     startedAt = if (completed) null else if (watchChanged) row.startedAt else current.startedAt,
-                    countdownMillis = if (timerChanged) row.countdownMillis else current.countdownMillis,
+                    countdownMillis = if (timerChanged && !externallyCompleted) row.countdownMillis else current.countdownMillis,
                     countdownEndAt = if (completed) null else if (timerChanged) row.countdownEndAt else current.countdownEndAt,
-                    countdownFinishedAt = if (timerChanged) row.countdownFinishedAt else current.countdownFinishedAt)
+                    countdownFinishedAt = if (timerChanged && !externallyCompleted) row.countdownFinishedAt else current.countdownFinishedAt)
             }
         } + fresh.filter { it.id !in old && local.none { item -> item.id == it.id } }
         return checked(result)

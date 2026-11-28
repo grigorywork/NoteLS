@@ -22,6 +22,9 @@ internal const val RUNNING_TASKS_SQL = RUNNING_TASK_SELECT + "AND (notes.taskTim
 
 @Dao
 interface NoteDao {
+    @Query("SELECT n.id,n.syncId,n.isProtected,n.isDeleted,n.isPurged,n.isTask,n.isCompleted,n.notebookId,b.syncId AS notebookSyncId,COALESCE(b.isProtected,0) AS notebookProtected,COALESCE(b.isDeleted,0) AS notebookDeleted,COALESCE(b.isDiary,0) AS diary FROM notes n LEFT JOIN notebooks b ON b.id=n.notebookId WHERE n.id IN (:ids) ORDER BY n.id")
+    fun observeSubtaskAlertPrivacy(ids: List<Long>): Flow<List<com.notessync.app.data.subtasks.SubtaskAlertPrivacy>>
+
 
     @Query("SELECT id, syncId, isTask, isCompleted, taskElapsedMillis, taskTimerStartedAt, taskCountdownMillis, taskCountdownEndAt, taskCompletedAt, reminderAt FROM notes WHERE id = :id")
     fun observeTaskMetadata(id: Long): Flow<com.notessync.app.data.local.model.TaskMetadataSnapshot?>
