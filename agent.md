@@ -1796,3 +1796,17 @@ Feature `codex/running-tasks-1.10.64` checkpoint `11547ac641979f51a969625f06079d
 
 Main verified63/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590,89 закрыт. Новый64 ещё НЕ installer. ПослеВСЕХ87–97 новые3h аудита→3hоптимизации оба0ms, реализацию/паузы/CIwait не считать. Пользователь повторно потребовал непрерывно автономно продолжать; не заканчивать ради отчёта, реальные паузы пережить checkpoint+той же automation без дублей. Батарея обязательна;68/iPhone/новыеИИ/реальныйpaidinference не начинать, Secret/ключ не менять, локальныхSDKGradlebuilds нет/RESTforce=false. Ниже история.
 
+
+
+2026-11-28T06:18:00.446166+00:00: ## 90: первый target84/0, улучшения применены, повтор идёт — 28 ноября
+
+Свежий feature `codex/running-tasks-1.10.64` checkpoint `457fbaedbe563700a2a94c3e92bd550bd05c42e0` включает11547ac/fde2bf4; не брать старое поверх него. Кандидат1.10.64/code87/Room19/data2/security3. Первый target46114787586/job140886057838 на app11547ac SUCCESS:84/0fail/0ignored, lint0errors/28warnings/2info, build10m15s. Artifact15251119450 ZIP468606bytesSHA25693a3257863ab7a1389636505b0d5c4505686918c135222b20693ef0c940957e7=API/HTML/lintXML. Обе RU/ENlargefont320 NativePNG осмотрены/в feature docs/design/running-tasks-1.10.64. Это не физический телефон. Proofdocs/running-tasks-1.10.64-first-targeted.json.
+
+Аудитные follow-up УЖЕ ПРИМЕНЕНЫ: permission denied отключает сам Room observer; NativeAPI35 grant/revoke/rebind; Owner типApplication убирает новую StaticFieldLeak без suppress; удалён forced GROUP_KEY_SILENT от setSilent(true), остаётся LOW soundnull/vibrationfalse + group assertion; настройки рядом с длительностью; negative countdown clamp и regression. НЕ повторять pending fixes из нижней истории. Новых22, full936 ожидается НЕpass.
+
+Идёт единственный repeat46115895824/job140889539093 на `codex/running90-targeted2`, source`84c4bd4ef6a6e1d2282b7ea46472addf3f938d3d`; app/test ровно457fbaed, только android.yml command диагностический. Ожидаемые86 включают EditorSyncPauseTest, результат компиляции/тестов/lint пока НЕ подтверждён. App/test заморожены; не второй Gradle/исполнитель, diagnostic workflow НЕ сливать вmain. После repeat/audit обычный full→autoSigned→independentAPK/actualRoom19→freshGC/actualrunningProbe, только потом закрыть90→91–97.
+
+Actual minified probe scripts/release_running_task_probe.py и normal release-settings-smoke.yml API28/35 УЖЕ в fde2bf4/feature; это не untracked. Проверен только Python syntax/hostfixtureSQL/dumpsample; Android probe ещё не запускался и не объявлен успехом. Disposable rooted qemu fixtures только, реальные SystemUI counters/processkill(notforcestop)/pause/complete/private masking/document+notebook preservation; production backdoor нет. Логи/metadata в scratch/notels-stage90; pending-audit.md помечен APPLIED.
+
+Новое уточнение пользователя для91 сохранено docs/requests-2026-11-27.md: маленький «+» добавляет подзадачу прямо в заметке/задаче; её таймер/секундомер справа. Не новый этап. Main приложение остаётся verified63/runtime63c202e/full914/Signed46111373337/artifact15249629264/GC46111819590;64 ещё НЕ installer/90 НЕ закрыт. 87–89 не повторять. Пользователь требует продолжать автономно без остановки ради отчёта. ПослеВСЕХ87–97 новые3h аудита→3h оптимизации оба0ms. Батарея обязательна;68/iPhone/новыеИИ/платныевызовы не начинать, Secret/ключ не менять, локальныхSDKGradlebuilds нет/RESTforce=false. Ниже история.
+
