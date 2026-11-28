@@ -25,6 +25,7 @@ object WidgetNoteLinks {
     }
     suspend fun canOpen(context: Context, request: WidgetNoteRequest): Boolean {
         val current = AppDatabase.get(context).noteDao().getAccess(request.noteId) ?: return false
-        return current.syncId == request.syncId && !current.isDeleted && !current.isPurged && !current.isProtected && !current.notebookProtected
+        val parentDeleted = current.notebookId?.let { AppDatabase.get(context).notebookDao().getById(it)?.isDeleted } == true
+        return !parentDeleted && current.syncId == request.syncId && !current.isDeleted && !current.isPurged && !current.isProtected && !current.notebookProtected
     }
 }

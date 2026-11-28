@@ -20,6 +20,7 @@ import com.notessync.app.settings.SettingsState
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun EditorSettings(state: SettingsState, settings: SettingsRepository) {
+    RunningTaskSettings(state, settings)
     SettingsCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             SettingsToggle(uiText("Выполненные — в отдельный раздел"), state.archiveCompletedTasks,

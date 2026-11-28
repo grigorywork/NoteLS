@@ -12,6 +12,7 @@ class NoteSyncApp : Application() {
         com.notessync.app.settings.SettingsRepository.get(this)
         com.notessync.app.sync.auto.AutomaticSyncRuntime.get(this)
         createReminderChannel()
+        com.notessync.app.tasks.running.RunningTaskNotifications.start(this)
         com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this)
         com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this)
         // Widget/notification broadcasts must not start a backup. Check only on
@@ -23,6 +24,7 @@ class NoteSyncApp : Application() {
                     com.notessync.app.sync.auto.AutomaticSyncRuntime.get(this@NoteSyncApp).foreground(true)
                     BackupManager.requestAutoBackup(this@NoteSyncApp, afterNote = false)
                     com.notessync.app.reminders.AlarmReconciler.resumePending(this@NoteSyncApp)
+                    com.notessync.app.tasks.running.RunningTaskNotifications.request(this@NoteSyncApp)
                     com.notessync.app.widget.CompactWidgetUpdates.startIfPresent(this@NoteSyncApp)
                     com.notessync.app.widget.WeeklyWidgetUpdates.startIfPresent(this@NoteSyncApp)
                 }

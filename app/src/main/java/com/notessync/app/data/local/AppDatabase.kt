@@ -225,6 +225,7 @@ abstract class AppDatabase : RoomDatabase() {
         // при восстановлении бэкапа. Следующий get() откроет базу заново.
         fun closeInstance() {
             synchronized(this) {
+                com.notessync.app.tasks.running.RunningTaskNotifications.stop()
                 instance?.close()
                 instance = null
             }

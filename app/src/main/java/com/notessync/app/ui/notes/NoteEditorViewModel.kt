@@ -413,12 +413,14 @@ class NoteEditorViewModel @JvmOverloads constructor(
             val local = baseNote.copy(tablesData = encodedTables, isPinned = fresh?.isPinned ?: false,
                 notebookId = targetId)
             val previous = lastSavedNote
-            val note = if (fresh == null) local else local.copy(isProtected = fresh.isProtected,
+            val merged = com.notessync.app.ui.tasks.mergeExternalTaskTiming(local, previous, fresh)
+            val note = if (fresh == null) merged else merged.copy(isProtected = fresh.isProtected,
                 passwordHash = fresh.passwordHash, passwordSalt = fresh.passwordSalt, updatedAt = nextChangeTimestamp(fresh.updatedAt, now))
             if (previous != null && fresh?.notebookId == local.notebookId && local.copy(isPinned = previous.isPinned, isProtected = previous.isProtected,
                     passwordHash = previous.passwordHash, passwordSalt = previous.passwordSalt,
                     updatedAt = previous.updatedAt, dirty = previous.dirty) == previous) {
-                lastSavedNote = previous.copy(isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
+                lastSavedNote = com.notessync.app.ui.tasks.mergeExternalTaskTiming(previous, previous, fresh).copy(
+                    isProtected = note.isProtected, passwordHash = note.passwordHash, passwordSalt = note.passwordSalt)
                 return@withTransaction false
             }
             if ((fresh?.reminderAt != note.reminderAt || fresh?.taskCountdownEndAt != note.taskCountdownEndAt ||
@@ -438,6 +440,20 @@ class NoteEditorViewModel @JvmOverloads constructor(
             true
         }
         if (accepted) lastSavedNote?.let { isProtected = it.isProtected; passwordHash = it.passwordHash; passwordSalt = it.passwordSalt }
+        // A notification command may have changed timing while this editor was open.
+        // Do not clobber a newer UI gesture that arrived while the transaction was saving.
+        if (accepted) lastSavedNote?.let { saved ->
+            if (taskElapsedMillis == baseNote.taskElapsedMillis && taskTimerStartedAt == baseNote.taskTimerStartedAt) {
+                taskElapsedMillis = saved.taskElapsedMillis; taskTimerStartedAt = saved.taskTimerStartedAt
+            }
+            if (taskCountdownMillis == baseNote.taskCountdownMillis && taskCountdownEndAt == baseNote.taskCountdownEndAt) {
+                taskCountdownMillis = saved.taskCountdownMillis; taskCountdownEndAt = saved.taskCountdownEndAt
+            }
+            if (isCompleted == baseNote.isCompleted && taskCompletedAt == baseNote.taskCompletedAt) {
+                isCompleted = saved.isCompleted; taskCompletedAt = saved.taskCompletedAt
+            }
+            if (reminderAt == baseNote.reminderAt) reminderAt = saved.reminderAt
+        }
         if (accepted && notebookChoiceVersion == choiceVersion) {
             notebookId = acceptedNotebook?.id; notebookName = acceptedNotebook?.name
             notebookTarget = acceptedNotebook?.let { NotebookTarget(it.id, it.syncId) }

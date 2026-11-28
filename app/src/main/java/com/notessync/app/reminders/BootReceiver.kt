@@ -12,7 +12,10 @@ class BootReceiver : BroadcastReceiver() {
         val pending = goAsync() ?: return
         val app = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
-            try { withTimeout(8_000) { AlarmReconciler.reschedule(app) } }
+            try { withTimeout(8_000) {
+                AlarmReconciler.reschedule(app)
+                com.notessync.app.tasks.running.RunningTaskNotifications.refreshNow(app)
+            } }
             catch (_: Exception) { /* Interrupted recovery keeps a cursor for the next foreground session. */ }
             finally { pending.finish() }
         }

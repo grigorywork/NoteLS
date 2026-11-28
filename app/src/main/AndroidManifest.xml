@@ -63,6 +63,13 @@
         </activity-alias>
 
         <!-- Напоминания (Этап 3). -->
+        <receiver android:name=".tasks.running.RunningTaskReceiver" android:exported="false" />
+        <receiver android:name=".tasks.running.RunningTaskTimeReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
         <receiver android:name=".reminders.ReminderReceiver" android:exported="false" />
         <receiver android:name=".reminders.BootReceiver" android:exported="true">
             <intent-filter>

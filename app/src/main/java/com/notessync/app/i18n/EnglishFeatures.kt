@@ -1,6 +1,18 @@
 package com.notessync.app.i18n
 
 internal fun MutableMap<String, String>.addFeaturesEnglish() {
+    put("Секундомер", "Stopwatch")
+    put("Разрешить", "Allow")
+    put("Настройки уведомлений", "Notification settings")
+    put("Идущие задачи", "Running tasks")
+    put("Таймер и секундомер без постоянной фоновой работы приложения", "Timer and stopwatch without continuous app background work")
+    put("Время при обновлении: %1\$s", "Time at last update: %1\$s")
+    put("Идущая задача в шторке", "Running task in notifications")
+    put("Уведомления выключены. Таймер продолжает работать в задаче.", "Notifications are off. The timer continues in the task.")
+    put("Как работает счётчик", "How the counter works")
+    put("Android ведёт счётчик в уведомлении без постоянного сервиса приложения. Формат живого счётчика задаёт система; настройка часов и дней применяется к времени внутри NoteLS.", "Android runs the notification counter without a persistent app service. The system sets the live counter format; the hours and days setting applies inside NoteLS.")
+    put("До 20 идущих задач. Таймер и секундомер показаны отдельно. Пауза и выполнение доступны для записей без защиты; защищённые открываются через приложение.", "Up to 20 running tasks. Timer and stopwatch appear separately. Unprotected entries allow pause and complete; protected entries open through the app.")
+    put("Принудительная остановка, перезагрузка, запрет уведомлений или ограничения Android могут скрыть уведомление. Оно восстанавливается при следующем входе; данные задачи сохраняются.", "Force stop, reboot, notification permissions or Android restrictions may hide the notification. It is restored on the next app visit; task data is preserved.")
     put("Продолжаю диктовку…", "Continuing dictation…")
     put("При паузах диктовка продолжается. Отпустите микрофон или нажмите ещё раз для остановки. Уже распознанный текст сохраняется. Структуризация — локальные правила, без отдельного ИИ-сервиса.", "Dictation continues through pauses. Release the microphone or tap again to stop. Recognized text is kept. Text structuring uses local rules, without a separate AI service.")
 

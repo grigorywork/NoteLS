@@ -16,8 +16,24 @@ internal const val COMPACT_WIDGET_SQL = "SELECT id, SUBSTR(syncId, 1, 160) AS sy
 
 internal const val WIDGET_DAY_SNIPPETS_SQL = "SELECT id, dayKey, SUBSTR(title, 1, 256) AS title, isTask, isCompleted, SUBSTR(taskColor, 1, 16) AS taskColor FROM notes WHERE id IN (SELECT id FROM notes INDEXED BY index_notes_dayKey WHERE dayKey = :day AND isDeleted = 0 AND isPurged = 0 AND isProtected = 0 AND (notebookId IS NULL OR notebookId NOT IN (SELECT id FROM notebooks WHERE isProtected = 1 OR isDiary = 1)) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC LIMIT 3) ORDER BY isTask DESC, isCompleted ASC, createdAt ASC, id ASC"
 
+// The existing task_due index narrows to unfinished live tasks before bounded scalar reads.
+internal const val RUNNING_TASK_SELECT = "SELECT notes.id, notes.syncId, CASE WHEN notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1 THEN '' ELSE SUBSTR(notes.title, 1, 256) END AS title, (notes.isProtected = 1 OR COALESCE(notebooks.isProtected, 0) = 1 OR COALESCE(notebooks.isDiary, 0) = 1) AS hidden, notes.taskElapsedMillis, notes.taskTimerStartedAt, notes.taskCountdownMillis, notes.taskCountdownEndAt FROM notes LEFT JOIN notebooks ON notebooks.id = notes.notebookId WHERE notes.isDeleted = 0 AND notes.isPurged = 0 AND notes.isTask = 1 AND notes.isCompleted = 0 AND COALESCE(notebooks.isDeleted, 0) = 0 AND LENGTH(notes.syncId) BETWEEN 1 AND 160 AND TRIM(notes.syncId) != '' "
+internal const val RUNNING_TASKS_SQL = RUNNING_TASK_SELECT + "AND (notes.taskTimerStartedAt IS NOT NULL OR notes.taskCountdownEndAt > :now) ORDER BY notes.id LIMIT 20"
+
 @Dao
 interface NoteDao {
+
+    @Query(RUNNING_TASKS_SQL)
+    fun observeRunningTasks(now: Long): Flow<List<com.notessync.app.tasks.running.RunningTaskEntry>>
+
+    @Query(RUNNING_TASKS_SQL)
+    suspend fun getRunningTasks(now: Long): List<com.notessync.app.tasks.running.RunningTaskEntry>
+
+    @Query(RUNNING_TASK_SELECT + "AND notes.id = :id")
+    suspend fun getRunningTask(id: Long): com.notessync.app.tasks.running.RunningTaskEntry?
+
+    @Query("UPDATE notes SET taskElapsedMillis = :elapsed, taskTimerStartedAt = :started, taskCountdownMillis = :remaining, taskCountdownEndAt = :end, isCompleted = :completed, taskCompletedAt = :completedAt, reminderAt = CASE WHEN :completed THEN NULL ELSE reminderAt END, updatedAt = CASE WHEN updatedAt < 9223372036854775807 THEN MAX(updatedAt + 1, :now) ELSE updatedAt END, dirty = 1 WHERE id = :id AND syncId = :syncId AND isTask = 1 AND isCompleted = 0 AND isDeleted = 0 AND isPurged = 0")
+    suspend fun updateRunningTask(id: Long, syncId: String, elapsed: Long, started: Long?, remaining: Long, end: Long?, completed: Boolean, completedAt: Long?, now: Long): Int
 
     @RawQuery(observedEntities = [NoteEntity::class, NotebookEntity::class])
     fun diaryRows(query: SupportSQLiteQuery): Flow<List<com.notessync.app.notes.diary.DiaryRow>>
