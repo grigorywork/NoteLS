@@ -1897,3 +1897,37 @@ APK stable https://github.com/grigorywork/NoteLS/actions/runs/46121842645/artifa
 
 Older entries below are history.
 
+
+
+2026-11-28T08:59:43.035414+00:00
+## 91: target3 выполняется; источникd1a3486 сохранён —28ноября2026
+
+Feature/local clean codex/subtasks-1.10.65/**d1a3486a080b9f89998b9c1282445c217b555e89**; normalfullandroid.yml сохранён. Productionapp ровно506a768, после него изменена1строкаUIharness и добавленыreleasePython/workflow/docs/NativePNG/guide; app/test checkpointd1a. Mainapp VERIFIED64/90CLOSED, будущий65/code88/Room20 ещёНЕinstaller/91НЕзакрыт. Вновойсредеfetchfeature+freshпоследующиеизменения,НЕ братьстарыйWIPповерхнего/91сначалаНЕповторять.
+
+Target2 **46127520243/job140925312567** завершилсяfailure6m18s: main/testcompileSUCCESS,**106tests/1failure/0ignored** (105успех,28из29новых). ВсеNativeRoom/migration19→20/wire/backupvalidation+rollback/conflict/history/liveVM/alarms/privacy/26running90/17diary/6tables/6catalog/6compact прошли. Только SubtaskEditorUiTest.delete+undo+preview initialeditorawaitisReady15s BEFOREactions timeout. Обе другие новыеUI прошли (маленькийplus/add/rightclocks и ENlargefakeIME240visiblefield). ZIPartifact15256780876/217644bytes SHAd96487fcc0a9e60a542f8fdd7dfd7459c75a0359fb63de2e4a86555c5c566143=API/HTML проверены;2NativePNGосмотрены/copydocs/design/subtasks-1.10.65. Lint/assemble/full969НЕподтверждены. Proofdocs/subtasks-1.10.65-second-targeted.json.
+
+ОднострочныйUIharnessfix вd1a: каквсуществующемCompactEditorTest condition добавляетcompose.waitForIdle();vm.isReady, прокачиваетMainDispatch ВТОМЖЕ15s, никакихослабленныхasserts/увеличенныхтаймаутов. Productionнеизменялся. NEWtarget3 **46128233297** inprogress, diagnosticcodex/subtasks91-targeted3/source4b846f6991f3316e3a64854f59522185afae2d55, app/test exactlyd1a, expected106 NOTpass. App/testFROZEN, nosecondGradle. СначалаСВЕЖИЙфактическийрезультат; еслидругойfailureдиагностироватьlogs/artifactбезпоблажек. Diagnostic--testsworkflowНЕсливатьвmain.
+
+ReleaseподготовкаУЖЕвd1a (НЕAndroidпроверка): scripts/release_subtasks_probe.py actualsigned+tinyplus/typedchild/exitSave→nativechildfixture/parent+sibling/private/PIDabsent/realpausecomplete/oneNearestAlarm, sourceRoomprofile --schema-json. release-settings-smoke.yml получаетAppDatabase.VERSION+официальнуюschemaизTRUSTEDEXPECTED_SOURCEчерезgitfetch/gitshow; runningprobeнеhardcoded19дляновой20 (defaultCLI19оставлендлястаройпроверки, workflowявнопередаётsourceprofile). SubtaskprobeONLYsourceRoom>=20, текущий65обязанпройтиобеAPI28+35. LiveHierarchy.prepare удаляетТОЛЬКОпредыдущийdisposablecom.notessync.fixtureprobeпередновымвременнымfixturekeyвТОМЖЕqemu; NoteLS/Secret/pinне меняются. Hostsyntax+generatedschemaSQLshapeпроверены, НЕactualAndroidproof. Probeизолируетстарые90syntheticfixturesДОсозданиясвоихсчётчиков, новыеtestclocksнеостанавливает. ЭтиscriptchangesтребуютactualSignedGCпозже;необъявлятьготовымипоsyntax.
+
+Room20officialgeneratedJSONУЖЕвd1a: identity8c092e0c7b1aa3fc45029ee351f31cb5/schemaSHA6f55d5410d8471bb0b8fab0debff56a3ff31aa5dc2743e90c5d235855dd1982f,7прежнихentitiesравны19точно, новоеnote_subtasks. Modelbounds/diffStore/history/freshchildobserver/parentclosepause/purgeclear/nullablelegacywire/backupstagedvalidation/nativeprivateSQL/onealarm/finishedgeneration/boundedpostedalertprivacy УЖЕреализованы и основныеNativeпроверкивtarget2прошли. Oldscratchpending-audit1/2/3/4описаниядрафтов устарели:1/2APPLIED506a,3/4PREPAREDd1a;actualreleaseисполнениеpending. Guide docs/subtasks-guide.md saved. Scratch checkpoint4.json/targeted3.json/targeted3-dispatch.json актуальны.
+
+Послеуспехаtarget/audit→normalmainfull969EXPECTEDNOTpass→autoSignedexistingSecret→independentZIPAPI/exact3/SUMS/sourcepackageversionnondebug/apksignerpin/newDEX/actualRoom20→freshactualminifiedsettingsGC+launcher+running+subtaskprobesAPI28/35→close91/journal/main→92–97. Main-onlydocsсвежуюпередачуприготовленииreadymergeсохранить, нестереть; mainпослеэтогодокументаdocs-onlyповерхverified64. No localSDKGradlebuilds/RESTforce=false/no resetcleanforcepush/losttree/duplicateexecutor.
+
+CodexGoalACTIVE доВСЕХ91–97 иНОВЫХ3hactiveaudit→3hfixopt, обаокна0ms/ledgercurrent91; CIwait/implementation/паузы/overlapне считать. AutomationтотжеIDfallback, не создаватьдубликат/проверятьживуюработу. Автономно продолжатьбезвопросовмеждуэтапами;68/iPhone/newAI/paidinferenceНЕначинать/ключилиloginвчатенепросить. Batteryessential/noappbackgroundpersecondpoll/service/wakelock/idleloops; no physicalphone/battery/stylusmeasurements.
+
+Older entries below history.
+
+
+
+2026-11-28T09:08:30.426730+00:00
+## 91 готов к полному CI; этап ещё не закрыт
+
+Кандидат **1.10.65/code88/Room20/data2/security3**. Целевой CI46128233297/job140927516028 SUCCESS: **106/0fail/0ignored**, lint0errors/27warnings/2info, assembleDebug/build6m13s. ZIPartifact15257260883 size252755 SHA2564967804b10bf23d5f80771345bd92e32b45ac5cc3fc4eec4fc1dfd1ce03dcf91=API/HTML/lintXML проверены; обе subtask NativePNG точно равны ранее осмотренным. Все29новых/77прежних кейсов прошли. Source app/testd1a3486a080b9f89998b9c1282445c217b555e89, productionapp506a; UIidle-pumpfix сохранил15s/assertions. Отрицательныеtarget1/2сохранены. Proof docs/subtasks-1.10.65-targeted-verification.json.
+
+Теперь ordinary main push FULL CI: **969 ожидается, НЕpass до фактического отчёта**. Послеуспеха autoSigned прежнимNOTELS_SIGNING_MATERIAL, независимая ZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerv2v3/1signer/pin/newDEX/actualRoom20, затем свежийactualminifiedreleaseGCAPI28+35: settingsARTGC/launcher/running+НОВЫЙsubtaskprobe tinyinline+/typedchild/exitSave/PIDabsent/NMSactualpausecomplete/private/parent+sibling/oneNearestAlarm. НовыеPythonprobe/sourceRoom20profile пока толькоsyntax/hostSQL; НЕAndroidpass. Room20identity8c092e0c7b1aa3fc45029ee351f31cb5/schemaSHA6f55d5410d8471bb0b8fab0debff56a3ff31aa5dc2743e90c5d235855dd1982f; official20.json/7старыхentitiesточноравны19. НеиспользоватьhardcodedRoom18/19verifierкак20proof.
+
+Main/app/test/MAINdocsзаморожены до full/Signed/GC; диагностический--testsworkflowНЕслит, normalfullandroid.yml сохранён. Не второйGradle/не дублироватьживуюработу. ПоследнийVERIFIEDinstallerпока64/code87/Room19/source45ef/full940/Signed46121842645/artifact15254103877/freshGC46124703052.65ещёНЕinstaller/91НЕзакрыт. Послеполногоуспеха91→92–97 автономно. ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms/не начаты; реализацию/CIwait/паузы не считать. Userplusуточнениеучтено: маленький+добавляетподзадачуinline, timer/stopwatchсправа. Existingcompletedarchiveсохранён. Batteryessential/нетappbackgroundpersecondpoll/service/wakelock/idleloops. Нетphysicalphone/battery/stylusmeasurements. Secret/pinне менять/ключилиloginнепросить;68/iPhone/новыеИИ/paidinferenceне начинать. ЛокальныхSDKGradlebuildsнет/RESTforce=false/noresetcleanforcepush/losttree. CodexGoalACTIVE; automationтотжеfallback, избегатьдублей. Guide docs/subtasks-guide.md/report docs/subtasks-1.10.65.md.
+
+Нижние записи — история.
+
