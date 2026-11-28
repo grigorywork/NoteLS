@@ -1,3 +1,11 @@
+##89:повтор на том же source после подтверждённого Maven HTTP429
+
+Featurecodex/duration-1.10.63/source62ee82774572d08d7ebe8e8c2f036e1436c250de прежний, lint-fix уже применён. Первыйtarget46107006914=51/0/0ноlint1Error; второй46108181195/job140865553214 наdiagnostic7d7d2a3874e565cfa09b3b178f5c2312a7b2416e:51/27fail/0ignored. Все27случаев поHTML подтверждены какHTTP429наофициальномMavenCentralSDKdownload(26SDK28+1SDK35), до тела теста. Это НЕкодоваядиагностика/НЕуспех;lintassembleнепроверены. Artifact15248253633 ZIP46184bytesSHA256ad31c53d55ad43fc2288871b9dec43e3b94b26545ac8e4f4b484ad0b1de6c6e8=API/HTML. [Сетевой отчёт](duration-1.10.63-network-targeted.json).
+
+ИДЁТ третийсвежийCI46108755335/job140867333989 на ТОМЖЕsource7d7d2a3/app62ee827, код/тесты/таймауты/официальныйрепозиторийне менялись. App/testзаморожены,не запускатьвторойGradle. СначалаСВЕЖИЙрезультат;припостоянном429решатьзагрузкуподлинныхSDK,не обходитьassertions/Native/lint/контрольпроисхождения. Послеуспеха/audit/NativePNGполный914(ожидаетсяНЕpass)/Signed/independentAPKRoom19/freshGC. Mainapp62verified/63НЕinstaller/89НЕзакрыт;только потом90–97. НовыйколлекторStateFlowУЖЕисправлен,не повторятьпоистории.
+
+Оба3h-окна послеВСЕХ ещё0ms. Батареяобязательна;68/iPhone/новыеИИне начинать,подпись/Secretне менять,локальныхSDKGradlebuildsнет/RESTforce=false. Ниже история.
+
 ##89:первыйtarget51/0, lint-fix УЖЕприменён, повтор идёт
 
 Featurecodex/duration-1.10.63 checkpoint`62ee82774572d08d7ebe8e8c2f036e1436c250de`, de2b1fcвключён; взять свежийcheckpoint, не делать89 сначала. ПервыйCI46107006914/job140861904373/sourcea3b0430c2f0afc992e3775a36bd7fd6edcdb4afc: **51тест/0отказов/0пропусков**, включая все9новых. Однакоlint1Error StateFlowValueCalledInComposition на первоначальном repository.state.value, buildFAILED9m3s; это НЕуспешныйCI/assembleнеподтверждён. Artifact15248167430 ZIP357706bytesSHA256ea90837979359732de0ca6208b3916aab576fe8995c8188f8c3aa0979ce97593=API проверен. [Отрицательныйtarget](duration-1.10.63-first-targeted.json).

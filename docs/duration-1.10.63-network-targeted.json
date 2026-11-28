@@ -1,0 +1,26 @@
+{
+  "stage": 89,
+  "run_id": 46108181195,
+  "job_id": 140865553214,
+  "source": "7d7d2a3874e565cfa09b3b178f5c2312a7b2416e",
+  "app_source": "62ee82774572d08d7ebe8e8c2f036e1436c250de",
+  "result": "failure",
+  "classification": "infrastructure_dependency_http429",
+  "tests": 51,
+  "failures": 27,
+  "ignored": 0,
+  "all_27_failed_cases_verified_sdk_download_http429": true,
+  "coordinates_failed_cases": {
+    "org.robolectric:android-all-instrumented:9-robolectric-4913185-2-i7": 26,
+    "org.robolectric:android-all-instrumented:15-robolectric-12650502-i7": 1
+  },
+  "repository": "https://repo.maven.apache.org/maven2",
+  "artifact_id": 15248253633,
+  "archive_bytes": 46184,
+  "archive_sha256": "ad31c53d55ad43fc2288871b9dec43e3b94b26545ac8e4f4b484ad0b1de6c6e8",
+  "digest_matches_api": true,
+  "build_duration": "5m3s",
+  "lint_assemble_confirmed": false,
+  "full_ci": false,
+  "installable_63": false
+}

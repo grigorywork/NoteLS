@@ -1775,3 +1775,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T04:36:07.372560+00:00:89firsttarget46107006914=51/0/0ноlint1ErrorStateFlowValueCalledInComposition/build9m3s. FixУЖЕв62ee827/удалённойdurationветке,compile/testповтора46108181195/source7d7d2a3поканеизвестны;app/testзаморожены. 3NativePNGосмотрены,rawms/audio/schema/keyне менялись. Main62verified/63неinstaller/89незакрыт,afterall3h+3h0ms.
+
+
+2026-11-28T04:46:07.444650+00:00:89repeat2=51/27fail/0ignored,все27HTTP429MavenCentralSDKдоtelтеста провереныHTML,НЕкодовыйотказ/НЕpass. Новыйrun46108755335/job140867333989sourceТОТЖЕ7d7d2a3/app62ee827идёт,исходникизаморожены;репозитории/таймауты/проверкине менялись. Main62verified/63неinstaller,3h+3hещё0ms.
