@@ -1772,3 +1772,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T04:18:41.606813+00:00:89НАЧАТ1.10.63/code86/Room19;defaulttrueautomatic_duration_units/newpureTaskDurationStyle/themedrootpolicy/sharedstopwatchcountdownanalytics;legacyTaskTimer.format/audioнеизменны. Подготовлены4pure/2prefs/3UI,компиляцияипроверкиещёненачаты,full914ожидаетсяНЕpass. Main62verified,ключ/Secret/Room/модели не менялись;послеВСЕХ3h+3hещё0ms.
+
+
+2026-11-28T04:33:29.289412+00:00:89firsttarget46107006914=51/0fail/0ignored,ноlintStateFlowValueCalledInComposition1error,НЕpass. ЗаменёнrootinitialvalueнаcollectAsStateWithLifecycle+remember2fields безlintSuppress/assertweakening. 3NativePNGосмотрены/320RUEN+analyticsminutes;repeatещёпредстоит. Main62verified,63неinstaller,afterall3h+3h0ms.
