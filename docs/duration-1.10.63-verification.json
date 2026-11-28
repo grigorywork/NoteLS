@@ -1,0 +1,360 @@
+{
+  "stage": 89,
+  "verified_at": "2026-11-28T05:51:01.740126+00:00",
+  "runtime_source": "63c202e7178d3a1b78fbe6627135e9ea52962e6b",
+  "full_ci": {
+    "run_id": 46109590690,
+    "job_id": 140869919575,
+    "build": "22m19s",
+    "artifact_id": 15248724356,
+    "archive_sha256": "cf9a0e5fc5a7d1670dc562ff0a6aaf3c6b2ca96290969baaf5001eae9985a4c4",
+    "archive_bytes": 1372466,
+    "workflow_run": {
+      "id": 46109590690,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "63c202e7178d3a1b78fbe6627135e9ea52962e6b"
+    },
+    "tests": 914,
+    "failures": 0,
+    "ignored": 0,
+    "lint": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 27,
+      "Information": 2
+    },
+    "screenshots": {
+      "analytics-preview/overdue-320.png": "34b6e61f2aae4a8f1c31c6c1f7377912fc39a185d2b76633ad2a2979f70b1988",
+      "analytics-preview/overdue-large-en-320.png": "1b765f93a96330efca63ad69ec9317a08ad893090dfc4f5d1ab340f6157e8592",
+      "analytics-preview/periods-320.png": "a799ae5fa84d245a954a0423b97e1e8e15bdc682f5851129f12b997fa093cbd2",
+      "diary-preview/password-320.png": "7def7b2781785a7416cd970c0e7264f33bd0a722653752f0fc64331e0fbc80bc",
+      "duration-preview/analytics-minutes-320.png": "55f9b786521dc01ae0b05779b8a455cf62a82bcbe3e8cd0ac49be451b7af7c01",
+      "duration-preview/settings-en-large-320.png": "6c18592eb6a56ceb2ee615b2b03eb7c809a1afddab74031e66722930d23c5526",
+      "duration-preview/settings-ru-320.png": "debf359047955058585f3dc79a9e2b8a41b451d7052b522213e7cb75e36ca1ec",
+      "editor-preview/note-320.png": "9ed67c9e57691138300c4ffa625e27bc07dee48b48b64ccf93382fac0af36401",
+      "editor-preview/quick-transform-editor-320.png": "1f2a4e04666ae1895a1bd91a33a9cdd9ed80e9575c3b310e5af489255b5ab095",
+      "editor-preview/task-320.png": "c9e634c5c9537d6ce6c828e80152dd372fab8663506973145fb3acf149f8466f",
+      "editor-preview/task-ime-large-font.png": "12be98a8a8cbcd5ddd923995349024df7bb24c06c3b009fe3dbf74e2630406cf",
+      "glass-preview/dark-large-320.png": "216a071134ac6575053ea5296ae45e52540c2f84d46cdf09f1d1bb2c0a59b5a8",
+      "glass-preview/light-draft-320.png": "f7d0afb656b7fee1bcfd1b2b2ec06b0b4ae5ca91cdce2734f135a4873f80e96a",
+      "navigation-preview/agenda.png": "1ece71415c2794d6e9689c81bd4079de0ad149000831918985899e555c20b570",
+      "navigation-preview/completed.png": "89372c9103150a7613adc5df77cbb16f2e5d75e42a77de3a06e3b67b7f1b320e",
+      "navigation-preview/drawer.png": "fd34c486311d02356c5aea43f26a14df1f571126d3171aa3897d85ff60fc078c",
+      "quotes-preview/drawer-320.png": "36b34e6e68371f72bbbbc23d5be65ee4e07ecc09ca2c8f86f5497e89d1eab7ba",
+      "quotes-preview/drawer-large-font-320.png": "77a83a28bd382bda01f197bd183b4c14b45186848b32bfc651f46d61f2a18596",
+      "quotes-preview/library-320.png": "089bfe89f1ff55a48fd97feeee03feada3b52bc40385d77b9fd1052756592dc6",
+      "settings-preview/appearance-chips-320.png": "4995a1b818e7edc4cb01e090c4b5a8c1dc74e1d851f8908f31e7b51e12263e87",
+      "settings-preview/appearance-chips-glass-large-en-320.png": "f71a0a83d404c93f99003f96b924a9f29ddc5a6b12ee0e6b936ce701a490e786",
+      "settings-preview/free-model-nemotron-320.png": "1cd7072ea13137e5f0aad1cb84a40f3107b308da52868a80cc646e92dab9845b",
+      "settings-preview/launcher-icons-after-stale-callback.png": "06fdd006a4209408fd16e25bcae2c7e2c23e6a17f57ccfd5b00a871a80973355",
+      "settings-preview/launcher-icons-before-stale-callback.png": "ffc2155a0d90207e07d19a4f28ff0731ee6ac2a5aa220e09f0e3c1975574b4ae",
+      "settings-preview/launcher-icons-en-large-320.png": "5dd5eafdad5410265854e8edbd40a8b27eceb0859dc4e8f9869d8585e9d28d1c",
+      "settings-preview/launcher-icons-paper-restored-320.png": "76ba753b86c86e0d2f3b17f56d21b6e324144f27699ead58d9553762b1d1aa22",
+      "settings-preview/launcher-icons-ru-320.png": "61bd116bb3b20cab9226a2beaad0bdbd73bb4a09a0c301fc877e7f45ed71e9d5",
+      "settings-preview/overview-320.png": "63f3c9861a7b96ae2e16b0e49fd57a970d5316ad64b1124d9d1bb7df092b4f1f",
+      "settings-preview/planner-shortcut-320.png": "5fde2750091fcdc5cd0b1fc6f83b564cb3262cec7cacd93527c97d18e646445d",
+      "settings-preview/qwen-settings-320.png": "7987d4228f85ca0117bbf8879da3b31de166314c9fd3a33c2fbeea9eabbfc3b7",
+      "settings-preview/voice-chips-320.png": "8824cc6660d60b33ac18b428bf5cce47161c29b5449593f62dd5e593cc2091cc",
+      "table-style-preview/cell-320.png": "26e4255bc71ca1310d358dab64d0e5dfc80ae07c7306fc25055d4cf949192949",
+      "table-style-preview/large-ime-320.png": "c1eafc126dec99ca71c5d5abf9e5a23f4fef51dfad43320ef09b7d4023e8ac1b",
+      "voice-preview/panel-ime.png": "6682716558d7569da969cf38cd9a60b13f31db5e4d23dc8ac0cfda61e955059f"
+    }
+  },
+  "signed": {
+    "run_id": 46111373337,
+    "identity_job": 140875434579,
+    "release_job": 140875465040,
+    "build": "4m55s",
+    "contracts": 13,
+    "artifact_id": 15249629264,
+    "archive_sha256": "4a32aa89f1b5aa204fbf5014e8fabf705682ba7ced62b2f3023775d6389e7bda",
+    "archive_bytes": 19023514,
+    "workflow_run": {
+      "id": 46111373337,
+      "repository_id": 1453932868,
+      "head_repository_id": 1453932868,
+      "head_branch": "main",
+      "head_sha": "63c202e7178d3a1b78fbe6627135e9ea52962e6b"
+    },
+    "source": "63c202e7178d3a1b78fbe6627135e9ea52962e6b",
+    "package": "com.notessync.app",
+    "version": "1.10.63",
+    "code": 86,
+    "apk_name": "NoteLS-1.10.63-code86-permanent-signature.apk",
+    "apk_bytes": 31138671,
+    "apk_sha256": "66dca7673eb673068b5e11043aeaf7785de66ea7e7e56b70602aa7fe5f66f135",
+    "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+    "verified_schemes": [
+      2,
+      3
+    ],
+    "signers": 1,
+    "debuggable": false,
+    "dex_sha256": {
+      "classes.dex": "16eced05ded3d03e92db3e9664cf91f9770cc6ff186b1dbc0cf6eef5f98ff9d4"
+    },
+    "readme_source_verified": true,
+    "min_sdk": 26,
+    "target_sdk": 35,
+    "physical_device_tested": false,
+    "room_schema": 19,
+    "room_identity": "61703504e840fea926257eeba0d419e1",
+    "room_schema_sha256": "042c21c232e2fc605acbd951fe267226af750d7c37e465c46d657785a84d3869",
+    "analytics_period_dex_markers_verified": true,
+    "notebook_identity_dex_markers_verified": true,
+    "duration_dex_markers_verified": true
+  },
+  "release_gc": {
+    "run_id": 46111819590,
+    "job_id": 140876808844,
+    "artifact": {
+      "id": 15250011167,
+      "name": "release-settings-after-gc-63c202e7178d3a1b78fbe6627135e9ea52962e6b",
+      "size_in_bytes": 1816321,
+      "url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15250011167",
+      "archive_download_url": "https://api.github.com/repos/grigorywork/NoteLS/actions/artifacts/15250011167/zip",
+      "expired": false,
+      "created_at": "2026-11-28T05:27:55Z",
+      "expires_at": "2027-02-26T05:22:31Z",
+      "updated_at": "2026-11-28T05:27:55Z",
+      "digest": "sha256:dc5e5d37041968da4a1d5497398552c93ed373e24c5dbc6ba1fe0691b55910f5",
+      "workflow_run": {
+        "id": 46111819590,
+        "repository_id": 1453932868,
+        "head_repository_id": 1453932868,
+        "head_branch": "main",
+        "head_sha": "63c202e7178d3a1b78fbe6627135e9ea52962e6b"
+      }
+    },
+    "input": {
+      "signed_run_id": "46111373337",
+      "source": "63c202e7178d3a1b78fbe6627135e9ea52962e6b",
+      "apk_sha256": "66dca7673eb673068b5e11043aeaf7785de66ea7e7e56b70602aa7fe5f66f135",
+      "certificate_sha256": "c94bdfcf4d5a4ce0cfa51809707bf94f9034b1a1a47cd89a2a13e9577845661c",
+      "non_debuggable": true
+    },
+    "result": {
+      "status": "success",
+      "mode": "require-live",
+      "apk_sha256": "66dca7673eb673068b5e11043aeaf7785de66ea7e7e56b70602aa7fe5f66f135",
+      "minified_installed_apk": true,
+      "art_gc_confirmed": true,
+      "physical_phone": false,
+      "fresh_hierarchy_required": true,
+      "hierarchy_retries": 1,
+      "events": [
+        {
+          "label": "Светлая",
+          "key": "theme_mode",
+          "persisted": "LIGHT",
+          "ui_selected": true,
+          "ui_wait_ms": 1116
+        },
+        {
+          "label": "Крупный",
+          "key": "font_scale",
+          "persisted": "1.15",
+          "ui_selected": true,
+          "ui_wait_ms": 1123
+        },
+        {
+          "label": "Оранжевый",
+          "key": "accent_color",
+          "persisted": "ORANGE",
+          "ui_selected": true,
+          "ui_wait_ms": 1117
+        }
+      ]
+    },
+    "launchers": {
+      "28": {
+        "status": "success",
+        "apk_sha256": "66dca7673eb673068b5e11043aeaf7785de66ea7e7e56b70602aa7fe5f66f135",
+        "minified_installed_apk": true,
+        "actual_android_emulator": true,
+        "physical_phone": false,
+        "events": [
+          {
+            "tap_proof": {
+              "label": "Розовое стекло",
+              "row_bounds": [
+                84,
+                1396,
+                996,
+                1606
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1794
+              ],
+              "tap": [
+                540,
+                1501
+              ]
+            },
+            "alias": "GlassIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          },
+          {
+            "tap_proof": {
+              "label": "Матовый",
+              "row_bounds": [
+                84,
+                458,
+                996,
+                668
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1794
+              ],
+              "tap": [
+                540,
+                563
+              ]
+            },
+            "alias": "FrostedIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          },
+          {
+            "tap_proof": {
+              "label": "Лист с галочкой",
+              "row_bounds": [
+                84,
+                677,
+                996,
+                887
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1794
+              ],
+              "tap": [
+                540,
+                782
+              ]
+            },
+            "alias": "PaperIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          }
+        ],
+        "same_apk_update_preserves_choice": true,
+        "main_activity_always_enabled": true
+      },
+      "35": {
+        "status": "success",
+        "apk_sha256": "66dca7673eb673068b5e11043aeaf7785de66ea7e7e56b70602aa7fe5f66f135",
+        "minified_installed_apk": true,
+        "actual_android_emulator": true,
+        "physical_phone": false,
+        "events": [
+          {
+            "tap_proof": {
+              "label": "Розовое стекло",
+              "row_bounds": [
+                84,
+                1641,
+                996,
+                1851
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1857
+              ],
+              "tap": [
+                540,
+                1746
+              ]
+            },
+            "alias": "GlassIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          },
+          {
+            "tap_proof": {
+              "label": "Матовый",
+              "row_bounds": [
+                84,
+                1181,
+                996,
+                1391
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1857
+              ],
+              "tap": [
+                540,
+                1286
+              ]
+            },
+            "alias": "FrostedIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          },
+          {
+            "tap_proof": {
+              "label": "Лист с галочкой",
+              "row_bounds": [
+                84,
+                1158,
+                996,
+                1368
+              ],
+              "viewport_bounds": [
+                0,
+                231,
+                1080,
+                1857
+              ],
+              "tap": [
+                540,
+                1263
+              ]
+            },
+            "alias": "PaperIcon",
+            "selected": true,
+            "launcher_count": 1,
+            "process_survived_switch": true,
+            "relaunch_selected_component": true,
+            "persisted_after_process_restart": true
+          }
+        ],
+        "same_apk_update_preserves_choice": true,
+        "main_activity_always_enabled": true
+      }
+    }
+  },
+  "physical_phone_tested": false,
+  "battery_measured": false
+}

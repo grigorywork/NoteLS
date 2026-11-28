@@ -1781,3 +1781,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T04:53:07.598994+00:00:89fresh46108755335/job140867333989=51/0fail/0ignored/lint0error27warnings2info/build7m18s,ZIP/API/HTML/lintXMLпроверены. 3NativePNGравныосмотренным. НакодеТОМЖЕ7d7d2a3/app62ee827HTTP429разрешился,источникзависимостей/таймауты/проверкине менялись. Готовобычныйmainfull914ожидаемыйНЕpass/63неinstaller/89незакрыт;потомSigned/independentAPKRoom19/freshGC→90. Main62lastverified;afterall3h+3h0ms.
+
+
+2026-11-28T05:51:01.745903+00:00: 89 закрыт: full46109590690=914/0/0/lint0error, Signed46111373337/artifact15249629264 + independent actualRoom19 APK + GC46111819590/API28+35 проверены. Proofdocs/duration-1.10.63-verification.json. Следующий90/64code87, потом91–97; пользователь повторно требует продолжать автономно без остановки ради отчёта. ПослеВСЕХ3h+3hоба0ms, батареяобязательна.
