@@ -59,6 +59,7 @@ class NotebookCreationTest {
             assertTrue(vm.saveNow(force = true))
             val saved = db.noteDao().getById(vm.currentNoteId)!!
             assertEquals(work.id, saved.notebookId); assertEquals("Body $task", saved.content)
+            models.clear(); dispatcher.scheduler.runCurrent()
             val reloaded = editor(id = saved.id); assertEquals("Work", reloaded.notebookName); assertEquals(saved.content, reloaded.contentField.text)
             if (task) { reloaded.toggleCompleted(); assertTrue(reloaded.saveNow(force = true)) }
             val after = db.noteDao().getById(saved.id)!!
@@ -68,6 +69,7 @@ class NotebookCreationTest {
                 assertEquals(listOf(saved.id), db.noteDao().rawCards(NotesViewModel.buildCardQuery("", NoteFilter.Completed, NoteSort.BY_DATE, archiveCompleted = true)).first().map { it.id })
                 assertFalse(db.noteDao().rawCards(NotesViewModel.buildCardQuery("", NoteFilter.Notebook(work.id, work.name), NoteSort.BY_DATE, archiveCompleted = true)).first().any { it.id == saved.id })
             }
+            models.clear(); dispatcher.scheduler.runCurrent()
         }
         assertEquals(3, noteCount()); assertEquals(unrelated, db.noteDao().getById(unrelated.id))
         assertEquals(2, db.noteDao().rawCards(NotesViewModel.buildCardQuery("", NoteFilter.Notebook(work.id, work.name), NoteSort.BY_DATE)).first().size)
