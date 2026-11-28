@@ -1897,3 +1897,20 @@ APK stable https://github.com/grigorywork/NoteLS/actions/runs/46121842645/artifa
 
 Older entries below are history.
 
+
+
+2026-11-28T08:49:58.818560+00:00
+## 91 в проверке; 90 закрыт —28ноября2026
+
+Verified main installer64/code87/Room19,90 CLOSED (proofdocs/running-tasks-1.10.64-verification.json, source45ef5c50/full940/Signed46121842645/artifact15254103877/freshGC46124703052/API28+35 actualnativecontrols). НЕ повторять90.
+
+Новый91 candidate1.10.65/code88/Room20/data2/security3: feature/local clean **codex/subtasks-1.10.65/506a768fcb3ae2d77d8e0bc0239a82f6c0df0825**. Всё сохранено GitHub, в новой среде fetchfeature и последующие checkpoint, не начинать91 заново. Mainapp покаverified64. Маленькийinline«+» добавляет пункт прямо в заметке/задаче, checkbox/text, stopwatch+timer справа/48dptouch18dpglyph/scroll+preview+sharedforegroundtick. Нормализованная note_subtasks FKCASCADE/compositeparentID+childUUID,19→20additive, все7 старыхentity точноравны19. Official KSP20.json identity8c092e0c7b1aa3fc45029ee351f31cb5/schemaSHA6f55d5410d8471bb0b8fab0debff56a3ff31aa5dc2743e90c5d235855dd1982f checkedAPIartifact15255783788 — это НЕ actualAPKproof. Store100items/2000each/64ktext/100kglobal/diffupdates, nullablelegacywirepreserve/explicitclear/conflict/backupvalidation, history+fresh3waychildobserver/noop, completion/trashpause/purgeclear. NativeNMSparent+child+expectedgen/privateSQLmask, ONEnearestglobalone-shotchildalarm, finishedgeneration protects deliveredalert, boundedmetadataRoomobserver for≤20 postedalertparents hides oldpublictitle onnote/bookprotection evenongoingOFF. Sourceaudit fixes alreadyapplied506a, do NOT repeat.
+
+Firsttarget46127048986/job140923851969/appb1ef FAILEDcompile1m10s NoteEditorViewModel285(committedSubtasks load vs save); NO tests/lint/assemble success. [Negativeproof](docs/subtasks-1.10.65-first-targeted.json). Corrected506a movedreplaceSubtasksAFTERparentinsert in actualpersist, notload; addedremotecompletionaccruedtime anddeliveredalertprivacy regressions. NEWtarget2 **46127520243**, diagnosticcodex/subtasks91-targeted2/source65016430e92ab05edc9f3b9b473c3818c1a54c47, app/test exactly506a, only--tests workflow differs; currentlyIN_PROGRESS/NO compile/test/lintpass yet.29newcases/full969 EXPECTED NOTpass. Normalfeatureandroid.yml remainsfull +subtask-previewpath. Diagnosticworkflow NEVERmerge. App/testFROZENwhilecheck/no secondGradle.
+
+FirstfreshCIresult/diagnosis w/o assertionweakening/timeoutincrease. Aftertarget: NativePNGs inspect/audit. REMAININGbeforefullready: trustedactualsourceRoom20 schema profile forrelease_running_task_probe (currentlyhardcoded19), actualminified subtaskprobe API28/35 (inline+creation/save then nativechildpause/complete/PIDdeath/parent+siblingprivateguards). Pendingaudit scratch/notels-stage91/pending-audit.md has old1/2ALREADYAPPLIED;3/4stillpending. Scratchoutlineoldpreparation no longertruth, currentfeature source/report docs/subtasks-1.10.65.md authoritative. No localSDKGradlebuilds. Thenmainnormalfull→Signedexistingkey→independentZIPAPI/exact3/SUMS/sourcepackageversionnondebug/apksignerpin/compilednewDEX/actualRoom20→freshactualminifiedGC+subtaskprobe→close91/journal/main→92–97. No installer65 yet. APK64 alreadydeliveredcommentaryfreshZIP; stablelinkbelow.
+
+Goal explicitlyACTIVE inCodexGoals tocontinue autonomousqueue (notcomplete), plus same existingfallbackAutomation_071fe34793b881919672b7f4cf8dca94. Avoidduplicateexecutor/checklivework. AfterALL87–97 new3hactiveaudit→3hfixopt BOTH0ms/ledgercurrent91; implementation/CIwait/pauses notcount. Batteryessential/noappbackgroundpersecondpoll/service/wakelock/idleloops. Existingcompletedarchive unchanged,68/iPhone/newAI/paidinference excluded. PermanentSecret/pinunchanged/no login/keyquestions. GitHubRESTforce=false/no reset/clean/forcepush/losttree. Keepworkingautonomouslywithoutquestionsbetweenstages.
+
+Older entries below history.
+
