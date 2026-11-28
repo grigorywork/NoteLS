@@ -1,0 +1,24 @@
+{
+  "stage": 89,
+  "run_id": 46107006914,
+  "job_id": 140861904373,
+  "source": "a3b0430c2f0afc992e3775a36bd7fd6edcdb4afc",
+  "app_source": "de2b1fc8132fae91f6a22492e81c50c1c4cbb3cb",
+  "result": "failure",
+  "tests": 51,
+  "failures": 0,
+  "ignored": 0,
+  "lint_error": {
+    "id": "StateFlowValueCalledInComposition",
+    "file": "TaskDurationUi.kt",
+    "line": 25
+  },
+  "artifact_id": 15248167430,
+  "archive_bytes": 357706,
+  "archive_sha256": "ea90837979359732de0ca6208b3916aab576fe8995c8188f8c3aa0979ce97593",
+  "digest_matches_api": true,
+  "build_duration": "9m3s",
+  "assemble_confirmed": false,
+  "full_ci": false,
+  "installable_63": false
+}

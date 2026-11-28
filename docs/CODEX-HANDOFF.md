@@ -1,3 +1,7 @@
+##89:51тестпрошёл, lint-fix подготовлен к повтору
+
+Первый46107006914=51/0fail/0ignored, ноlint1Error StateFlowValueCalledInComposition; это НЕ успешныйCI. Прямое начальноечтениеvalue УЖЕзаменено штатным collectAsStateWithLifecycle()+rememberдвухполей, безSuppress/ослабленияпроверок. Все3NativePNGосмотрены, новыйрежимRU/EN/аналитикаработалвтестах. Новыепроверки4pure/2prefs/3UI=9, full914ожидаетсяНЕpass. Source свежегоfeaturecodex/duration-1.10.63 получитьпередпродолжением; de2b1fcне братьповерхнового. Mainпокаverified62,63НЕinstaller/89НЕзакрыт. Послеrepeat/аудит/full/Signed/independentAPKRoom19/freshGC→90–97. Новые3h+3hпослеВСЕХещё0ms/батареяобязательна/68iPhoneновыеИИне начинать. Нижеистория.
+
 ## В работе89 — кандидат1.10.63/code86,28ноября2026
 
 Настройка «Часы и дни в таймерах» defaulttrue, выключение показывает суммарные минуты:секунды. Под часом MM:SS, при60мин1ч00м, при24ч1д00ч00м. Полный вид хранит ненулевые секунды, компактный при>=1ч оставляет минуты; полный accessibility-label точен. RU/EN, без Locale.setDefault/переполнения formatter, сырые миллисекунды/даты/Room19 не меняются. TaskTimer.format и формат аудиозаписей остаются прежними.

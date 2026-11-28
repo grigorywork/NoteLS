@@ -10,3 +10,11 @@
 
 
 Примеры:1ч02м/1ч 02м 03с;1д00ч00м/1440:00. Настройкаразмещенавкомпактнойгруппередакторасpreview. Проверкиboundary59:59→1ч,23:59:59→день/LongMINMAX/ENlocale/prefsreload-corrupt/UIclocks+analytics/сохранениесырыхданных.
+
+## Первый target: тесты успешны, lint остановил сборку
+
+46107006914/job140861904373/sourcea3b0430c2f0afc992e3775a36bd7fd6edcdb4afc:51tests/0fail/0ignored, включая все4pure/2prefs/3UI и прежниеclock/format/editor/settings/i18n. Lint1Error StateFlowValueCalledInComposition на начальном чтении repository.state.value в TaskDurationUi.kt:25; assemble/Signed не подтверждены, это НЕ успешныйCI. ZIP357706bytes/artifact15248167430 SHA256ea90837979359732de0ca6208b3916aab576fe8995c8188f8c3aa0979ce97593=API проверен. Все3 duration NativePNG осмотрены: RUtoggle/ENlargefont320/analyticsminutes. Это NativeCanvas, не телефон.
+
+Исправление: вместо прямого чтения начального StateFlow.value корневойprovider использует штатный repository.state.collectAsStateWithLifecycle(), а TaskDurationStyle запоминается только по нужным2полям. Остаётся одна event/lifecycle подписка на themed root, нет новыхпериодическихjobs/опроса/переключателейнакаждыйтик. Lintнеподавлялся/assertions/таймаутыне менялись. Повтор51+lint/assemble ещёпредстоит. Guide task-duration-guide.md.
+
+Для будущего общего аудита послеВСЕХ: проверить перенос легенды цвета в аналитике на320dp (Nativeanalytics-minutesPNG показывает разрыв Фиолетовый передпоследнейбуквой); это не изменение formatter, не физическийтелефон/не объявленный фикс и не начало3hокна.
