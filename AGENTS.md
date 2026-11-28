@@ -1,3 +1,13 @@
+##89 начат и сохранён, целевойCI идёт —28ноября2026
+
+Кандидат1.10.63/code86/Room19/data2/security3 в удалённой `codex/duration-1.10.63`, checkpoint`de2b1fc8132fae91f6a22492e81c50c1c4cbb3cb`. Mainприложениепокаverified62/sourcecebd4e4; 88 закрыт/905/0/0/Signed46099655259/releaseGC46100198012. Не повторять88 и не терять feature89. [Отчёт](duration-1.10.63.md).
+
+Реализованы TaskDurationStyle, настройка automatic_duration_units defaulttrue с guarded чтением/persistence/preview, один event-driven lifecycle subscription на themed root, общий формат секундомер/countdown/аналитика. Под часом MM:SS, после60мин1ч00м/24ч1д00ч00м; компактный >=1ч без секунд, полный/accessibility сохраняет ненулевые секунды. Выключение — общее число минут:секунды. LegacyTaskTimer.format/audio/сырые длительности/даты/Room19/подпись не менялись. Нового ticker/jobs/wakelock нет; существующие foreground часы не тронуты. Уведомления задачи — будущий90, ещё не реализован.
+
+Идёт единственныйtargetCI46107006914 на `codex/duration89-targeted`, source`a3b0430c2f0afc992e3775a36bd7fd6edcdb4afc`;app/testровноde2b1fc, только командаworkflow фильтруетduration/legacytimer/clock/compacteditor/settings/analytics/i18n плюсlint/assemble. **Компиляция/тесты покаНЕподтверждены**. Новые4pure/2prefs/3NativeUI=9, full914ожидаетсяНЕpass. App/testзамороженыдозавершения, второйGradleне запускать. ДиагностическийworkflowНЕсливатьmain; официальныйsource только добавляет duration-preview uploadpath, полныйcommandсохранён. После результата диагностика/audit/NativePNG→обычныйfullCI/Signed/independentAPKactualRoom19/freshGC, только потом закрытие89→90–97.
+
+ПослеВСЕХновые3hаудита→3hоптимизацииоба0ms/неначаты; паузы/ожиданиеCI/простой/перекрытияисключать. Батареяобязательна,68/iPhone/новыеИИ/платныеinferenceне начинать,подпись/Secretне менять. ЛокальныхSDKGradlebuildsнет/RESTforce=false/не дублироватьживуюработу. Нижние записи исторические.
+
 ## Приоритет28ноября:88 закрыт, далее89–97
 
 Проверенная1.10.62/code85/Room19/sourcecebd4e4: полный905/0/0/lint0error/Signed46099655259/actualreleaseGC46100198012 и независимыйAPK проверены. Proofdocs/notebook-1.10.62-verification.json. Следующий89/1.10.63code86: форматдлительности/настройка, затем90–97. ПослеВСЕХ новые3h активногоаудита→3hоптимизации, оба0ms/неначаты, паузы/ожиданиеCI не считать. Батареяобязательна;68/iPhone/новыеИИ не начинать, ключ/Secretне менять, локальныхSDKGradlebuildsнет/RESTforce=false/app-testприCIзаморожены. Пользователь разрешил автономно продолжать здесь без вопросов.

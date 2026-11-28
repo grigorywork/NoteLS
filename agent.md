@@ -1769,3 +1769,6 @@ WIPfollowup покаНЕскомпилирован: реальная высот�
 
 
 2026-11-28T04:09:41.678086+00:00:88ЗАКРЫТ1.10.62code85/Room19/sourcecebd4e4. Full46097931933=905/0/0/lint0error/build20m28s; Signed46099655259/artifact15244784669 и freshGC46100198012 успешны. ZIP/API/exact3/SUMS/source/package/version/nondebug/actualapksignerpin/newDEX/actualRoom19 независимо проверены; proofnotebook-1.10.62-verification.json. Не физический телефон/не батарейный замер. Далее89/63code86, после ВСЕЙ очереди новые3h+3h ещё0ms. Подпись/Secret/модели прежние.
+
+
+2026-11-28T04:20:41.932505+00:00:WIP89/63code86 checkpointde2b1fc вcodex/duration-1.10.63; target46107006914/sourcea3b0430 идёт, compile/test/lint/assembleНЕподтверждены. Main62verified/88закрыт; app/testзаморожены,localSDKGradleнет;full914ожидаетсяНЕpass, послеВСЕХ3h+3hещё0ms.
